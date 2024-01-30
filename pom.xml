@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.pangju666</groupId>
+		<artifactId>pangju-dependencies</artifactId>
+		<version>1.0.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<artifactId>pangju-commons-parent</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+
+	<name>pangju-commons</name>
+	<description>java 公共类库父级依赖，对Apache工具包进行拓展，部分参考自RuoYi和HuTool</description>
+	<url>https://github.com/pangju666/java-pangju-commons</url>
+
+	<modules>
+		<module>pangju-commons-lang</module>
+		<module>pangju-commons-codec</module>
+		<module>pangju-commons-io</module>
+		<module>pangju-commons-poi</module>
+		<module>pangju-commons-pdf</module>
+		<module>pangju-commons-validation</module>
+	</modules>
+
+	<properties>
+		<skipTests>true</skipTests>
+	</properties>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>pangju</id>
+			<name>majiale</name>
+			<email>2281525307@qq.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git@github.com:pangju666/java-pangju-commons.git</connection>
+		<developerConnection>scm:git@github.com:pangju666/java-pangju-commons.git</developerConnection>
+		<url>https://github.com/pangju666/java-pangju-commons</url>
+	</scm>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-lang</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-codec</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-io</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-poi</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-pdf</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-validation</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Sonatype Nexus Snapshots</name>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<name>Nexus Release Repository</name>
+			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+</project>
