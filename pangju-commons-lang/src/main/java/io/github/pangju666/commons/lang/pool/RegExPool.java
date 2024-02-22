@@ -45,10 +45,6 @@ public class RegExPool {
 	/**
 	 * 电话号码
 	 */
-	public static final String MOBILE_PHONE = "(13[0-9]|14[0-9]|15[0-9]|18[0-9]|19[0-9])[0-9]{8}";
-	/**
-	 * 电话号码
-	 */
 	public static final String MOBILE_PHONE_WEAK = "1\\d{10}";
 	/**
 	 * 座机号码

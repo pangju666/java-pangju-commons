@@ -15,37 +15,61 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <E> E getFieldValue(final Object obj, final String fieldName) {
-		Field field = getAccessibleField(obj, fieldName);
+		Field field = getField(obj, fieldName);
 		if (Objects.isNull(field)) {
 			return null;
 		}
+		return getFieldValue(obj, field);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <E> E getFieldValue(final Object obj, final Field field) {
+		boolean accessible = isAccessible(field, obj);
+		if (!accessible) {
+			field.setAccessible(true);
+		}
 		try {
-			return (E) field.get(obj);
-		} catch (IllegalAccessException ignored) {
+			E value = (E) field.get(obj);
+			if (!accessible) {
+				field.setAccessible(false);
+			}
+			return value;
+		} catch (IllegalAccessException e) {
+			ExceptionUtils.rethrow(e);
 			return null;
 		}
 	}
 
 	public static <E> void setFieldValue(final Object obj, final String fieldName, final E value) {
-		Field field = getAccessibleField(obj, fieldName);
+		Field field = getField(obj, fieldName);
 		if (Objects.isNull(field)) {
 			return;
 		}
+		setFieldValue(obj, field, value);
+	}
+
+	public static <E> void setFieldValue(final Object obj, final Field field, final E value) {
+		boolean accessible = isAccessible(field, obj);
+		if (!accessible) {
+			field.setAccessible(true);
+		}
 		try {
 			field.set(obj, value);
-		} catch (IllegalAccessException ignored) {
+			if (!accessible) {
+				field.setAccessible(false);
+			}
+		} catch (IllegalAccessException e) {
+			ExceptionUtils.rethrow(e);
 		}
 	}
 
-	public static Field getAccessibleField(final Object obj, final String fieldName) {
+	public static Field getField(final Object obj, final String fieldName) {
 		if (Objects.isNull(obj)) {
 			return null;
 		}
 		for (Class<?> superClass = obj.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
 			try {
-				Field field = superClass.getDeclaredField(fieldName);
-				setAccessible(field, obj);
-				return field;
+				return superClass.getDeclaredField(fieldName);
 			} catch (NoSuchFieldException ignored) {
 			}
 		}
@@ -92,16 +116,24 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 	}
 
 	public static void setAccessible(final Field field, final Object instance) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-			|| Modifier.isFinal(field.getModifiers())) && !field.canAccess(instance)) {
+		if (!isAccessible(field, instance)) {
 			field.setAccessible(true);
 		}
 	}
 
 	public static void setAccessible(final Field field) {
-		if (!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-			|| Modifier.isFinal(field.getModifiers())) {
+		if (!isAccessible(field)) {
 			field.setAccessible(true);
 		}
+	}
+
+	public static boolean isAccessible(final Field field, final Object instance) {
+		return (Modifier.isPublic(field.getModifiers()) || Modifier.isPublic(field.getDeclaringClass().getModifiers())
+			|| !Modifier.isFinal(field.getModifiers())) && field.canAccess(instance);
+	}
+
+	public static boolean isAccessible(final Field field) {
+		return Modifier.isPublic(field.getModifiers()) || Modifier.isPublic(field.getDeclaringClass().getModifiers())
+			|| !Modifier.isFinal(field.getModifiers());
 	}
 }
