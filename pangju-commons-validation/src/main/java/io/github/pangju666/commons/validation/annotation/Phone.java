@@ -1,6 +1,5 @@
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.lang.enums.Strength;
 import io.github.pangju666.commons.validation.enums.PhoneType;
 import io.github.pangju666.commons.validation.validator.PhoneValidator;
 import jakarta.validation.Constraint;
@@ -20,7 +19,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Phone {
 	String message() default "手机号格式不正确";
 	PhoneType type() default PhoneType.MIX;
-	Strength strength() default Strength.MEDIUM;
+
+	boolean strong() default true;
 	boolean notBlank() default false;
 	boolean notEmpty() default false;
 	Class<?>[] groups() default {};
