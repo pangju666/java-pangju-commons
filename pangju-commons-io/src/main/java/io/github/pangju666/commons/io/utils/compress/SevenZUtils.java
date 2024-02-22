@@ -1,6 +1,5 @@
 package io.github.pangju666.commons.io.utils.compress;
 
-import io.github.pangju666.commons.io.lang.Constants;
 import io.github.pangju666.commons.io.utils.file.FilenameUtils;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
@@ -14,12 +13,17 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class SevenZUtils {
+	/**
+	 * 7z压缩文件MIME类型
+	 */
+	public static final String SEVEN_Z_MIME_TYPE = "application/x-7z-compressed";
+
 	protected SevenZUtils() {
 	}
 
 	public static void unCompress(final File compressFile, final File outputDir) throws IOException {
 		String mimeType = FilenameUtils.getMimeType(compressFile.getName());
-		if (!Constants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {
+		if (!SEVEN_Z_MIME_TYPE.equals(mimeType)) {
 			throw new IOException(compressFile.getAbsolutePath() + "不是7z类型文件");
 		}
 		try (SevenZFile sevenZFile = new SevenZFile(compressFile)) {

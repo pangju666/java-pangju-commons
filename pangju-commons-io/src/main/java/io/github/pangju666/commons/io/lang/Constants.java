@@ -1,5 +1,7 @@
 package io.github.pangju666.commons.io.lang;
 
+import org.apache.tika.Tika;
+
 /**
  * 常量集合
  *
@@ -8,21 +10,9 @@ package io.github.pangju666.commons.io.lang;
  */
 public class Constants {
 	/**
-	 * Unix分隔符
+	 * 默认Tika实例
 	 */
-	public static final char UNIX_NAME_SEPARATOR = '/';
-	/**
-	 * Unix分隔符
-	 */
-	public static final String UNIX_NAME_SEPARATOR_STR = "/";
-	/**
-	 * Windows分隔符
-	 */
-	public static final char WINDOWS_NAME_SEPARATOR = '\\';
-	/**
-	 * Windows分隔符
-	 */
-	public static final String WINDOWS_NAME_SEPARATOR_STR = "\\'";
+	public static final Tika DEFAULT_TIKA = new Tika();
 	/**
 	 * 图片MIME类型前缀
 	 */
@@ -43,14 +33,6 @@ public class Constants {
 	 * 应用MIME类型前缀
 	 */
 	public static final String APPLICATION_MIME_TYPE_PREFIX = "application/";
-	/**
-	 * 7z压缩文件MIME类型
-	 */
-	public static final String SEVEN_Z_MIME_TYPE = "application/x-7z-compressed";
-	/**
-	 * zip压缩文件MIME类型
-	 */
-	public static final String ZIP_MIME_TYPE = "application/x-zip-compressed";
 
 	protected Constants() {
 	}

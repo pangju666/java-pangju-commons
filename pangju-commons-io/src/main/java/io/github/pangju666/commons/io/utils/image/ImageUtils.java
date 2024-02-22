@@ -29,17 +29,36 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
+/**
+ * 图片工具类
+ *
+ * @author pangju
+ * @since 1.0.0
+ */
 public class ImageUtils {
 	protected ImageUtils() {
 	}
 
+	/**
+	 * 判断是否为图片文件
+	 *
+	 * @param file 要解析的文件
+	 * @return 是图片文件则返回true，否则为false
+	 * @throws IOException 图片读取失败
+	 * @see FileUtils#isImageType(File)
+	 * @since 1.0.0
+	 */
 	public static boolean isImage(final File file) throws IOException {
-		String mimeType = FileUtils.getMimeType(file);
+		return FileUtils.isImageType(file);
+	}
+
+	public static boolean isImage(final byte[] bytes) {
+		String mimeType = Constants.DEFAULT_TIKA.detect(bytes);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isImage(final InputStream inputStream) throws IOException {
-		String mimeType = FileUtils.getMimeType(inputStream);
+		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
