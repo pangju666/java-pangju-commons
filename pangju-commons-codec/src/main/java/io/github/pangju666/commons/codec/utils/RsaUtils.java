@@ -1,308 +1,121 @@
 package io.github.pangju666.commons.codec.utils;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.codec.binary.Base64;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
 
-public class RsaUtils {
+/**
+ * RSA工具类
+ *
+ * @author pangju
+ * @since 1.0.0
+ */
+public final class RsaUtils {
+	/**
+	 * 算法
+	 */
 	public static final String ALGORITHM = "RSA";
+	/**
+	 * 默认加解密算法
+	 */
+	public static final String DEFAULT_CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
+	/**
+	 * 默认签名算法
+	 */
+	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
+
 	private static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
-	private static KeyFactory keyFactory;
+	private static KeyFactory DEFAULT_KEY_FACTORY;
 
-	protected RsaUtils() {
+	private RsaUtils() {
 	}
 
-	public static KeyPair generateKey() {
-		try {
-			if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
-				DEFAULT_KEY_PAIR_GENERATOR = KeyPairGenerator.getInstance(ALGORITHM);
-			}
-			return DEFAULT_KEY_PAIR_GENERATOR.generateKeyPair();
-		} catch (NoSuchAlgorithmException e) {
-			return ExceptionUtils.rethrow(e);
-		}
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PublicKey key) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, ALGORITHM));
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PrivateKey key) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, ALGORITHM));
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PublicKey key, final String transformation) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, transformation));
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PrivateKey key, final String transformation) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, transformation));
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PublicKey key, final Charset charset) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PrivateKey key, final Charset charset) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PublicKey key, final String transformation, final Charset charset) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, transformation), charset);
-	}
-
-	public static String decryptToString(final InputStream inputStream, final PrivateKey key, final String transformation, final Charset charset) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(inputStream.readAllBytes(), key, transformation), charset);
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PublicKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, ALGORITHM));
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PrivateKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, ALGORITHM));
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PublicKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, transformation));
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PrivateKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, transformation));
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PublicKey key, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PrivateKey key, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PublicKey key, final String transformation, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, transformation), charset);
-	}
-
-	public static String decryptToString(final ByteBuffer byteBuffer, final PrivateKey key, final String transformation, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(byteBuffer.array(), key, transformation), charset);
-	}
-
-	public static String decryptToString(final byte[] input, final PublicKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, ALGORITHM));
-	}
-
-	public static String decryptToString(final byte[] input, final PrivateKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, ALGORITHM));
-	}
-
-	public static String decryptToString(final byte[] input, final PublicKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, transformation));
-	}
-
-	public static String decryptToString(final byte[] input, final PrivateKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, transformation));
-	}
-
-	public static String decryptToString(final byte[] input, final PublicKey key, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final byte[] input, final PrivateKey key, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, ALGORITHM), charset);
-	}
-
-	public static String decryptToString(final byte[] input, final PublicKey key, final String transformation, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, transformation), charset);
-	}
-
-	public static String decryptToString(final byte[] input, final PrivateKey key, final String transformation, final Charset charset) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return new String(decrypt(input, key, transformation), charset);
-	}
-
-	public static byte[] decrypt(final InputStream inputStream, final PublicKey key) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(inputStream.readAllBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final InputStream inputStream, final PrivateKey key) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(inputStream.readAllBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final InputStream inputStream, final PublicKey key, final String transformation) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(inputStream.readAllBytes(), key, transformation);
-	}
-
-	public static byte[] decrypt(final InputStream inputStream, final PrivateKey key, final String transformation) throws IOException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(inputStream.readAllBytes(), key, transformation);
-	}
-
-	public static byte[] decrypt(final ByteBuffer byteBuffer, final PublicKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(byteBuffer.array(), key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final ByteBuffer byteBuffer, final PrivateKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(byteBuffer.array(), key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final ByteBuffer byteBuffer, final PublicKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(byteBuffer.array(), key, transformation);
-	}
-
-	public static byte[] decrypt(final ByteBuffer byteBuffer, final PrivateKey key, final String transformation) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(byteBuffer.array(), key, transformation);
-	}
-
-	public static byte[] decrypt(final byte[] input, final PublicKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(input, key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final byte[] input, final PrivateKey key) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return decrypt(input, key, ALGORITHM);
-	}
-
-	public static byte[] decrypt(final byte[] input, final PublicKey key, final String transformation) throws IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return doFinal(input, key, transformation, Cipher.DECRYPT_MODE);
-	}
-
-	public static byte[] decrypt(final byte[] input, final PrivateKey key, final String transformation) throws IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-		return doFinal(input, key, transformation, Cipher.DECRYPT_MODE);
-	}
-
-	public static byte[] encrypt(final InputStream inputStream, final PublicKey key) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(inputStream.readAllBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final InputStream inputStream, final PrivateKey key) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(inputStream.readAllBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final InputStream inputStream, final PublicKey key, final String transformation) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(inputStream.readAllBytes(), key, transformation);
-	}
-
-	public static byte[] encrypt(final InputStream inputStream, final PrivateKey key, final String transformation) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(inputStream.readAllBytes(), key, transformation);
-	}
-
-	public static byte[] encrypt(final String string, final PublicKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final String string, final PrivateKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final String string, final PublicKey key, final Charset charset) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(charset), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final String string, final PrivateKey key, final Charset charset) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(charset), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final String string, final PublicKey key, final String transformation) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(), key, transformation);
-	}
-
-	public static byte[] encrypt(final String string, final PrivateKey key, final String transformation) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(), key, transformation);
-	}
-
-	public static byte[] encrypt(final String string, final PublicKey key, final String transformation, final Charset charset) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(charset), key, transformation);
-	}
-
-	public static byte[] encrypt(final String string, final PrivateKey key, final String transformation, final Charset charset) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(string.getBytes(charset), key, transformation);
-	}
-
-	public static byte[] encrypt(final ByteBuffer byteBuffer, final PublicKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(byteBuffer.array(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final ByteBuffer byteBuffer, final PrivateKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(byteBuffer.array(), key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final ByteBuffer byteBuffer, final PublicKey key, final String transformation) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(byteBuffer.array(), key, transformation);
-	}
-
-	public static byte[] encrypt(final ByteBuffer byteBuffer, final PrivateKey key, final String transformation) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(byteBuffer.array(), key, transformation);
-	}
-
-	public static byte[] encrypt(final byte[] input, final PublicKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(input, key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final byte[] input, final PrivateKey key) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return encrypt(input, key, ALGORITHM);
-	}
-
-	public static byte[] encrypt(final byte[] input, final PublicKey key, final String transformation) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return doFinal(input, key, transformation, Cipher.ENCRYPT_MODE);
-	}
-
-	public static byte[] encrypt(final byte[] input, final PrivateKey key, final String transformation) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		return doFinal(input, key, transformation, Cipher.ENCRYPT_MODE);
-	}
-
+	/**
+	 * 获取密钥工厂单例对象
+	 *
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
 	public static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
-		if (Objects.isNull(keyFactory)) {
-			keyFactory = KeyFactory.getInstance(RsaUtils.ALGORITHM);
+		if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
+			synchronized (RsaUtils.class) {
+				if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
+					DEFAULT_KEY_FACTORY = KeyFactory.getInstance(RsaUtils.ALGORITHM);
+				}
+			}
 		}
-		return keyFactory;
+		return DEFAULT_KEY_FACTORY;
 	}
 
-	private static byte[] doFinal(final byte[] input, final Key key, final String transformation, int mode) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
-		Cipher cipher = Cipher.getInstance(transformation);
-		cipher.init(mode, key);
-
-		int size;
-		if (key instanceof PublicKey publicKey) {
-			RSAPublicKeySpec keySpec = getKeyFactory().getKeySpec(publicKey, RSAPublicKeySpec.class);
-			size = keySpec.getModulus().bitLength() / 8;
-		} else if (key instanceof PrivateKey privateKey) {
-			RSAPrivateKeySpec keySpec = getKeyFactory().getKeySpec(privateKey, RSAPrivateKeySpec.class);
-			size = keySpec.getModulus().bitLength() / 8;
-		} else {
-			throw new InvalidKeyException();
-		}
-		if (mode == Cipher.ENCRYPT_MODE) {
-			size -= 11;
-		}
-		if (input.length <= size) {
-			return cipher.doFinal(input);
-		}
-
-		int inputLength = input.length;
-		int offsetLength = 0;
-		int i = 0;
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		while (inputLength - offsetLength > 0) {
-			byte[] bytes;
-			if (inputLength - offsetLength > size) {
-				bytes = cipher.doFinal(input, offsetLength, size);
-			} else {
-				bytes = cipher.doFinal(input, offsetLength, inputLength - offsetLength);
+	/**
+	 * 生成RSA公私钥对
+	 *
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
+	public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+		if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
+			synchronized (RsaUtils.class) {
+				if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
+					DEFAULT_KEY_PAIR_GENERATOR = KeyPairGenerator.getInstance(ALGORITHM);
+				}
 			}
-			outputStream.writeBytes(bytes);
-			++i;
-			offsetLength = size * i;
 		}
-		return outputStream.toByteArray();
+		return DEFAULT_KEY_PAIR_GENERATOR.generateKeyPair();
+	}
+
+	/**
+	 * 将私钥字符串转换为私钥对象（{@link PrivateKey}）
+	 *
+	 * @param privateKey 私钥的字符串（BASE64编码）形式
+	 * @throws InvalidKeySpecException  私钥字符串不符合{@link PKCS8EncodedKeySpec PKCS8}编码标准时
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
+	public static PrivateKey getPrivateKey(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		return getPrivateKey(Base64.decodeBase64(privateKey));
+	}
+
+	/**
+	 * 将私钥字节数组转换为私钥对象（{@link PrivateKey}）
+	 *
+	 * @param privateKey 私钥的字节数组形式
+	 * @throws InvalidKeySpecException  私钥字符串不符合{@link PKCS8EncodedKeySpec PKCS8}编码标准时
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
+	public static PrivateKey getPrivateKey(byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		KeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
+		return getKeyFactory().generatePrivate(keySpec);
+	}
+
+	/**
+	 * 将公钥字符串转换为公钥对象（{@link PublicKey}）
+	 *
+	 * @param publicKey 公钥的字符串（BASE64编码）形式
+	 * @throws InvalidKeySpecException  私钥字符串不符合{@link X509EncodedKeySpec X509}编码标准时
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
+	public static PublicKey getPublicKey(String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		return getPublicKey(Base64.decodeBase64(publicKey));
+	}
+
+	/**
+	 * 将私钥字节数组转换为公钥对象（{@link PublicKey}）
+	 *
+	 * @param publicKey 公钥的字节数组形式
+	 * @throws InvalidKeySpecException  私钥字符串不符合{@link X509EncodedKeySpec X509}编码标准时
+	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
+	 * @since 1.0.0
+	 */
+	public static PublicKey getPublicKey(byte[] publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		KeySpec keySpec = new X509EncodedKeySpec(publicKey);
+		return getKeyFactory().generatePublic(keySpec);
 	}
 }
