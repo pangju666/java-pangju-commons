@@ -1,5 +1,7 @@
-package io.github.pangju666.commons.io.utils;
+package io.github.pangju666.commons.io.utils.compress;
 
+import io.github.pangju666.commons.io.lang.Constants;
+import io.github.pangju666.commons.io.utils.file.FilenameUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -12,14 +14,14 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class ZipUtils {
-	public static final String ZIP_MIME_TYPE = "application/x-zip-compressed";
+
 
 	protected ZipUtils() {
 	}
 
 	public static void unCompress(final File zipFile, final File outputDir) throws IOException {
 		String mimeType = FilenameUtils.getMimeType(zipFile.getName());
-		if (!ZIP_MIME_TYPE.equals(mimeType)) {
+		if (!Constants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IOException(zipFile.getAbsolutePath() + "不是zip类型文件");
 		}
 		try (FileInputStream fileInputStream = new FileInputStream(zipFile);

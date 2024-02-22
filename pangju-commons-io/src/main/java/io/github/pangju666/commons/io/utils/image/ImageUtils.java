@@ -1,7 +1,5 @@
-package io.github.pangju666.commons.io.utils;
+package io.github.pangju666.commons.io.utils.image;
 
-import io.github.pangju666.commons.io.model.ImageSize;
-import io.github.pangju666.commons.lang.pool.ConstantPool;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
@@ -13,6 +11,9 @@ import com.drew.metadata.file.FileTypeDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
+import io.github.pangju666.commons.io.lang.Constants;
+import io.github.pangju666.commons.io.model.ImageSize;
+import io.github.pangju666.commons.io.utils.file.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,17 +35,17 @@ public class ImageUtils {
 
 	public static boolean isImage(final File file) throws IOException {
 		String mimeType = FileUtils.getMimeType(file);
-		return StringUtils.startsWith(mimeType, ConstantPool.IMAGE_MIME_TYPE_PREFIX);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isImage(final InputStream inputStream) throws IOException {
 		String mimeType = FileUtils.getMimeType(inputStream);
-		return StringUtils.startsWith(mimeType, ConstantPool.IMAGE_MIME_TYPE_PREFIX);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isImage(final Metadata metadata) {
 		String mimeType = getMimeType(metadata);
-		return StringUtils.startsWith(mimeType, ConstantPool.IMAGE_MIME_TYPE_PREFIX);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static String getMimeType(final Metadata metadata) {

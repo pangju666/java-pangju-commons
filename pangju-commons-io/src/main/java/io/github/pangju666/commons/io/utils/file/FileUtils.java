@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.io.utils;
+package io.github.pangju666.commons.io.utils.file;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;

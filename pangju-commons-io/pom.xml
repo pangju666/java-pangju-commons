@@ -22,16 +22,17 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-commons-lang</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -42,6 +43,7 @@
 			<artifactId>tika-parser-image-module</artifactId>
 			<version>${tika.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>jakarta.activation</groupId>
 			<artifactId>jakarta.activation-api</artifactId>

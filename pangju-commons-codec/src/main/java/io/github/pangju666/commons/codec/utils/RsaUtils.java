@@ -77,7 +77,7 @@ public final class RsaUtils {
 	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKey(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKey(final String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		return getPrivateKey(Base64.decodeBase64(privateKey));
 	}
 
@@ -89,7 +89,7 @@ public final class RsaUtils {
 	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKey(byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKey(final byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		KeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
 		return getKeyFactory().generatePrivate(keySpec);
 	}
@@ -102,7 +102,7 @@ public final class RsaUtils {
 	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKey(String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKey(final String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		return getPublicKey(Base64.decodeBase64(publicKey));
 	}
 
@@ -114,7 +114,7 @@ public final class RsaUtils {
 	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKey(byte[] publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKey(final byte[] publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		KeySpec keySpec = new X509EncodedKeySpec(publicKey);
 		return getKeyFactory().generatePublic(keySpec);
 	}
