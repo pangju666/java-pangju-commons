@@ -194,21 +194,26 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
-		String extension = FilenameUtils.getExtension(file.getName());
-		if (!FILE_SUFFIXES.contains(extension)) {
-			return null;
-		}
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(file);
 			ImageSize size = getSizeByMetadata(metadata);
 			if (Objects.nonNull(size)) {
 				return size;
 			}
+
+			String suffix = getSuffix(file);
+			if (Objects.isNull(suffix)) {
+				return null;
+			}
 			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndSuffix(imageInputStream, extension);
+			return getSizeByImageInputStreamAndSuffix(imageInputStream, suffix);
 		} catch (ImageProcessingException e) {
+			String suffix = getSuffix(file);
+			if (Objects.isNull(suffix)) {
+				return null;
+			}
 			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndSuffix(imageInputStream, extension);
+			return getSizeByImageInputStreamAndSuffix(imageInputStream, suffix);
 		}
 	}
 
@@ -326,13 +331,13 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final File file) throws IOException {
-		String extension = FilenameUtils.getExtension(file.getName());
-		if (!FILE_SUFFIXES.contains(extension)) {
+		String suffix = getSuffix(file);
+		if (Objects.isNull(suffix)) {
 			return null;
 		}
 		// try with resource 会报错
 		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(extension);
+		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
 		return getImageReader(iterator, imageInputStream);
 	}
 
@@ -521,5 +526,16 @@ public class ImageUtils {
 		ImageReader reader = imageReaders.next();
 		reader.setInput(inputStream, true);
 		return reader;
+	}
+
+	protected static String getSuffix(File file) {
+		String extension = FilenameUtils.getExtension(file.getName());
+		String suffix = null;
+		for (String fileSuffix : FILE_SUFFIXES) {
+			if (StringUtils.equalsIgnoreCase(fileSuffix, extension)) {
+				suffix = fileSuffix;
+			}
+		}
+		return suffix;
 	}
 }

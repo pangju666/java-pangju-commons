@@ -4,6 +4,6 @@ import spock.lang.Specification
 class TestSpec extends Specification {
 	def "test"() {
 		setup:
-		println ImageUtils.scaleSizeByHeight(1920, 1080, 800)
+		println ImageUtils.getSize(new File("D:\\workspace\\resource\\图片\\avatar-ikun.png"))
 	}
 }
