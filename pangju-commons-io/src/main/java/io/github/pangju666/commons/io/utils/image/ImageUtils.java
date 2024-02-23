@@ -17,8 +17,10 @@ import io.github.pangju666.commons.io.utils.file.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -52,12 +54,12 @@ public class ImageUtils {
 	 * @param targetWidth 预期宽度
 	 * @return 实际缩放后的宽高
 	 */
-	public static ImageSize computeNewSizeByWidth(final Integer imageWidth, final Integer imageHeight, final Integer targetWidth) {
+	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
 		if (imageWidth > imageHeight) {
-			double ratio = imageWidth.doubleValue() / imageHeight.doubleValue();
+			double ratio = (double) imageWidth / imageHeight;
 			return new ImageSize(targetWidth, (int) Math.max(targetWidth / ratio, 1));
 		}
-		double ratio = imageHeight.doubleValue() / imageWidth.doubleValue();
+		double ratio = (double) imageHeight / imageWidth;
 		return new ImageSize(targetWidth, (int) Math.max(targetWidth * ratio, 1));
 	}
 
@@ -69,12 +71,12 @@ public class ImageUtils {
 	 * @param targetHeight 预期高度
 	 * @return 实际缩放后的宽高
 	 */
-	public static ImageSize computeNewSizeByHeight(final Integer imageWidth, final Integer imageHeight, final Integer targetHeight) {
+	public static ImageSize computeNewSizeByHeight(final int imageWidth, final int imageHeight, final int targetHeight) {
 		if (imageWidth > imageHeight) {
-			double ratio = imageWidth.doubleValue() / imageHeight.doubleValue();
+			double ratio = (double) imageWidth / imageHeight;
 			return new ImageSize((int) Math.max(targetHeight * ratio, 1), targetHeight);
 		}
-		double ratio = imageHeight.doubleValue() / imageWidth.doubleValue();
+		double ratio = (double) imageHeight / imageWidth;
 		return new ImageSize((int) Math.max(targetHeight / ratio, 1), targetHeight);
 	}
 
@@ -127,6 +129,9 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImage(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
 		String mimeType = Constants.DEFAULT_TIKA.detect(bytes);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
@@ -139,6 +144,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImage(final InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
@@ -152,6 +158,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImage(final Metadata metadata) {
+		Validate.notNull(metadata, "metadata 不可为 null");
 		String mimeType = getMimeType(metadata);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
@@ -164,6 +171,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final Metadata metadata) {
+		Validate.notNull(metadata, "metadata 不可为 null");
 		Collection<FileTypeDirectory> fileTypeDirectories = metadata.getDirectoriesOfType(FileTypeDirectory.class);
 		var iterator = fileTypeDirectories.iterator();
 		if (!iterator.hasNext()) {
@@ -194,6 +202,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
+		FileUtils.validateFile(file);
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(file);
 			ImageSize size = getSizeByMetadata(metadata);
@@ -227,6 +236,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final String mimeType) throws IOException {
+		FileUtils.validateFile(file);
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -254,6 +265,10 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes, final String mimeType) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -271,6 +286,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final InputStream inputStream, final String mimeType) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -288,6 +305,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(ImageInputStream imageInputStream, String mimeType) throws IOException {
+		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -303,6 +322,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(ImageReader imageReader) throws IOException {
+		Validate.notNull(imageReader, "imageReader 不可为 null");
 		return new ImageSize(imageReader.getWidth(0), imageReader.getHeight(0));
 	}
 
@@ -315,6 +335,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final Metadata metadata) throws MetadataException {
+		Validate.notNull(metadata, "metadata 不可为 null");
 		ImageSize size = getSizeByMetadata(metadata);
 		if (Objects.isNull(size)) {
 			throw new MetadataException("无法读取图片尺寸信息");
@@ -331,6 +352,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final File file) throws IOException {
+		FileUtils.validateFile(file);
 		String suffix = getSuffix(file);
 		if (Objects.isNull(suffix)) {
 			return null;
@@ -351,6 +373,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final File file, final String mimeType) throws IOException {
+		FileUtils.validateFile(file);
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -370,6 +394,10 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final byte[] bytes, final String mimeType) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		return readImage(buildByteArrayInputStream(bytes), mimeType);
 	}
 
@@ -383,6 +411,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final InputStream inputStream, final String mimeType) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
@@ -401,6 +431,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final ImageInputStream imageInputStream, final String mimeType) {
+		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
