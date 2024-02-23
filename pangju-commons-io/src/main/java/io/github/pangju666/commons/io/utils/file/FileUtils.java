@@ -2,6 +2,8 @@ package io.github.pangju666.commons.io.utils.file;
 
 import io.github.pangju666.commons.io.lang.Constants;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.BufferedFileChannelInputStream;
+import org.apache.commons.io.input.MemoryMappedFileInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -26,6 +28,30 @@ import java.util.stream.Collectors;
  */
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	protected FileUtils() {
+	}
+
+	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(File file) throws IOException {
+		return openMemoryMappedFileInputStream(file, (256 * 1024));
+	}
+
+	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(File file, int bufferSize) throws IOException {
+		return MemoryMappedFileInputStream
+			.builder()
+			.setFile(file)
+			.setBufferSize(bufferSize)
+			.get();
+	}
+
+	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(File file) throws IOException {
+		return openBufferedFileChannelInputStream(file, 4096);
+	}
+
+	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(File file, int bufferSize) throws IOException {
+		return BufferedFileChannelInputStream
+			.builder()
+			.setFile(file)
+			.setBufferSize(bufferSize)
+			.get();
 	}
 
 	/**
