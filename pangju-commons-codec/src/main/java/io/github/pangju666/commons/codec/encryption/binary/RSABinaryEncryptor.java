@@ -49,7 +49,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	private int privateKeySize;
 	private boolean initialized = false;
 
-	private static void cleanPassword(final byte[] key) {
+	private static void cleanKey(final byte[] key) {
 		if (Objects.nonNull(key)) {
 			synchronized (key) {
 				final int keyLength = key.length;
@@ -67,7 +67,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			throw new AlreadyInitializedException();
 		}
 		if (Objects.nonNull(this.publicKeyBytes)) {
-			cleanPassword(this.publicKeyBytes);
+			cleanKey(this.publicKeyBytes);
 		}
 		this.publicKeyBytes = new byte[publicKey.length];
 		System.arraycopy(publicKey, 0, this.publicKeyBytes, 0, publicKey.length);
@@ -80,7 +80,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			throw new AlreadyInitializedException();
 		}
 		if (Objects.nonNull(this.privateKeyBytes)) {
-			cleanPassword(this.privateKeyBytes);
+			cleanKey(this.privateKeyBytes);
 		}
 		this.privateKeyBytes = new byte[privateKey.length];
 		System.arraycopy(privateKey, 0, this.privateKeyBytes, 0, privateKey.length);
@@ -91,7 +91,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			try {
 				if (Objects.nonNull(this.publicKeyBytes)) {
 					PublicKey publicKey = RsaUtils.getPublicKey(this.publicKeyBytes);
-					cleanPassword(this.publicKeyBytes);
+					cleanKey(this.publicKeyBytes);
 
 					RSAPublicKeySpec keySpec = RsaUtils.getKeyFactory().getKeySpec(publicKey, RSAPublicKeySpec.class);
 					this.publicKeySize = keySpec.getModulus().bitLength() / 8 - 11;
@@ -102,7 +102,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 				if (Objects.nonNull(privateKeyBytes)) {
 					PrivateKey privateKey = RsaUtils.getPrivateKey(this.privateKeyBytes);
-					cleanPassword(privateKeyBytes);
+					cleanKey(privateKeyBytes);
 
 					RSAPrivateKeySpec keySpec = RsaUtils.getKeyFactory().getKeySpec(privateKey, RSAPrivateKeySpec.class);
 					this.privateKeySize = keySpec.getModulus().bitLength() / 8;

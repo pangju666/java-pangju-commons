@@ -36,7 +36,7 @@ public final class RSAByteDigester implements ByteDigester {
 	private Signature publicSignature;
 	private boolean initialized = false;
 
-	private static void cleanPassword(final byte[] key) {
+	private static void cleanKey(final byte[] key) {
 		if (Objects.nonNull(key)) {
 			synchronized (key) {
 				final int keyLength = key.length;
@@ -54,7 +54,7 @@ public final class RSAByteDigester implements ByteDigester {
 			throw new AlreadyInitializedException();
 		}
 		if (Objects.nonNull(this.publicKeyBytes)) {
-			cleanPassword(this.publicKeyBytes);
+			cleanKey(this.publicKeyBytes);
 		}
 		this.publicKeyBytes = new byte[publicKey.length];
 		System.arraycopy(publicKey, 0, this.publicKeyBytes, 0, publicKey.length);
@@ -67,7 +67,7 @@ public final class RSAByteDigester implements ByteDigester {
 			throw new AlreadyInitializedException();
 		}
 		if (Objects.nonNull(this.privateKeyBytes)) {
-			cleanPassword(this.privateKeyBytes);
+			cleanKey(this.privateKeyBytes);
 		}
 		this.privateKeyBytes = new byte[privateKey.length];
 		System.arraycopy(privateKey, 0, this.privateKeyBytes, 0, privateKey.length);
@@ -78,7 +78,7 @@ public final class RSAByteDigester implements ByteDigester {
 			try {
 				if (Objects.nonNull(this.publicKeyBytes)) {
 					PublicKey publicKey = RsaUtils.getPublicKey(this.publicKeyBytes);
-					cleanPassword(this.publicKeyBytes);
+					cleanKey(this.publicKeyBytes);
 
 					this.publicSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.publicSignature.initVerify(publicKey);
@@ -86,7 +86,7 @@ public final class RSAByteDigester implements ByteDigester {
 
 				if (Objects.nonNull(privateKeyBytes)) {
 					PrivateKey privateKey = RsaUtils.getPrivateKey(this.privateKeyBytes);
-					cleanPassword(privateKeyBytes);
+					cleanKey(privateKeyBytes);
 
 					this.privateSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.privateSignature.initSign(privateKey);
