@@ -202,7 +202,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
-		FileUtils.validateFile(file);
+		FileUtils.validateFile(file, "file 不可为 null");
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(file);
 			ImageSize size = getSizeByMetadata(metadata);
@@ -236,7 +236,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final String mimeType) throws IOException {
-		FileUtils.validateFile(file);
+		FileUtils.validateFile(file, "file 不可为 null");
 		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
@@ -352,7 +352,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final File file) throws IOException {
-		FileUtils.validateFile(file);
+		FileUtils.validateFile(file, "file 不可为 null");
 		String suffix = getSuffix(file);
 		if (Objects.isNull(suffix)) {
 			return null;
@@ -373,7 +373,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageReader readImage(final File file, final String mimeType) throws IOException {
-		FileUtils.validateFile(file);
+		FileUtils.validateFile(file, "file 不可为 null");
 		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;

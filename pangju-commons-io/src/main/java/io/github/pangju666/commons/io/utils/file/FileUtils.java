@@ -88,12 +88,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File renameBaseName(final File srcFile, final String newBaseName) throws IOException {
-		Validate.notNull(srcFile, "srcFile 不可为 null");
 		Validate.notBlank(newBaseName, "newBaseName 不可为空");
-
-		if (!srcFile.exists() || !srcFile.isFile()) {
-			throw new NoSuchFileException(srcFile.getAbsolutePath());
-		}
+		validateFile(srcFile, "srcFile 不可为 null");
 		String fullPath = FilenameUtils.getFullPath(srcFile.getAbsolutePath());
 		String extension = FilenameUtils.getExtension(srcFile.getName());
 		File destFile = new File(fullPath, newBaseName + FilenameUtils.EXTENSION_SEPARATOR + extension);
@@ -113,11 +109,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File renameExtension(final File srcFile, final String newExtension) throws IOException {
-		Validate.notNull(srcFile, "srcFile 不可为 null");
-
-		if (!srcFile.exists() || !srcFile.isFile()) {
-			throw new NoSuchFileException(srcFile.getAbsolutePath());
-		}
+		validateFile(srcFile, "srcFile 不可为 null");
 		String filePathWithoutExtension = FilenameUtils.removeExtension(srcFile.getAbsolutePath());
 		File destFile;
 		if (StringUtils.isBlank(newExtension)) {
@@ -165,7 +157,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file);
 	}
 
@@ -178,7 +170,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImageType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
@@ -190,7 +182,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isTextType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.TEXT_MIME_TYPE_PREFIX);
 	}
 
@@ -202,7 +194,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isVideoType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
@@ -214,7 +206,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAudioType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
@@ -226,7 +218,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isApplicationType(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
@@ -240,7 +232,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 */
 	public static boolean isMimeType(final File file, final String mimeType) throws IOException {
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		String fileMimeType = Constants.DEFAULT_TIKA.detect(file);
 		return mimeType.equalsIgnoreCase(fileMimeType);
 	}
@@ -255,7 +247,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final String... mimeTypes) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
@@ -272,7 +264,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static Map<String, String> parseMetaData(final File file) throws IOException {
-		validateFile(file);
+		validateFile(file, "file 不可为 null");
 		Metadata metadata = new Metadata();
 		try (Reader reader = Constants.DEFAULT_TIKA.parse(file, metadata)) {
 			return Arrays.stream(metadata.names())
@@ -288,8 +280,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws NoSuchFileException 当文件不存在时
 	 * @since 1.0.0
 	 */
-	public static void validateFile(File file) throws NoSuchFileException {
-		Validate.notNull(file, "file 不可为 null");
+	public static void validateFile(final File file, final String message) throws NoSuchFileException {
+		Validate.notNull(file, message);
 		if (!file.exists() || !file.isFile()) {
 			throw new NoSuchFileException(file.getAbsolutePath());
 		}
