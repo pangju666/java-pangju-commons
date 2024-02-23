@@ -30,11 +30,31 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	protected FileUtils() {
 	}
 
+	/**
+	 * 打开指定文件的输入流
+	 *
+	 * @param file 指定文件
+	 * @return 文件输入流
+	 * @throws IOException 文件读取失败时抛出
+	 * @see MemoryMappedFileInputStream
+	 * @since 1.0.0
+	 */
 	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(File file) throws IOException {
 		return openMemoryMappedFileInputStream(file, (256 * 1024));
 	}
 
+	/**
+	 * 打开指定文件的输入流
+	 *
+	 * @param file 指定文件
+	 * @param bufferSize 缓冲区大小
+	 * @return 文件输入流
+	 * @throws IOException 文件读取失败时抛出
+	 * @see MemoryMappedFileInputStream
+	 * @since 1.0.0
+	 */
 	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(File file, int bufferSize) throws IOException {
+		validateFile(file, "file不可为 null");
 		return MemoryMappedFileInputStream
 			.builder()
 			.setFile(file)
@@ -42,11 +62,31 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			.get();
 	}
 
+	/**
+	 * 打开指定文件的缓冲区输入流
+	 *
+	 * @param file 指定文件
+	 * @return 文件缓冲区输入流
+	 * @throws IOException 文件读取失败时抛出
+	 * @see BufferedFileChannelInputStream
+	 * @since 1.0.0
+	 */
 	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(File file) throws IOException {
 		return openBufferedFileChannelInputStream(file, 4096);
 	}
 
+	/**
+	 * 打开指定文件的缓冲区输入流
+	 *
+	 * @param file 指定文件
+	 * @param bufferSize 缓冲区大小
+	 * @return 文件缓冲区输入流
+	 * @throws IOException 文件读取失败时抛出
+	 * @see BufferedFileChannelInputStream
+	 * @since 1.0.0
+	 */
 	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(File file, int bufferSize) throws IOException {
+		validateFile(file, "file不可为 null");
 		return BufferedFileChannelInputStream
 			.builder()
 			.setFile(file)

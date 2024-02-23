@@ -54,6 +54,7 @@ public class ImageUtils {
 	 * @param imageHeight 图片高度
 	 * @param targetWidth 预期宽度
 	 * @return 实际缩放后的宽高
+	 * @since 1.0.0
 	 */
 	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
 		if (imageWidth > imageHeight) {
@@ -71,6 +72,7 @@ public class ImageUtils {
 	 * @param imageHeight  图片高度
 	 * @param targetHeight 预期高度
 	 * @return 实际缩放后的宽高
+	 * @since 1.0.0
 	 */
 	public static ImageSize computeNewSizeByHeight(final int imageWidth, final int imageHeight, final int targetHeight) {
 		if (imageWidth > imageHeight) {
@@ -90,6 +92,7 @@ public class ImageUtils {
 	 * @param targetWidth  预期宽度
 	 * @param targetHeight 预期高度
 	 * @return 实际缩放后的宽高
+	 * @since 1.0.0
 	 */
 	public static ImageSize computeNewSize(final int imageWidth, final int imageHeight,
 										   final int targetWidth, final int targetHeight) {
