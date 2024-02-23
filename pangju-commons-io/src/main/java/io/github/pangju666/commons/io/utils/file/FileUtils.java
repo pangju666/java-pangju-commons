@@ -165,11 +165,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
-
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file);
 	}
 
@@ -182,10 +178,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImageType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
@@ -197,10 +190,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isTextType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.TEXT_MIME_TYPE_PREFIX);
 	}
 
@@ -212,10 +202,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isVideoType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
@@ -227,10 +214,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAudioType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
@@ -242,10 +226,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isApplicationType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
@@ -259,10 +240,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 */
 	public static boolean isMimeType(final File file, final String mimeType) throws IOException {
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		String fileMimeType = Constants.DEFAULT_TIKA.detect(file);
 		return mimeType.equalsIgnoreCase(fileMimeType);
 	}
@@ -277,10 +255,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final String... mimeTypes) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
@@ -297,15 +272,26 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static Map<String, String> parseMetaData(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		if (!file.exists() || !file.isFile()) {
-			throw new NoSuchFileException(file.getAbsolutePath());
-		}
+		validateFile(file);
 		Metadata metadata = new Metadata();
 		try (Reader reader = Constants.DEFAULT_TIKA.parse(file, metadata)) {
 			return Arrays.stream(metadata.names())
 				.map(name -> Pair.of(name, metadata.get(name)))
 				.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+		}
+	}
+
+	/**
+	 * 校验文件是否有效
+	 *
+	 * @param file 文件
+	 * @throws NoSuchFileException 当文件不存在时
+	 * @since 1.0.0
+	 */
+	public static void validateFile(File file) throws NoSuchFileException {
+		Validate.notNull(file, "file 不可为 null");
+		if (!file.exists() || !file.isFile()) {
+			throw new NoSuchFileException(file.getAbsolutePath());
 		}
 	}
 }
