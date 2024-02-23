@@ -15,6 +15,7 @@ import io.github.pangju666.commons.io.lang.Constants;
 import io.github.pangju666.commons.io.model.ImageSize;
 import io.github.pangju666.commons.io.utils.file.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -209,21 +210,24 @@ public class ImageUtils {
 			if (Objects.nonNull(size)) {
 				return size;
 			}
-
-			String suffix = getSuffix(file);
-			if (Objects.isNull(suffix)) {
-				return null;
-			}
-			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndSuffix(imageInputStream, suffix);
-		} catch (ImageProcessingException e) {
-			String suffix = getSuffix(file);
-			if (Objects.isNull(suffix)) {
-				return null;
-			}
-			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndSuffix(imageInputStream, suffix);
+		} catch (ImageProcessingException ignored) {
 		}
+		String suffix = getSuffix(file);
+		if (Objects.isNull(suffix)) {
+			return null;
+		}
+		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
+		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
+		if (Objects.isNull(imageInputStream)) {
+			return null;
+		}
+		ImageReader reader = getImageReader(iterator, imageInputStream);
+		ImageSize imageSize = null;
+		if (Objects.nonNull(reader)) {
+			imageSize = getSize(reader);
+		}
+		imageInputStream.close();
+		return imageSize;
 	}
 
 	/**
@@ -247,12 +251,15 @@ public class ImageUtils {
 			if (Objects.nonNull(size)) {
 				return size;
 			}
-			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
-		} catch (ImageProcessingException e) {
-			ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-			return getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
+		} catch (ImageProcessingException ignored) {
 		}
+		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
+		if (Objects.isNull(imageInputStream)) {
+			return null;
+		}
+		ImageSize imageSize = getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
+		imageInputStream.close();
+		return imageSize;
 	}
 
 	/**
@@ -272,7 +279,8 @@ public class ImageUtils {
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
-		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(bytes);
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
+		outputStream.write(bytes);
 		return getSizeByOutputStreamAndMimeType(outputStream, mimeType);
 	}
 
@@ -291,7 +299,8 @@ public class ImageUtils {
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
-		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(inputStream);
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
+		inputStream.transferTo(outputStream);
 		return getSizeByOutputStreamAndMimeType(outputStream, mimeType);
 	}
 
@@ -359,6 +368,9 @@ public class ImageUtils {
 		}
 		// try with resource 会报错
 		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
+		if (Objects.isNull(imageInputStream)) {
+			return null;
+		}
 		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
 		return getImageReader(iterator, imageInputStream);
 	}
@@ -380,6 +392,9 @@ public class ImageUtils {
 		}
 		// try with resource 会报错
 		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
+		if (Objects.isNull(imageInputStream)) {
+			return null;
+		}
 		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
 		return getImageReader(iterator, imageInputStream);
 	}
@@ -398,7 +413,15 @@ public class ImageUtils {
 			return null;
 		}
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		return readImage(buildByteArrayInputStream(bytes), mimeType);
+		InputStream inputStream = UnsynchronizedByteArrayInputStream
+			.builder()
+			.setByteArray(bytes)
+			.setOffset(0)
+			.setLength(bytes.length)
+			.get();
+		try (UnsynchronizedBufferedInputStream bufferedInputStream = buildBufferInputStream(inputStream)) {
+			return readImage(bufferedInputStream, mimeType);
+		}
 	}
 
 	/**
@@ -418,6 +441,9 @@ public class ImageUtils {
 		}
 		// try with resource 会报错
 		ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream);
+		if (Objects.isNull(imageInputStream)) {
+			return null;
+		}
 		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
 		return getImageReader(iterator, imageInputStream);
 	}
@@ -442,35 +468,25 @@ public class ImageUtils {
 
 	protected static ImageSize getSizeByOutputStreamAndMimeType(final UnsynchronizedByteArrayOutputStream outputStream,
 																final String mimeType) throws IOException {
-		try {
-			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				Metadata metadata = ImageMetadataReader.readMetadata(tmpInputStream);
-				ImageSize size = getSizeByMetadata(metadata);
-				if (Objects.nonNull(size)) {
-					return size;
-				}
+		try (InputStream tmpInputStream = outputStream.toInputStream();
+			 InputStream bufferedInputStream = buildBufferInputStream(tmpInputStream)) {
+			Metadata metadata = ImageMetadataReader.readMetadata(bufferedInputStream);
+			ImageSize size = getSizeByMetadata(metadata);
+			if (Objects.nonNull(size)) {
+				return size;
 			}
-			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream);
-				return getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
-			}
-		} catch (ImageProcessingException e) {
-			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream);
-				return getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
-			}
+		} catch (ImageProcessingException ignored) {
 		}
-	}
-
-	protected static ImageSize getSizeByImageInputStreamAndSuffix(ImageInputStream imageInputStream, String suffix) throws IOException {
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
-		ImageReader reader = getImageReader(iterator, imageInputStream);
-		ImageSize imageSize = null;
-		if (Objects.nonNull(reader)) {
-			imageSize = getSize(reader);
+		try (InputStream tmpInputStream = outputStream.toInputStream();
+			 InputStream bufferedInputStream = buildBufferInputStream(tmpInputStream)) {
+			ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream);
+			if (Objects.isNull(imageInputStream)) {
+				return null;
+			}
+			ImageSize imageSize = getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
+			imageInputStream.close();
+			return imageSize;
 		}
-		imageInputStream.close();
-		return imageSize;
 	}
 
 	protected static ImageSize getSizeByImageInputStreamAndMimeType(ImageInputStream imageInputStream, String mimeType) throws IOException {
@@ -480,7 +496,6 @@ public class ImageUtils {
 		if (Objects.nonNull(reader)) {
 			imageSize = getSize(reader);
 		}
-		imageInputStream.close();
 		return imageSize;
 	}
 
@@ -530,24 +545,10 @@ public class ImageUtils {
 		}
 	}
 
-	protected static UnsynchronizedByteArrayInputStream buildByteArrayInputStream(byte[] bytes) throws IOException {
-		return UnsynchronizedByteArrayInputStream.builder()
-			.setByteArray(bytes)
-			.setOffset(0)
-			.setLength(bytes.length)
+	public static UnsynchronizedBufferedInputStream buildBufferInputStream(InputStream inputStream) throws IOException {
+		return new UnsynchronizedBufferedInputStream.Builder()
+			.setInputStream(inputStream)
 			.get();
-	}
-
-	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(byte[] bytes) throws IOException {
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
-		outputStream.write(bytes);
-		return outputStream;
-	}
-
-	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(InputStream inputStream) throws IOException {
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
-		inputStream.transferTo(outputStream);
-		return outputStream;
 	}
 
 	protected static ImageReader getImageReader(Iterator<ImageReader> imageReaders,
