@@ -1,3 +1,5 @@
+import io.github.pangju666.commons.io.utils.compress.ZipUtils
+import io.github.pangju666.commons.io.utils.file.FilenameUtils
 import io.github.pangju666.commons.io.utils.image.ImageUtils
 import spock.lang.Specification
 
@@ -12,5 +14,15 @@ class TestSpec extends Specification {
 			ImageInputStream imageIO = ImageIO.createImageInputStream(inputStream)
 			println ImageUtils.getSize(imageIO, "image/png")
 		}
+	}
+
+	def "testZip"() {
+		setup:
+		ZipUtils.compressFiles(new FileOutputStream(new File("D:\\workspace\\工具.zip")), new File("D:\\workspace\\Roaming"))
+	}
+
+	def "sadsadasd"() {
+		setup:
+		println FilenameUtils.getFullPathNoEndSeparator("C:\\asdasdasd\\asdasdad")
 	}
 }

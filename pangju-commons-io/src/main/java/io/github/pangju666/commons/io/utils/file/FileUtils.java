@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -130,12 +131,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File rename(final File srcFile, final String newName) throws IOException {
-		Validate.notNull(srcFile, "srcFile 不可为 null");
+		validateFileOrDir(srcFile, "srcFile 不可为 null");
 		Validate.notBlank(newName, "newName 不可为空");
-
-		if (!srcFile.exists()) {
-			throw new NoSuchFileException(srcFile.getAbsolutePath());
-		}
 		String fullPath = FilenameUtils.getFullPath(srcFile.getAbsolutePath());
 		File destFile = new File(fullPath, newName);
 		if (!srcFile.renameTo(destFile)) {
@@ -343,13 +340,59 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * 校验文件是否有效
 	 *
 	 * @param file 文件
-	 * @throws NoSuchFileException 当文件不存在时
+	 * @throws NoSuchFileException 当文件不存在或为目录时
 	 * @since 1.0.0
 	 */
 	public static void validateFile(final File file, final String message) throws NoSuchFileException {
 		Validate.notNull(file, message);
 		if (!file.exists() || !file.isFile()) {
 			throw new NoSuchFileException(file.getAbsolutePath());
+		}
+	}
+
+	/**
+	 * 校验文件是否有效
+	 *
+	 * @param file 文件
+	 * @throws NoSuchFileException 当文件不存在时
+	 * @since 1.0.0
+	 */
+	public static void validateFileOrDir(final File file, final String message) throws NoSuchFileException {
+		Validate.notNull(file, message);
+		if (!file.exists()) {
+			throw new NoSuchFileException(file.getAbsolutePath());
+		}
+	}
+
+	/**
+	 * 校验集合中的所有文件是否有效
+	 *
+	 * @param files 文件
+	 * @throws NoSuchFileException 当文件不存在时
+	 * @since 1.0.0
+	 */
+	public static void validateFiles(final Collection<File> files, final String message) throws NoSuchFileException {
+		Validate.noNullElements(files, message);
+		for (File file : files) {
+			if (!file.exists() || !file.isFile()) {
+				throw new NoSuchFileException(file.getAbsolutePath());
+			}
+		}
+	}
+
+	/**
+	 * 校验集合中的所有文件是否有效
+	 *
+	 * @param files 文件
+	 * @throws NoSuchFileException 当文件不存在或为目录时
+	 * @since 1.0.0
+	 */
+	public static void validateFilesOrDirs(final Collection<File> files, final String message) throws NoSuchFileException {
+		Validate.noNullElements(files, message);
+		for (File file : files) {
+			if (!file.exists()) {
+				throw new NoSuchFileException(file.getAbsolutePath());
+			}
 		}
 	}
 }

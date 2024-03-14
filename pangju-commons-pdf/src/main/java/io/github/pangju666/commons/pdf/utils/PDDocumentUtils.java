@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.pdf.utils;
 
-import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.FilenameUtils;
+import io.github.pangju666.commons.io.utils.file.FileUtils;
+import io.github.pangju666.commons.io.utils.file.FilenameUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
@@ -11,12 +11,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
@@ -351,24 +345,5 @@ public class PDDocumentUtils {
 			targetDocument.importPage(sourcePage);
 		}
 		return targetDocument;
-	}
-
-	protected static void copyAnnotations(PDPage page) throws IOException {
-		List<PDAnnotation> annotations = page.getAnnotations();
-		for (PDAnnotation annotation : annotations) {
-			if (annotation instanceof PDAnnotationLink link) {
-				PDDestination destination = link.getDestination();
-				PDAction action = link.getAction();
-				if (destination == null && action instanceof PDActionGoTo actionGoTo) {
-					destination = actionGoTo.getDestination();
-				}
-				if (destination instanceof PDPageDestination pageDestination) {
-					// TODO 在拆分结果中保留指向页面的链接
-					pageDestination.setPage(null);
-				}
-			}
-			// TODO 在拆分结果中保留指向页面的链接
-			annotation.setPage(null);
-		}
 	}
 }

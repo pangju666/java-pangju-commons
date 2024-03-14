@@ -568,7 +568,7 @@ application/xslfo+xml                   fo  xslfo
 application/xslt+xml                    xslt
 application/xspf+xml                    xspf
 application/xv+xml                      xhvml  xvml  xvm  mxml
-application/x-zip-compressed            zip
+application/zip                         zip
 
 
 #音频

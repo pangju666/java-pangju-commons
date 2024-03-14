@@ -31,12 +31,6 @@ public class ConstantPool {
 
 	// 文件相关常量
 	public static final String ANY_MIME_TYPE = "*/*";
-	public static final String ANY_IMAGE_MIME_TYPE = "image/*";
-	public static final String IMAGE_MIME_TYPE_PREFIX = "image/";
-	public static final String VIDEO_MIME_TYPE_PREFIX = "video/";
-	public static final String AUDIO_MIME_TYPE_PREFIX = "audio/";
-	public static final String TEXT_MIME_TYPE_PREFIX = "text/";
-	public static final String APPLICATION_MIME_TYPE_PREFIX = "application/";
 
 	// 反射相关常量
 	public static final String SETTER_PREFIX = "set";
