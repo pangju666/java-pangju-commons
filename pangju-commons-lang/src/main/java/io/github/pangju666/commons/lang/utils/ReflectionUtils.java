@@ -2,14 +2,14 @@ package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.pool.ConstantPool;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.Objects;
 
 public class ReflectionUtils extends org.reflections.ReflectionUtils {
+	private static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
+
 	protected ReflectionUtils() {
 	}
 
@@ -35,7 +35,7 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 			}
 			return value;
 		} catch (IllegalAccessException e) {
-			ExceptionUtils.rethrow(e);
+			org.apache.commons.lang3.exception.ExceptionUtils.rethrow(e);
 			return null;
 		}
 	}
@@ -115,25 +115,59 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 		return clazz;
 	}
 
-	public static void setAccessible(final Field field, final Object instance) {
-		if (!isAccessible(field, instance)) {
+	public static boolean isEqualsMethod(Method method) {
+		return (method != null && method.getParameterCount() == 1 && method.getName().equals("equals") &&
+			method.getParameterTypes()[0] == Object.class);
+	}
+
+	public static boolean isHashCodeMethod(Method method) {
+		return (method != null && method.getParameterCount() == 0 && method.getName().equals("hashCode"));
+	}
+
+	public static boolean isToStringMethod(Method method) {
+		return (method != null && method.getParameterCount() == 0 && method.getName().equals("toString"));
+	}
+
+	public static boolean isObjectMethod(Method method) {
+		return (method != null && (method.getDeclaringClass() == Object.class ||
+			isEqualsMethod(method) || isHashCodeMethod(method) || isToStringMethod(method)));
+	}
+
+	public static boolean isCglibRenamedMethod(Method renamedMethod) {
+		String name = renamedMethod.getName();
+		if (name.startsWith(CGLIB_RENAMED_METHOD_PREFIX)) {
+			int i = name.length() - 1;
+			while (i >= 0 && Character.isDigit(name.charAt(i))) {
+				i--;
+			}
+			return (i > CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
+		}
+		return false;
+	}
+
+	public static boolean isAccessible(Field field, Object instance) {
+		return field.canAccess(instance);
+	}
+
+	public static boolean isPublicStaticFinal(Field field) {
+		int modifiers = field.getModifiers();
+		return (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers));
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void makeAccessible(Field field) {
+		if ((!Modifier.isPublic(field.getModifiers()) ||
+			!Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||
+			Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
 			field.setAccessible(true);
 		}
 	}
 
-	public static void setAccessible(final Field field) {
-		if (!isAccessible(field)) {
-			field.setAccessible(true);
+	@SuppressWarnings("deprecation")
+	public static void makeAccessible(Method method) {
+		if ((!Modifier.isPublic(method.getModifiers()) ||
+			!Modifier.isPublic(method.getDeclaringClass().getModifiers())) && !method.isAccessible()) {
+			method.setAccessible(true);
 		}
-	}
-
-	public static boolean isAccessible(final Field field, final Object instance) {
-		return (Modifier.isPublic(field.getModifiers()) || Modifier.isPublic(field.getDeclaringClass().getModifiers())
-			|| !Modifier.isFinal(field.getModifiers())) && field.canAccess(instance);
-	}
-
-	public static boolean isAccessible(final Field field) {
-		return Modifier.isPublic(field.getModifiers()) || Modifier.isPublic(field.getDeclaringClass().getModifiers())
-			|| !Modifier.isFinal(field.getModifiers());
 	}
 }
