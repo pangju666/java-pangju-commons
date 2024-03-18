@@ -8,8 +8,6 @@ import java.lang.reflect.*;
 import java.util.Objects;
 
 public class ReflectionUtils extends org.reflections.ReflectionUtils {
-	private static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
-
 	protected ReflectionUtils() {
 	}
 
@@ -25,8 +23,8 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 	@SuppressWarnings("unchecked")
 	public static <E> E getFieldValue(final Object obj, final Field field) {
 		boolean accessible = isAccessible(field, obj);
-		if (!accessible) {
-			field.setAccessible(true);
+		if (!accessible && !makeAccessible(field)) {
+			return null;
 		}
 		try {
 			E value = (E) field.get(obj);
@@ -50,8 +48,8 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 
 	public static <E> void setFieldValue(final Object obj, final Field field, final E value) {
 		boolean accessible = isAccessible(field, obj);
-		if (!accessible) {
-			field.setAccessible(true);
+		if (!accessible && !makeAccessible(field)) {
+			return;
 		}
 		try {
 			field.set(obj, value);
@@ -135,12 +133,12 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 
 	public static boolean isCglibRenamedMethod(Method renamedMethod) {
 		String name = renamedMethod.getName();
-		if (name.startsWith(CGLIB_RENAMED_METHOD_PREFIX)) {
+		if (name.startsWith(ConstantPool.CGLIB_RENAMED_METHOD_PREFIX)) {
 			int i = name.length() - 1;
 			while (i >= 0 && Character.isDigit(name.charAt(i))) {
 				i--;
 			}
-			return (i > CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
+			return (i > ConstantPool.CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
 		}
 		return false;
 	}
@@ -155,19 +153,23 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static void makeAccessible(Field field) {
+	public static boolean makeAccessible(Field field) {
 		if ((!Modifier.isPublic(field.getModifiers()) ||
 			!Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||
 			Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
 			field.setAccessible(true);
+			return true;
 		}
+		return false;
 	}
 
 	@SuppressWarnings("deprecation")
-	public static void makeAccessible(Method method) {
+	public static boolean makeAccessible(Method method) {
 		if ((!Modifier.isPublic(method.getModifiers()) ||
 			!Modifier.isPublic(method.getDeclaringClass().getModifiers())) && !method.isAccessible()) {
 			method.setAccessible(true);
+			return true;
 		}
+		return false;
 	}
 }

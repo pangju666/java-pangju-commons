@@ -36,6 +36,7 @@ public class ConstantPool {
 	public static final String SETTER_PREFIX = "set";
 	public static final String GETTER_PREFIX = "get";
 	public static final String CGLIB_CLASS_SEPARATOR = "$$";
+	public static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
 
 	// XML相关常量
 	/**
