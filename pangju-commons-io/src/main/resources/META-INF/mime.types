@@ -749,6 +749,7 @@ text/x-aspectj                          aj
 text/x-assembly                         asm  s
 text/x-awk                              awk
 text/x-basic                            bas
+text/x-c                                dic
 text/x-c++hdr                           hpp  hh  hp    h++  hxx
 text/x-c++src                           cpp  cxx  cc  c  c++
 text/x-cgi                              cgi
