@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.ObjIntConsumer;
 
 /**
@@ -130,6 +131,9 @@ public class PDDocumentUtils {
 	 */
 	public static int getPageCount(File documentFile) throws IOException {
 		try (PDDocument document = getDocument(documentFile)) {
+            if (Objects.isNull(document)) {
+                return 0;
+            }
 			return document.getNumberOfPages();
 		}
 	}
