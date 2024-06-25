@@ -14,6 +14,7 @@ import org.apache.commons.lang3.Validate;
 import java.io.*;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
 
 public class ZipUtils {
 	/**
@@ -202,9 +203,11 @@ public class ZipUtils {
 			}
 		}
 		ZipArchiveEntry archiveEntry = new ZipArchiveEntry(file, entryName);
-		if (method.getCode() != ZipMethod.UNKNOWN.getCode()) {
-			archiveEntry.setMethod(method.getCode());
-		}
+        if (method.getCode() == ZipMethod.STORED.getCode()) {
+            archiveEntry.setMethod(ZipEntry.STORED);
+        } else if (method.getCode() == ZipMethod.DEFLATED.getCode()) {
+            archiveEntry.setMethod(ZipEntry.DEFLATED);
+        }
 		zipArchiveOutputStream.putArchiveEntry(archiveEntry);
 		zipArchiveOutputStream.closeArchiveEntry();
 
@@ -230,9 +233,11 @@ public class ZipUtils {
 				}
 			}
 			ZipArchiveEntry archiveEntry = new ZipArchiveEntry(file, entryName);
-			if (method.getCode() != ZipMethod.UNKNOWN.getCode()) {
-				archiveEntry.setMethod(method.getCode());
-			}
+            if (method.getCode() == ZipMethod.STORED.getCode()) {
+                archiveEntry.setMethod(ZipEntry.STORED);
+            } else if (method.getCode() == ZipMethod.DEFLATED.getCode()) {
+                archiveEntry.setMethod(ZipEntry.DEFLATED);
+            }
 			zipArchiveOutputStream.putArchiveEntry(archiveEntry);
 			fileChannelInputStream.transferTo(zipArchiveOutputStream);
 			zipArchiveOutputStream.closeArchiveEntry();
