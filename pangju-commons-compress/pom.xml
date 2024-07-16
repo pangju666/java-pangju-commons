@@ -34,10 +34,5 @@
 			<groupId>org.tukaani</groupId>
 			<artifactId>xz</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.spockframework</groupId>
-			<artifactId>spock-core</artifactId>
-		</dependency>
 	</dependencies>
 </project>

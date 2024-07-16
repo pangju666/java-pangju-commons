@@ -45,10 +45,5 @@
 			<artifactId>jai-imageio-jpeg2000</artifactId>
 			<optional>true</optional>
 		</dependency>
-
-		<dependency>
-			<groupId>org.spockframework</groupId>
-			<artifactId>spock-core</artifactId>
-		</dependency>
 	</dependencies>
 </project>
