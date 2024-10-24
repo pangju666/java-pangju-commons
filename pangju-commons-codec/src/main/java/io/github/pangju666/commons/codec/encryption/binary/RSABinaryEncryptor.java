@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.codec.encryption.binary;
 
-import io.github.pangju666.commons.codec.key.RsaKey;
+import io.github.pangju666.commons.codec.key.RSAKey;
 import io.github.pangju666.commons.codec.utils.RsaUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jasypt.exceptions.AlreadyInitializedException;
@@ -45,13 +45,13 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	private Cipher encryptCipher;
 	private int publicKeySize;
 	private int privateKeySize;
-	private final RsaKey rsaKey;
+	private final RSAKey rsaKey;
 
 	public RSABinaryEncryptor() {
-		this.rsaKey = new RsaKey();
+		this.rsaKey = new RSAKey();
 	}
 
-	public RSABinaryEncryptor(RsaKey rsaKey) {
+	public RSABinaryEncryptor(RSAKey rsaKey) {
 		this.rsaKey = rsaKey;
 	}
 

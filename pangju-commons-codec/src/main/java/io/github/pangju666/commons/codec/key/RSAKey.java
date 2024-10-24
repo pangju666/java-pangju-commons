@@ -6,7 +6,7 @@ import org.jasypt.exceptions.AlreadyInitializedException;
 
 import java.util.Objects;
 
-public final class RsaKey {
+public final class RSAKey {
 	private byte[] publicKey;
 	private byte[] privateKey;
 	private boolean initialized = false;

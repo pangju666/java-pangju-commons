@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.codec.digest;
 
-import io.github.pangju666.commons.codec.key.RsaKey;
+import io.github.pangju666.commons.codec.key.RSAKey;
 import io.github.pangju666.commons.codec.utils.RsaUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jasypt.digest.ByteDigester;
@@ -32,13 +32,13 @@ import java.util.Objects;
 public final class RSAByteDigester implements ByteDigester {
 	private Signature privateSignature;
 	private Signature publicSignature;
-	private final RsaKey rsaKey;
+	private final RSAKey rsaKey;
 
 	public RSAByteDigester() {
-		this.rsaKey = new RsaKey();
+		this.rsaKey = new RSAKey();
 	}
 
-	public RSAByteDigester(RsaKey rsaKey) {
+	public RSAByteDigester(RSAKey rsaKey) {
 		this.rsaKey = rsaKey;
 	}
 
