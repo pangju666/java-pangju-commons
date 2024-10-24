@@ -31,8 +31,7 @@ public final class NumberUtils {
 		return result;
 	}
 
-	public static byte[] processBigIntegerEncryptedByteArray(
-		final byte[] byteArray, final int signum) {
+	public static byte[] processBigIntegerEncryptedByteArray(final byte[] byteArray, final int signum) {
 		if (byteArray.length > 4) {
 			final int initialSize = byteArray.length;
 
@@ -53,7 +52,8 @@ public final class NumberUtils {
 				for (int i = 0; i < sizeDifference; i++) {
 					paddedProcessedByteArray[i] = (signum >= 0) ? (byte) 0x0 : (byte) -0x1;
 				}
-				System.arraycopy(processedByteArray, 0, paddedProcessedByteArray, sizeDifference, processedByteArray.length);
+				System.arraycopy(processedByteArray, 0, paddedProcessedByteArray,
+					sizeDifference, processedByteArray.length);
 				return paddedProcessedByteArray;
 			}
 			return processedByteArray;

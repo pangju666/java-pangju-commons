@@ -1,8 +1,8 @@
 package io.github.pangju666.commons.codec.digest;
 
+import io.github.pangju666.commons.codec.key.RsaKey;
 import io.github.pangju666.commons.codec.utils.RsaUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.jasypt.commons.CommonUtils;
 import org.jasypt.digest.ByteDigester;
 import org.jasypt.exceptions.AlreadyInitializedException;
 import org.jasypt.exceptions.EncryptionInitializationException;
@@ -30,63 +30,40 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public final class RSAByteDigester implements ByteDigester {
-	private byte[] publicKeyBytes;
-	private byte[] privateKeyBytes;
 	private Signature privateSignature;
 	private Signature publicSignature;
-	private boolean initialized = false;
+	private final RsaKey rsaKey;
 
-	private static void cleanKey(final byte[] key) {
-		if (Objects.nonNull(key)) {
-			synchronized (key) {
-				final int keyLength = key.length;
-				for (int i = 0; i < keyLength; i++) {
-					key[i] = (byte) 0;
-				}
-			}
-		}
+	public RSAByteDigester() {
+		this.rsaKey = new RsaKey();
 	}
 
-	public synchronized void setPublicKey(byte[] publicKey) {
-		CommonUtils.validateNotNull(publicKey, "公钥不可为 null");
-		CommonUtils.validateIsTrue(publicKey.length > 0, "公钥不可为空");
-		if (this.initialized) {
-			throw new AlreadyInitializedException();
-		}
-		if (Objects.nonNull(this.publicKeyBytes)) {
-			cleanKey(this.publicKeyBytes);
-		}
-		this.publicKeyBytes = new byte[publicKey.length];
-		System.arraycopy(publicKey, 0, this.publicKeyBytes, 0, publicKey.length);
+	public RSAByteDigester(RsaKey rsaKey) {
+		this.rsaKey = rsaKey;
 	}
 
-	public synchronized void setPrivateKey(byte[] privateKey) {
-		CommonUtils.validateNotNull(privateKey, "私钥不可为 null");
-		CommonUtils.validateIsTrue(privateKey.length > 0, "私钥不可为空");
-		if (this.initialized) {
-			throw new AlreadyInitializedException();
-		}
-		if (Objects.nonNull(this.privateKeyBytes)) {
-			cleanKey(this.privateKeyBytes);
-		}
-		this.privateKeyBytes = new byte[privateKey.length];
-		System.arraycopy(privateKey, 0, this.privateKeyBytes, 0, privateKey.length);
+	public void setPublicKey(byte[] publicKey) {
+		this.rsaKey.setPublicKey(publicKey);
+	}
+
+	public void setPrivateKey(byte[] privateKey) {
+		this.rsaKey.setPrivateKey(privateKey);
 	}
 
 	public synchronized void initialize() {
-		if (!this.initialized) {
+		if (!rsaKey.isInitialized()) {
 			try {
-				if (Objects.nonNull(this.publicKeyBytes)) {
-					PublicKey publicKey = RsaUtils.getPublicKey(this.publicKeyBytes);
-					cleanKey(this.publicKeyBytes);
+				if (Objects.nonNull(rsaKey.getPublicKey())) {
+					PublicKey publicKey = RsaUtils.getPublicKey(rsaKey.getPublicKey());
+					rsaKey.cleanPublicKey();
 
 					this.publicSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.publicSignature.initVerify(publicKey);
 				}
 
-				if (Objects.nonNull(privateKeyBytes)) {
-					PrivateKey privateKey = RsaUtils.getPrivateKey(this.privateKeyBytes);
-					cleanKey(privateKeyBytes);
+				if (Objects.nonNull(rsaKey.getPrivateKey())) {
+					PrivateKey privateKey = RsaUtils.getPrivateKey(rsaKey.getPrivateKey());
+					rsaKey.cleanPrivateKey();
 
 					this.privateSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.privateSignature.initSign(privateKey);
@@ -94,8 +71,7 @@ public final class RSAByteDigester implements ByteDigester {
 			} catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
 				throw new EncryptionInitializationException(e);
 			}
-
-			this.initialized = true;
+			rsaKey.initialize();
 		}
 	}
 
@@ -104,10 +80,10 @@ public final class RSAByteDigester implements ByteDigester {
 		if (ArrayUtils.isEmpty(message)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(this.privateKeyBytes)) {
+		if (Objects.isNull(rsaKey.getPrivateKey())) {
 			throw new EncryptionInitializationException("未设置私钥");
 		}
-		if (!this.initialized) {
+		if (!rsaKey.isInitialized()) {
 			initialize();
 		}
 		try {
@@ -125,10 +101,10 @@ public final class RSAByteDigester implements ByteDigester {
 		} else if (Objects.isNull(digest)) {
 			return false;
 		}
-		if (Objects.isNull(this.publicKeyBytes)) {
+		if (Objects.isNull(rsaKey.getPublicKey())) {
 			throw new EncryptionInitializationException("未设置公钥");
 		}
-		if (!this.initialized) {
+		if (!rsaKey.isInitialized()) {
 			initialize();
 		}
 		try {

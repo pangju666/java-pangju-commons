@@ -49,7 +49,7 @@ public final class PinyinComparator implements Comparator<String> {
 			String o2PinYin = PinyinHelper.convertToPinyinString(o2, separator, pinyinFormat);
 			return o1PinYin.compareTo(o2PinYin);
 		} catch (PinyinException e) {
-			return ExceptionUtils.rethrow(e);
+			throw ExceptionUtils.asRuntimeException(e);
 		}
 	}
 }

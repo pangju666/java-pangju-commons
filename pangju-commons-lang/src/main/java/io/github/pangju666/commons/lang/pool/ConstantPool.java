@@ -42,27 +42,27 @@ public class ConstantPool {
 	/**
 	 * 字符串常量：XML 不间断空格转义 {@code "&nbsp;" -> " "}
 	 */
-	public static final String NBSP = "&nbsp;";
+	public static final String XML_NBSP = "&nbsp;";
 	/**
 	 * 字符串常量：XML And 符转义 {@code "&amp;" -> "&"}
 	 */
-	public static final String AMP = "&amp;";
+	public static final String XML_AMP = "&amp;";
 	/**
 	 * 字符串常量：XML 双引号转义 {@code "&quot;" -> "\""}
 	 */
-	public static final String QUOTE = "&quot;";
+	public static final String XML_QUOTE = "&quot;";
 	/**
 	 * 字符串常量：XML 单引号转义 {@code "&apos" -> "'"}
 	 */
-	public static final String APOS = "&apos;";
+	public static final String XML_APOS = "&apos;";
 	/**
 	 * 字符串常量：XML 小于号转义 {@code "&lt;" -> "<"}
 	 */
-	public static final String LT = "&lt;";
+	public static final String XML_LT = "&lt;";
 	/**
 	 * 字符串常量：XML 大于号转义 {@code "&gt;" -> ">"}
 	 */
-	public static final String GT = "&gt;";
+	public static final String XML_GT = "&gt;";
 
 	protected ConstantPool() {
 	}

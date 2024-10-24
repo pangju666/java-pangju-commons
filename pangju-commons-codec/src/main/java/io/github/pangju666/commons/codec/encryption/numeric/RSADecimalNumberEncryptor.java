@@ -3,7 +3,6 @@ package io.github.pangju666.commons.codec.encryption.numeric;
 import io.github.pangju666.commons.codec.encryption.binary.RSABinaryEncryptor;
 import io.github.pangju666.commons.codec.utils.NumberUtils;
 import org.jasypt.commons.CommonUtils;
-import org.jasypt.exceptions.AlreadyInitializedException;
 import org.jasypt.exceptions.EncryptionInitializationException;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.jasypt.util.numeric.DecimalNumberEncryptor;
@@ -20,7 +19,6 @@ import java.util.Objects;
  *        <li>创建一个实例（使用new）</li>
  *        <li>设置公钥（使用{@link #setPublicKey(byte[])}）<b>提示：</b>如果只需要解密可省略该操作</li>
  *        <li>设置私钥（使用{@link #setPrivateKey(byte[])}）<b>提示：</b>如果只需要加密可省略该操作</li>
- *        <li>初始化（使用{@link #initialize()}）<b>提示：</b>一旦加密器初始化，尝试更改密钥将导致抛出{@link AlreadyInitializedException}</li>
  *        <li>执行加密（使用{@link #encrypt(BigDecimal)}）或解密（使用{@link #decrypt(BigDecimal)}）操作</li>
  *    </ol>
  * </p>
@@ -30,26 +28,29 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
-	private final RSABinaryEncryptor binaryEncryptor = new RSABinaryEncryptor();
+	private final RSABinaryEncryptor binaryEncryptor;
 
-	public void setPublicKey(byte[] publicKey) {
+	public RSADecimalNumberEncryptor() {
+		this.binaryEncryptor = new RSABinaryEncryptor();
+	}
+
+	public RSADecimalNumberEncryptor(RSABinaryEncryptor rsaBinaryEncryptor) {
+		this.binaryEncryptor = rsaBinaryEncryptor;
+	}
+
+	public void setPublicKey(final byte[] publicKey) {
 		binaryEncryptor.setPublicKey(publicKey);
 	}
 
-	public void setPrivateKey(byte[] privateKey) {
+	public void setPrivateKey(final byte[] privateKey) {
 		binaryEncryptor.setPrivateKey(privateKey);
 	}
 
-	public void initialize() {
-		binaryEncryptor.initialize();
-	}
-
 	@Override
-	public BigDecimal encrypt(BigDecimal number) {
+	public BigDecimal encrypt(final BigDecimal number) {
 		if (Objects.isNull(number)) {
 			return null;
 		}
-
 		try {
 			final int scale = number.scale();
 			final BigInteger unscaledMessage = number.unscaledValue();
@@ -66,16 +67,16 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	}
 
 	@Override
-	public BigDecimal decrypt(BigDecimal encryptedNumber) {
+	public BigDecimal decrypt(final BigDecimal encryptedNumber) {
 		if (Objects.isNull(encryptedNumber)) {
 			return null;
 		}
-
 		try {
 			int scale = encryptedNumber.scale();
 			BigInteger unscaledEncryptedMessage = encryptedNumber.unscaledValue();
 			byte[] encryptedMessageBytes = unscaledEncryptedMessage.toByteArray();
-			encryptedMessageBytes = NumberUtils.processBigIntegerEncryptedByteArray(encryptedMessageBytes, encryptedNumber.signum());
+			encryptedMessageBytes = NumberUtils.processBigIntegerEncryptedByteArray(
+				encryptedMessageBytes, encryptedNumber.signum());
 			byte[] message = binaryEncryptor.decrypt(encryptedMessageBytes);
 			return new BigDecimal(new BigInteger(message), scale);
 		} catch (EncryptionInitializationException | EncryptionOperationNotPossibleException e) {

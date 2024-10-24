@@ -21,7 +21,15 @@ import java.security.SecureRandom;
  * @since 1.0.0
  */
 public final class BcryptPasswordEncryptor implements PasswordEncryptor {
-	private final SecureRandom random = new SecureRandom();
+	private final SecureRandom random;
+
+	public BcryptPasswordEncryptor() {
+		this.random = new SecureRandom();
+	}
+
+	public BcryptPasswordEncryptor(SecureRandom random) {
+		this.random = random;
+	}
 
 	@Override
 	public String encryptPassword(String password) {
@@ -35,7 +43,7 @@ public final class BcryptPasswordEncryptor implements PasswordEncryptor {
 	@Override
 	public boolean checkPassword(String plainPassword, String encryptedPassword) {
 		if (StringUtils.isBlank(plainPassword)) {
-			return (StringUtils.isBlank(encryptedPassword));
+			return StringUtils.isBlank(encryptedPassword);
 		} else if (StringUtils.isBlank(encryptedPassword)) {
 			return false;
 		}

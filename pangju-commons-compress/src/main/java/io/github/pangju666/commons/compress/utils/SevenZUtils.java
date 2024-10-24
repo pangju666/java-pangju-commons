@@ -20,11 +20,11 @@ public class SevenZUtils {
 	 */
 	public static final String SEVEN_Z_MIME_TYPE = "application/x-7z-compressed";
 	/**
-	 * zip压缩文件路径分隔符
+	 * 7z压缩文件路径分隔符
 	 */
 	public static final String PATH_SEPARATOR = "/";
 	/**
-	 * zip压缩文件拓展名（后缀）
+	 * 7z压缩文件拓展名（后缀）
 	 */
 	public static final String EXTENSION = "7z";
 
@@ -135,7 +135,7 @@ public class SevenZUtils {
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
 		for (File file : files) {
-			if (io.github.pangju666.commons.io.utils.file.FileUtils.exist(file)) {
+			if (FileUtils.exist(file)) {
 				if (file.isFile()) {
 					addFileToSevenZOutputFile(file, sevenZOutputFile, null, method);
 				} else {
