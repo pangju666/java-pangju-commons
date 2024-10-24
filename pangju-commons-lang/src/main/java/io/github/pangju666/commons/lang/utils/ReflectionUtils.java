@@ -11,7 +11,6 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 	protected ReflectionUtils() {
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <E> E getFieldValue(final Object obj, final String fieldName) {
 		Field field = getField(obj, fieldName);
 		if (Objects.isNull(field)) {
@@ -33,7 +32,7 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 			}
 			return value;
 		} catch (IllegalAccessException e) {
-			org.apache.commons.lang3.exception.ExceptionUtils.rethrow(e);
+			ExceptionUtils.asRuntimeException(e);
 			return null;
 		}
 	}
@@ -57,7 +56,7 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 				field.setAccessible(false);
 			}
 		} catch (IllegalAccessException e) {
-			ExceptionUtils.rethrow(e);
+			ExceptionUtils.asRuntimeException(e);
 		}
 	}
 

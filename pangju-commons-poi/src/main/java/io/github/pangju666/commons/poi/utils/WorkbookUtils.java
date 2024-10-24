@@ -208,7 +208,7 @@ public class WorkbookUtils {
 		try {
 			return switch (cell.getCellType()) {
 				case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-				case STRING -> StringUtils.defaultString(cell.getStringCellValue(), defaultValue);
+				case STRING -> Objects.toString(cell.getStringCellValue(), defaultValue);
 				case BOOLEAN -> BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
 				default -> defaultValue;
 			};

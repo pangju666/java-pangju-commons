@@ -44,7 +44,7 @@ public class SevenZUtils {
 		if (!SEVEN_Z_MIME_TYPE.equals(mimeType)) {
 			throw new IOException(compressFile.getAbsolutePath() + "不是7z类型文件");
 		}
-		try (SevenZFile sevenZFile = new SevenZFile(compressFile)) {
+		try (SevenZFile sevenZFile = new SevenZFile.Builder().setFile(compressFile).get()) {
 			unCompress(sevenZFile, outputDir);
 		}
 	}
