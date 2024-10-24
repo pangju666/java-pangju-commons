@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author pangju
  * @since 1.0.0
  */
-public final class RsaUtils {
+public final class RSAUtils {
 	/**
 	 * 算法
 	 */
@@ -34,7 +34,7 @@ public final class RsaUtils {
 	private static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
 	private static KeyFactory DEFAULT_KEY_FACTORY;
 
-	private RsaUtils() {
+	private RSAUtils() {
 	}
 
 	/**
@@ -45,9 +45,9 @@ public final class RsaUtils {
 	 */
 	public static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
-			synchronized (RsaUtils.class) {
+			synchronized (RSAUtils.class) {
 				if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
-					DEFAULT_KEY_FACTORY = KeyFactory.getInstance(RsaUtils.ALGORITHM);
+					DEFAULT_KEY_FACTORY = KeyFactory.getInstance(RSAUtils.ALGORITHM);
 				}
 			}
 		}
@@ -62,7 +62,7 @@ public final class RsaUtils {
 	 */
 	public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
-			synchronized (RsaUtils.class) {
+			synchronized (RSAUtils.class) {
 				if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
 					DEFAULT_KEY_PAIR_GENERATOR = KeyPairGenerator.getInstance(ALGORITHM);
 				}

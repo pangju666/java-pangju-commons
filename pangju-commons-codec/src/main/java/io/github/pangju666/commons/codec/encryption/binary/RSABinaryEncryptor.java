@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.codec.encryption.binary;
 
 import io.github.pangju666.commons.codec.key.RSAKey;
-import io.github.pangju666.commons.codec.utils.RsaUtils;
+import io.github.pangju666.commons.codec.utils.RSAUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jasypt.exceptions.AlreadyInitializedException;
 import org.jasypt.exceptions.EncryptionInitializationException;
@@ -67,26 +67,26 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		if (!rsaKey.isInitialized()) {
 			try {
 				if (Objects.nonNull(rsaKey.getPublicKey())) {
-					PublicKey publicKey = RsaUtils.getPublicKey(rsaKey.getPublicKey());
+					PublicKey publicKey = RSAUtils.getPublicKey(rsaKey.getPublicKey());
 					rsaKey.cleanPublicKey();
 
-					RSAPublicKeySpec publicKeySpec = RsaUtils.getKeyFactory().getKeySpec(publicKey,
+					RSAPublicKeySpec publicKeySpec = RSAUtils.getKeyFactory().getKeySpec(publicKey,
 						RSAPublicKeySpec.class);
 					this.publicKeySize = publicKeySpec.getModulus().bitLength() / 8 - 11;
 
-					this.encryptCipher = Cipher.getInstance(RsaUtils.DEFAULT_CIPHER_ALGORITHM);
+					this.encryptCipher = Cipher.getInstance(RSAUtils.DEFAULT_CIPHER_ALGORITHM);
 					this.encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 				}
 
 				if (Objects.nonNull(rsaKey.getPrivateKey())) {
-					PrivateKey privateKey = RsaUtils.getPrivateKey(rsaKey.getPrivateKey());
+					PrivateKey privateKey = RSAUtils.getPrivateKey(rsaKey.getPrivateKey());
 					rsaKey.cleanPrivateKey();
 
-					RSAPrivateKeySpec privateKeySpec = RsaUtils.getKeyFactory().getKeySpec(privateKey,
+					RSAPrivateKeySpec privateKeySpec = RSAUtils.getKeyFactory().getKeySpec(privateKey,
 						RSAPrivateKeySpec.class);
 					this.privateKeySize = privateKeySpec.getModulus().bitLength() / 8;
 
-					this.decryptCipher = Cipher.getInstance(RsaUtils.DEFAULT_CIPHER_ALGORITHM);
+					this.decryptCipher = Cipher.getInstance(RSAUtils.DEFAULT_CIPHER_ALGORITHM);
 					this.decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 				}
 			} catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |

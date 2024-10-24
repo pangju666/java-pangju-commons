@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.codec.digest;
 
 import io.github.pangju666.commons.codec.key.RSAKey;
-import io.github.pangju666.commons.codec.utils.RsaUtils;
+import io.github.pangju666.commons.codec.utils.RSAUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jasypt.digest.ByteDigester;
 import org.jasypt.exceptions.AlreadyInitializedException;
@@ -54,18 +54,18 @@ public final class RSAByteDigester implements ByteDigester {
 		if (!rsaKey.isInitialized()) {
 			try {
 				if (Objects.nonNull(rsaKey.getPublicKey())) {
-					PublicKey publicKey = RsaUtils.getPublicKey(rsaKey.getPublicKey());
+					PublicKey publicKey = RSAUtils.getPublicKey(rsaKey.getPublicKey());
 					rsaKey.cleanPublicKey();
 
-					this.publicSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
+					this.publicSignature = Signature.getInstance(RSAUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.publicSignature.initVerify(publicKey);
 				}
 
 				if (Objects.nonNull(rsaKey.getPrivateKey())) {
-					PrivateKey privateKey = RsaUtils.getPrivateKey(rsaKey.getPrivateKey());
+					PrivateKey privateKey = RSAUtils.getPrivateKey(rsaKey.getPrivateKey());
 					rsaKey.cleanPrivateKey();
 
-					this.privateSignature = Signature.getInstance(RsaUtils.DEFAULT_SIGNATURE_ALGORITHM);
+					this.privateSignature = Signature.getInstance(RSAUtils.DEFAULT_SIGNATURE_ALGORITHM);
 					this.privateSignature.initSign(privateKey);
 				}
 			} catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
