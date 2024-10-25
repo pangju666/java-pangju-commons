@@ -6,11 +6,13 @@ import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZMethod;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
+import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.*;
+import java.nio.file.NoSuchFileException;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -20,13 +22,13 @@ public class SevenZUtils {
 	 */
 	public static final String SEVEN_Z_MIME_TYPE = "application/x-7z-compressed";
 	/**
-	 * 7z压缩文件路径分隔符
-	 */
-	public static final String PATH_SEPARATOR = "/";
-	/**
 	 * 7z压缩文件拓展名（后缀）
 	 */
 	public static final String EXTENSION = "7z";
+	/**
+	 * 7z压缩文件路径分隔符
+	 */
+	public static final String PATH_SEPARATOR = "/";
 
 	protected SevenZUtils() {
 	}
@@ -53,12 +55,16 @@ public class SevenZUtils {
 		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 
-		FileUtils.forceMkdir(outputDir);
+		if (!outputDir.exists()) {
+			FileUtils.forceMkdir(outputDir);
+		}
 		SevenZArchiveEntry zipEntry = sevenZFile.getNextEntry();
 		while (Objects.nonNull(zipEntry)) {
 			File file = new File(outputDir, zipEntry.getName());
 			if (zipEntry.isDirectory()) {
-				FileUtils.forceMkdir(file);
+				if (!file.exists()) {
+					FileUtils.forceMkdir(file);
+				}
 			} else {
 				try (InputStream inputStream = sevenZFile.getInputStream(zipEntry);
 					 FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
@@ -105,10 +111,10 @@ public class SevenZUtils {
 		FileUtils.validateFileOrDir(file, "file 不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
-		if (file.isFile()) {
-			addFileToSevenZOutputFile(file, sevenZOutputFile, null, method);
-		} else {
+		if (file.isDirectory()) {
 			addDirToSevenZOutputFile(file, sevenZOutputFile, null, method);
+		} else {
+			addFileToSevenZOutputFile(file, sevenZOutputFile, null, method);
 		}
 		sevenZOutputFile.finish();
 	}
@@ -131,16 +137,17 @@ public class SevenZUtils {
 
 	public static void compressFiles(final Collection<File> files, final SevenZOutputFile sevenZOutputFile,
 									 final SevenZMethod method) throws IOException {
-		FileUtils.validateFilesOrDirs(files, "files 中存在 null 项");
+		FileUtils.validateFilesOrDirs(files, "files 中元素不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
 		for (File file : files) {
-			if (FileUtils.exist(file)) {
-				if (file.isFile()) {
-					addFileToSevenZOutputFile(file, sevenZOutputFile, null, method);
-				} else {
-					addDirToSevenZOutputFile(file, sevenZOutputFile, null, method);
-				}
+			if (FileUtils.notExist(file)) {
+				throw new NoSuchFileException(file.getAbsolutePath());
+			}
+			if (file.isDirectory()) {
+				addDirToSevenZOutputFile(file, sevenZOutputFile, null, method);
+			} else {
+				addFileToSevenZOutputFile(file, sevenZOutputFile, null, method);
 			}
 		}
 		sevenZOutputFile.finish();
@@ -161,10 +168,10 @@ public class SevenZUtils {
 				childParent = parent + PATH_SEPARATOR + file.getName();
 			}
 			for (File childFile : childFiles) {
-				if (childFile.isFile()) {
-					addFileToSevenZOutputFile(childFile, outputFile, childParent, method);
-				} else {
+				if (childFile.isDirectory()) {
 					addDirToSevenZOutputFile(childFile, outputFile, childParent, method);
+				} else {
+					addFileToSevenZOutputFile(childFile, outputFile, childParent, method);
 				}
 			}
 		}
@@ -172,13 +179,16 @@ public class SevenZUtils {
 
 	protected static void addFileToSevenZOutputFile(final File file, final SevenZOutputFile outputFile,
 													final String parent, final SevenZMethod method) throws IOException {
-		try (InputStream inputStream = new FileInputStream(file);
-			 BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
-			String archiveEntryName = StringUtils.isNotBlank(parent) ? parent + PATH_SEPARATOR + file.getName() : file.getName();
+		BufferedFileChannelInputStream.Builder builder = BufferedFileChannelInputStream.builder()
+			.setFile(file)
+			.setBufferSize(4096);
+		try (BufferedFileChannelInputStream inputStream = builder.get()) {
+			String archiveEntryName = StringUtils.isNotBlank(parent) ?
+				parent + PATH_SEPARATOR + file.getName() : file.getName();
 			SevenZArchiveEntry archiveEntry = outputFile.createArchiveEntry(file, archiveEntryName);
 			outputFile.putArchiveEntry(archiveEntry);
 			outputFile.setContentCompression(method);
-			outputFile.write(bufferedInputStream);
+			outputFile.write(inputStream);
 			outputFile.closeArchiveEntry();
 		}
 	}
