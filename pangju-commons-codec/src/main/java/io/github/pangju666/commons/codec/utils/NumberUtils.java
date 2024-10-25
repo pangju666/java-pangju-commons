@@ -8,8 +8,8 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
  * @author pangju
  * @since 1.0.0
  */
-public final class NumberUtils {
-	private NumberUtils() {
+public class NumberUtils {
+	protected NumberUtils() {
 	}
 
 	public static byte[] byteArrayFromInt(final int number) {

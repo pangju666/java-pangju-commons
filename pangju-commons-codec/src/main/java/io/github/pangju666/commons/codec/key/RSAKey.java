@@ -7,9 +7,9 @@ import org.jasypt.commons.CommonUtils;
 
 import java.util.Objects;
 
-public final class RSAKey {
-	private byte[] publicKey;
-	private byte[] privateKey;
+public class RSAKey {
+	protected byte[] publicKey;
+	protected byte[] privateKey;
 
 	public byte[] getPublicKey() {
 		return publicKey;
@@ -74,7 +74,7 @@ public final class RSAKey {
 		System.arraycopy(privateKey, 0, this.privateKey, 0, privateKey.length);
 	}
 
-	private void cleanPublicKey() {
+	protected void cleanPublicKey() {
 		if (Objects.nonNull(this.publicKey)) {
 			byte[] key = this.publicKey;
 			synchronized (key) {
@@ -86,7 +86,7 @@ public final class RSAKey {
 		}
 	}
 
-	private void cleanPrivateKey() {
+	protected void cleanPrivateKey() {
 		if (Objects.nonNull(this.privateKey)) {
 			byte[] key = this.privateKey;
 			synchronized (key) {

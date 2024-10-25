@@ -18,7 +18,7 @@ import java.util.Objects;
  * @author pangju
  * @since 1.0.0
  */
-public final class RSAUtils {
+public class RSAUtils {
 	public static final String ALGORITHM = "RSA";
 	public static final String DEFAULT_CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
@@ -26,7 +26,7 @@ public final class RSAUtils {
 	private static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
 	private static KeyFactory DEFAULT_KEY_FACTORY;
 
-	private RSAUtils() {
+	protected RSAUtils() {
 	}
 
 	public static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
