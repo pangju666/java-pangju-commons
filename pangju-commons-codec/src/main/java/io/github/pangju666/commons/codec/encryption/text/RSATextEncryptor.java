@@ -1,6 +1,7 @@
 package io.github.pangju666.commons.codec.encryption.text;
 
 import io.github.pangju666.commons.codec.encryption.binary.RSABinaryEncryptor;
+import io.github.pangju666.commons.codec.key.RSAKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.commons.CommonUtils;
@@ -10,16 +11,6 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * RSA算法文本加密器（公钥加密，私钥解密）
- * <p>默认以BASE64格式返回结果</p>
- * <p>
- * 使用步骤：
- *    <ol>
- *        <li>创建一个实例（使用new）</li>
- *        <li>设置公钥（使用{@link #setPublicKey(byte[])}）<b>提示：</b>如果只需要解密可省略该操作</li>
- *        <li>设置私钥（使用{@link #setPrivateKey(byte[])}）<b>提示：</b>如果只需要加密可省略该操作</li>
- *        <li>执行加密（使用{@link #encrypt(String)}）或解密（使用{@link #decrypt(String)}）操作</li>
- *    </ol>
- * </p>
  * <br/>这个类是<i>线程安全的</i>
  *
  * @author pangju
@@ -32,16 +23,16 @@ public final class RSATextEncryptor implements TextEncryptor {
 		this.binaryEncryptor = new RSABinaryEncryptor();
 	}
 
-	public RSATextEncryptor(RSABinaryEncryptor rsaBinaryEncryptor) {
-		this.binaryEncryptor = rsaBinaryEncryptor;
+	public RSATextEncryptor(RSAKey key) {
+		this.binaryEncryptor = new RSABinaryEncryptor(key);
 	}
 
-	public void setPublicKey(final byte[] publicKey) {
-		binaryEncryptor.setPublicKey(publicKey);
+	public void setKey(RSAKey key) {
+		binaryEncryptor.setKey(key);
 	}
 
-	public void setPrivateKey(final byte[] privateKey) {
-		binaryEncryptor.setPrivateKey(privateKey);
+	public void setAlgorithm(String algorithm) {
+		binaryEncryptor.setAlgorithm(algorithm);
 	}
 
 	@Override

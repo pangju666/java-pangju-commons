@@ -3,6 +3,7 @@ package io.github.pangju666.commons.codec.utils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jasypt.commons.CommonUtils;
 
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -18,17 +19,8 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public final class RSAUtils {
-	/**
-	 * 算法
-	 */
 	public static final String ALGORITHM = "RSA";
-	/**
-	 * 默认加解密算法
-	 */
 	public static final String DEFAULT_CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
-	/**
-	 * 默认签名算法
-	 */
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
 
 	private static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
@@ -37,12 +29,6 @@ public final class RSAUtils {
 	private RSAUtils() {
 	}
 
-	/**
-	 * 获取密钥工厂单例对象
-	 *
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
 	public static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
 			synchronized (RSAUtils.class) {
@@ -54,12 +40,6 @@ public final class RSAUtils {
 		return DEFAULT_KEY_FACTORY;
 	}
 
-	/**
-	 * 生成RSA公私钥对
-	 *
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
 	public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
 			synchronized (RSAUtils.class) {
@@ -71,31 +51,32 @@ public final class RSAUtils {
 		return DEFAULT_KEY_PAIR_GENERATOR.generateKeyPair();
 	}
 
-	/**
-	 * 将私钥字符串转换为私钥对象（{@link PrivateKey}）
-	 *
-	 * @param privateKey 私钥的字符串（BASE64编码）形式
-	 * @return 私钥对象，如果privateKey为空则返回 null
-	 * @throws InvalidKeySpecException  私钥字符串不符合{@link PKCS8EncodedKeySpec PKCS8}编码标准时
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
-	public static PrivateKey getPrivateKey(final String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static KeyPair generateKeyPair(final int keySize) throws NoSuchAlgorithmException {
+		KeyPairGenerator generator = KeyPairGenerator.getInstance(ALGORITHM);
+		generator.initialize(keySize);
+		return generator.generateKeyPair();
+	}
+
+	public static KeyPair generateKeyPair(final int keySize, final SecureRandom secureRandom) throws NoSuchAlgorithmException {
+		KeyPairGenerator generator = KeyPairGenerator.getInstance(ALGORITHM);
+		generator.initialize(keySize, secureRandom);
+		return generator.generateKeyPair();
+	}
+
+	public static PrivateKey getPrivateKeyFromBase64(final String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (StringUtils.isBlank(privateKey)) {
 			return null;
 		}
 		return getPrivateKey(Base64.decodeBase64(privateKey));
 	}
 
-	/**
-	 * 将私钥字节数组转换为私钥对象（{@link PrivateKey}）
-	 *
-	 * @param privateKey 私钥的字节数组形式
-	 * @return 私钥对象，如果privateKey为空则返回 null
-	 * @throws InvalidKeySpecException  私钥字符串不符合{@link PKCS8EncodedKeySpec PKCS8}编码标准时
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
+	public static PrivateKey getPrivateKeyFromHex(final String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		if (StringUtils.isBlank(privateKey)) {
+			return null;
+		}
+		return getPrivateKey(CommonUtils.fromHexadecimal(privateKey));
+	}
+
 	public static PrivateKey getPrivateKey(final byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (ArrayUtils.isEmpty(privateKey)) {
 			return null;
@@ -104,31 +85,20 @@ public final class RSAUtils {
 		return getKeyFactory().generatePrivate(keySpec);
 	}
 
-	/**
-	 * 将公钥字符串转换为公钥对象（{@link PublicKey}）
-	 *
-	 * @param publicKey 公钥的字符串（BASE64编码）形式
-	 * @return 公钥对象，如果publicKey为空则返回 null
-	 * @throws InvalidKeySpecException  私钥字符串不符合{@link X509EncodedKeySpec X509}编码标准时
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
-	public static PublicKey getPublicKey(final String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKeyFromBase64(final String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (StringUtils.isBlank(publicKey)) {
 			return null;
 		}
 		return getPublicKey(Base64.decodeBase64(publicKey));
 	}
 
-	/**
-	 * 将私钥字节数组转换为公钥对象（{@link PublicKey}）
-	 *
-	 * @param publicKey 公钥的字节数组形式
-	 * @return 公钥对象，如果publicKey为空则返回 null
-	 * @throws InvalidKeySpecException  私钥字符串不符合{@link X509EncodedKeySpec X509}编码标准时
-	 * @throws NoSuchAlgorithmException 运行环境不支持RSA算法时
-	 * @since 1.0.0
-	 */
+	public static PublicKey getPublicKeyFromHex(final String publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		if (StringUtils.isBlank(publicKey)) {
+			return null;
+		}
+		return getPublicKey(CommonUtils.fromHexadecimal(publicKey));
+	}
+
 	public static PublicKey getPublicKey(final byte[] publicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (ArrayUtils.isEmpty(publicKey)) {
 			return null;

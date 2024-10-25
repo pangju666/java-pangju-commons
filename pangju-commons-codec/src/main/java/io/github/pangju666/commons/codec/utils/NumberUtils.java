@@ -3,7 +3,7 @@ package io.github.pangju666.commons.codec.utils;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 
 /**
- * 加密模块中需要用到的数字工具类，仅供内部使用
+ * 加密模块中需要用到的数字工具类(内部使用)
  *
  * @author pangju
  * @since 1.0.0

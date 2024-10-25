@@ -3,6 +3,7 @@ package io.github.pangju666.commons.codec.digest;
 import io.github.pangju666.commons.codec.key.RSAKey;
 import io.github.pangju666.commons.codec.utils.RSAUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
 import org.jasypt.digest.ByteDigester;
 import org.jasypt.exceptions.AlreadyInitializedException;
 import org.jasypt.exceptions.EncryptionInitializationException;
@@ -14,16 +15,6 @@ import java.util.Objects;
 
 /**
  * RSA算法二进制消息签名器（私钥签名，公钥验证签名）
- * <p>
- * 使用步骤：
- *    <ol>
- *        <li>创建一个实例（使用new）</li>
- *        <li>设置公钥（使用{@link #setPublicKey(byte[])}）<b>提示：</b>如果只需要签名可省略该操作</li>
- *        <li>设置私钥（使用{@link #setPrivateKey(byte[])}）<b>提示：</b>如果只需要验证签名可省略该操作</li>
- *        <li>初始化（使用{@link #initialize()}）<b>提示：</b>一旦加密器初始化，尝试更改密钥将导致抛出{@link AlreadyInitializedException}</li>
- *        <li>执行签名（使用{@link #digest(byte[])}）或验证签名（使用{@link #matches(byte[], byte[])}）操作</li>
- *    </ol>
- * </p>
  * <br/>这个类是<i>线程安全的</i>
  *
  * @author pangju
@@ -32,46 +23,51 @@ import java.util.Objects;
 public final class RSAByteDigester implements ByteDigester {
 	private Signature privateSignature;
 	private Signature publicSignature;
-	private final RSAKey rsaKey;
+	private RSAKey key = new RSAKey();
+	private boolean initialized = false;
+	private String algorithm = RSAUtils.DEFAULT_SIGNATURE_ALGORITHM;
 
 	public RSAByteDigester() {
-		this.rsaKey = new RSAKey();
 	}
 
-	public RSAByteDigester(RSAKey rsaKey) {
-		this.rsaKey = rsaKey;
+	public RSAByteDigester(RSAKey key) {
+		this.key = key;
 	}
 
-	public void setPublicKey(byte[] publicKey) {
-		this.rsaKey.setPublicKey(publicKey);
+	public synchronized void setKey(RSAKey key) {
+		Validate.notNull(algorithm, "密钥不可为空");
+		if (initialized) {
+			throw new AlreadyInitializedException();
+		}
+		this.key = key;
 	}
 
-	public void setPrivateKey(byte[] privateKey) {
-		this.rsaKey.setPrivateKey(privateKey);
+	public synchronized void setAlgorithm(String algorithm) {
+		Validate.notBlank(algorithm, "算法不可为空");
+		if (initialized) {
+			throw new AlreadyInitializedException();
+		}
+		this.algorithm = algorithm;
 	}
 
 	public synchronized void initialize() {
-		if (!rsaKey.isInitialized()) {
+		if (!initialized) {
 			try {
-				if (Objects.nonNull(rsaKey.getPublicKey())) {
-					PublicKey publicKey = RSAUtils.getPublicKey(rsaKey.getPublicKey());
-					rsaKey.cleanPublicKey();
-
-					this.publicSignature = Signature.getInstance(RSAUtils.DEFAULT_SIGNATURE_ALGORITHM);
+				if (Objects.nonNull(key.getPublicKey())) {
+					PublicKey publicKey = RSAUtils.getPublicKey(key.getPublicKey());
+					this.publicSignature = Signature.getInstance(algorithm);
 					this.publicSignature.initVerify(publicKey);
 				}
 
-				if (Objects.nonNull(rsaKey.getPrivateKey())) {
-					PrivateKey privateKey = RSAUtils.getPrivateKey(rsaKey.getPrivateKey());
-					rsaKey.cleanPrivateKey();
-
-					this.privateSignature = Signature.getInstance(RSAUtils.DEFAULT_SIGNATURE_ALGORITHM);
+				if (Objects.nonNull(key.getPrivateKey())) {
+					PrivateKey privateKey = RSAUtils.getPrivateKey(key.getPrivateKey());
+					this.privateSignature = Signature.getInstance(algorithm);
 					this.privateSignature.initSign(privateKey);
 				}
 			} catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
 				throw new EncryptionInitializationException(e);
 			}
-			rsaKey.initialize();
+			initialized = true;
 		}
 	}
 
@@ -80,10 +76,10 @@ public final class RSAByteDigester implements ByteDigester {
 		if (ArrayUtils.isEmpty(message)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(rsaKey.getPrivateKey())) {
+		if (Objects.isNull(key.getPrivateKey())) {
 			throw new EncryptionInitializationException("未设置私钥");
 		}
-		if (!rsaKey.isInitialized()) {
+		if (!initialized) {
 			initialize();
 		}
 		try {
@@ -101,10 +97,10 @@ public final class RSAByteDigester implements ByteDigester {
 		} else if (Objects.isNull(digest)) {
 			return false;
 		}
-		if (Objects.isNull(rsaKey.getPublicKey())) {
+		if (Objects.isNull(key.getPublicKey())) {
 			throw new EncryptionInitializationException("未设置公钥");
 		}
-		if (!rsaKey.isInitialized()) {
+		if (!initialized) {
 			initialize();
 		}
 		try {

@@ -1,5 +1,6 @@
 package io.github.pangju666.commons.codec.digest;
 
+import io.github.pangju666.commons.codec.key.RSAKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.commons.CommonUtils;
@@ -9,16 +10,6 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * RSA算法文本消息签名器（私钥签名，公钥验证签名）
- * <p>默认以BASE64格式返回结果</p>
- * <p>
- * 使用步骤：
- *    <ol>
- *        <li>创建一个实例（使用new）</li>
- *        <li>设置公钥（使用{@link #setPublicKey(byte[])}）<b>提示：</b>如果只需要签名可省略该操作</li>
- *        <li>设置私钥（使用{@link #setPrivateKey(byte[])}）<b>提示：</b>如果只需要验证签名可省略该操作</li>
- *        <li>执行签名（使用{@link #digest(String)}）或验证签名（使用{@link #matches(String, String)}）操作</li>
- *    </ol>
- * </p>
  * <br/>这个类是<i>线程安全的</i>
  *
  * @author pangju
@@ -31,16 +22,16 @@ public final class RSAStringDigester implements StringDigester {
 		this.byteDigester = new RSAByteDigester();
 	}
 
-	public RSAStringDigester(RSAByteDigester rsaByteDigester) {
-		this.byteDigester = rsaByteDigester;
+	public RSAStringDigester(RSAKey key) {
+		this.byteDigester = new RSAByteDigester(key);
 	}
 
-	public void setPublicKey(byte[] publicKey) {
-		byteDigester.setPublicKey(publicKey);
+	public void setKey(RSAKey key) {
+		byteDigester.setKey(key);
 	}
 
-	public void setPrivateKey(byte[] privateKey) {
-		byteDigester.setPrivateKey(privateKey);
+	public void setAlgorithm(String algorithm) {
+		byteDigester.setAlgorithm(algorithm);
 	}
 
 	@Override

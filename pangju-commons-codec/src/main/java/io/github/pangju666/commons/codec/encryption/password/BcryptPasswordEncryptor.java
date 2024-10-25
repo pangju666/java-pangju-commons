@@ -8,13 +8,6 @@ import java.security.SecureRandom;
 
 /**
  * Bcrypt算法密码加密器
- * <p>
- * 使用步骤：
- *    <ol>
- *        <li>创建一个实例（使用new）</li>
- *        <li>执行加密（使用{@link #encryptPassword(String)}）或检查密码是否匹配（使用{@link #checkPassword(String, String)}）操作</li>
- *    </ol>
- * </p>
  * <br/>这个类是<i>线程安全的</i>
  *
  * @author pangju
