@@ -20,7 +20,7 @@ public class NumberUtils {
 		return new byte[]{b3, b2, b1, b0};
 	}
 
-	private static int intFromByteArray(final byte[] byteArray) {
+	protected static int intFromByteArray(final byte[] byteArray) {
 		if (byteArray == null || byteArray.length == 0) {
 			throw new IllegalArgumentException("无法将空数组转换为int");
 		}
@@ -61,7 +61,7 @@ public class NumberUtils {
 		return byteArray.clone();
 	}
 
-	private static long maxSafeSizeInBytes() {
+	protected static long maxSafeSizeInBytes() {
 		final long max = Runtime.getRuntime().maxMemory();
 		final long free = Runtime.getRuntime().freeMemory();
 		final long total = Runtime.getRuntime().totalMemory();

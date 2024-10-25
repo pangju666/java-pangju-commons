@@ -23,8 +23,8 @@ public class RSAUtils {
 	public static final String DEFAULT_CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-	private static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
-	private static KeyFactory DEFAULT_KEY_FACTORY;
+	protected static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
+	protected static KeyFactory DEFAULT_KEY_FACTORY;
 
 	protected RSAUtils() {
 	}
