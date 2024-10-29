@@ -14,9 +14,7 @@ import com.drew.metadata.webp.WebpDirectory;
 import io.github.pangju666.commons.io.lang.Constants;
 import io.github.pangju666.commons.io.model.ImageSize;
 import io.github.pangju666.commons.io.utils.file.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
-import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -41,21 +39,12 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class ImageUtils {
+	protected static final int DEFAULT_BUFFERED_BUFFER_SIZE = 8192;
 	protected static final Set<String> MIME_TYPES = Set.of(ImageIO.getReaderMIMETypes());
-	protected static final Set<String> FILE_SUFFIXES = Set.of(ImageIO.getReaderFileSuffixes());
 
 	protected ImageUtils() {
 	}
 
-	/**
-	 * 根据预期宽度计算新的实际宽高
-	 *
-	 * @param imageWidth  图片宽度
-	 * @param imageHeight 图片高度
-	 * @param targetWidth 预期宽度
-	 * @return 实际缩放后的宽高
-	 * @since 1.0.0
-	 */
 	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
 		if (imageWidth > imageHeight) {
 			double ratio = (double) imageWidth / imageHeight;
@@ -65,15 +54,6 @@ public class ImageUtils {
 		return new ImageSize(targetWidth, (int) Math.max(targetWidth * ratio, 1));
 	}
 
-	/**
-	 * 根据预期高度计算实际缩放后的宽高
-	 *
-	 * @param imageWidth   图片宽度
-	 * @param imageHeight  图片高度
-	 * @param targetHeight 预期高度
-	 * @return 实际缩放后的宽高
-	 * @since 1.0.0
-	 */
 	public static ImageSize computeNewSizeByHeight(final int imageWidth, final int imageHeight, final int targetHeight) {
 		if (imageWidth > imageHeight) {
 			double ratio = (double) imageWidth / imageHeight;
@@ -83,17 +63,6 @@ public class ImageUtils {
 		return new ImageSize((int) Math.max(targetHeight / ratio, 1), targetHeight);
 	}
 
-	/**
-	 * 根据预期宽高计算实际缩放后的宽高
-	 * <p>如果宽大于高则根据宽计算缩放尺寸，否则按高计算缩放尺寸</p>
-	 *
-	 * @param imageWidth   图片宽度
-	 * @param imageHeight  图片高度
-	 * @param targetWidth  预期宽度
-	 * @param targetHeight 预期高度
-	 * @return 实际缩放后的宽高
-	 * @since 1.0.0
-	 */
 	public static ImageSize computeNewSize(final int imageWidth, final int imageHeight,
 										   final int targetWidth, final int targetHeight) {
 		double ratio = (double) imageWidth / imageHeight;
@@ -112,26 +81,10 @@ public class ImageUtils {
 		}
 	}
 
-	/**
-	 * 判断是否为图片文件
-	 *
-	 * @param file 要解析的文件
-	 * @return 是图片文件则返回true，否则为false
-	 * @throws IOException 图片读取失败
-	 * @see FileUtils#isImageType(File)
-	 * @since 1.0.0
-	 */
 	public static boolean isImage(final File file) throws IOException {
 		return FileUtils.isImageType(file);
 	}
 
-	/**
-	 * 判断是否为图片
-	 *
-	 * @param bytes 要解析的字节数组
-	 * @return 是图片则返回true，否则为false
-	 * @since 1.0.0
-	 */
 	public static boolean isImage(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
@@ -140,42 +93,40 @@ public class ImageUtils {
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
-	/**
-	 * 判断是否为图片
-	 *
-	 * @param inputStream 要解析的输入流
-	 * @return 是图片则返回true，否则为false
-	 * @since 1.0.0
-	 */
 	public static boolean isImage(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
-	/**
-	 * 判断是否为图片
-	 *
-	 * @param metadata 图片元数据
-	 * @return 是图片则返回true，否则为false
-	 * @see Metadata
-	 * @since 1.0.0
-	 */
 	public static boolean isImage(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
-		String mimeType = getMimeType(metadata);
+		String mimeType = getImageType(metadata);
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
-	/**
-	 * 根据图片元数据获取MIME类型
-	 *
-	 * @param metadata 图片元数据
-	 * @return 图片MIME类型，如果不是支持的类型则返回 null
-	 * @since 1.0.0
-	 */
-	public static String getMimeType(final Metadata metadata) {
+	public static String getImageType(final File file) throws IOException {
+		String mimeType = FileUtils.getMimeType(file);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+	}
+
+	public static String getImageType(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		String mimeType = Constants.DEFAULT_TIKA.detect(bytes);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+	}
+
+	public static String getImageType(final InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
+		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+	}
+
+	public static String getImageType(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
+
 		Collection<FileTypeDirectory> fileTypeDirectories = metadata.getDirectoriesOfType(FileTypeDirectory.class);
 		var iterator = fileTypeDirectories.iterator();
 		if (!iterator.hasNext()) {
@@ -197,323 +148,143 @@ public class ImageUtils {
 		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
 	}
 
-	/**
-	 * 获取图片尺寸
-	 *
-	 * @param file 图片文件
-	 * @throws IOException 图片文件读取失败时
-	 * @return 图片尺寸，读取失败或不支持该格式则返回 null
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(final File file) throws IOException {
+	public static ImageSize getImageSize(final File file) throws IOException {
+		String mimeType = getImageType(file);
+		return getImageSize(file, mimeType);
+	}
+
+	public static ImageSize getImageSize(final File file, final String mimeType) throws IOException {
 		FileUtils.validateFile(file, "file 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
+
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(file);
-			ImageSize size = getSizeByMetadata(metadata);
+			ImageSize size = getImageSizeByMetadata(metadata);
 			if (Objects.nonNull(size)) {
 				return size;
 			}
 		} catch (ImageProcessingException ignored) {
 		}
-		String suffix = getSuffix(file);
-		if (Objects.isNull(suffix)) {
-			return null;
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
-		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-		if (Objects.isNull(imageInputStream)) {
-			return null;
-		}
-		ImageReader reader = getImageReader(iterator, imageInputStream);
-		ImageSize imageSize = null;
-		if (Objects.nonNull(reader)) {
-			imageSize = getSize(reader);
-		}
-		imageInputStream.close();
-		return imageSize;
-	}
 
-	/**
-	 * 根据图片类型获取图片尺寸
-	 *
-	 * @param file 图片文件
-	 * @param mimeType 图片MIME类型，如果不是图片类型则返回 null
-	 * @throws IOException 图片文件读取失败时
-	 * @return 图片尺寸，读取失败则返回 null
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(final File file, final String mimeType) throws IOException {
-		FileUtils.validateFile(file, "file 不可为 null");
-		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
-		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(file);
-			ImageSize size = getSizeByMetadata(metadata);
-			if (Objects.nonNull(size)) {
-				return size;
+		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
+			if (Objects.isNull(imageInputStream)) {
+				return null;
 			}
-		} catch (ImageProcessingException ignored) {
+			return getImageSize(imageInputStream, mimeType);
 		}
-		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-		if (Objects.isNull(imageInputStream)) {
-			return null;
-		}
-		ImageSize imageSize = getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
-		imageInputStream.close();
-		return imageSize;
 	}
 
-	/**
-	 * 获取图片尺寸
-	 *
-	 * @param bytes    字节数组
-	 * @param mimeType 图片MIME类型
-	 * @return 图片尺寸，如果不是支持的类型则返回 null
-	 * @throws IOException 图片文件读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(final byte[] bytes, final String mimeType) throws IOException {
+	public static ImageSize getImageSize(final byte[] bytes) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(bytes);
+		String mimeType = Constants.DEFAULT_TIKA.detect(outputStream.toInputStream());
+		return getImageSizeByOutputStream(outputStream, mimeType);
+	}
+
+	public static ImageSize getImageSize(final byte[] bytes, final String mimeType) throws IOException {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return null;
 		}
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (!MIME_TYPES.contains(mimeType)) {
-			return null;
-		}
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
-		outputStream.write(bytes);
-		return getSizeByOutputStreamAndMimeType(outputStream, mimeType);
+		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(bytes);
+		return getImageSizeByOutputStream(outputStream, mimeType);
 	}
 
-	/**
-	 * 获取图片尺寸
-	 *
-	 * @param inputStream 图片输入流
-	 * @param mimeType 图片MIME类型
-	 * @return 图片尺寸，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(final InputStream inputStream, final String mimeType) throws IOException {
+	public static ImageSize getImageSize(final InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(inputStream);
+		String mimeType = Constants.DEFAULT_TIKA.detect(outputStream.toInputStream());
+		return getImageSizeByOutputStream(outputStream, mimeType);
+	}
+
+	public static ImageSize getImageSize(final InputStream inputStream, final String mimeType) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (!MIME_TYPES.contains(mimeType)) {
-			return null;
-		}
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder().get();
-		inputStream.transferTo(outputStream);
-		return getSizeByOutputStreamAndMimeType(outputStream, mimeType);
+		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(inputStream);
+		return getImageSizeByOutputStream(outputStream, mimeType);
 	}
 
-	/**
-	 * 获取图片尺寸
-	 *
-	 * @param imageInputStream 图片输入流
-	 * @param mimeType         图片MIME类型
-	 * @return 图片尺寸，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(ImageInputStream imageInputStream, String mimeType) throws IOException {
+	public static ImageSize getImageSize(ImageInputStream imageInputStream) throws IOException {
+		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
+		Iterator<ImageReader> iterator = ImageIO.getImageReaders(imageInputStream);
+		if (!iterator.hasNext()) {
+			return null;
+		}
+		ImageReader reader = iterator.next();
+		reader.setInput(imageInputStream, true);
+		return new ImageSize(reader.getWidth(0), reader.getHeight(0));
+	}
+
+	public static ImageSize getImageSize(ImageInputStream imageInputStream, String mimeType) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
 		Validate.notBlank(mimeType, "mimeType 不可为空");
 		if (!MIME_TYPES.contains(mimeType)) {
 			return null;
 		}
-		return getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
+		return getImageSizeByImageInputStream(imageInputStream, mimeType);
 	}
 
-	/**
-	 * 获取图片尺寸
-	 *
-	 * @param imageReader 图片读取器
-	 * @return 图片尺寸
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(ImageReader imageReader) throws IOException {
-		Validate.notNull(imageReader, "imageReader 不可为 null");
-		return new ImageSize(imageReader.getWidth(0), imageReader.getHeight(0));
-	}
-
-	/**
-	 * 根据图片元数据获取图片尺寸
-	 *
-	 * @param metadata 图片元数据
-	 * @return 图片尺寸，读取失败则返回 null
-	 * @throws MetadataException 不包含图片尺寸元信息时
-	 * @since 1.0.0
-	 */
-	public static ImageSize getSize(final Metadata metadata) throws MetadataException {
+	public static ImageSize getImageSize(final Metadata metadata) throws MetadataException {
 		Validate.notNull(metadata, "metadata 不可为 null");
-		ImageSize size = getSizeByMetadata(metadata);
+		ImageSize size = getImageSizeByMetadata(metadata);
 		if (Objects.isNull(size)) {
 			throw new MetadataException("无法读取图片尺寸信息");
 		}
 		return size;
 	}
 
-	/**
-	 * 读取图片
-	 *
-	 * @param file 图片文件
-	 * @return 图片读取器，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageReader readImage(final File file) throws IOException {
-		FileUtils.validateFile(file, "file 不可为 null");
-		String suffix = getSuffix(file);
-		if (Objects.isNull(suffix)) {
-			return null;
-		}
-		// try with resource 会报错
-		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-		if (Objects.isNull(imageInputStream)) {
-			return null;
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersBySuffix(suffix);
-		return getImageReader(iterator, imageInputStream);
-	}
-
-	/**
-	 * 读取图片
-	 *
-	 * @param file     图片文件
-	 * @param mimeType 图片MIME类型
-	 * @return 图片读取器，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageReader readImage(final File file, final String mimeType) throws IOException {
-		FileUtils.validateFile(file, "file 不可为 null");
-		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (!MIME_TYPES.contains(mimeType)) {
-			return null;
-		}
-		// try with resource 会报错
-		ImageInputStream imageInputStream = ImageIO.createImageInputStream(file);
-		if (Objects.isNull(imageInputStream)) {
-			return null;
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
-		return getImageReader(iterator, imageInputStream);
-	}
-
-	/**
-	 * 读取图片
-	 *
-	 * @param bytes    图片字节流
-	 * @param mimeType 图片MIME类型
-	 * @return 图片读取器，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageReader readImage(final byte[] bytes, final String mimeType) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
-		Validate.notBlank(mimeType, "mimeType 不可为空");
-		InputStream inputStream = UnsynchronizedByteArrayInputStream
-			.builder()
-			.setByteArray(bytes)
-			.setOffset(0)
-			.setLength(bytes.length)
-			.get();
-		try (UnsynchronizedBufferedInputStream bufferedInputStream = buildBufferInputStream(inputStream)) {
-			return readImage(bufferedInputStream, mimeType);
-		}
-	}
-
-	/**
-	 * 读取图片
-	 *
-	 * @param inputStream 图片输入流
-	 * @param mimeType    图片MIME类型
-	 * @return 图片读取器，如果不是支持的类型则返回 null
-	 * @throws IOException 图片读取失败时
-	 * @since 1.0.0
-	 */
-	public static ImageReader readImage(final InputStream inputStream, final String mimeType) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (!MIME_TYPES.contains(mimeType)) {
-			return null;
-		}
-		// try with resource 会报错
-		ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream);
-		if (Objects.isNull(imageInputStream)) {
-			return null;
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
-		return getImageReader(iterator, imageInputStream);
-	}
-
-	/**
-	 * 读取图片
-	 *
-	 * @param imageInputStream 图片输入流
-	 * @param mimeType 图片MIME类型
-	 * @return 图片读取器，如果不是支持的类型则返回 null
-	 * @since 1.0.0
-	 */
-	public static ImageReader readImage(final ImageInputStream imageInputStream, final String mimeType) {
-		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
-		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (!MIME_TYPES.contains(mimeType)) {
-			return null;
-		}
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
-		return getImageReader(iterator, imageInputStream);
-	}
-
-	protected static ImageSize getSizeByOutputStreamAndMimeType(final UnsynchronizedByteArrayOutputStream outputStream,
-																final String mimeType) throws IOException {
-		try (InputStream tmpInputStream = outputStream.toInputStream();
-			 InputStream bufferedInputStream = buildBufferInputStream(tmpInputStream)) {
+	protected static ImageSize getImageSizeByOutputStream(final UnsynchronizedByteArrayOutputStream outputStream,
+														  final String mimeType) throws IOException {
+		try (InputStream inputStream = outputStream.toInputStream();
+			 InputStream bufferedInputStream = buildBufferedInputStream(inputStream)) {
 			Metadata metadata = ImageMetadataReader.readMetadata(bufferedInputStream);
-			ImageSize size = getSizeByMetadata(metadata);
+			ImageSize size = getImageSizeByMetadata(metadata);
 			if (Objects.nonNull(size)) {
 				return size;
 			}
 		} catch (ImageProcessingException ignored) {
 		}
-		try (InputStream tmpInputStream = outputStream.toInputStream();
-			 InputStream bufferedInputStream = buildBufferInputStream(tmpInputStream)) {
-			ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream);
+
+		if (!MIME_TYPES.contains(mimeType)) {
+			return null;
+		}
+		try (InputStream inputStream = outputStream.toInputStream();
+			 InputStream bufferedInputStream = buildBufferedInputStream(inputStream);
+			 ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;
 			}
-			ImageSize imageSize = getSizeByImageInputStreamAndMimeType(imageInputStream, mimeType);
-			imageInputStream.close();
-			return imageSize;
+			return getImageSizeByImageInputStream(imageInputStream, mimeType);
 		}
 	}
 
-	protected static ImageSize getSizeByImageInputStreamAndMimeType(ImageInputStream imageInputStream, String mimeType) throws IOException {
+	protected static ImageSize getImageSizeByImageInputStream(ImageInputStream imageInputStream, String mimeType) throws IOException {
 		Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(mimeType);
-		ImageReader reader = getImageReader(iterator, imageInputStream);
-		ImageSize imageSize = null;
-		if (Objects.nonNull(reader)) {
-			imageSize = getSize(reader);
+		if (!iterator.hasNext()) {
+			return null;
 		}
-		return imageSize;
+		ImageReader reader = iterator.next();
+		reader.setInput(imageInputStream, true);
+		return new ImageSize(reader.getWidth(0), reader.getHeight(0));
 	}
 
-	protected static ImageSize getSizeByMetadata(Metadata metadata) {
+	protected static ImageSize getImageSizeByMetadata(Metadata metadata) {
 		Collection<ExifDirectoryBase> fileTypeDirectories = metadata.getDirectoriesOfType(ExifDirectoryBase.class);
 		var iterator = fileTypeDirectories.iterator();
 		if (!iterator.hasNext()) {
-			return getSizeByDirectories(metadata.getDirectories());
+			return getImageSizeByDirectories(metadata.getDirectories());
 		}
 
 		ExifDirectoryBase exifDirectory = iterator.next();
 		Integer width = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
 		Integer height = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
 		if (ObjectUtils.anyNull(width, height)) {
-			ImageSize size = getSizeByDirectories(metadata.getDirectories());
+			ImageSize size = getImageSizeByDirectories(metadata.getDirectories());
 			if (Objects.isNull(size)) {
 				return null;
 			}
@@ -529,17 +300,26 @@ public class ImageUtils {
 		return new ImageSize(width, height);
 	}
 
-	protected static ImageSize getSizeByDirectories(Iterable<Directory> directories) {
+	protected static ImageSize getImageSizeByDirectories(Iterable<Directory> directories) {
 		try {
 			for (Directory directory : directories) {
 				if (directory instanceof JpegDirectory jpegDirectory) {
 					return new ImageSize(jpegDirectory.getImageWidth(), jpegDirectory.getImageHeight());
 				} else if (directory instanceof PngDirectory pngDirectory) {
-					return new ImageSize(pngDirectory.getInt(PngDirectory.TAG_IMAGE_WIDTH), pngDirectory.getInt(PngDirectory.TAG_IMAGE_HEIGHT));
+					return new ImageSize(
+						pngDirectory.getInt(PngDirectory.TAG_IMAGE_WIDTH),
+						pngDirectory.getInt(PngDirectory.TAG_IMAGE_HEIGHT)
+					);
 				} else if (directory instanceof WebpDirectory webpDirectory) {
-					return new ImageSize(webpDirectory.getInt(WebpDirectory.TAG_IMAGE_WIDTH), webpDirectory.getInt(WebpDirectory.TAG_IMAGE_HEIGHT));
+					return new ImageSize(
+						webpDirectory.getInt(WebpDirectory.TAG_IMAGE_WIDTH),
+						webpDirectory.getInt(WebpDirectory.TAG_IMAGE_HEIGHT)
+					);
 				} else if (directory instanceof BmpHeaderDirectory bmpHeaderDirectory) {
-					return new ImageSize(bmpHeaderDirectory.getInt(BmpHeaderDirectory.TAG_IMAGE_WIDTH), bmpHeaderDirectory.getInt(BmpHeaderDirectory.TAG_IMAGE_HEIGHT));
+					return new ImageSize(
+						bmpHeaderDirectory.getInt(BmpHeaderDirectory.TAG_IMAGE_WIDTH),
+						bmpHeaderDirectory.getInt(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
+					);
 				}
 			}
 			return null;
@@ -548,30 +328,28 @@ public class ImageUtils {
 		}
 	}
 
-	public static UnsynchronizedBufferedInputStream buildBufferInputStream(InputStream inputStream) throws IOException {
+	protected static UnsynchronizedBufferedInputStream buildBufferedInputStream(InputStream inputStream) throws IOException {
 		return new UnsynchronizedBufferedInputStream.Builder()
+			.setBufferSize(DEFAULT_BUFFERED_BUFFER_SIZE)
 			.setInputStream(inputStream)
 			.get();
 	}
 
-	protected static ImageReader getImageReader(Iterator<ImageReader> imageReaders,
-												ImageInputStream inputStream) {
-		if (!imageReaders.hasNext()) {
-			return null;
-		}
-		ImageReader reader = imageReaders.next();
-		reader.setInput(inputStream, true);
-		return reader;
+	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(byte[] bytes) throws IOException {
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
+			.setBufferSize(DEFAULT_BUFFERED_BUFFER_SIZE)
+			.setByteArray(bytes)
+			.get();
+		outputStream.write(bytes);
+		return outputStream;
 	}
 
-	protected static String getSuffix(File file) {
-		String extension = FilenameUtils.getExtension(file.getName());
-		String suffix = null;
-		for (String fileSuffix : FILE_SUFFIXES) {
-			if (StringUtils.equalsIgnoreCase(fileSuffix, extension)) {
-				suffix = fileSuffix;
-			}
-		}
-		return suffix;
+	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(InputStream inputStream) throws IOException {
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
+			.setBufferSize(DEFAULT_BUFFERED_BUFFER_SIZE)
+			.setInputStream(inputStream)
+			.get();
+		outputStream.write(inputStream);
+		return outputStream;
 	}
 }
