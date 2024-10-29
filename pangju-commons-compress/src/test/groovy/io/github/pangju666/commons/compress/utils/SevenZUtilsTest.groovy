@@ -1,4 +1,4 @@
-package cn.changtech.commons.io.utils.compress
+package io.github.pangju666.commons.compress.utils
 
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile

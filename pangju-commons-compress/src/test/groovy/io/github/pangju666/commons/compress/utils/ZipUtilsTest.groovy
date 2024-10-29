@@ -1,6 +1,6 @@
-package cn.changtech.commons.io.utils.compress
+package io.github.pangju666.commons.compress.utils
 
-import cn.changtech.commons.io.utils.file.FileUtils
+import io.github.pangju666.commons.io.utils.file.FileUtils
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.compress.archivers.zip.ZipFile
