@@ -131,9 +131,9 @@ public class PDDocumentUtils {
 	 */
 	public static int getPageCount(File documentFile) throws IOException {
 		try (PDDocument document = getDocument(documentFile)) {
-            if (Objects.isNull(document)) {
-                return 0;
-            }
+			if (Objects.isNull(document)) {
+				return 0;
+			}
 			return document.getNumberOfPages();
 		}
 	}
@@ -338,10 +338,10 @@ public class PDDocumentUtils {
 		int maxPageNumber = sourceDocument.getNumberOfPages();
 		// 页码去重，过滤掉溢出的页码并排序
 		List<Integer> pageNumberList = pageList.stream()
-				.distinct()
-				.filter(pageNumber -> pageNumber >= 1 && pageNumber <= maxPageNumber)
-				.sorted(Integer::compareTo)
-				.toList();
+			.distinct()
+			.filter(pageNumber -> pageNumber >= 1 && pageNumber <= maxPageNumber)
+			.sorted(Integer::compareTo)
+			.toList();
 
 		PDDocument targetDocument = createDocument(sourceDocument);
 		for (Integer pageNumber : pageNumberList) {
