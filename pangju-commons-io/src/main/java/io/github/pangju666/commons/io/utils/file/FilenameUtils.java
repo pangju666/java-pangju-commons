@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.io.utils.file;
 
-import io.github.pangju666.commons.io.lang.Constants;
+import io.github.pangju666.commons.io.lang.IOConstants;
 import jakarta.activation.MimetypesFileTypeMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +43,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(Constants.IMAGE_MIME_TYPE_PREFIX);
+		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(Constants.TEXT_MIME_TYPE_PREFIX);
+		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(Constants.VIDEO_MIME_TYPE_PREFIX);
+		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(Constants.AUDIO_MIME_TYPE_PREFIX);
+		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(IOConstants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(Constants.APPLICATION_MIME_TYPE_PREFIX);
+		return MIME_TYPE_MAP.getContentType(fileName.toLowerCase()).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
 	/**

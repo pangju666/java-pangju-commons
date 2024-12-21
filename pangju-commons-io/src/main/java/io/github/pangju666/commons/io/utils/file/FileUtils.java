@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.io.utils.file;
 
-import io.github.pangju666.commons.io.lang.Constants;
+import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.MemoryMappedFileInputStream;
@@ -127,38 +127,38 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	public static String getMimeType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file);
+		return IOConstants.getDefaultTika().detect(file);
 	}
 
 	public static boolean isImageType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.IMAGE_MIME_TYPE_PREFIX);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isTextType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.TEXT_MIME_TYPE_PREFIX);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isVideoType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.VIDEO_MIME_TYPE_PREFIX);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isAudioType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.AUDIO_MIME_TYPE_PREFIX);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isApplicationType(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
-		return Constants.DEFAULT_TIKA.detect(file).startsWith(Constants.APPLICATION_MIME_TYPE_PREFIX);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isMimeType(final File file, final String mimeType) throws IOException {
 		Validate.notBlank(mimeType, "mimeType 不可为空");
 		validateFile(file, "file 不可为 null");
-		String fileMimeType = Constants.DEFAULT_TIKA.detect(file);
+		String fileMimeType = IOConstants.getDefaultTika().detect(file);
 		return mimeType.equalsIgnoreCase(fileMimeType);
 	}
 
@@ -167,14 +167,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
-		String fileMimeType = Constants.DEFAULT_TIKA.detect(file);
+		String fileMimeType = IOConstants.getDefaultTika().detect(file);
 		return StringUtils.equalsAnyIgnoreCase(fileMimeType, mimeTypes);
 	}
 
 	public static Map<String, String> parseMetaData(final File file) throws IOException {
 		validateFile(file, "file 不可为 null");
 		Metadata metadata = new Metadata();
-		try (Reader reader = Constants.DEFAULT_TIKA.parse(file, metadata)) {
+		try (Reader reader = IOConstants.getDefaultTika().parse(file, metadata)) {
 			return Arrays.stream(metadata.names())
 				.map(name -> Pair.of(name, metadata.get(name)))
 				.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));

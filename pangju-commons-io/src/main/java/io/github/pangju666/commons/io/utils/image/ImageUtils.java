@@ -11,7 +11,7 @@ import com.drew.metadata.file.FileTypeDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
-import io.github.pangju666.commons.io.lang.Constants;
+import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.model.ImageSize;
 import io.github.pangju666.commons.io.utils.file.FileUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
@@ -89,39 +89,39 @@ public class ImageUtils {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
 		}
-		String mimeType = Constants.DEFAULT_TIKA.detect(bytes);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isImage(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
-		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static boolean isImage(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
 		String mimeType = getImageType(metadata);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX);
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	public static String getImageType(final File file) throws IOException {
 		String mimeType = FileUtils.getMimeType(file);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
 	}
 
 	public static String getImageType(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return null;
 		}
-		String mimeType = Constants.DEFAULT_TIKA.detect(bytes);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
 	}
 
 	public static String getImageType(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
-		String mimeType = Constants.DEFAULT_TIKA.detect(inputStream);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
 	}
 
 	public static String getImageType(final Metadata metadata) {
@@ -145,7 +145,7 @@ public class ImageUtils {
 		}
 		FileTypeDirectory fileTypeDirectory = iterator.next();
 		String mimeType = fileTypeDirectory.getString(FileTypeDirectory.TAG_DETECTED_FILE_MIME_TYPE);
-		return StringUtils.startsWith(mimeType, Constants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
+		return StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX) ? mimeType : null;
 	}
 
 	public static ImageSize getImageSize(final File file) throws IOException {
@@ -182,7 +182,7 @@ public class ImageUtils {
 			return null;
 		}
 		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(bytes);
-		String mimeType = Constants.DEFAULT_TIKA.detect(outputStream.toInputStream());
+		String mimeType = IOConstants.getDefaultTika().detect(outputStream.toInputStream());
 		return getImageSizeByOutputStream(outputStream, mimeType);
 	}
 
@@ -198,7 +198,7 @@ public class ImageUtils {
 	public static ImageSize getImageSize(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		UnsynchronizedByteArrayOutputStream outputStream = buildByteArrayOutputStream(inputStream);
-		String mimeType = Constants.DEFAULT_TIKA.detect(outputStream.toInputStream());
+		String mimeType = IOConstants.getDefaultTika().detect(outputStream.toInputStream());
 		return getImageSizeByOutputStream(outputStream, mimeType);
 	}
 
