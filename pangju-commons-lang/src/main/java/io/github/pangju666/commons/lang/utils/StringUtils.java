@@ -34,8 +34,8 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-				.filter(StringUtils::isNotBlank)
-				.toList();
+			.filter(StringUtils::isNotBlank)
+			.toList();
 	}
 
 	public static List<String> getUniqueNotBlankElements(final Collection<String> collection) {
@@ -43,8 +43,8 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-				.filter(StringUtils::isNotBlank)
-				.distinct()
-				.toList();
+			.filter(StringUtils::isNotBlank)
+			.distinct()
+			.toList();
 	}
 }

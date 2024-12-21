@@ -6,7 +6,9 @@ import java.io.*;
 import java.util.Objects;
 
 /**
- * <p> copy from spring-core#org.springframework.util.SerializationUtils version 5.2.8 </p>
+ * 从Spring Framework 复制过来的
+ *
+ * @see org.springframework.util.SerializationUtils
  */
 public class SerializationUtils {
 	protected SerializationUtils() {

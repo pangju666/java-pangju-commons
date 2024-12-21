@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.lang.pool;
 
-public class ConstantPool {
+public class Constants {
 	// 日期/时间相关常量
 	public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	public static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -64,6 +64,6 @@ public class ConstantPool {
 	 */
 	public static final String XML_GT = "&gt;";
 
-	protected ConstantPool() {
+	protected Constants() {
 	}
 }

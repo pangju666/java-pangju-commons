@@ -15,8 +15,8 @@ public class JsonUtils {
 
 	static {
 		DEFAULT_GSON = new GsonBuilder()
-				.setPrettyPrinting()
-				.create();
+			.setPrettyPrinting()
+			.create();
 	}
 
 	protected JsonUtils() {
