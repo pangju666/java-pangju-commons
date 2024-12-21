@@ -20,7 +20,7 @@ public @interface Phone {
 	String message() default "手机号格式不正确";
 	PhoneType type() default PhoneType.MIX;
 
-	boolean strong() default true;
+	boolean strong() default false;
 	boolean notBlank() default false;
 	boolean notEmpty() default false;
 	Class<?>[] groups() default {};

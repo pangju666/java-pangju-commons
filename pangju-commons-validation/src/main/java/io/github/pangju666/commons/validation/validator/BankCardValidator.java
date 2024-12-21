@@ -1,6 +1,5 @@
 package io.github.pangju666.commons.validation.validator;
 
-
 import io.github.pangju666.commons.lang.pool.RegExPool;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.BankCard;
