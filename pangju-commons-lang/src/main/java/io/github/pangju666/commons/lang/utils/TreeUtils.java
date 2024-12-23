@@ -18,8 +18,8 @@ public class TreeUtils {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()
-				.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
-				.toList();
+			.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
+			.toList();
 		setChildNodes(collection, treeNodes, null);
 		return treeNodes;
 	}
@@ -31,8 +31,8 @@ public class TreeUtils {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()
-				.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
-				.toList();
+			.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
+			.toList();
 		setChildNodes(collection, treeNodes, convertFunc);
 		return treeNodes;
 	}
@@ -43,8 +43,8 @@ public class TreeUtils {
 		if (CollectionUtils.isNotEmpty(parentNodes)) {
 			parentNodes.forEach(parentNode -> {
 				List<T> childNodes = collection.stream()
-						.filter(node -> Objects.equals(node.getParentNodeKey(), parentNode.getNodeKey()))
-						.toList();
+					.filter(node -> Objects.equals(node.getParentNodeKey(), parentNode.getNodeKey()))
+					.toList();
 				parentNode.setChildNodes(childNodes);
 				if (Objects.nonNull(convertFunc)) {
 					convertFunc.accept(parentNode);

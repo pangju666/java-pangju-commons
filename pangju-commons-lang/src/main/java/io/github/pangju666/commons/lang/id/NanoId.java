@@ -29,7 +29,7 @@ public final class NanoId {
 	 * 默认随机字母表，使用URL安全的Base64字符
 	 */
 	private static final char[] DEFAULT_ALPHABET =
-			"_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+		"_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
 	private NanoId() {
 	}

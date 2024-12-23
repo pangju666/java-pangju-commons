@@ -1,6 +1,7 @@
 package io.github.pangju666.commons.lang.utils;
 
-import io.github.pangju666.commons.lang.pool.ConstantPool;
+import io.github.pangju666.commons.lang.pool.Constants;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.ParseException;
@@ -9,13 +10,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	protected DateUtils() {
 	}
 
-	public static Date parseDate(final String str) throws ParseException {
-		return parseDate(str, ConstantPool.DATE_FORMAT, ConstantPool.DATETIME_FORMAT, ConstantPool.TIME_FORMAT);
+	public static Date parseDate(final String str) {
+		return parseDateOrDefault(str, null);
 	}
 
 	public static Date parseDateOrDefault(final String str, final Date defaultDate) {
@@ -23,7 +25,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			if (StringUtils.isBlank(str)) {
 				return defaultDate;
 			}
-			return parseDate(str, ConstantPool.DATE_FORMAT, ConstantPool.DATETIME_FORMAT, ConstantPool.TIME_FORMAT);
+			return parseDate(str, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT, Constants.TIME_FORMAT);
 		} catch (ParseException e) {
 			return defaultDate;
 		}
@@ -55,27 +57,27 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 		return new Date(timestamp);
 	}
 
-	public static Date toDate(final LocalDateTime temporalAccessor) {
-		return toDate(temporalAccessor, null);
+	public static Date toDate(final LocalDateTime localDateTime) {
+		return toDate(localDateTime, null);
 	}
 
-	public static Date toDate(final LocalDateTime temporalAccessor, final Date defaultValue) {
-		if (Objects.isNull(temporalAccessor)) {
+	public static Date toDate(final LocalDateTime localDateTime, final Date defaultValue) {
+		if (Objects.isNull(localDateTime)) {
 			return defaultValue;
 		}
-		ZonedDateTime zdt = temporalAccessor.atZone(ZoneId.systemDefault());
+		ZonedDateTime zdt = localDateTime.atZone(ZoneId.systemDefault());
 		return Date.from(zdt.toInstant());
 	}
 
-	public static Date toDate(final LocalDate temporalAccessor) {
-		return toDate(temporalAccessor, null);
+	public static Date toDate(final LocalDate localDate) {
+		return toDate(localDate, null);
 	}
 
-	public static Date toDate(final LocalDate temporalAccessor, final Date defaultValue) {
-		if (Objects.isNull(temporalAccessor)) {
+	public static Date toDate(final LocalDate localDate, final Date defaultValue) {
+		if (Objects.isNull(localDate)) {
 			return defaultValue;
 		}
-		LocalDateTime localDateTime = LocalDateTime.of(temporalAccessor, LocalTime.of(0, 0, 0));
+		LocalDateTime localDateTime = LocalDateTime.of(localDate, LocalTime.of(0, 0, 0));
 		ZonedDateTime zdt = localDateTime.atZone(ZoneId.systemDefault());
 		return Date.from(zdt.toInstant());
 	}
@@ -89,8 +91,8 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			return defaultValue;
 		}
 		return date.toInstant()
-				.atZone(ZoneId.systemDefault())
-				.toLocalDateTime();
+			.atZone(ZoneId.systemDefault())
+			.toLocalDateTime();
 	}
 
 	public static LocalDateTime toLocalDateTime(final Long timestamp) {
@@ -102,9 +104,9 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			return defaultValue;
 		}
 		return new Date(timestamp)
-				.toInstant()
-				.atZone(ZoneId.systemDefault())
-				.toLocalDateTime();
+			.toInstant()
+			.atZone(ZoneId.systemDefault())
+			.toLocalDateTime();
 	}
 
 	public static LocalDate toLocalDate(final Date date) {
@@ -116,8 +118,8 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			return defaultValue;
 		}
 		return date.toInstant()
-				.atZone(ZoneId.systemDefault())
-				.toLocalDate();
+			.atZone(ZoneId.systemDefault())
+			.toLocalDate();
 	}
 
 	public static LocalDate toLocalDate(final Long timestamp) {
@@ -129,9 +131,9 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			return defaultValue;
 		}
 		return new Date(timestamp)
-				.toInstant()
-				.atZone(ZoneId.systemDefault())
-				.toLocalDate();
+			.toInstant()
+			.atZone(ZoneId.systemDefault())
+			.toLocalDate();
 	}
 
 	public static Long getTime(final Date date) {
@@ -145,67 +147,73 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 		return date.getTime();
 	}
 
-	public static long betweenMillis(final Date date1, final Date date2) {
-		return between(date1, date2).toMillis();
+	public static Long betweenMillis(final Date date1, final Date date2) {
+		return Optional.ofNullable(between(date1, date2)).map(Duration::toMillis).orElse(null);
 	}
 
-	public static long betweenSeconds(final Date date1, final Date date2) {
-		return between(date1, date2).toSeconds();
+	public static Long betweenSeconds(final Date date1, final Date date2) {
+		return Optional.ofNullable(between(date1, date2)).map(Duration::toSeconds).orElse(null);
 	}
 
-	public static long betweenMinutes(final Date date1, final Date date2) {
-		return between(date1, date2).toMinutes();
+	public static Long betweenMinutes(final Date date1, final Date date2) {
+		return Optional.ofNullable(between(date1, date2)).map(Duration::toMinutes).orElse(null);
 	}
 
-	public static long betweenHours(final Date date1, final Date date2) {
-		return between(date1, date2).toHours();
+	public static Long betweenHours(final Date date1, final Date date2) {
+		return Optional.ofNullable(between(date1, date2)).map(Duration::toHours).orElse(null);
 	}
 
-	public static long betweenDays(final Date date1, final Date date2) {
-		return between(date1, date2).toDays();
+	public static Long betweenDays(final Date date1, final Date date2) {
+		return Optional.ofNullable(between(date1, date2)).map(Duration::toDays).orElse(null);
 	}
 
 	protected static Duration between(final Date date1, final Date date2) {
+		if (ObjectUtils.anyNull(date1, date2)) {
+			return null;
+		}
 		long amount = Math.abs(date1.getTime() - date2.getTime());
 		return Duration.of(amount, ChronoUnit.MILLIS);
 	}
 
-	public static long truncateBetweenYears(final Date date1, final Date date2) {
+	public static Integer truncateBetweenYears(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.YEAR);
 	}
 
-
-	public static long truncateBetweenMonths(final Date date1, final Date date2) {
+	public static Integer truncateBetweenMonths(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.MONTH);
 	}
 
-
-	public static long truncateBetweenDays(final Date date1, final Date date2) {
+	public static Integer truncateBetweenDays(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.DATE);
 	}
 
-
-	public static long truncateBetweenHours(final Date date1, final Date date2) {
+	public static Integer truncateBetweenHours(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.HOUR);
 	}
 
-	public static long truncateBetweenMinutes(final Date date1, final Date date2) {
+	public static Integer truncateBetweenMinutes(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.MINUTE);
 	}
 
-	public static long truncateBetweenSeconds(final Date date1, final Date date2) {
+	public static Integer truncateBetweenSeconds(final Date date1, final Date date2) {
 		return truncateBetween(date1, date2, Calendar.SECOND);
 	}
 
-	public static int truncateBetween(final Date date1, final Date date2, int field) {
+	public static Integer truncateBetween(final Date date1, final Date date2, int field) {
+		if (ObjectUtils.anyNull(date1, date2)) {
+			return null;
+		}
 		int amount1 = toCalendar(date1).get(field);
 		int amount2 = toCalendar(date2).get(field);
 		return Math.abs(amount1 - amount2);
 	}
 
-	public static int calculateAge(final Date birth) {
+	public static Integer calculateAge(final Date birthDate) {
+		if (Objects.isNull(birthDate)) {
+			return null;
+		}
 		int nowYear = toCalendar(nowDate()).get(Calendar.YEAR);
-		int birthYear = toCalendar(birth).get(Calendar.YEAR);
+		int birthYear = toCalendar(birthDate).get(Calendar.YEAR);
 		return nowYear - birthYear;
 	}
 }

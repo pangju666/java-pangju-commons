@@ -17,12 +17,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = IPValidator.class)
 public @interface IP {
 	String message() default "ip地址格式不正确";
-
 	boolean notBlank() default false;
-
 	boolean notEmpty() default false;
-
 	Class<?>[] groups() default {};
-
 	Class<? extends Payload>[] payload() default {};
 }

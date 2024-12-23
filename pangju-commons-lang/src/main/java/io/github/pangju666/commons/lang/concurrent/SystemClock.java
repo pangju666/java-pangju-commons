@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.lang.utils;
+package io.github.pangju666.commons.lang.concurrent;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,7 +42,8 @@ public class SystemClock {
 			thread.setDaemon(true);
 			return thread;
 		});
-		scheduler.scheduleAtFixedRate(() -> now.set(System.currentTimeMillis()), period, period, TimeUnit.MILLISECONDS);
+		scheduler.scheduleAtFixedRate(() ->
+			now.set(System.currentTimeMillis()), period, period, TimeUnit.MILLISECONDS);
 	}
 
 	private static class InstanceHolder {

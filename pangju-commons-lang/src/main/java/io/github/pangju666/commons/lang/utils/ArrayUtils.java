@@ -207,7 +207,8 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			T[] partition = (T[]) (arrayNum == arrayCount - 1 && remainder > 0 ? Array.newInstance(type, remainder) : Array.newInstance(type, size));
+			T[] partition = (T[]) (arrayNum == arrayCount - 1 && remainder > 0 ?
+				Array.newInstance(type, remainder) : Array.newInstance(type, size));
 			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
 			partitions.add(arrayNum, partition);
 

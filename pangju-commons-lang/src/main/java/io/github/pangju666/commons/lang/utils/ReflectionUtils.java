@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.lang.utils;
 
-import io.github.pangju666.commons.lang.pool.ConstantPool;
+import io.github.pangju666.commons.lang.pool.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -103,7 +103,7 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 
 	public static Class<?> getUserClass(final Object instance) {
 		Class<?> clazz = instance.getClass();
-		if (clazz.getName().contains(ConstantPool.CGLIB_CLASS_SEPARATOR)) {
+		if (clazz.getName().contains(Constants.CGLIB_CLASS_SEPARATOR)) {
 			Class<?> superClass = clazz.getSuperclass();
 			if (Objects.nonNull(superClass) && !Object.class.equals(superClass)) {
 				return superClass;
@@ -132,12 +132,12 @@ public class ReflectionUtils extends org.reflections.ReflectionUtils {
 
 	public static boolean isCglibRenamedMethod(Method renamedMethod) {
 		String name = renamedMethod.getName();
-		if (name.startsWith(ConstantPool.CGLIB_RENAMED_METHOD_PREFIX)) {
+		if (name.startsWith(Constants.CGLIB_RENAMED_METHOD_PREFIX)) {
 			int i = name.length() - 1;
 			while (i >= 0 && Character.isDigit(name.charAt(i))) {
 				i--;
 			}
-			return (i > ConstantPool.CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
+			return (i > Constants.CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
 		}
 		return false;
 	}

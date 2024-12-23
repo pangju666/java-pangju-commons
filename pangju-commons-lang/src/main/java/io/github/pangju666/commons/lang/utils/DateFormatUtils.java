@@ -1,8 +1,9 @@
 package io.github.pangju666.commons.lang.utils;
 
-import io.github.pangju666.commons.lang.pool.ConstantPool;
+import io.github.pangju666.commons.lang.pool.Constants;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class DateFormatUtils extends org.apache.commons.lang3.time.DateFormatUtils {
 	protected DateFormatUtils() {
@@ -13,11 +14,17 @@ public class DateFormatUtils extends org.apache.commons.lang3.time.DateFormatUti
 	}
 
 	public static String formatDatetime(final Date date) {
-		return format(date, ConstantPool.DATETIME_FORMAT);
+		if (Objects.isNull(date)) {
+			return StringUtils.EMPTY;
+		}
+		return format(date, Constants.DATETIME_FORMAT);
 	}
 
-	public static String formatDatetime(long timestamp) {
-		return format(timestamp, ConstantPool.DATETIME_FORMAT);
+	public static String formatDatetime(final Long timestamp) {
+		if (Objects.isNull(timestamp)) {
+			return StringUtils.EMPTY;
+		}
+		return format(timestamp, Constants.DATETIME_FORMAT);
 	}
 
 	public static String formatDate() {
@@ -25,18 +32,30 @@ public class DateFormatUtils extends org.apache.commons.lang3.time.DateFormatUti
 	}
 
 	public static String formatDate(final Date date) {
-		return format(date, ConstantPool.DATE_FORMAT);
+		if (Objects.isNull(date)) {
+			return StringUtils.EMPTY;
+		}
+		return format(date, Constants.DATE_FORMAT);
 	}
 
-	public static String formatDate(long timestamp) {
-		return format(timestamp, ConstantPool.DATE_FORMAT);
+	public static String formatDate(final Long timestamp) {
+		if (Objects.isNull(timestamp)) {
+			return StringUtils.EMPTY;
+		}
+		return format(timestamp, Constants.DATE_FORMAT);
 	}
 
 	public static String formatTime(final Date date) {
-		return format(date, ConstantPool.TIME_FORMAT);
+		if (Objects.isNull(date)) {
+			return StringUtils.EMPTY;
+		}
+		return format(date, Constants.TIME_FORMAT);
 	}
 
-	public static String formatTime(long timestamp) {
-		return format(timestamp, ConstantPool.TIME_FORMAT);
+	public static String formatTime(final Long timestamp) {
+		if (Objects.isNull(timestamp)) {
+			return StringUtils.EMPTY;
+		}
+		return format(timestamp, Constants.TIME_FORMAT);
 	}
 }

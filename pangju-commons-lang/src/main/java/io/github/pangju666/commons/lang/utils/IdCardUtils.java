@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.lang.utils;
 
-import io.github.pangju666.commons.lang.pool.ConstantPool;
+import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.pool.RegExPool;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -31,7 +31,7 @@ public class IdCardUtils {
 
 		int count = 0;
 		for (int i = 0; i < 17; i++) {
-			int index = idCardNumber.charAt(i) - ConstantPool.START_NUMBER_CHARACTER;
+			int index = idCardNumber.charAt(i) - Constants.START_NUMBER_CHARACTER;
 			count += index * VERIFY_CODE_WEIGHT[i];
 		}
 		char verifyCode = VERIFY_CODE[count % 11];

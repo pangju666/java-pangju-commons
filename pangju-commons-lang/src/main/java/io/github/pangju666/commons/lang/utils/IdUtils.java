@@ -1,6 +1,7 @@
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.id.NanoId;
+import io.github.pangju666.commons.lang.id.SnowflakeIdWorker;
 import org.bson.types.ObjectId;
 
 import java.util.UUID;
@@ -17,20 +18,12 @@ public class IdUtils {
 		return simpleUUID(UUIDUtils.randomUUID());
 	}
 
-	public static String secureRandomUUID() {
-		return uuid(UUIDUtils.secureRandomUUID());
+	public static String fastUUID() {
+		return uuid(UUIDUtils.fastUUID());
 	}
 
-	public static String simpleSecureRandomUUID() {
-		return simpleUUID(UUIDUtils.secureRandomUUID());
-	}
-
-	public static String threadLocalRandomUUID() {
-		return uuid(UUIDUtils.threadLocalRandomUUID());
-	}
-
-	public static String simpleThreadLocalRandomUUID() {
-		return simpleUUID(UUIDUtils.threadLocalRandomUUID());
+	public static String simpleFastUUID() {
+		return simpleUUID(UUIDUtils.fastUUID());
 	}
 
 	public static String uuid(final UUID uuid) {
@@ -51,5 +44,9 @@ public class IdUtils {
 
 	public static String nanoId(int size) {
 		return NanoId.randomNanoId(size);
+	}
+
+	public static Long snowflakeId(SnowflakeIdWorker worker) {
+		return worker.nextId();
 	}
 }
