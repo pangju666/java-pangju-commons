@@ -15,6 +15,10 @@ public class RSAKey {
 		return publicKey;
 	}
 
+	public byte[] getPrivateKey() {
+		return privateKey;
+	}
+
 	public static RSAKey of(byte[] publicKey, byte[] privateKey) {
 		RSAKey key = new RSAKey();
 		key.setPublicKey(publicKey);
@@ -29,23 +33,19 @@ public class RSAKey {
 		return key;
 	}
 
-	public static RSAKey fromHex(String publicKey, String privateKey) {
-		RSAKey key = new RSAKey();
-		key.setPublicKeyFromHex(publicKey);
-		key.setPrivateKeyFromHex(privateKey);
-		return key;
-	}
-
-	public byte[] getPrivateKey() {
-		return privateKey;
-	}
-
 	public void setPublicKeyFromHex(String privateKey) {
 		setPublicKey(CommonUtils.fromHexadecimal(privateKey));
 	}
 
 	public void setPublicKeyFromBase64(String privateKey) {
 		setPublicKey(Base64.decodeBase64(privateKey));
+	}
+
+	public static RSAKey fromHex(String publicKey, String privateKey) {
+		RSAKey key = new RSAKey();
+		key.setPublicKeyFromHex(publicKey);
+		key.setPrivateKeyFromHex(privateKey);
+		return key;
 	}
 
 	public void setPublicKey(byte[] publicKey) {
@@ -55,23 +55,6 @@ public class RSAKey {
 		}
 		this.publicKey = new byte[publicKey.length];
 		System.arraycopy(publicKey, 0, this.publicKey, 0, publicKey.length);
-	}
-
-	public void setPrivateKeyFromHex(String privateKey) {
-		setPublicKey(CommonUtils.fromHexadecimal(privateKey));
-	}
-
-	public void setPrivateKeyFromBase64(String privateKey) {
-		setPublicKey(Base64.decodeBase64(privateKey));
-	}
-
-	public void setPrivateKey(byte[] privateKey) {
-		Validate.isTrue(ArrayUtils.isNotEmpty(privateKey), "私钥不可为空");
-		if (Objects.nonNull(this.privateKey)) {
-			cleanPrivateKey();
-		}
-		this.privateKey = new byte[privateKey.length];
-		System.arraycopy(privateKey, 0, this.privateKey, 0, privateKey.length);
 	}
 
 	protected void cleanPublicKey() {
@@ -96,5 +79,22 @@ public class RSAKey {
 				}
 			}
 		}
+	}
+
+	public void setPrivateKey(byte[] privateKey) {
+		Validate.isTrue(ArrayUtils.isNotEmpty(privateKey), "私钥不可为空");
+		if (Objects.nonNull(this.privateKey)) {
+			cleanPrivateKey();
+		}
+		this.privateKey = new byte[privateKey.length];
+		System.arraycopy(privateKey, 0, this.privateKey, 0, privateKey.length);
+	}
+
+	public void setPrivateKeyFromHex(String privateKey) {
+		setPrivateKey(CommonUtils.fromHexadecimal(privateKey));
+	}
+
+	public void setPrivateKeyFromBase64(String privateKey) {
+		setPrivateKey(Base64.decodeBase64(privateKey));
 	}
 }
