@@ -701,7 +701,10 @@ message/x-emlx                          emlx
 
 #模型
 model/iges                              igs  iges
+model/fbx                               fbx
 model/mesh                              silo  mesh  msh
+model/mtl                               mtl
+model/obj                               obj
 model/vnd.dwf                           dwf
 model/vnd.dwfx+xps                      dwfx
 model/vnd.gdl                           gdl
