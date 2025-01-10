@@ -269,7 +269,6 @@ application/vnd.ms-lrm                  lrm
 application/vnd.ms-outlook              msg
 application/vnd.ms-outlook-pst          ost  pst
 application/vnd.ms-pki.seccat           cat
-application/vnd.ms-pki.stl              stl
 application/vnd.ms-powerpoint           pps  pot  ppa  ppz  ppt
 application/vnd.ms-powerpoint.addin.macroenabled.12             ppam
 application/vnd.ms-powerpoint.presentation.macroenabled.12      pptm
@@ -714,6 +713,7 @@ model/vnd.gtw                           gtw
 model/vnd.mts                           mts
 model/vnd.vtu                           vtu
 model/vrml                              vrml  wrl
+model/x.stl-binary                      stl
 
 
 #文本
