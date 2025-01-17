@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.io.utils.image;
+package io.github.pangju666.commons.image.utils;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -11,9 +11,9 @@ import com.drew.metadata.file.FileTypeDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
+import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.lang.IOConstants;
-import io.github.pangju666.commons.io.model.ImageSize;
-import io.github.pangju666.commons.io.utils.file.FileUtils;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;

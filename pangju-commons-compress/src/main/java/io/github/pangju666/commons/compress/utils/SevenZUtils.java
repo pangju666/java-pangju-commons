@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.compress.utils;
 
-import io.github.pangju666.commons.io.utils.file.FileUtils;
-import io.github.pangju666.commons.io.utils.file.FilenameUtils;
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.FilenameUtils;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;

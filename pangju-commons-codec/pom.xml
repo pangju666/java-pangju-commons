@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-commons-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-codec</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>${parent.version}</version>
 
 	<name>pangju-commons-codec</name>
 	<description>java 公共编码和加解密库（基于jasypt和commons-codec拓展）</description>

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>pangju-commons-parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>pangju-commons</name>
@@ -17,13 +17,14 @@
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>
-		<module>pangju-commons-lang</module>
 		<module>pangju-commons-codec</module>
-		<module>pangju-commons-io</module>
-		<module>pangju-commons-poi</module>
-		<module>pangju-commons-pdf</module>
-		<module>pangju-commons-validation</module>
 		<module>pangju-commons-compress</module>
+		<module>pangju-commons-image</module>
+		<module>pangju-commons-io</module>
+		<module>pangju-commons-lang</module>
+		<module>pangju-commons-pdf</module>
+		<module>pangju-commons-poi</module>
+		<module>pangju-commons-validation</module>
 	</modules>
 
 	<properties>
@@ -55,38 +56,43 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-lang</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-codec</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-io</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-compress</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-poi</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<artifactId>pangju-commons-io</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-image</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-lang</artifactId>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-pdf</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-poi</artifactId>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-validation</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -106,10 +112,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-            </plugin>
+			<!--<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+			</plugin>-->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
 

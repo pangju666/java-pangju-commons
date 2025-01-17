@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.io.model;
+package io.github.pangju666.commons.image.model;
 
 /**
  * 图片尺寸

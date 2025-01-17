@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.compress.utils
 
-import io.github.pangju666.commons.io.utils.file.FileUtils
+import io.github.pangju666.commons.io.utils.FileUtils
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.compress.archivers.zip.ZipFile

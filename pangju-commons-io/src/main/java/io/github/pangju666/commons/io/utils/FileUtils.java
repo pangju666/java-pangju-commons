@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.io.utils.file;
+package io.github.pangju666.commons.io.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.io.FilenameUtils;

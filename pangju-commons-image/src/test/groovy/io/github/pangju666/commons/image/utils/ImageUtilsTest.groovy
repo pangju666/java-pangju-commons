@@ -1,8 +1,6 @@
-package io.github.pangju666.commons.io.utils.image
-
+package io.github.pangju666.commons.image.utils
 
 import com.drew.imaging.ImageMetadataReader
-import io.github.pangju666.commons.io.utils.file.FileUtils
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream
 import spock.lang.Specification
 import spock.lang.Unroll

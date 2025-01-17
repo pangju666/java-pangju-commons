@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.pdf.utils;
 
-import io.github.pangju666.commons.io.utils.file.FileUtils;
-import io.github.pangju666.commons.io.utils.file.FilenameUtils;
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.FilenameUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
