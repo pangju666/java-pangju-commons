@@ -1,8 +1,9 @@
 package io.github.pangju666.commons.pdf.utils;
 
+import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.FilenameUtils;
-import org.apache.commons.lang3.Validate;
+import io.github.pangju666.commons.pdf.model.PDFDirectory;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
@@ -11,6 +12,11 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
@@ -18,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.ObjIntConsumer;
@@ -38,7 +45,7 @@ public class PDDocumentUtils {
 	protected PDDocumentUtils() {
 	}
 
-	public static MemoryUsageSetting computeMemoryUsageSetting(long size) {
+	public static MemoryUsageSetting computeMemoryUsageSetting(final long size) {
 		if (size < MIN_PDF_BYTES) {
 			return MemoryUsageSetting.setupMainMemoryOnly();
 		} else if (size > MAX_PDF_BYTES) {
@@ -54,19 +61,16 @@ public class PDDocumentUtils {
 	 * @param file 文件
 	 * @return 是否为PDF文件
 	 */
-	public static boolean isPdfFile(File file) {
-		Validate.isTrue(FileUtils.exist(file), "文件不存在");
-		return isPdfFile(file.getName());
+	public static boolean isPDF(final File file) throws IOException {
+		return FileUtils.exist(file) && file.isFile() && PDF_MIME_TYPE.equals(FileUtils.getMimeType(file));
 	}
 
-	/**
-	 * 判断是否为PDF文件
-	 *
-	 * @param filePath 文件路径
-	 * @return 是否为PDF文件
-	 */
-	public static boolean isPdfFile(String filePath) {
-		return PDF_MIME_TYPE.equals(FilenameUtils.getMimeType(filePath));
+	public static boolean isPDF(final byte[] bytes) {
+		return ArrayUtils.isNotEmpty(bytes) && PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(bytes));
+	}
+
+	public static boolean isPDF(final InputStream inputStream) throws IOException {
+		return Objects.nonNull(inputStream) && PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(inputStream));
 	}
 
 	/**
@@ -75,7 +79,7 @@ public class PDDocumentUtils {
 	 * @param sourceDocument 源文档
 	 * @return 创建的新文档
 	 */
-	public static PDDocument createDocument(PDDocument sourceDocument) {
+	public static PDDocument createDocument(final PDDocument sourceDocument) {
 		PDDocument document = new PDDocument();
 		// 复制文档属性
 		document.getDocument().setVersion(sourceDocument.getVersion());
@@ -89,8 +93,15 @@ public class PDDocumentUtils {
 	 *
 	 * @param inputStream 文档输入流
 	 */
-	public static PDDocument getDocument(InputStream inputStream) throws IOException {
+	public static PDDocument getDocument(final InputStream inputStream) throws IOException {
 		return Loader.loadPDF(inputStream.readAllBytes());
+	}
+
+	public static PDDocument getDocument(final byte[] bytes) throws IOException {
+		if (!isPDF(bytes)) {
+			return null;
+		}
+		return Loader.loadPDF(bytes);
 	}
 
 	/**
@@ -98,15 +109,8 @@ public class PDDocumentUtils {
 	 *
 	 * @param documentPath 文档路径
 	 */
-	public static PDDocument getDocument(String documentPath) throws IOException {
-		if (!isPdfFile(documentPath)) {
-			return null;
-		}
-		File file = new File(documentPath);
-		if (FileUtils.notExist(file)) {
-			return null;
-		}
-		return Loader.loadPDF(file);
+	public static PDDocument getDocument(final String documentPath) throws IOException {
+		return getDocument(new File(documentPath));
 	}
 
 	/**
@@ -114,50 +118,23 @@ public class PDDocumentUtils {
 	 *
 	 * @param documentFile 文档文件
 	 */
-	public static PDDocument getDocument(File documentFile) throws IOException {
+	public static PDDocument getDocument(final File documentFile) throws IOException {
 		if (FileUtils.notExist(documentFile)) {
 			return null;
 		}
-		if (!isPdfFile(documentFile.getName())) {
+		if (!isPDF(documentFile)) {
 			return null;
 		}
 		return Loader.loadPDF(documentFile, computeMemoryUsageSetting(documentFile.length()).streamCache);
 	}
 
-	/**
-	 * 获取总页数
-	 *
-	 * @param documentInputStream 文档输入流
-	 * @return 总页数
-	 */
-	public static int getPageCount(InputStream documentInputStream) throws IOException {
-		try (PDDocument document = getDocument(documentInputStream)) {
-			return document.getNumberOfPages();
-		}
-	}
-
-	/**
-	 * 获取总页数
-	 *
-	 * @param documentFile 文档
-	 * @return 总页数
-	 */
-	public static int getPageCount(File documentFile) throws IOException {
-		try (PDDocument document = getDocument(documentFile)) {
-			if (Objects.isNull(document)) {
-				return 0;
-			}
-			return document.getNumberOfPages();
-		}
-	}
-
-	public static void convertImageToPdf(PDDocument document, List<File> imageFiles) throws IOException {
+	public static void convertImageToPdf(final PDDocument document, final List<File> imageFiles) throws IOException {
 		for (File imageFile : imageFiles) {
 			convertImageToPdf(document, imageFile);
 		}
 	}
 
-	public static void convertImageToPdf(PDDocument document, File imageFile) throws IOException {
+	public static void convertImageToPdf(final PDDocument document, final File imageFile) throws IOException {
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
 		PDPage page = new PDPage(new PDRectangle(imageObject.getWidth(), imageObject.getHeight()));
 		try (PDPageContentStream pageContentStream = new PDPageContentStream(document, page)) {
@@ -172,7 +149,7 @@ public class PDDocumentUtils {
 	 * @param document 文档
 	 * @return 页面图像列表
 	 */
-	public static List<BufferedImage> renderDocumentPagesAsImage(PDDocument document) throws IOException {
+	public static List<BufferedImage> renderDocumentPagesAsImage(final PDDocument document) throws IOException {
 		return renderDocumentPagesAsImage(document, 72);
 	}
 
@@ -183,7 +160,7 @@ public class PDDocumentUtils {
 	 * @param dpi      DPI大小
 	 * @return 页面图像列表
 	 */
-	public static List<BufferedImage> renderDocumentPagesAsImage(PDDocument document, float dpi) throws IOException {
+	public static List<BufferedImage> renderDocumentPagesAsImage(final PDDocument document, final float dpi) throws IOException {
 		List<BufferedImage> pageImages = new ArrayList<>();
 		renderDocumentPagesAsImage(document, dpi, ((bufferedImage, index) -> pageImages.add(bufferedImage)));
 		return pageImages;
@@ -195,7 +172,7 @@ public class PDDocumentUtils {
 	 * @param document 文档
 	 * @param action   渲染图像处理回调
 	 */
-	public static void renderDocumentPagesAsImage(PDDocument document, ObjIntConsumer<BufferedImage> action) throws IOException {
+	public static void renderDocumentPagesAsImage(final PDDocument document, final ObjIntConsumer<BufferedImage> action) throws IOException {
 		renderDocumentPagesAsImage(document, 72, action);
 	}
 
@@ -205,7 +182,7 @@ public class PDDocumentUtils {
 	 * @param document 文档
 	 * @param action   渲染图像处理回调
 	 */
-	public static void renderDocumentPagesAsImage(PDDocument document, float dpi, ObjIntConsumer<BufferedImage> action) throws IOException {
+	public static void renderDocumentPagesAsImage(final PDDocument document, final float dpi, final ObjIntConsumer<BufferedImage> action) throws IOException {
 		PDFRenderer renderer = new PDFRenderer(document);
 		for (int i = 0; i < document.getNumberOfPages(); i++) {
 			BufferedImage image = renderer.renderImageWithDPI(i, dpi);
@@ -220,7 +197,7 @@ public class PDDocumentUtils {
 	 * @param pageNumber 页码
 	 * @return 渲染后图像
 	 */
-	public static BufferedImage renderDocumentPageAsImage(PDDocument document, Integer pageNumber) throws IOException {
+	public static BufferedImage renderDocumentPageAsImage(final PDDocument document, final Integer pageNumber) throws IOException {
 		return renderDocumentPageAsImage(document, pageNumber, 72);
 	}
 
@@ -232,7 +209,7 @@ public class PDDocumentUtils {
 	 * @param dpi        DPI大小
 	 * @return 渲染后图像
 	 */
-	public static BufferedImage renderDocumentPageAsImage(PDDocument document, Integer pageNumber, float dpi) throws IOException {
+	public static BufferedImage renderDocumentPageAsImage(final PDDocument document, final Integer pageNumber, final float dpi) throws IOException {
 		PDFRenderer renderer = new PDFRenderer(document);
 		return renderer.renderImageWithDPI(pageNumber - 1, dpi);
 	}
@@ -244,8 +221,8 @@ public class PDDocumentUtils {
 	 * @param targetFile         目标输出文件
 	 * @param memoryUsageSetting 内存使用设置
 	 */
-	public static void mergeDocumentByLegacyMode(List<File> sourceFiles, File targetFile,
-												 MemoryUsageSetting memoryUsageSetting) throws IOException {
+	public static void mergeDocumentByLegacyMode(final List<File> sourceFiles, final File targetFile,
+												 final MemoryUsageSetting memoryUsageSetting) throws IOException {
 		List<PDDocument> sourceDocuments = new ArrayList<>();
 		for (File sourceFile : sourceFiles) {
 			sourceDocuments.add(getDocument(sourceFile));
@@ -265,8 +242,8 @@ public class PDDocumentUtils {
 	 * @param memoryUsageSetting 内存使用设置
 	 * @return 合并后的新文档
 	 */
-	public static PDDocument mergeDocumentByLegacyMode(List<PDDocument> documents,
-													   MemoryUsageSetting memoryUsageSetting) throws IOException {
+	public static PDDocument mergeDocumentByLegacyMode(final List<PDDocument> documents,
+													   final MemoryUsageSetting memoryUsageSetting) throws IOException {
 		PDFMergerUtility mergerUtility = new PDFMergerUtility();
 		PDDocument result = new PDDocument(memoryUsageSetting.streamCache);
 		for (PDDocument document : documents) {
@@ -282,8 +259,8 @@ public class PDDocumentUtils {
 	 * @param splitPage      切分页数
 	 * @param action         切割文件处理回调
 	 */
-	public static void splitDocumentByPages(PDDocument sourceDocument, int splitPage,
-											ObjIntConsumer<PDDocument> action) throws IOException {
+	public static void splitDocumentByPages(final PDDocument sourceDocument, final int splitPage,
+											final ObjIntConsumer<PDDocument> action) throws IOException {
 		int totalPages = sourceDocument.getNumberOfPages();
 		for (int pageNumber = 1; pageNumber <= totalPages; pageNumber += splitPage) {
 			int endPage = pageNumber + splitPage - 1;
@@ -300,7 +277,7 @@ public class PDDocumentUtils {
 	 * @param splitPage      切分页数
 	 * @return 切割结果
 	 */
-	public static List<PDDocument> splitDocumentByPages(PDDocument sourceDocument, int splitPage) throws IOException {
+	public static List<PDDocument> splitDocumentByPages(final PDDocument sourceDocument, final int splitPage) throws IOException {
 		List<PDDocument> outputFileList = new ArrayList<>();
 		int totalPages = sourceDocument.getNumberOfPages();
 		for (int pageNumber = 1; pageNumber <= totalPages; pageNumber += splitPage) {
@@ -315,7 +292,7 @@ public class PDDocumentUtils {
 	 * @param document 待拷贝文档
 	 * @return 拷贝后的新文档
 	 */
-	public static PDDocument copyDocument(PDDocument document) throws IOException {
+	public static PDDocument copyDocument(final PDDocument document) throws IOException {
 		return copyDocumentByPages(document, 1, document.getNumberOfPages());
 	}
 
@@ -327,8 +304,8 @@ public class PDDocumentUtils {
 	 * @param endPage        结束页码
 	 * @return 拷贝后的新文档
 	 */
-	public static PDDocument copyDocumentByPages(PDDocument sourceDocument,
-												 int startPage, int endPage) throws IOException {
+	public static PDDocument copyDocumentByPages(final PDDocument sourceDocument,
+												 final int startPage, final int endPage) throws IOException {
 		// 防止页码溢出
 		int maxPage = Math.min(sourceDocument.getNumberOfPages(), endPage);
 		PDDocument result = createDocument(sourceDocument);
@@ -346,8 +323,8 @@ public class PDDocumentUtils {
 	 * @param pageList       页码列表
 	 * @return 拷贝后的新文档
 	 */
-	public static PDDocument copyDocumentByPages(PDDocument sourceDocument,
-												 List<Integer> pageList) throws IOException {
+	public static PDDocument copyDocumentByPages(final PDDocument sourceDocument,
+												 final List<Integer> pageList) throws IOException {
 		int maxPageNumber = sourceDocument.getNumberOfPages();
 		// 页码去重，过滤掉溢出的页码并排序
 		List<Integer> pageNumberList = pageList.stream()
@@ -362,5 +339,38 @@ public class PDDocumentUtils {
 			targetDocument.importPage(sourcePage);
 		}
 		return targetDocument;
+	}
+
+	public static List<PDFDirectory> getDictionaries(final PDDocument document) throws IOException {
+		PDDocumentOutline outline = document.getDocumentCatalog().getDocumentOutline();
+		if (outline != null) {
+			List<PDFDirectory> result = new ArrayList<>();
+			parseOutline(outline, result);
+			return result;
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	private static void parseOutline(PDOutlineNode node, List<PDFDirectory> result) throws IOException {
+		PDOutlineItem item = node.getFirstChild();
+		while (item != null) {
+			int pageIndex = getPageIndex(item);
+			PDFDirectory PDFDirectory = new PDFDirectory(item.getTitle(), pageIndex);
+			result.add(PDFDirectory);
+			parseOutline(item, PDFDirectory.getChildren());
+			item = item.getNextSibling();
+		}
+	}
+
+	private static int getPageIndex(PDOutlineItem item) throws IOException {
+		if (item.getDestination() instanceof PDPageDestination destination) {
+			return destination.retrievePageNumber();
+		} else if (item.getAction() instanceof PDActionGoTo action) {
+			if (action.getDestination() instanceof PDPageDestination destination) {
+				return destination.retrievePageNumber();
+			}
+		}
+		return -1;
 	}
 }
