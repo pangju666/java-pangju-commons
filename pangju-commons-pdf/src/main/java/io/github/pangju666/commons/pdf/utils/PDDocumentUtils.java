@@ -31,8 +31,21 @@ import java.util.function.ObjIntConsumer;
  */
 public class PDDocumentUtils {
 	public static final String PDF_MIME_TYPE = "application/pdf";
+	private static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
+	private static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
+	private static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
 
 	protected PDDocumentUtils() {
+	}
+
+	public static MemoryUsageSetting computeMemoryUsageSetting(long size) {
+		if (size < MIN_PDF_BYTES) {
+			return MemoryUsageSetting.setupMainMemoryOnly();
+		} else if (size > MAX_PDF_BYTES) {
+			return MemoryUsageSetting.setupTempFileOnly();
+		} else {
+			return MemoryUsageSetting.setupMixed(MIXED_MAX_MAIN_MEMORY_BYTES);
+		}
 	}
 
 	/**
@@ -108,7 +121,7 @@ public class PDDocumentUtils {
 		if (!isPdfFile(documentFile.getName())) {
 			return null;
 		}
-		return Loader.loadPDF(documentFile);
+		return Loader.loadPDF(documentFile, computeMemoryUsageSetting(documentFile.length()).streamCache);
 	}
 
 	/**
