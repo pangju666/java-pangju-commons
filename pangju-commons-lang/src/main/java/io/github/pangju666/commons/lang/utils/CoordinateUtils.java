@@ -7,34 +7,54 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 
 public class CoordinateUtils {
-	private static final BigDecimal CHINA_MIN_LATITUDE = BigDecimal.valueOf(3.86);
-	private static final BigDecimal CHINA_MAX_LATITUDE = BigDecimal.valueOf(53.55);
-	private static final BigDecimal CHINA_MIN_LONGITUDE = BigDecimal.valueOf(73.66);
-	private static final BigDecimal CHINA_MAX_LONGITUDE = BigDecimal.valueOf(135.05);
+	protected static final char RADIUS_CHAR = '°';
+	protected static final char MINUTE_CHAR = '′';
+	protected static final char SECONDS_CHAR = '″';
 
-	private static final BigDecimal PI = BigDecimal.valueOf(3.1415926535897932384626);
-	private static final BigDecimal EE = BigDecimal.valueOf(0.00669342162296594323);
-	private static final BigDecimal RADIUS = BigDecimal.valueOf(6378245.0);
+	protected static final BigDecimal CHINA_MIN_LATITUDE = BigDecimal.valueOf(3.86);
+	protected static final BigDecimal CHINA_MAX_LATITUDE = BigDecimal.valueOf(53.55);
+	protected static final BigDecimal CHINA_MIN_LONGITUDE = BigDecimal.valueOf(73.66);
+	protected static final BigDecimal CHINA_MAX_LONGITUDE = BigDecimal.valueOf(135.05);
 
-	private static final BigDecimal ZERO_ONE = BigDecimal.valueOf(0.1);
-	private static final BigDecimal ZERO_TWO = BigDecimal.valueOf(0.2);
-	private static final BigDecimal TWO = BigDecimal.valueOf(2);
-	private static final BigDecimal THREE = BigDecimal.valueOf(3);
-	private static final BigDecimal SIX = BigDecimal.valueOf(6);
-	private static final BigDecimal TWELVE = BigDecimal.valueOf(12);
-	private static final BigDecimal TWENTY = BigDecimal.valueOf(20);
-	private static final BigDecimal THIRTY = BigDecimal.valueOf(30);
-	private static final BigDecimal THIRTY_FIVE = BigDecimal.valueOf(35);
-	private static final BigDecimal FORTY = BigDecimal.valueOf(40);
-	private static final BigDecimal NEGATE_ONE_HUNDRED = BigDecimal.valueOf(-100);
-	private static final BigDecimal ONE_HUNDRED_AND_FIVE = BigDecimal.valueOf(105);
-	private static final BigDecimal ONE_HUNDRED_AND_FIFTY = BigDecimal.valueOf(150);
-	private static final BigDecimal ONE_HUNDRED_AND_SIXTY = BigDecimal.valueOf(160);
-	private static final BigDecimal ONE_HUNDRED_AND_EIGHTY = BigDecimal.valueOf(180);
-	private static final BigDecimal THREE_HUNDRED = BigDecimal.valueOf(300);
-	private static final BigDecimal THREE_HUNDRED_AND_TWENTY = BigDecimal.valueOf(320);
+	protected static final BigDecimal PI = BigDecimal.valueOf(3.1415926535897932384626);
+	protected static final BigDecimal EE = BigDecimal.valueOf(0.00669342162296594323);
+	protected static final BigDecimal RADIUS = BigDecimal.valueOf(6378245.0);
 
-	private CoordinateUtils() {
+	protected static final BigDecimal ZERO_ONE = BigDecimal.valueOf(0.1);
+	protected static final BigDecimal ZERO_TWO = BigDecimal.valueOf(0.2);
+	protected static final BigDecimal TWO = BigDecimal.valueOf(2);
+	protected static final BigDecimal THREE = BigDecimal.valueOf(3);
+	protected static final BigDecimal SIX = BigDecimal.valueOf(6);
+	protected static final BigDecimal TWELVE = BigDecimal.valueOf(12);
+	protected static final BigDecimal TWENTY = BigDecimal.valueOf(20);
+	protected static final BigDecimal THIRTY = BigDecimal.valueOf(30);
+	protected static final BigDecimal THIRTY_FIVE = BigDecimal.valueOf(35);
+	protected static final BigDecimal FORTY = BigDecimal.valueOf(40);
+	protected static final BigDecimal SIXTY = BigDecimal.valueOf(60);
+	protected static final BigDecimal NEGATE_ONE_HUNDRED = BigDecimal.valueOf(-100);
+	protected static final BigDecimal ONE_HUNDRED_AND_FIVE = BigDecimal.valueOf(105);
+	protected static final BigDecimal ONE_HUNDRED_AND_FIFTY = BigDecimal.valueOf(150);
+	protected static final BigDecimal ONE_HUNDRED_AND_SIXTY = BigDecimal.valueOf(160);
+	protected static final BigDecimal ONE_HUNDRED_AND_EIGHTY = BigDecimal.valueOf(180);
+	protected static final BigDecimal THREE_HUNDRED = BigDecimal.valueOf(300);
+	protected static final BigDecimal THREE_HUNDRED_AND_TWENTY = BigDecimal.valueOf(320);
+	protected static final BigDecimal THREE_THOUSAND_AND_SIX_HUNDRED = BigDecimal.valueOf(3600);
+
+	protected CoordinateUtils() {
+	}
+
+	public static BigDecimal parseCoordinate(String coordinate) {
+		int degreeIndex = coordinate.indexOf(RADIUS_CHAR);
+		BigDecimal degreeNumber = new BigDecimal(coordinate.substring(0, degreeIndex));
+
+		int minuteIndex = coordinate.indexOf(MINUTE_CHAR, degreeIndex);
+		BigDecimal minuteNumber = new BigDecimal(coordinate.substring(degreeIndex + 1, minuteIndex));
+
+		int secondsIndex = coordinate.indexOf(SECONDS_CHAR, minuteIndex);
+		BigDecimal secondsNumber = new BigDecimal(coordinate.substring(minuteIndex + 1, secondsIndex));
+
+		return degreeNumber.add(minuteNumber.divide(SIXTY, MathContext.DECIMAL32))
+			.add(secondsNumber.divide(THREE_THOUSAND_AND_SIX_HUNDRED, MathContext.DECIMAL32));
 	}
 
 	public static Coordinate WGS84ToGCJ02(BigDecimal longitude, BigDecimal latitude) {
@@ -66,7 +86,7 @@ public class CoordinateUtils {
 			latitude.compareTo(CHINA_MAX_LATITUDE) < 0);
 	}
 
-	private static Coordinate deltaCoordinate(BigDecimal longitude, BigDecimal latitude) {
+	protected static Coordinate deltaCoordinate(BigDecimal longitude, BigDecimal latitude) {
 		BigDecimal radiusLatitude = latitude.divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32).multiply(PI); // lat / 180 * PI
 		BigDecimal magic = BigDecimalMath.sin(radiusLatitude, MathContext.DECIMAL32); // Math.sin(radiusLat)
 		magic = BigDecimal.ONE.subtract(magic.multiply(magic).multiply(EE)); // 1 - EE * magic * magic
@@ -86,7 +106,7 @@ public class CoordinateUtils {
 		return new Coordinate(deltaLongitude, deltaLatitude);
 	}
 
-	private static BigDecimal transformLongitude(BigDecimal longitude, BigDecimal latitude) {
+	protected static BigDecimal transformLongitude(BigDecimal longitude, BigDecimal latitude) {
 		return longitude.add(THREE_HUNDRED) // 300.0 + lng
 			.add(latitude.multiply(TWO)) // 2.0 * lat
 			.add(longitude.multiply(ZERO_ONE).multiply(longitude)) // 0.1 * lng * lng
@@ -106,7 +126,7 @@ public class CoordinateUtils {
 				.divide(THREE, MathContext.DECIMAL32)); // / 3.0
 	}
 
-	private static BigDecimal transformLatitude(BigDecimal longitude, BigDecimal latitude) {
+	protected static BigDecimal transformLatitude(BigDecimal longitude, BigDecimal latitude) {
 		return longitude.multiply(TWO) // lng * 2.0
 			.add(NEGATE_ONE_HUNDRED) // -100
 			.add(latitude.multiply(THREE)) // lag * 3.0
