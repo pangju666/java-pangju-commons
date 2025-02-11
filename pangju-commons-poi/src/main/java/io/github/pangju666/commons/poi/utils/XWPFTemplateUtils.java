@@ -240,7 +240,7 @@ public class XWPFTemplateUtils {
 		return new TextRenderData(StringUtils.stripToEmpty(text));
 	}
 
-	private static List<RenderData> getRenderDataList(File... docxRenderFiles) {
+	protected static List<RenderData> getRenderDataList(File... docxRenderFiles) {
 		List<RenderData> docxRenderDataList = new ArrayList<>();
 		for (File destFile : docxRenderFiles) {
 			docxRenderDataList.add(createRenderData(destFile));
@@ -248,7 +248,7 @@ public class XWPFTemplateUtils {
 		return docxRenderDataList;
 	}
 
-	private static Map<String, RenderData> getTagNameMap(XWPFTemplate template, List<RenderData> renderDataList) {
+	protected static Map<String, RenderData> getTagNameMap(XWPFTemplate template, List<RenderData> renderDataList) {
 		// 获取文件中全部占位符
 		List<String> tagNameList = getTagNameList(template);
 		Map<String, RenderData> tagNameMap = new HashMap<>(tagNameList.size());
@@ -263,7 +263,7 @@ public class XWPFTemplateUtils {
 		return tagNameMap;
 	}
 
-	private static void writeToStream(XWPFTemplate template, Map<String, RenderData> tagNameMap,
+	protected static void writeToStream(XWPFTemplate template, Map<String, RenderData> tagNameMap,
 									  OutputStream outputStream) throws IOException {
 		template.render(tagNameMap);
 		template.write(outputStream);
@@ -271,7 +271,7 @@ public class XWPFTemplateUtils {
 		template.close();
 	}
 
-	private static void writeToFile(XWPFTemplate template, Map<String, RenderData> tagNameMap,
+	protected static void writeToFile(XWPFTemplate template, Map<String, RenderData> tagNameMap,
 									File outputFile) throws IOException {
 		template.render(tagNameMap);
 		template.writeToFile(outputFile.getAbsolutePath());

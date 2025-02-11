@@ -38,9 +38,9 @@ import java.util.function.ObjIntConsumer;
  */
 public class PDDocumentUtils {
 	public static final String PDF_MIME_TYPE = "application/pdf";
-	private static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
-	private static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
-	private static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
+	protected static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
+	protected static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
+	protected static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
 
 	protected PDDocumentUtils() {
 	}
@@ -352,7 +352,7 @@ public class PDDocumentUtils {
 		}
 	}
 
-	private static void parseOutline(PDOutlineNode node, List<PDFDirectory> result) throws IOException {
+	protected static void parseOutline(PDOutlineNode node, List<PDFDirectory> result) throws IOException {
 		PDOutlineItem item = node.getFirstChild();
 		while (item != null) {
 			int pageIndex = getPageIndex(item);
