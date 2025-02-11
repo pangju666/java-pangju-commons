@@ -15,6 +15,7 @@ import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.Validate;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,9 +42,70 @@ import java.util.Set;
  */
 public class ImageUtils {
 	protected static final int DEFAULT_BUFFERED_BUFFER_SIZE = 8192;
+	protected static final int DEFAULT_THRESHOLD = 200;
 	protected static final Set<String> MIME_TYPES = Set.of(ImageIO.getReaderMIMETypes());
 
 	protected ImageUtils() {
+	}
+
+	protected static UnsynchronizedByteArrayInputStream buildByteArrayInputStream(byte[] bytes) throws IOException {
+		return UnsynchronizedByteArrayInputStream.builder()
+			.setByteArray(bytes)
+			.setOffset(0)
+			.setLength(bytes.length)
+			.get();
+	}
+
+	public BufferedImage binarizationImage(byte[] bytes) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(byte[] bytes, int Threshold) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(ImageInputStream imageInputStream) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(ImageInputStream imageInputStream, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(File file) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(file);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(File file, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(file);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(InputStream inputStream) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(InputStream inputStream, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(BufferedImage image) {
+		return binarizationImage(image, DEFAULT_THRESHOLD);
 	}
 
 	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
@@ -338,7 +401,6 @@ public class ImageUtils {
 	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(byte[] bytes) throws IOException {
 		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
 			.setBufferSize(DEFAULT_BUFFERED_BUFFER_SIZE)
-			.setByteArray(bytes)
 			.get();
 		outputStream.write(bytes);
 		return outputStream;
@@ -347,9 +409,37 @@ public class ImageUtils {
 	protected static UnsynchronizedByteArrayOutputStream buildByteArrayOutputStream(InputStream inputStream) throws IOException {
 		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
 			.setBufferSize(DEFAULT_BUFFERED_BUFFER_SIZE)
-			.setInputStream(inputStream)
 			.get();
 		outputStream.write(inputStream);
 		return outputStream;
+	}
+
+	// 图像二值化
+	public BufferedImage binarizationImage(BufferedImage image, int Threshold) {
+		// 获取图像的宽度和高度
+		int width = image.getWidth();
+		int height = image.getHeight();
+
+		// 创建一个相同尺寸的 BufferedImage 用于二值化图像
+		BufferedImage binaryImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
+
+		// 遍历图像的所有像素并应用二值化
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int pixel = image.getRGB(x, y);
+				//int alpha = (pixel >> 24) & 0xff;
+				int red = (pixel >> 16) & 0xff;
+				int green = (pixel >> 8) & 0xff;
+				int blue = pixel & 0xff;
+
+				// 计算灰度值
+				int gray = (red + green + blue) / 3;
+
+				// 应用阈值
+				int newPixel = (gray > Threshold) ? 0xFFFFFFFF : 0xFF000000;
+				binaryImage.setRGB(x, y, newPixel);
+			}
+		}
+		return binaryImage;
 	}
 }

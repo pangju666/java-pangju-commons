@@ -1,6 +1,7 @@
 package io.github.pangju666.commons.image.utils
 
 import com.drew.imaging.ImageMetadataReader
+import io.github.pangju666.commons.io.utils.FileUtils
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -8,6 +9,17 @@ import spock.lang.Unroll
 import javax.imageio.ImageIO
 
 class ImageUtilsTest extends Specification {
+	def "test"() {
+		setup:
+		def bytes = FileUtils.readFileToByteArray(new File("D:\\workspace\\resource\\图片\\50.jpg"))
+		def inputStream = UnsynchronizedByteArrayInputStream.builder()
+			.setByteArray(bytes)
+			.setOffset(0)
+			.setLength(bytes.length)
+			.get()
+		def i = 1
+	}
+
 	def "ComputeNewSizeByWidth"() {
 		given:
 		def targetWidth = 600
