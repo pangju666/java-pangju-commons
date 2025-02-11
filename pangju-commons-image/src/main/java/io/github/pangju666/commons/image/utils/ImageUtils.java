@@ -48,66 +48,6 @@ public class ImageUtils {
 	protected ImageUtils() {
 	}
 
-	protected static UnsynchronizedByteArrayInputStream buildByteArrayInputStream(byte[] bytes) throws IOException {
-		return UnsynchronizedByteArrayInputStream.builder()
-			.setByteArray(bytes)
-			.setOffset(0)
-			.setLength(bytes.length)
-			.get();
-	}
-
-	public BufferedImage binarizationImage(byte[] bytes) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
-		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
-	}
-
-	public BufferedImage binarizationImage(byte[] bytes, int Threshold) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
-		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		return binarizationImage(bufferedImage, Threshold);
-	}
-
-	public BufferedImage binarizationImage(ImageInputStream imageInputStream) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
-	}
-
-	public BufferedImage binarizationImage(ImageInputStream imageInputStream, int Threshold) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		return binarizationImage(bufferedImage, Threshold);
-	}
-
-	public BufferedImage binarizationImage(File file) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(file);
-		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
-	}
-
-	public BufferedImage binarizationImage(File file, int Threshold) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(file);
-		return binarizationImage(bufferedImage, Threshold);
-	}
-
-	public BufferedImage binarizationImage(InputStream inputStream) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
-	}
-
-	public BufferedImage binarizationImage(InputStream inputStream, int Threshold) throws IOException {
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		return binarizationImage(bufferedImage, Threshold);
-	}
-
-	public BufferedImage binarizationImage(BufferedImage image) {
-		return binarizationImage(image, DEFAULT_THRESHOLD);
-	}
-
 	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
 		if (imageWidth > imageHeight) {
 			double ratio = (double) imageWidth / imageHeight;
@@ -414,7 +354,69 @@ public class ImageUtils {
 		return outputStream;
 	}
 
-	// 图像二值化
+	protected static UnsynchronizedByteArrayInputStream buildByteArrayInputStream(byte[] bytes) throws IOException {
+		return UnsynchronizedByteArrayInputStream.builder()
+			.setByteArray(bytes)
+			.setOffset(0)
+			.setLength(bytes.length)
+			.get();
+	}
+
+	public BufferedImage binarizationImage(byte[] bytes) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(byte[] bytes, int Threshold) throws IOException {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
+		UnsynchronizedByteArrayInputStream inputStream = buildByteArrayInputStream(bytes);
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(ImageInputStream imageInputStream) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(ImageInputStream imageInputStream, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(File file) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(file);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(File file, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(file);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(InputStream inputStream) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, DEFAULT_THRESHOLD);
+	}
+
+	public BufferedImage binarizationImage(InputStream inputStream, int Threshold) throws IOException {
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		return binarizationImage(bufferedImage, Threshold);
+	}
+
+	public BufferedImage binarizationImage(BufferedImage image) {
+		return binarizationImage(image, DEFAULT_THRESHOLD);
+	}
+
+	/**
+	 * 图像二值化
+	 */
 	public BufferedImage binarizationImage(BufferedImage image, int Threshold) {
 		// 获取图像的宽度和高度
 		int width = image.getWidth();
