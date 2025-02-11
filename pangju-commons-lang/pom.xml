@@ -49,9 +49,5 @@
 			<groupId>com.github.stuxuhai</groupId>
 			<artifactId>jpinyin</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>ch.obermuhlner</groupId>
-			<artifactId>big-math</artifactId>
-		</dependency>
 	</dependencies>
 </project>

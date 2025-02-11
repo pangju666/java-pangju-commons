@@ -1,7 +1,7 @@
-package io.github.pangju666.commons.lang.utils;
+package io.github.pangju666.commons.gis.utils;
 
 import ch.obermuhlner.math.big.BigDecimalMath;
-import io.github.pangju666.commons.lang.model.Coordinate;
+import io.github.pangju666.commons.gis.model.Coordinate;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

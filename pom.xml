@@ -19,6 +19,7 @@
 	<modules>
 		<module>pangju-commons-codec</module>
 		<module>pangju-commons-compress</module>
+		<module>pangju-commons-gis</module>
 		<module>pangju-commons-image</module>
 		<module>pangju-commons-io</module>
 		<module>pangju-commons-lang</module>
@@ -62,6 +63,11 @@
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-compress</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-gis</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 			<dependency>
