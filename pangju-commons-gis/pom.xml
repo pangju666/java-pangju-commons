@@ -13,6 +13,10 @@
 	<name>pangju-commons-gis</name>
 	<description>java 公共GIS库</description>
 
+	<properties>
+		<geotools.version>32.2</geotools.version>
+	</properties>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -24,6 +28,12 @@
 		<dependency>
 			<groupId>ch.obermuhlner</groupId>
 			<artifactId>big-math</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools.xsd</groupId>
+			<artifactId>gt-xsd-kml</artifactId>
+			<version>${geotools.version}</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>
