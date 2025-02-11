@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.validation.validator.IPValidator;
+import io.github.pangju666.commons.validation.validator.RequestPathValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -14,13 +14,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = IPValidator.class)
-public @interface IP {
-	String message() default "ip地址格式不正确";
+@Constraint(validatedBy = RequestPathValidator.class)
+public @interface RequestPath {
+	String message() default "无效的请求路径";
 
-	boolean ipv6() default false;
-	boolean notBlank() default false;
-	boolean notEmpty() default false;
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }
