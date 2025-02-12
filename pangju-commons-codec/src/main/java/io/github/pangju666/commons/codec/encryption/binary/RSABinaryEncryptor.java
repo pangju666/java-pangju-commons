@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.codec.encryption.binary;
 
 import io.github.pangju666.commons.codec.key.RSAKey;
-import io.github.pangju666.commons.codec.utils.RSAUtils;
+import io.github.pangju666.commons.codec.utils.RSAKeyUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.jasypt.exceptions.AlreadyInitializedException;
@@ -37,7 +37,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	private int privateKeySize;
 	private RSAKey key = new RSAKey();
 	private boolean initialized = false;
-	private String algorithm = RSAUtils.DEFAULT_CIPHER_ALGORITHM;
+	private String algorithm = RSAKeyUtils.DEFAULT_CIPHER_ALGORITHM;
 
 	public RSABinaryEncryptor() {
 	}
@@ -66,8 +66,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		if (!initialized) {
 			try {
 				if (Objects.nonNull(key.getPublicKey())) {
-					PublicKey publicKey = RSAUtils.getPublicKey(key.getPublicKey());
-					RSAPublicKeySpec publicKeySpec = RSAUtils.getKeyFactory().getKeySpec(publicKey,
+					PublicKey publicKey = RSAKeyUtils.getPublicKey(key.getPublicKey());
+					RSAPublicKeySpec publicKeySpec = RSAKeyUtils.getKeyFactory().getKeySpec(publicKey,
 						RSAPublicKeySpec.class);
 					this.publicKeySize = publicKeySpec.getModulus().bitLength() / 8 - 11;
 					this.encryptCipher = Cipher.getInstance(algorithm);
@@ -75,8 +75,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 				}
 
 				if (Objects.nonNull(key.getPrivateKey())) {
-					PrivateKey privateKey = RSAUtils.getPrivateKey(key.getPrivateKey());
-					RSAPrivateKeySpec privateKeySpec = RSAUtils.getKeyFactory().getKeySpec(privateKey,
+					PrivateKey privateKey = RSAKeyUtils.getPrivateKey(key.getPrivateKey());
+					RSAPrivateKeySpec privateKeySpec = RSAKeyUtils.getKeyFactory().getKeySpec(privateKey,
 						RSAPrivateKeySpec.class);
 					this.privateKeySize = privateKeySpec.getModulus().bitLength() / 8;
 					this.decryptCipher = Cipher.getInstance(algorithm);

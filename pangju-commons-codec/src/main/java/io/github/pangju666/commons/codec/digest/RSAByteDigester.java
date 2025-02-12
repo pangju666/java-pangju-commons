@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.codec.digest;
 
 import io.github.pangju666.commons.codec.key.RSAKey;
-import io.github.pangju666.commons.codec.utils.RSAUtils;
+import io.github.pangju666.commons.codec.utils.RSAKeyUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.jasypt.digest.ByteDigester;
@@ -25,7 +25,7 @@ public final class RSAByteDigester implements ByteDigester {
 	private Signature publicSignature;
 	private RSAKey key = new RSAKey();
 	private boolean initialized = false;
-	private String algorithm = RSAUtils.DEFAULT_SIGNATURE_ALGORITHM;
+	private String algorithm = RSAKeyUtils.DEFAULT_SIGNATURE_ALGORITHM;
 
 	public RSAByteDigester() {
 	}
@@ -54,13 +54,13 @@ public final class RSAByteDigester implements ByteDigester {
 		if (!initialized) {
 			try {
 				if (Objects.nonNull(key.getPublicKey())) {
-					PublicKey publicKey = RSAUtils.getPublicKey(key.getPublicKey());
+					PublicKey publicKey = RSAKeyUtils.getPublicKey(key.getPublicKey());
 					this.publicSignature = Signature.getInstance(algorithm);
 					this.publicSignature.initVerify(publicKey);
 				}
 
 				if (Objects.nonNull(key.getPrivateKey())) {
-					PrivateKey privateKey = RSAUtils.getPrivateKey(key.getPrivateKey());
+					PrivateKey privateKey = RSAKeyUtils.getPrivateKey(key.getPrivateKey());
 					this.privateSignature = Signature.getInstance(algorithm);
 					this.privateSignature.initSign(privateKey);
 				}

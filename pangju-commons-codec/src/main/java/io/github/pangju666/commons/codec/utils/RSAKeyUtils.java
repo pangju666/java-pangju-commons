@@ -18,7 +18,7 @@ import java.util.Objects;
  * @author pangju
  * @since 1.0.0
  */
-public class RSAUtils {
+public class RSAKeyUtils {
 	public static final String ALGORITHM = "RSA";
 	public static final String DEFAULT_CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
@@ -26,14 +26,14 @@ public class RSAUtils {
 	protected static KeyPairGenerator DEFAULT_KEY_PAIR_GENERATOR;
 	protected static KeyFactory DEFAULT_KEY_FACTORY;
 
-	protected RSAUtils() {
+	protected RSAKeyUtils() {
 	}
 
 	public static KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
-			synchronized (RSAUtils.class) {
+			synchronized (RSAKeyUtils.class) {
 				if (Objects.isNull(DEFAULT_KEY_FACTORY)) {
-					DEFAULT_KEY_FACTORY = KeyFactory.getInstance(RSAUtils.ALGORITHM);
+					DEFAULT_KEY_FACTORY = KeyFactory.getInstance(RSAKeyUtils.ALGORITHM);
 				}
 			}
 		}
@@ -42,7 +42,7 @@ public class RSAUtils {
 
 	public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
 		if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
-			synchronized (RSAUtils.class) {
+			synchronized (RSAKeyUtils.class) {
 				if (Objects.isNull(DEFAULT_KEY_PAIR_GENERATOR)) {
 					DEFAULT_KEY_PAIR_GENERATOR = KeyPairGenerator.getInstance(ALGORITHM);
 				}
