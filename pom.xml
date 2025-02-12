@@ -72,12 +72,12 @@
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-io</artifactId>
+				<artifactId>pangju-commons-image</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-image</artifactId>
+				<artifactId>pangju-commons-io</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 			<dependency>
@@ -118,10 +118,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
-			<!--<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-			</plugin>-->
+				<!--<configuration>
+					<skip>true</skip>
+				</configuration>-->
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>

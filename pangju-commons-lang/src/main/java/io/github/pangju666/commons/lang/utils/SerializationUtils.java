@@ -7,8 +7,7 @@ import java.util.Objects;
 
 /**
  * 从Spring Framework 复制过来的
- *
- * @see org.springframework.util.SerializationUtils
+ * org.springframework.util.SerializationUtils
  */
 public class SerializationUtils {
 	protected SerializationUtils() {
