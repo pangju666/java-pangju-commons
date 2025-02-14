@@ -17,9 +17,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = Md5Validator.class)
 public @interface Md5 {
 	String message() default "md5格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }
 

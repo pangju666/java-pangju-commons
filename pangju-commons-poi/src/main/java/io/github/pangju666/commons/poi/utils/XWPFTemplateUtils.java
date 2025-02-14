@@ -264,7 +264,7 @@ public class XWPFTemplateUtils {
 	}
 
 	protected static void writeToStream(XWPFTemplate template, Map<String, RenderData> tagNameMap,
-									  OutputStream outputStream) throws IOException {
+										OutputStream outputStream) throws IOException {
 		template.render(tagNameMap);
 		template.write(outputStream);
 		outputStream.flush();
@@ -272,7 +272,7 @@ public class XWPFTemplateUtils {
 	}
 
 	protected static void writeToFile(XWPFTemplate template, Map<String, RenderData> tagNameMap,
-									File outputFile) throws IOException {
+									  File outputFile) throws IOException {
 		template.render(tagNameMap);
 		template.writeToFile(outputFile.getAbsolutePath());
 		template.close();

@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = IdCardValidator.class)
 public @interface IdCard {
 	String message() default "身份证格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

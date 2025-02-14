@@ -18,13 +18,20 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = RegexValidator.class)
 public @interface Regex {
 	String regexp();
+
 	RegexFlag[] flags() default {};
+
 	boolean matchStart() default true;
+
 	boolean matchEnd() default true;
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
 
 	String message() default "格式不正确";
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = Base64Validator.class)
 public @interface BASE64 {
 	String message() default "Base64字符串格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

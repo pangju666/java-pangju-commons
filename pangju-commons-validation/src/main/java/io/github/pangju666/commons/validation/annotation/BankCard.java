@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = BankCardValidator.class)
 public @interface BankCard {
 	String message() default "银行卡号格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

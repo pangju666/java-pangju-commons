@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = NumberValidator.class)
 public @interface Number {
 	String message() default "数字格式不正确";
+
 	boolean positive() default false;
+
 	boolean decimal() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

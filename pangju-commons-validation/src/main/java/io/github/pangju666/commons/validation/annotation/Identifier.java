@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = IdentifierValidator.class)
 public @interface Identifier {
 	String message() default "标识符格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

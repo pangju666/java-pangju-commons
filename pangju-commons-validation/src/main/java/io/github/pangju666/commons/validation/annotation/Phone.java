@@ -18,11 +18,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = PhoneValidator.class)
 public @interface Phone {
 	String message() default "手机号格式不正确";
+
 	PhoneType type() default PhoneType.MIX;
 
 	boolean strong() default false;
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

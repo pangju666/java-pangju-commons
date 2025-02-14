@@ -19,8 +19,12 @@ public @interface IP {
 	String message() default "ip地址格式不正确";
 
 	boolean ipv6() default false;
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

@@ -17,8 +17,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = MimeTypeValidator.class)
 public @interface MimeType {
 	String message() default "mime-type格式不正确";
+
 	boolean notBlank() default false;
+
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};

@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class WorkbookUtils {
-    protected static final String HSSF_MIME_TYPE = "application/vnd.ms-excel";
-    protected static final String XSSF_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+	protected static final String HSSF_MIME_TYPE = "application/vnd.ms-excel";
+	protected static final String XSSF_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 	protected WorkbookUtils() {
 	}

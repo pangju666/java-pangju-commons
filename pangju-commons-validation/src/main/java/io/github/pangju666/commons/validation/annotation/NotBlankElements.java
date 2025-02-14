@@ -17,12 +17,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = NotBlankElementsValidator.class)
 public @interface NotBlankElements {
 	String message() default "集合中存在空白的值";
+
 	boolean allMatch() default true;
 
 	/**
 	 * 集合是否必须不为 null 或空集合
 	 */
 	boolean notEmpty() default false;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }

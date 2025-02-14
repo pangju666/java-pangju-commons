@@ -17,8 +17,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = EnumValidator.class)
 public @interface Enum {
 	String message() default "不是有效的枚举变量名称";
+
 	Class<? extends java.lang.Enum> enumClass();
+
 	boolean ignoreCase() default true;
+
 	Class<?>[] groups() default {};
+
 	Class<? extends Payload>[] payload() default {};
 }
