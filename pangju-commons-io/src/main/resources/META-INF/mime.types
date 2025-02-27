@@ -18,6 +18,7 @@ application/emma+xml                    emma
 application/epub+zip                    epub
 application/fits                        fit  fits  fts
 application/font-tdpfr                  pfr
+application/geo+json                    geojson
 application/gzip                        emz  tgz  gz
 application/hyperstudio                 stk
 application/illustrator                 ai
