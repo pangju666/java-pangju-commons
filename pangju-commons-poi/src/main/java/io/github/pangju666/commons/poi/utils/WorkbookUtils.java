@@ -4,6 +4,7 @@ import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.DateUtils;
+import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +23,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class WorkbookUtils {
-	protected static final String HSSF_MIME_TYPE = "application/vnd.ms-excel";
-	protected static final String XSSF_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
 	protected WorkbookUtils() {
 	}
 
@@ -34,7 +32,8 @@ public class WorkbookUtils {
 	}
 
 	public static boolean isWorkbookFile(String filePath) {
-		return HSSF_MIME_TYPE.equals(FilenameUtils.getMimeType(filePath)) || XSSF_MIME_TYPE.equals(FilenameUtils.getMimeType(filePath));
+		return PoiConstants.DOC_MIME_TYPE.equals(FilenameUtils.getMimeType(filePath)) ||
+			PoiConstants.DOCX_MIME_TYPE.equals(FilenameUtils.getMimeType(filePath));
 	}
 
 	public static Workbook getWorkBook(String filePath) throws IOException {
@@ -48,8 +47,8 @@ public class WorkbookUtils {
 		try (InputStream inputStream = new FileInputStream(file)) {
 			String mimeType = FilenameUtils.getMimeType(file.getName());
 			return switch (mimeType) {
-				case HSSF_MIME_TYPE -> new HSSFWorkbook(inputStream);
-				case XSSF_MIME_TYPE -> new XSSFWorkbook(inputStream);
+				case PoiConstants.DOC_MIME_TYPE -> new HSSFWorkbook(inputStream);
+				case PoiConstants.DOCX_MIME_TYPE -> new XSSFWorkbook(inputStream);
 				default -> null;
 			};
 		}

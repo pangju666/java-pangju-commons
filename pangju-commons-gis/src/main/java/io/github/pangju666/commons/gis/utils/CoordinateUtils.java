@@ -1,7 +1,7 @@
 package io.github.pangju666.commons.gis.utils;
 
 import ch.obermuhlner.math.big.BigDecimalMath;
-import io.github.pangju666.commons.gis.lang.Constants;
+import io.github.pangju666.commons.gis.lang.GisConstants;
 import io.github.pangju666.commons.gis.model.Coordinate;
 
 import java.math.BigDecimal;
@@ -32,13 +32,13 @@ public class CoordinateUtils {
 	}
 
 	public static BigDecimal parseCoordinate(String coordinate) {
-		int degreeIndex = coordinate.indexOf(Constants.RADIUS_CHAR);
+		int degreeIndex = coordinate.indexOf(GisConstants.RADIUS_CHAR);
 		BigDecimal degreeNumber = new BigDecimal(coordinate.substring(0, degreeIndex));
 
-		int minuteIndex = coordinate.indexOf(Constants.MINUTE_CHAR, degreeIndex);
+		int minuteIndex = coordinate.indexOf(GisConstants.MINUTE_CHAR, degreeIndex);
 		BigDecimal minuteNumber = new BigDecimal(coordinate.substring(degreeIndex + 1, minuteIndex));
 
-		int secondsIndex = coordinate.indexOf(Constants.SECONDS_CHAR, minuteIndex);
+		int secondsIndex = coordinate.indexOf(GisConstants.SECONDS_CHAR, minuteIndex);
 		BigDecimal secondsNumber = new BigDecimal(coordinate.substring(minuteIndex + 1, secondsIndex));
 
 		return degreeNumber.add(minuteNumber.divide(SIXTY, MathContext.DECIMAL32))
@@ -67,19 +67,19 @@ public class CoordinateUtils {
 	}
 
 	public static boolean isOutOfChina(BigDecimal longitude, BigDecimal latitude) {
-		return !(longitude.compareTo(Constants.CHINA_MIN_LONGITUDE) > 0 &&
-			longitude.compareTo(Constants.CHINA_MAX_LONGITUDE) < 0 &&
-			latitude.compareTo(Constants.CHINA_MIN_LATITUDE) > 0 &&
-			latitude.compareTo(Constants.CHINA_MAX_LATITUDE) < 0);
+		return !(longitude.compareTo(GisConstants.CHINA_MIN_LONGITUDE) > 0 &&
+			longitude.compareTo(GisConstants.CHINA_MAX_LONGITUDE) < 0 &&
+			latitude.compareTo(GisConstants.CHINA_MIN_LATITUDE) > 0 &&
+			latitude.compareTo(GisConstants.CHINA_MAX_LATITUDE) < 0);
 	}
 
 	// 计算偏移量
 	protected static Coordinate computeGcj02Delta(BigDecimal longitude, BigDecimal latitude) {
 		// latitude / 180.0 * PI
 		BigDecimal radiusLatitude = latitude.divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32)
-			.multiply(Constants.PI);
+			.multiply(GisConstants.PI);
 		// 1 - EE * (sin(radiusLatitude))²
-		BigDecimal magic = BigDecimal.ONE.subtract(Constants.EE.multiply(BigDecimalMath.sin(
+		BigDecimal magic = BigDecimal.ONE.subtract(GisConstants.EE.multiply(BigDecimalMath.sin(
 			radiusLatitude, MathContext.DECIMAL32).pow(2)));
 		// sqrt(magic)
 		BigDecimal sqrtMagic = magic.sqrt(MathContext.DECIMAL32);
@@ -87,16 +87,16 @@ public class CoordinateUtils {
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI)
 		BigDecimal deltaLatitude = transformLatitude(longitude.subtract(ONE_HUNDRED_AND_FIVE),
 			latitude.subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
-			.divide(Constants.A.multiply(BigDecimal.ONE.subtract(Constants.EE))
+			.divide(GisConstants.A.multiply(BigDecimal.ONE.subtract(GisConstants.EE))
 				.divide(magic.multiply(sqrtMagic), MathContext.DECIMAL32)
-				.multiply(Constants.PI), MathContext.DECIMAL32);
+				.multiply(GisConstants.PI), MathContext.DECIMAL32);
 
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI)
 		BigDecimal deltaLongitude = transformLongitude(longitude.subtract(ONE_HUNDRED_AND_FIVE),
 			latitude.subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
-			.divide(Constants.A.divide(sqrtMagic, MathContext.DECIMAL32)
+			.divide(GisConstants.A.divide(sqrtMagic, MathContext.DECIMAL32)
 				.multiply(BigDecimalMath.cos(radiusLatitude, MathContext.DECIMAL32))
-				.multiply(Constants.PI), MathContext.DECIMAL32);
+				.multiply(GisConstants.PI), MathContext.DECIMAL32);
 
 		return new Coordinate(deltaLongitude, deltaLatitude);
 	}
@@ -115,30 +115,30 @@ public class CoordinateUtils {
 			.add(longitude.abs().sqrt(MathContext.DECIMAL32).multiply(ZERO_ONE))
 			// ((20.0 * Math.sin(6.0 * longitude * PI) + 20.0 * Math.sin(2.0 * longitude * PI)) * 2.0 / 3.0)
 			.add(BigDecimalMath
-				.sin(longitude.multiply(SIX).multiply(Constants.PI),
+				.sin(longitude.multiply(SIX).multiply(GisConstants.PI),
 					MathContext.DECIMAL32)
 				.multiply(TWENTY)
-				.add(BigDecimalMath.sin(longitude.multiply(TWO).multiply(Constants.PI),
+				.add(BigDecimalMath.sin(longitude.multiply(TWO).multiply(GisConstants.PI),
 					MathContext.DECIMAL32).multiply(TWENTY))
 				.multiply(TWO)
 				.divide(THREE, MathContext.DECIMAL32))
 			// ((20.0 * Math.sin(longitude * PI) + 40.0 * Math.sin((lng / 3.0) * PI)) * 2.0 / 3.0)
 			.add(BigDecimalMath
-				.sin(longitude.multiply(Constants.PI), MathContext.DECIMAL32)
+				.sin(longitude.multiply(GisConstants.PI), MathContext.DECIMAL32)
 				.multiply(TWENTY)
 				.add(BigDecimalMath
 					.sin(longitude.divide(THREE, MathContext.DECIMAL32)
-						.multiply(Constants.PI), MathContext.DECIMAL32)
+						.multiply(GisConstants.PI), MathContext.DECIMAL32)
 					.multiply(FORTY))
 				.multiply(TWO)
 				.divide(THREE, MathContext.DECIMAL32))
 			// ((150.0 * Math.sin((lng / 12.0) * PI) + // 300.0 * Math.sin((lng / 30.0) * PI)) * 2.0 / 3.0)
 			.add(BigDecimalMath
-				.sin(longitude.divide(TWELVE, MathContext.DECIMAL32).multiply(Constants.PI),
+				.sin(longitude.divide(TWELVE, MathContext.DECIMAL32).multiply(GisConstants.PI),
 					MathContext.DECIMAL32)
 				.multiply(ONE_HUNDRED_AND_FIFTY)
 				.add(BigDecimalMath
-					.sin(longitude.divide(THIRTY, MathContext.DECIMAL32).multiply(Constants.PI),
+					.sin(longitude.divide(THIRTY, MathContext.DECIMAL32).multiply(GisConstants.PI),
 						MathContext.DECIMAL32)
 					.multiply(THREE_HUNDRED))
 				.multiply(TWO)
@@ -161,28 +161,28 @@ public class CoordinateUtils {
 			.add(longitude.abs().sqrt(MathContext.DECIMAL32).multiply(ZERO_TWO))
 			// + ((20.0 * Math.sin(6.0 * longitude * PI) + 20.0 * Math.sin(2.0 * longitude * PI)) * 2.0 / 3.0)
 			.add(BigDecimalMath
-				.sin(longitude.multiply(SIX).multiply(Constants.PI),
+				.sin(longitude.multiply(SIX).multiply(GisConstants.PI),
 					MathContext.DECIMAL32)
 				.multiply(TWENTY)
-				.add(BigDecimalMath.sin(longitude.multiply(TWO).multiply(Constants.PI),
+				.add(BigDecimalMath.sin(longitude.multiply(TWO).multiply(GisConstants.PI),
 						MathContext.DECIMAL32)
 					.multiply(TWENTY))
 				.multiply(TWO)
 				.divide(THREE, MathContext.DECIMAL32))
 			// + ((20.0 * Math.sin(latitude * PI) + 40.0 * Math.sin(latitude / 3.0) * PI)) * 2.0 / 3.0)
-			.add(BigDecimalMath.sin(latitude.multiply(Constants.PI), MathContext.DECIMAL32)
+			.add(BigDecimalMath.sin(latitude.multiply(GisConstants.PI), MathContext.DECIMAL32)
 				.multiply(TWENTY)
 				.add(BigDecimalMath
 					.sin(latitude.divide(THREE, MathContext.DECIMAL32)
-						.multiply(Constants.PI), MathContext.DECIMAL32)
+						.multiply(GisConstants.PI), MathContext.DECIMAL32)
 					.multiply(FORTY))
 				.multiply(TWO)
 				.divide(THREE, MathContext.DECIMAL32))
 			// ((160.0 * Math.sin((latitude / 12.0 * PI) + 320 * Math.sin(latitude * PI / 30.0)) * 2.0 / 3.0)
 			.add(BigDecimalMath.sin(latitude.divide(TWELVE, MathContext.DECIMAL32)
-						.multiply(Constants.PI),
+						.multiply(GisConstants.PI),
 					MathContext.DECIMAL32).multiply(ONE_HUNDRED_AND_SIXTY)
-				.add(BigDecimalMath.sin(latitude.multiply(Constants.PI)
+				.add(BigDecimalMath.sin(latitude.multiply(GisConstants.PI)
 						.divide(THIRTY, MathContext.DECIMAL32),
 					MathContext.DECIMAL32).multiply(THREE_HUNDRED_AND_TWENTY))
 				.multiply(TWO)

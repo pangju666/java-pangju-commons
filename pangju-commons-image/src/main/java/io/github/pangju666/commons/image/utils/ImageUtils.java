@@ -83,7 +83,7 @@ public class ImageUtils {
 	}
 
 	public static ImageSize computeScaleSize(final int imageWidth, final int imageHeight,
-										   final int targetWidth, final int targetHeight) {
+											 final int targetWidth, final int targetHeight) {
 		double ratio = (double) imageWidth / imageHeight;
 		if (imageWidth > imageHeight) {
 			double actualHeight = Math.max(targetWidth / ratio, 1);
@@ -433,7 +433,7 @@ public class ImageUtils {
 	/**
 	 * 图像二值化
 	 *
-	 * @param image 输入图像
+	 * @param image     输入图像
 	 * @param threshold 阈值
 	 * @return 输出图像
 	 */

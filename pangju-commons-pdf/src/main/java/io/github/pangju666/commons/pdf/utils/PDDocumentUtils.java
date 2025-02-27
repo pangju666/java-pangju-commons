@@ -2,6 +2,7 @@ package io.github.pangju666.commons.pdf.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.pdf.lang.PdfConstants;
 import io.github.pangju666.commons.pdf.model.PDFDirectory;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.pdfbox.Loader;
@@ -37,7 +38,6 @@ import java.util.function.ObjIntConsumer;
  * @since 1.0
  */
 public class PDDocumentUtils {
-	public static final String PDF_MIME_TYPE = "application/pdf";
 	protected static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
 	protected static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
 	protected static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
@@ -62,15 +62,17 @@ public class PDDocumentUtils {
 	 * @return 是否为PDF文件
 	 */
 	public static boolean isPDF(final File file) throws IOException {
-		return FileUtils.exist(file) && file.isFile() && PDF_MIME_TYPE.equals(FileUtils.getMimeType(file));
+		return FileUtils.exist(file) && file.isFile() && PdfConstants.PDF_MIME_TYPE.equals(FileUtils.getMimeType(file));
 	}
 
 	public static boolean isPDF(final byte[] bytes) {
-		return ArrayUtils.isNotEmpty(bytes) && PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(bytes));
+		return ArrayUtils.isNotEmpty(bytes) &&
+			PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(bytes));
 	}
 
 	public static boolean isPDF(final InputStream inputStream) throws IOException {
-		return Objects.nonNull(inputStream) && PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(inputStream));
+		return Objects.nonNull(inputStream) &&
+			PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(inputStream));
 	}
 
 	/**

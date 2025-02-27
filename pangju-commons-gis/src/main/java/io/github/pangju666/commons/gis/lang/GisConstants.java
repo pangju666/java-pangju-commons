@@ -2,7 +2,7 @@ package io.github.pangju666.commons.gis.lang;
 
 import java.math.BigDecimal;
 
-public class Constants {
+public class GisConstants {
 	// 度
 	public static final char RADIUS_CHAR = '°';
 	// 分
@@ -24,6 +24,6 @@ public class Constants {
 	// 偏心率平方
 	public static final BigDecimal EE = BigDecimal.valueOf(0.00669342162296594323);
 
-	protected Constants() {
+	protected GisConstants() {
 	}
 }
