@@ -33,7 +33,6 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-image-module</artifactId>
 			<version>${tika.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
