@@ -64,7 +64,7 @@ public class ImageUtils {
 		return ImageConstants.SUPPORT_IMAGE_TYPES.contains(mimeType);
 	}
 
-	public static ImageSize computeNewSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
+	public static ImageSize computeScaleSizeByWidth(final int imageWidth, final int imageHeight, final int targetWidth) {
 		if (imageWidth > imageHeight) {
 			double ratio = (double) imageWidth / imageHeight;
 			return new ImageSize(targetWidth, (int) Math.max(targetWidth / ratio, 1));
@@ -73,7 +73,7 @@ public class ImageUtils {
 		return new ImageSize(targetWidth, (int) Math.max(targetWidth * ratio, 1));
 	}
 
-	public static ImageSize computeNewSizeByHeight(final int imageWidth, final int imageHeight, final int targetHeight) {
+	public static ImageSize computeScaleSizeByHeight(final int imageWidth, final int imageHeight, final int targetHeight) {
 		if (imageWidth > imageHeight) {
 			double ratio = (double) imageWidth / imageHeight;
 			return new ImageSize((int) Math.max(targetHeight * ratio, 1), targetHeight);
@@ -82,7 +82,7 @@ public class ImageUtils {
 		return new ImageSize((int) Math.max(targetHeight / ratio, 1), targetHeight);
 	}
 
-	public static ImageSize computeNewSize(final int imageWidth, final int imageHeight,
+	public static ImageSize computeScaleSize(final int imageWidth, final int imageHeight,
 										   final int targetWidth, final int targetHeight) {
 		double ratio = (double) imageWidth / imageHeight;
 		if (imageWidth > imageHeight) {
