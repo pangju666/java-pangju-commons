@@ -12,6 +12,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
@@ -196,6 +197,24 @@ public class WorkbookUtils {
 		return StreamSupport.stream(row.spliterator(), parallel);
 	}
 
+	public static Cell getMergedRegionCell(Sheet sheet, int row, int column) {
+		int sheetMergeCount = sheet.getNumMergedRegions();
+		for (int i = 0; i < sheetMergeCount; i++) {
+			CellRangeAddress ca = sheet.getMergedRegion(i);
+			int firstColumn = ca.getFirstColumn();
+			int lastColumn = ca.getLastColumn();
+			int firstRow = ca.getFirstRow();
+			int lastRow = ca.getLastRow();
+			if (row >= firstRow && row <= lastRow) {
+				if (column >= firstColumn && column <= lastColumn) {
+					Row fRow = sheet.getRow(firstRow);
+					return fRow.getCell(firstColumn);
+				}
+			}
+		}
+		return null;
+	}
+
 	public static String getStringCellValue(Cell cell) {
 		return getStringCellValue(cell, StringUtils.EMPTY);
 	}
@@ -228,6 +247,7 @@ public class WorkbookUtils {
 			return switch (cell.getCellType()) {
 				case NUMERIC -> cell.getNumericCellValue();
 				case STRING -> NumberUtils.toDouble(cell.getStringCellValue(), defaultValue);
+				case BOOLEAN -> BooleanUtils.toIntegerObject(cell.getBooleanCellValue()).doubleValue();
 				default -> defaultValue;
 			};
 		} catch (NumberFormatException e) {
@@ -256,11 +276,13 @@ public class WorkbookUtils {
 	}
 
 	public static Date getDateCellValue(Cell cell) {
-		return getDateCellValue(cell, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT, Constants.TIME_FORMAT);
+		return getDateCellValue(cell, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT,
+			Constants.TIME_FORMAT, "yyyy/MM/dd", "yyyy/M/d", "yyyy/M-d");
 	}
 
 	public static Date getDateCellValue(Cell cell, Date defaultValue) {
-		return getDateCellValue(cell, defaultValue, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT, Constants.TIME_FORMAT);
+		return getDateCellValue(cell, defaultValue, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT,
+			Constants.TIME_FORMAT, "yyyy/MM/dd", "yyyy/M/d", "yyyy/M-d");
 	}
 
 	public static Date getDateCellValue(Cell cell, String... parsePatterns) {
