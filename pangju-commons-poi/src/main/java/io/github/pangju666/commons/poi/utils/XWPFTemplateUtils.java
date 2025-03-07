@@ -6,7 +6,11 @@ import com.deepoove.poi.data.RenderData;
 import com.deepoove.poi.data.TextRenderData;
 import com.deepoove.poi.template.ElementTemplate;
 import com.deepoove.poi.template.MetaTemplate;
+import io.github.pangju666.commons.io.lang.IOConstants;
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +32,26 @@ public class XWPFTemplateUtils {
 	protected XWPFTemplateUtils() {
 	}
 
+	public static boolean isXWPFFile(final File file) throws IOException {
+		Validate.isTrue(FileUtils.exist(file), "文件不存在");
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXWPFFile(final String filePath) throws IOException {
+		return isXWPFFile(new File(filePath));
+	}
+
+	public static boolean isXWPFFile(final byte[] bytes) {
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXWPFFile(final InputStream inputStream) throws IOException {
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
 	/**
 	 * 根据模板文件合并多个文件
 	 *
@@ -36,8 +60,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles    待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(OutputStream outputStream, File templateFile,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final OutputStream outputStream, final File templateFile,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFile);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToStream(template, placeholderMap, outputStream);
@@ -51,8 +75,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles           待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(OutputStream outputStream, InputStream templateInputStream,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final OutputStream outputStream, final InputStream templateInputStream,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateInputStream);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToStream(template, placeholderMap, outputStream);
@@ -66,8 +90,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles        待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(OutputStream outputStream, String templateFilePath,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final OutputStream outputStream, final String templateFilePath,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFilePath);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToStream(template, placeholderMap, outputStream);
@@ -81,8 +105,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles    待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(File outputFile, File templateFile,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final File outputFile, final File templateFile,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFile);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToFile(template, placeholderMap, outputFile);
@@ -96,8 +120,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles           待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(File outputFile, InputStream templateInputStream,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final File outputFile, final InputStream templateInputStream,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateInputStream);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToFile(template, placeholderMap, outputFile);
@@ -111,8 +135,8 @@ public class XWPFTemplateUtils {
 	 * @param destFiles        待合并文件
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void mergeFiles(File outputFile, String templateFilePath,
-								  File... destFiles) throws IOException {
+	public static void mergeFiles(final File outputFile, final String templateFilePath,
+								  final File... destFiles) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFilePath);
 		Map<String, RenderData> placeholderMap = getTagNameMap(template, getRenderDataList(destFiles));
 		writeToFile(template, placeholderMap, outputFile);
@@ -126,8 +150,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap          占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(OutputStream outputStream, InputStream templateInputStream,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final OutputStream outputStream, final InputStream templateInputStream,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateInputStream);
 		writeToStream(template, tagNameMap, outputStream);
 	}
@@ -140,8 +164,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap   占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(OutputStream outputStream, File templateFile,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final OutputStream outputStream, final File templateFile,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFile);
 		writeToStream(template, tagNameMap, outputStream);
 	}
@@ -154,8 +178,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap       占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(OutputStream outputStream, String templateFilePath,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final OutputStream outputStream, final String templateFilePath,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFilePath);
 		writeToStream(template, tagNameMap, outputStream);
 	}
@@ -168,8 +192,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap   待渲染占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(File outputFile, File templateFile,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final File outputFile, final File templateFile,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFile);
 		writeToFile(template, tagNameMap, outputFile);
 	}
@@ -182,8 +206,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap          待渲染占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(File outputFile, InputStream templateInputStream,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final File outputFile, final InputStream templateInputStream,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateInputStream);
 		writeToFile(template, tagNameMap, outputFile);
 	}
@@ -196,8 +220,8 @@ public class XWPFTemplateUtils {
 	 * @param tagNameMap       待渲染占位符映射
 	 * @throws IOException 写入错误时触发
 	 */
-	public static void renderTags(File outputFile, String templateFilePath,
-								  Map<String, RenderData> tagNameMap) throws IOException {
+	public static void renderTags(final File outputFile, final String templateFilePath,
+								  final Map<String, RenderData> tagNameMap) throws IOException {
 		XWPFTemplate template = XWPFTemplate.compile(templateFilePath);
 		writeToFile(template, tagNameMap, outputFile);
 	}
@@ -208,7 +232,7 @@ public class XWPFTemplateUtils {
 	 * @param template 模板文件
 	 * @return 占位符标签名列表
 	 */
-	public static List<String> getTagNameList(XWPFTemplate template) {
+	public static List<String> getTagNameList(final XWPFTemplate template) {
 		List<MetaTemplate> metaTemplateList = template.getElementTemplates();
 		List<String> tagNameList = new ArrayList<>(metaTemplateList.size());
 		metaTemplateList.forEach(metaTemplate -> {
@@ -225,7 +249,7 @@ public class XWPFTemplateUtils {
 	 * @return docx渲染数据
 	 * @see DocxRenderData
 	 */
-	public static DocxRenderData createRenderData(File docxFile) {
+	public static DocxRenderData createRenderData(final File docxFile) {
 		return new DocxRenderData(docxFile);
 	}
 
@@ -236,11 +260,11 @@ public class XWPFTemplateUtils {
 	 * @return 文本渲染数据
 	 * @see TextRenderData
 	 */
-	public static TextRenderData createRenderData(String text) {
+	public static TextRenderData createRenderData(final String text) {
 		return new TextRenderData(StringUtils.stripToEmpty(text));
 	}
 
-	protected static List<RenderData> getRenderDataList(File... docxRenderFiles) {
+	protected static List<RenderData> getRenderDataList(final File... docxRenderFiles) {
 		List<RenderData> docxRenderDataList = new ArrayList<>();
 		for (File destFile : docxRenderFiles) {
 			docxRenderDataList.add(createRenderData(destFile));
@@ -248,7 +272,7 @@ public class XWPFTemplateUtils {
 		return docxRenderDataList;
 	}
 
-	protected static Map<String, RenderData> getTagNameMap(XWPFTemplate template, List<RenderData> renderDataList) {
+	protected static Map<String, RenderData> getTagNameMap(final XWPFTemplate template, List<RenderData> renderDataList) {
 		// 获取文件中全部占位符
 		List<String> tagNameList = getTagNameList(template);
 		Map<String, RenderData> tagNameMap = new HashMap<>(tagNameList.size());
@@ -263,16 +287,16 @@ public class XWPFTemplateUtils {
 		return tagNameMap;
 	}
 
-	protected static void writeToStream(XWPFTemplate template, Map<String, RenderData> tagNameMap,
-										OutputStream outputStream) throws IOException {
+	protected static void writeToStream(final XWPFTemplate template, final Map<String, RenderData> tagNameMap,
+										final OutputStream outputStream) throws IOException {
 		template.render(tagNameMap);
 		template.write(outputStream);
 		outputStream.flush();
 		template.close();
 	}
 
-	protected static void writeToFile(XWPFTemplate template, Map<String, RenderData> tagNameMap,
-									  File outputFile) throws IOException {
+	protected static void writeToFile(final XWPFTemplate template, final Map<String, RenderData> tagNameMap,
+									  final File outputFile) throws IOException {
 		template.render(tagNameMap);
 		template.writeToFile(outputFile.getAbsolutePath());
 		template.close();
