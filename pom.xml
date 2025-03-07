@@ -58,47 +58,47 @@
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-codec</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-compress</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-gis</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-image</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-io</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-lang</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-pdf</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-poi</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-validation</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
