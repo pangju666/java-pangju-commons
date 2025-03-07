@@ -5,13 +5,11 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-commons-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>pangju-commons-image</artifactId>
-	<version>${parent.version}</version>
-
 	<name>pangju-commons-image</name>
-	<description>java 公共图片库</description>
+	<description>java 公共图片工具库</description>
 
 	<licenses>
 		<license>
