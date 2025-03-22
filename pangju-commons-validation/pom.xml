@@ -5,11 +5,9 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-commons-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-validation</artifactId>
-
-	<name>pangju-commons-validation</name>
 	<description>java 公共校验库（基于jakarta-validation）</description>
 
 	<licenses>

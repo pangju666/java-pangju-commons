@@ -5,18 +5,18 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-dependencies</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>pangju-commons-parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>pangju-commons</name>
 	<description>java 公共工具类库父级依赖，集成了部分Apache工具包，部分参考自RuoYi和HuTool</description>
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>
-		<module>pangju-commons-codec</module>
+		<module>pangju-commons-crypto</module>
 		<module>pangju-commons-compress</module>
 		<module>pangju-commons-gis</module>
 		<module>pangju-commons-image</module>
@@ -57,48 +57,48 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-codec</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<artifactId>pangju-commons-crypto</artifactId>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-compress</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-gis</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-image</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-io</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-lang</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-pdf</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-poi</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-validation</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

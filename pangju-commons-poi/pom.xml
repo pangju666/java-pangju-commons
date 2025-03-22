@@ -5,10 +5,9 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-commons-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-poi</artifactId>
-	<name>pangju-commons-poi</name>
 	<description>java 公共POI工具库（基于Apache POI）</description>
 
 	<licenses>

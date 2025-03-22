@@ -6,10 +6,9 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-commons-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-compress</artifactId>
-	<name>pangju-commons-compress</name>
 	<description>java 公共文件压缩工具库</description>
 
 	<licenses>
