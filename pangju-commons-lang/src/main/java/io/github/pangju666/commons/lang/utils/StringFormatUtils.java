@@ -2,8 +2,8 @@ package io.github.pangju666.commons.lang.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class StringCaseUtils {
-	protected StringCaseUtils() {
+public class StringFormatUtils {
+	protected StringFormatUtils() {
 	}
 
 	/**
