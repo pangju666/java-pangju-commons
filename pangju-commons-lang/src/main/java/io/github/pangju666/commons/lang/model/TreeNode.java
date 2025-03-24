@@ -3,10 +3,13 @@ package io.github.pangju666.commons.lang.model;
 import java.util.Collection;
 
 /**
- * 树形结构
+ * 树数据结构接口
  *
  * @param <K> 键值类型
  * @param <T> 数据类型
+ *
+ * @author pangju666
+ * @since 1.0.0
  */
 public interface TreeNode<K, T> {
 	/**
