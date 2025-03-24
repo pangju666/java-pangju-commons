@@ -19,35 +19,35 @@ package io.github.pangju666.commons.lang.model;
 import java.util.Collection;
 
 /**
- * 树数据结构接口
+ * 树形结构节点通用接口，定义树形数据结构的基本操作
  *
- * @param <K> 键值类型
- * @param <T> 数据类型
+ * @param <K> 节点唯一标识类型（如Long、String等）
+ * @param <T> 节点携带的业务数据类型
  *
  * @author pangju666
  * @since 1.0.0
  */
 public interface TreeNode<K, T> {
 	/**
-	 * 获取节点键值
+	 * 获取当前节点的唯一标识键
 	 *
-	 * @return 节点键值
+	 * @return 节点的唯一标识键值，用于构建树形结构关系
 	 * @since 1.0.0
 	 */
 	K getNodeKey();
 
 	/**
-	 * 获取父级节点键值
+	 * 获取父节点的唯一标识键
 	 *
-	 * @return 父级节点键值
+	 * @return 父节点的唯一标识键值，根节点应返回null或特定标识值
 	 * @since 1.0.0
 	 */
 	K getParentNodeKey();
 
 	/**
-	 * 设置子级节点
+	 * 设置子节点集合
 	 *
-	 * @param childNodes 子级节点集合
+	 * @param childNodes 子节点集合，集合元素需实现TreeNode接口
 	 * @since 1.0.0
 	 */
 	void setChildNodes(final Collection<? extends TreeNode<K, T>> childNodes);

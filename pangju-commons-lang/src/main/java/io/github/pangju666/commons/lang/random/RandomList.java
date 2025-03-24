@@ -27,10 +27,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 
 /**
- * 随机集合，因为Apache的{@link RandomUtils}没有这个功能，所以写了这个类
+ * 随机列表生成工具类
+ * <p>提供基本类型列表的随机生成能力，支持普通列表和元素唯一列表的生成</p>
  *
  * @author pangju666
- * @see RandomArray
+ * @see org.apache.commons.lang3.RandomUtils
  * @since 1.0.0
  */
 public class RandomList {
@@ -95,222 +96,241 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成随机布尔列表
 	 *
-	 * @param length List长度
-	 * @return Boolean List
+	 * @param length 列表长度（必须大于0）
+	 * @return 包含随机布尔值的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Boolean> randomBooleanList(int length) {
+	public List<Boolean> randomBooleanList(final int length) {
 		return randomList(null, null, length, false,
 			(l, r) -> randomUtils.randomBoolean());
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成全范围随机整数列表
 	 *
-	 * @param length List长度
-	 * @return Integer List
+	 * @param length 列表长度（必须大于0）
+	 * @return 包含随机整数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Integer> randomIntegerList(int length) {
+	public List<Integer> randomIntegerList(final int length) {
 		return randomList(0, Integer.MAX_VALUE, length, false, randomUtils::randomInt);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成全范围唯一随机整数列表
 	 *
-	 * @param length List长度
-	 * @return Integer List
+	 * @param length 列表长度（必须大于0）
+	 * @return 元素唯一的随机整数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Integer> randomUniqueIntegerList(int length) {
+	public List<Integer> randomUniqueIntegerList(final int length) {
 		return randomList(0, Integer.MAX_VALUE, length, true, randomUtils::randomInt);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成指定范围随机整数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Integer List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 包含随机整数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Integer> randomIntegerList(int startInclusive, int endExclusive, int length) {
+	public List<Integer> randomIntegerList(final int startInclusive, final int endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, false, randomUtils::randomInt);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成指定范围唯一随机整数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Integer List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 元素唯一的随机整数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Integer> randomUniqueIntegerList(int startInclusive, int endExclusive, int length) {
+	public List<Integer> randomUniqueIntegerList(final int startInclusive, final int endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomInt);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成全范围随机单精度浮点数列表
 	 *
-	 * @param length List长度
-	 * @return Float List
+	 * @param length 列表长度（必须大于0）
+	 * @return 包含随机单精度浮点数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Float> randomFloatList(int length) {
+	public List<Float> randomFloatList(final int length) {
 		return randomList(0f, Float.MAX_VALUE, length, false, randomUtils::randomFloat);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成全范围唯一随机单精度浮点数列表
 	 *
-	 * @param length List长度
-	 * @return Float List
+	 * @param length 列表长度（必须大于0）
+	 * @return 元素唯一的随机单精度浮点数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Float> randomUniqueFloatList(int length) {
+	public List<Float> randomUniqueFloatList(final int length) {
 		return randomList(0f, Float.MAX_VALUE, length, true, randomUtils::randomFloat);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成指定范围随机单精度浮点数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Float List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 包含随机单精度浮点数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Float> randomFloatList(float startInclusive, float endExclusive, int length) {
+	public List<Float> randomFloatList(final float startInclusive, final float endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, false, randomUtils::randomFloat);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成指定范围唯一随机单精度浮点数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Float List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 元素唯一的随机单精度浮点数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Float> randomUniqueFloatList(float startInclusive, float endExclusive, int length) {
+	public List<Float> randomUniqueFloatList(final float startInclusive, final float endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomFloat);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成全范围随机长整数列表
 	 *
-	 * @param length List长度
-	 * @return Long List
+	 * @param length 列表长度（必须大于0）
+	 * @return 包含随机长整数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Long> randomLongList(int length) {
+	public List<Long> randomLongList(final int length) {
 		return randomList(0L, Long.MAX_VALUE, length, false, randomUtils::randomLong);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成全范围唯一随机长整数列表
 	 *
-	 * @param length List长度
-	 * @return Long List
+	 * @param length 列表长度（必须大于0）
+	 * @return 元素唯一的随机单长整数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Long> randomUniqueLongList(int length) {
+	public List<Long> randomUniqueLongList(final int length) {
 		return randomList(0L, Long.MAX_VALUE, length, true, randomUtils::randomLong);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成指定范围随机长整数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Long List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 包含随机长整数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Long> randomLongList(long startInclusive, long endExclusive, int length) {
+	public List<Long> randomLongList(final long startInclusive, final long endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, false, randomUtils::randomLong);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成指定范围唯一随机长整数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Long List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 元素唯一的随机长整数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Long> randomUniqueLongList(long startInclusive, long endExclusive, int length) {
+	public List<Long> randomUniqueLongList(final long startInclusive, final long endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomLong);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成指定范围唯一随机双精度浮点数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Double List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 元素唯一的随机双精度浮点数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Double> randomDoubleList(double startInclusive, double endExclusive, int length) {
+	public List<Double> randomDoubleList(final double startInclusive, final double endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, false, randomUtils::randomDouble);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成指定范围唯一随机双精度浮点数列表
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @return Double List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @return 元素唯一的随机双精度浮点数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Double> randomUniqueDoubleList(double startInclusive, double endExclusive, int length) {
+	public List<Double> randomUniqueDoubleList(final double startInclusive, final double endExclusive, final int length) {
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomDouble);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 生成全范围随机双精度浮点数列表
 	 *
-	 * @param length List长度
-	 * @return Double List
+	 * @param length 列表长度（必须大于0）
+	 * @return 包含随机双精度浮点数的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Double> randomDoubleList(int length) {
+	public List<Double> randomDoubleList(final int length) {
 		return randomList(0d, Double.MAX_VALUE, length, false, randomUtils::randomDouble);
 	}
 
 	/**
-	 * 生成指定长度的无重复值随机List
+	 * 生成全范围唯一随机双精度浮点数列表
 	 *
-	 * @param length List长度
-	 * @return Double List
+	 * @param length 列表长度（必须大于0）
+	 * @return 元素唯一的随机双精度浮点数列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public List<Double> randomUniqueDoubleList(int length) {
+	public List<Double> randomUniqueDoubleList(final int length) {
 		return randomList(0d, Double.MAX_VALUE, length, true, randomUtils::randomDouble);
 	}
 
 	/**
-	 * 生成指定长度的随机List
+	 * 基础随机列表生成方法
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         List长度
-	 * @param unique         是否允许重复值
-	 * @param biFunction     随机值生成函数
-	 * @param <T>            值类型
-	 * @return 指定类型的List
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         列表长度（必须大于0）
+	 * @param unique         是否要求元素唯一
+	 * @param biFunction     随机数生成函数
+	 * @param <T>            数值类型
+	 * @return 包含随机值的列表
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public <T> List<T> randomList(T startInclusive, T endExclusive, int length, boolean unique, BiFunction<T, T, T> biFunction) {
+	protected <T> List<T> randomList(final T startInclusive, final T endExclusive, final int length, final boolean unique,
+									 final BiFunction<T, T, T> biFunction) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 		List<T> values = new ArrayList<>(length);
 		for (int i = 0; i < length; i++) {

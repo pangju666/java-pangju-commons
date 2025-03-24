@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package io.github.pangju666.commons.lang.utils;
 
 import java.lang.reflect.Array;
@@ -7,7 +23,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 数组工具类，继承了Apache的ArrayUtils
+ * 数组操作工具类，继承并扩展了{@link org.apache.commons.lang3.ArrayUtils}的功能
+ * <p>新增数组分块方法，支持基本类型数组及对象数组的分块操作，功能类似{@link org.apache.commons.collections4.ListUtils#partition}的数组实现</p>
  *
  * @author pangju666
  * @see org.apache.commons.lang3.ArrayUtils
@@ -18,14 +35,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 布尔数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<boolean[]> partition(final boolean[] array, int size) {
+	public static List<boolean[]> partition(final boolean[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -49,14 +66,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 字节数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<byte[]> partition(final byte[] array, int size) {
+	public static List<byte[]> partition(final byte[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -80,14 +97,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 字符数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<char[]> partition(final char[] array, int size) {
+	public static List<char[]> partition(final char[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -111,14 +128,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * double数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<double[]> partition(final double[] array, int size) {
+	public static List<double[]> partition(final double[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -142,14 +159,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * float数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<float[]> partition(final float[] array, int size) {
+	public static List<float[]> partition(final float[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -173,14 +190,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * int数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<int[]> partition(final int[] array, int size) {
+	public static List<int[]> partition(final int[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -204,14 +221,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * long数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<long[]> partition(final long[] array, int size) {
+	public static List<long[]> partition(final long[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -235,14 +252,14 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * short数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
 	 *
-	 * @param array 原始数组
-	 * @param size  切片大小
-	 * @return 切片数组列表
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
 	 * @since 1.0.0
 	 */
-	public static List<short[]> partition(final short[] array, int size) {
+	public static List<short[]> partition(final short[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
@@ -265,8 +282,18 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 *
+	 * @param array 待分块的数组（null或空数组时返回空列表）
+	 * @param size  每块的大小（小于等于0时返回空列表）
+	 * @param <T>   数组元素的类型
+	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @see Array#newInstance
+	 * @since 1.0.0
+	 */
 	@SuppressWarnings("unchecked")
-	public static <T> List<T[]> partition(final T[] array, int size) {
+	public static <T> List<T[]> partition(final T[] array, final int size) {
 		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}

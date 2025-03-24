@@ -27,10 +27,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 
 /**
- * 随机数组，因为Apache的{@link org.apache.commons.lang3.RandomUtils}没有这个功能，所以写了这个类
+ * 随机数组生成工具类
+ * <p>提供基本类型数组的随机生成能力，支持普通随机数组和元素唯一随机数组的生成</p>
  *
  * @author pangju666
- * @see RandomList
+ * @see org.apache.commons.lang3.RandomUtils
  * @since 1.0.0
  */
 public class RandomArray {
@@ -95,13 +96,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成随机布尔数组
 	 *
-	 * @param length 数组长度
-	 * @return boolean数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机布尔值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public boolean[] randomBooleanArray(int length) {
+	public boolean[] randomBooleanArray(final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 		boolean[] booleans = new boolean[length];
 		for (int i = 0; i < booleans.length; i++) {
@@ -111,13 +113,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成全范围随机整数数组
 	 *
-	 * @param length 数组长度
-	 * @return int数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public int[] randomIntArray(int length) {
+	public int[] randomIntArray(final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		int[] values = new int[length];
@@ -128,15 +131,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成指定范围内的唯一随机整数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive 随机生成最大值
-	 * @param length 数组长度
-	 * @return int数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public int[] randomIntArray(int startInclusive, int endExclusive, int length) {
+	public int[] randomIntArray(final int startInclusive, final int endExclusive, final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		int[] values = new int[length];
@@ -147,13 +151,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成全范围随机长整数数组
 	 *
-	 * @param length 数组长度
-	 * @return long数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机长整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public long[] randomLongArray(int length) {
+	public long[] randomLongArray(final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		long[] values = new long[length];
@@ -164,15 +169,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成指定范围内的唯一随机长整数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive 随机生成最大值
-	 * @param length 数组长度
-	 * @return long数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机长整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public long[] randomLongArray(long startInclusive, long endExclusive, int length) {
+	public long[] randomLongArray(final long startInclusive, final long endExclusive, final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		long[] values = new long[length];
@@ -183,13 +189,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成全范围随机单精度浮点数数组
 	 *
-	 * @param length 数组长度
-	 * @return float数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机单精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public float[] randomFloatArray(int length) {
+	public float[] randomFloatArray(final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		float[] values = new float[length];
@@ -200,15 +207,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成指定范围内的唯一随机单精度浮点数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         数组长度
-	 * @return float数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机单精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public float[] randomFloatArray(float startInclusive, float endExclusive, int length) {
+	public float[] randomFloatArray(final float startInclusive, final float endExclusive, final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		float[] values = new float[length];
@@ -219,13 +227,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成全范围随机双精度浮点数数组
 	 *
-	 * @param length 数组长度
-	 * @return double数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机双精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public double[] randomDoubleArray(int length) {
+	public double[] randomDoubleArray(final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		double[] values = new double[length];
@@ -236,15 +245,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的随机数组
+	 * 生成指定范围内的唯一随机双精度浮点数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive 随机生成最大值
-	 * @param length 数组长度
-	 * @return double数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 包含随机双精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public double[] randomDoubleArray(double startInclusive, double endExclusive, int length) {
+	public double[] randomDoubleArray(final double startInclusive, final double endExclusive, final int length) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 
 		double[] values = new double[length];
@@ -255,13 +265,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成全范围唯一随机整数数组
 	 *
-	 * @param length 数组长度
-	 * @return int数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public int[] randomUniqueIntArray(int length) {
+	public int[] randomUniqueIntArray(final int length) {
 		return randomSet(0, Integer.MAX_VALUE, length, randomUtils::randomInt)
 			.stream()
 			.mapToInt(Integer::intValue)
@@ -269,15 +280,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成指定范围内的唯一随机整数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         数组长度
-	 * @return int数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public int[] randomUniqueIntArray(int startInclusive, int endExclusive, int length) {
+	public int[] randomUniqueIntArray(final int startInclusive, final int endExclusive, final int length) {
 		return randomSet(startInclusive, endExclusive, length, randomUtils::randomInt)
 			.stream()
 			.mapToInt(Integer::intValue)
@@ -285,13 +297,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成全范围唯一随机长整数数组
 	 *
-	 * @param length 数组长度
-	 * @return long数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机长整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public long[] randomUniqueLongArray(int length) {
+	public long[] randomUniqueLongArray(final int length) {
 		return randomSet(0L, Long.MAX_VALUE, length, randomUtils::randomLong)
 			.stream()
 			.mapToLong(Long::longValue)
@@ -299,15 +312,16 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成指定范围内的唯一随机长整数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         数组长度
-	 * @return long数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机长整数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public long[] randomUniqueLongArray(long startInclusive, long endExclusive, int length) {
+	public long[] randomUniqueLongArray(final long startInclusive, final long endExclusive, final int length) {
 		return randomSet(startInclusive, endExclusive, length, randomUtils::randomLong)
 			.stream()
 			.mapToLong(Long::longValue)
@@ -315,13 +329,14 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成全范围唯一随机双精度浮点数数组
 	 *
-	 * @param length 数组长度
-	 * @return double数组
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机双精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public double[] randomUniqueDoubleArray(int length) {
+	public double[] randomUniqueDoubleArray(final int length) {
 		return randomSet(0d, Double.MAX_VALUE, length, randomUtils::randomDouble)
 			.stream()
 			.mapToDouble(Double::doubleValue)
@@ -329,22 +344,36 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定长度的不重复随机数组
+	 * 生成指定范围内的唯一随机双精度浮点数数组
 	 *
-	 * @param startInclusive 随机生成最小值
-	 * @param endExclusive   随机生成最大值
-	 * @param length         数组长度
-	 * @return double数组
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length 数组长度（必须大于0）
+	 * @return 元素唯一的随机双精度浮点数值的数组
+	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @since 1.0.0
 	 */
-	public double[] randomUniqueDoubleArray(double startInclusive, double endExclusive, int length) {
+	public double[] randomUniqueDoubleArray(final double startInclusive, final double endExclusive, final int length) {
 		return randomSet(startInclusive, endExclusive, length, randomUtils::randomDouble)
 			.stream()
 			.mapToDouble(Double::doubleValue)
 			.toArray();
 	}
 
-	protected <T> Set<T> randomSet(T startInclusive, T endExclusive, int length, BiFunction<T, T, T> biFunction) {
+	/**
+	 * 基础随机集合生成方法
+	 *
+	 * @param startInclusive 最小值（包含）
+	 * @param endExclusive   最大值（不包含）
+	 * @param length         集合大小（必须大于0）
+	 * @param biFunction     随机数生成函数
+	 * @param <T>            数值类型
+	 * @return 包含唯一随机值的集合
+	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @since 1.0.0
+	 */
+	protected <T> Set<T> randomSet(final T startInclusive, final T endExclusive, final int length,
+								   final BiFunction<T, T, T> biFunction) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 		Set<T> values = new HashSet<>(length);
 		for (int i = 0; i < length; i++) {

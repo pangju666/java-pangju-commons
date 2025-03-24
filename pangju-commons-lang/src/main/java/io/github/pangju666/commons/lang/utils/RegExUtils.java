@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.enums.RegexFlag;
@@ -7,10 +23,26 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 正则表达式工具类，继承并扩展了{@link org.apache.commons.lang3.RegExUtils}的功能
+ * <p>提供正则表达式编译、匹配检测、模式查找等增强功能</p>
+ *
+ * @author pangju666
+ * @see org.apache.commons.lang3.RegExUtils
+ * @see io.github.pangju666.commons.lang.pool.RegExPool
+ * @since 1.0.0
+ */
 public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	protected RegExUtils() {
 	}
 
+	/**
+	 * 计算正则表达式标志位的组合值
+	 *
+	 * @param regexFlags 正则表达式标志枚举数组
+	 * @return 组合后的标志位整数值
+	 * @since 1.0.0
+	 */
 	public static int computeFlags(final RegexFlag... regexFlags) {
 		int flags = 0;
 		for (RegexFlag regexFlag : regexFlags) {
@@ -23,50 +55,90 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 		return flags;
 	}
 
-	public static Pattern compile(final Pattern pattern) {
-		return compile(pattern.pattern());
+	/**
+	 * 带标志位重新编译现有模式对象
+	 *
+	 * @param pattern 要复制的模式对象
+	 * @param flags   正则表达式标志位组合值
+	 * @return 新编译的Pattern对象
+	 * @since 1.0.0
+	 */
+	public static Pattern compile(final Pattern pattern, final int flags) {
+		return Pattern.compile(pattern.pattern(), flags);
 	}
 
-	public static Pattern compile(final String regex) {
-		return compile(regex, 0, false, false);
-	}
-
-	public static Pattern compile(final Pattern pattern, boolean matchStart, boolean matchEnd) {
-		return compile(pattern.pattern(), matchStart, matchEnd);
-	}
-
-	public static Pattern compile(final String regex, boolean matchStart, boolean matchEnd) {
+	/**
+	 * 编译正则表达式并配置起止匹配（无标志位）
+	 *
+	 * @param regex      正则表达式字符串
+	 * @param matchStart 是否强制起始匹配(自动添加^前缀)
+	 * @param matchEnd   是否强制结束匹配(自动添加$后缀)
+	 * @return 编译后的Pattern对象
+	 * @since 1.0.0
+	 */
+	public static Pattern compile(final String regex, final boolean matchStart, final boolean matchEnd) {
 		return compile(regex, 0, matchStart, matchEnd);
 	}
 
-	public static Pattern compile(final Pattern pattern, int flags) {
-		return compile(pattern.pattern(), flags);
+	/**
+	 * 完整参数编译正则表达式
+	 *
+	 * @param regex      正则表达式字符串
+	 * @param flags      正则表达式标志位组合值
+	 * @param matchStart 是否强制起始匹配(自动添加^前缀)
+	 * @param matchEnd   是否强制结束匹配(自动添加$后缀)
+	 * @return 编译后的Pattern对象
+	 * @since 1.0.0
+	 */
+	public static Pattern compile(final String regex, final int flags, final boolean matchStart, final boolean matchEnd) {
+		return Pattern.compile((matchStart && !regex.startsWith("^") ? "^" : "") + regex +
+			(matchEnd && !regex.endsWith("$") ? "$" : ""), flags);
 	}
 
-	public static Pattern compile(final String regex, int flags) {
-		return compile(regex, flags, false, false);
-	}
-
-	public static Pattern compile(final Pattern pattern, int flags, boolean matchStart, boolean matchEnd) {
-		return compile(pattern.pattern(), flags, matchStart, matchEnd);
-	}
-
-	public static Pattern compile(final String regex, int flags, boolean matchStart, boolean matchEnd) {
-		return Pattern.compile((matchStart && !regex.startsWith("^") ? "^" : "") + regex + (matchEnd && !regex.endsWith("$") ? "$" : ""), flags);
-	}
-
+	/**
+	 * 检查字符串是否完全匹配正则表达式
+	 *
+	 * @param pattern 正则表达式字符串
+	 * @param str 要匹配的目标字符串
+	 * @return 完全匹配时返回true
+	 * @since 1.0.0
+	 */
 	public static boolean matches(final String pattern, final String str) {
 		return Pattern.compile(pattern).matcher(str).matches();
 	}
 
+	/**
+	 * 检查字符串是否完全匹配模式对象
+	 *
+	 * @param pattern 编译后的Pattern对象
+	 * @param str 要匹配的目标字符串
+	 * @return 完全匹配时返回true
+	 * @since 1.0.0
+	 */
 	public static boolean matches(final Pattern pattern, final String str) {
 		return pattern.matcher(str).matches();
 	}
 
+	/**
+	 * 查找字符串中所有匹配正则表达式的子串
+	 *
+	 * @param pattern 正则表达式字符串
+	 * @param str 要查找的目标字符串
+	 * @return 包含所有匹配子串的列表（可能为空列表）
+	 * @since 1.0.0
+	 */
 	public static List<String> find(final String pattern, final String str) {
 		return find(Pattern.compile(pattern), str);
 	}
 
+	/**
+	 * 查找字符串中所有匹配模式对象的子串
+	 *
+	 * @param pattern 编译后的Pattern对象
+	 * @param str 要查找的目标字符串
+	 * @return 包含所有匹配子串的列表（可能为空列表）
+	 * @since 1.0.0
+	 */
 	public static List<String> find(final Pattern pattern, final String str) {
 		List<String> result = new ArrayList<>();
 		Matcher matcher = pattern.matcher(str);

@@ -1,17 +1,16 @@
 package io.github.pangju666.commons.lang.utils;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class StreamUtils {
-	protected StreamUtils() {
+//TODO
+public class CollectionUtils {
+	protected CollectionUtils() {
 	}
 
 	public static <T> List<T> toNonNullList(final Collection<T> entities) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.stream()
@@ -20,7 +19,7 @@ public class StreamUtils {
 	}
 
 	public static <T> Set<T> toNonNullSet(final Collection<T> entities) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptySet();
 		}
 		return entities.stream()
@@ -29,7 +28,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> List<S> toList(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.stream()
@@ -39,7 +38,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> List<S> toUniqueList(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.stream()
@@ -50,7 +49,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Set<S> toSet(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptySet();
 		}
 		return entities.stream()
@@ -60,7 +59,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, T> toMap(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.stream()
@@ -69,7 +68,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, List<T>> group(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.stream()
@@ -79,7 +78,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, Long> groupCount(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.stream()
@@ -88,7 +87,7 @@ public class StreamUtils {
 	}
 
 	public static <T> List<T> toNonNullListByParallel(final Collection<T> entities) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.parallelStream()
@@ -97,7 +96,7 @@ public class StreamUtils {
 	}
 
 	public static <T> Set<T> toNonNullSetByParallel(final Collection<T> entities) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptySet();
 		}
 		return entities.parallelStream()
@@ -106,7 +105,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> List<S> toListByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.parallelStream()
@@ -116,7 +115,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> List<S> toUniqueListByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyList();
 		}
 		return entities.parallelStream()
@@ -127,7 +126,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Set<S> toSetByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptySet();
 		}
 		return entities.parallelStream()
@@ -137,7 +136,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, T> toMapByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.parallelStream()
@@ -146,7 +145,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, List<T>> groupByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.parallelStream()
@@ -156,7 +155,7 @@ public class StreamUtils {
 	}
 
 	public static <T, S> Map<S, Long> groupCountByParallel(final Collection<T> entities, final Function<T, S> function) {
-		if (CollectionUtils.isEmpty(entities)) {
+		if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
 			return Collections.emptyMap();
 		}
 		return entities.parallelStream()

@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.pool.Constants;
@@ -10,6 +26,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+/**
+ * 身份证号码处理工具类
+ * <p>包含身份证号码验证、性别解析、出生日期解析等功能</p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class IdCardUtils {
 	protected static final Pattern PATTERN = RegExUtils.compile(RegExPool.ID_CARD, true, true);
 	// 18位身份证中最后一位校验码
@@ -21,6 +44,13 @@ public class IdCardUtils {
 	protected IdCardUtils() {
 	}
 
+	/**
+	 * 验证身份证号码有效性
+	 *
+	 * @param idCardNumber 待验证的身份证号码（必须是非空字符串）
+	 * @return true-有效身份证号码，false-无效身份证号码
+	 * @since 1.0.0
+	 */
 	public static boolean validate(final String idCardNumber) {
 		if (StringUtils.isBlank(idCardNumber)) {
 			return false;
@@ -54,6 +84,13 @@ public class IdCardUtils {
 		}
 	}
 
+	/**
+	 * 解析身份证持有者性别
+	 *
+	 * @param idCardNumber 身份证号码（15位或18位）
+	 * @return "男"-男性，"女"-女性，null-输入不合法
+	 * @since 1.0.0
+	 */
 	public static String parseSex(final String idCardNumber) {
 		if (StringUtils.isBlank(idCardNumber)) {
 			return null;
@@ -69,6 +106,13 @@ public class IdCardUtils {
 		}
 	}
 
+	/**
+	 * 解析身份证出生日期
+	 *
+	 * @param idCardNumber 身份证号码（15位或18位）
+	 * @return 出生日期对象，null-输入不合法
+	 * @since 1.0.0
+	 */
 	public static Date parseBirthDate(final String idCardNumber) {
 		if (StringUtils.isBlank(idCardNumber)) {
 			return null;
