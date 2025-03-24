@@ -191,7 +191,7 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String POSITIVE_FLOAT_NUMBER = "([1-9]\\d*\\.\\d+|-?0\\.\\d*[1-9])";
+	public static final String POSITIVE_FLOAT_NUMBER = "([1-9]\\d*\\.\\d+|0\\.\\d*[1-9])";
 	/**
 	 * 标识符
 	 *
