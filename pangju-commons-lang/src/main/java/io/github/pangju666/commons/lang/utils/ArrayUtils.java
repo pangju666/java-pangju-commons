@@ -4,13 +4,29 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * 数组工具类，继承了Apache的ArrayUtils
+ *
+ * @author pangju666
+ * @see org.apache.commons.lang3.ArrayUtils
+ * @since 1.0.0
+ */
 public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	protected ArrayUtils() {
 	}
 
+	/**
+	 * 布尔数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<boolean[]> partition(final boolean[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -32,8 +48,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * 字节数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<byte[]> partition(final byte[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -55,8 +79,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * 字符数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<char[]> partition(final char[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -78,8 +110,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * double数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<double[]> partition(final double[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -101,8 +141,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * float数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<float[]> partition(final float[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -124,8 +172,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * int数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<int[]> partition(final int[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -147,8 +203,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * long数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<long[]> partition(final long[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -170,8 +234,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		return partitions;
 	}
 
+	/**
+	 * short数组切片，类似{@link org.apache.commons.collections4.ListUtils#partition}
+	 *
+	 * @param array 原始数组
+	 * @param size  切片大小
+	 * @return 切片数组列表
+	 * @since 1.0.0
+	 */
 	public static List<short[]> partition(final short[] array, int size) {
-		if (size <= 0) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
 			return Collections.emptyList();
 		}
 
@@ -195,8 +267,12 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <T> List<T[]> partition(final T[] array, int size) {
+		if (size <= 0 || ArrayUtils.isEmpty(array)) {
+			return Collections.emptyList();
+		}
+
 		Class<?> type = array.getClass().getComponentType();
-		if (size <= 0) {
+		if (Objects.isNull(type)) {
 			return Collections.emptyList();
 		}
 

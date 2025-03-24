@@ -18,7 +18,7 @@
 package io.github.pangju666.commons.lang.pool;
 
 /**
- * 正则表达式大全（大部分是网上搜集的）
+ * 正则表达式大全（大部分是网上搜集和来自<a href="https://github.com/chinabugotech/hutool/blob/5.8.36/hutool-core/src/main/java/cn/hutool/core/lang/RegexPool.java">HutTool</a>的）
  *
  * @author pangju666
  * @since 1.0.0
