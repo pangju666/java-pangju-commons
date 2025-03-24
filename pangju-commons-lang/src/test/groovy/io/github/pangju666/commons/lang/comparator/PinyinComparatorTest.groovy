@@ -16,6 +16,7 @@ class PinyinComparatorTest extends Specification {
 		[null, "", "天气如何"]                             || [null, "", "天气如何"]
 		["天气如何", null, ""]                             || [null, "", "天气如何"]
 		["天气如何", "测试字符串", "Best Java"]            || ["Best Java", "测试字符串", "天气如何"]
+		["天气如何", "12312313", "Best Java"] || ["12312313", "Best Java", "天气如何"]
 		["天气如何???", "!!!!!测试字符串", "Best Java..."] || ["!!!!!测试字符串", "Best Java...", "天气如何???"]
 	}
 }
