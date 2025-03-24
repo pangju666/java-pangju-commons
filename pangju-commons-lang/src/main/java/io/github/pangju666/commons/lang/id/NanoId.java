@@ -1,7 +1,5 @@
 package io.github.pangju666.commons.lang.id;
 
-import org.apache.commons.lang3.Validate;
-
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -17,39 +15,78 @@ import java.util.Random;
  * <p>
  * 此实现的逻辑基于JavaScript的NanoId实现，见：<a href="https://github.com/ai/nanoid">nanoid</a>
  *
- * @author David Klebanoff
+ * <p>
+ *     代码来源于：<a href="https://github.com/chinabugotech/hutool/blob/5.8.36/hutool-core/src/main/java/cn/hutool/core/lang/id/NanoId.java">cn.hutool.core.lang.id.NanoId 5.8.36</a>
+ * </p>
+ *
+ * @since 1.0.0
  */
 public final class NanoId {
-	public static final int DEFAULT_SIZE = 21;
 	/**
 	 * 默认随机数生成器，使用{@link SecureRandom}确保健壮性
 	 */
 	private static final SecureRandom DEFAULT_NUMBER_GENERATOR = new SecureRandom();
+
 	/**
 	 * 默认随机字母表，使用URL安全的Base64字符
 	 */
 	private static final char[] DEFAULT_ALPHABET =
 		"_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-	private NanoId() {
-	}
+	/**
+	 * 默认长度
+	 */
+	public static final int DEFAULT_SIZE = 21;
 
+	/**
+	 * 生成伪随机的NanoId字符串，长度为默认的{@link #DEFAULT_SIZE}，使用密码安全的伪随机生成器
+	 *
+	 * @return 伪随机的NanoId字符串
+	 */
 	public static String randomNanoId() {
 		return randomNanoId(DEFAULT_SIZE);
 	}
 
+	/**
+	 * 生成伪随机的NanoId字符串
+	 *
+	 * @param size ID长度
+	 * @return 伪随机的NanoId字符串
+	 */
 	public static String randomNanoId(int size) {
-		return randomNanoId(DEFAULT_NUMBER_GENERATOR, DEFAULT_ALPHABET, size);
+		return randomNanoId(null, null, size);
 	}
 
-	public static String randomNanoId(final Random random, final char[] alphabet, int size) {
-		Validate.isTrue(alphabet.length > 0 && alphabet.length < 256, "alphabet 必须包含 1-255 个符号");
-		Validate.isTrue(size > 0, "size 必须大于0");
+	/**
+	 * 生成伪随机的NanoId字符串
+	 *
+	 * @param random   随机数生成器
+	 * @param alphabet 随机字母表
+	 * @param size     ID长度
+	 * @return 伪随机的NanoId字符串
+	 */
+	public static String randomNanoId(Random random, char[] alphabet, int size) {
+		if (random == null) {
+			random = DEFAULT_NUMBER_GENERATOR;
+		}
+
+		if (alphabet == null) {
+			alphabet = DEFAULT_ALPHABET;
+		}
+
+		if (alphabet.length == 0 || alphabet.length >= 256) {
+			throw new IllegalArgumentException("Alphabet must contain between 1 and 255 symbols.");
+		}
+
+		if (size <= 0) {
+			throw new IllegalArgumentException("Size must be greater than zero.");
+		}
 
 		final int mask = (2 << (int) Math.floor(Math.log(alphabet.length - 1) / Math.log(2))) - 1;
 		final int step = (int) Math.ceil(1.6 * mask * size / alphabet.length);
 
 		final StringBuilder idBuilder = new StringBuilder();
+
 		while (true) {
 			final byte[] bytes = new byte[step];
 			random.nextBytes(bytes);

@@ -36,6 +36,7 @@ import java.util.Objects;
  * </pre>
  *
  * @author pangju666
+ * @see com.hankcs.hanlp.HanLP#convertToPinyinString 
  * @since 1.0.0
  */
 public final class PinyinComparator implements Comparator<String> {
@@ -60,18 +61,47 @@ public final class PinyinComparator implements Comparator<String> {
 		this.separator = separator;
 	}
 
+	/**
+	 * 对列表进行排序
+	 *
+	 * @param list 字符串列表
+	 * @since 1.0.0
+	 */
 	public static void order(List<String> list) {
 		list.sort(new PinyinComparator());
 	}
 
+	/**
+	 * 对列表进行排序
+	 *
+	 * @param list 字符串列表
+	 * @param separator 拼音分隔符
+	 *
+	 * @since 1.0.0
+	 */
 	public static void order(List<String> list, String separator) {
 		list.sort(new PinyinComparator(separator));
 	}
 
+	/**
+	 * 对数组进行排序
+	 *
+	 * @param array 字符串数组
+	 *
+	 * @since 1.0.0
+	 */
 	public static void order(String[] array) {
 		Arrays.sort(array, new PinyinComparator());
 	}
 
+	/**
+	 * 对数组进行排序
+	 *
+	 * @param array 字符串数组
+	 * @param separator 拼音分隔符
+	 *
+	 * @since 1.0.0
+	 */
 	public static void order(String[] array, String separator) {
 		Arrays.sort(array, new PinyinComparator(separator));
 	}
