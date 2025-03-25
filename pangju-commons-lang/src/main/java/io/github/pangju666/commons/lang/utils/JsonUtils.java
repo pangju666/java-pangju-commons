@@ -28,7 +28,7 @@ import java.util.Objects;
 
 /**
  * JSON处理工具类
- * <p>基于Gson实现，提供JSON字符串与Java对象间的双向转换能力</p>
+ * <p>基于Gson实现，提供JSON字符串、JSON对象与Java对象间的双向转换能力</p>
  *
  * @author pangju666
  * @see com.google.gson.Gson

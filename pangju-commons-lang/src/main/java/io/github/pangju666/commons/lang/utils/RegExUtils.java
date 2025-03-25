@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
  * @author pangju666
  * @see org.apache.commons.lang3.RegExUtils
  * @see io.github.pangju666.commons.lang.pool.RegExPool
+ * @see java.util.regex.Pattern
  * @since 1.0.0
  */
 public class RegExUtils extends org.apache.commons.lang3.RegExUtils {

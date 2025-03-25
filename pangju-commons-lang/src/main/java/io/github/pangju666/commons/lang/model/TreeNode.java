@@ -50,5 +50,5 @@ public interface TreeNode<K, T> {
 	 * @param childNodes 子节点集合，集合元素需实现TreeNode接口
 	 * @since 1.0.0
 	 */
-	void setChildNodes(final Collection<? extends TreeNode<K, T>> childNodes);
+	void setChildNodes(final Collection<T> childNodes);
 }

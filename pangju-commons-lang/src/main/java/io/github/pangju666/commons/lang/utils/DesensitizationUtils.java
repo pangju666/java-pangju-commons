@@ -205,7 +205,7 @@ public class DesensitizationUtils {
 	/**
 	 * 车辆发动机号脱敏处理（保留前1位，后2位）
 	 *
-	 * @param engineNumber 原始发动机号（通常包含字母数字组合）
+	 * @param engineNumber 原始发动机号
 	 * @return 脱敏后的发动机号（如：A**12），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
@@ -252,12 +252,12 @@ public class DesensitizationUtils {
 	 * 密码脱敏处理（全部替换为星号）
 	 *
 	 * @param password 原始密码
-	 * @return 全星号字符串（如：********），脱敏失败则返回空字符串
+	 * @return 全星号字符串（如：********），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hidePassword(final String password) {
 		if (StringUtils.isBlank(password)) {
-			return StringUtils.EMPTY;
+			return password;
 		}
 		// 创建等长的星号字符串
 		char[] chs = new char[password.length()];
@@ -268,10 +268,10 @@ public class DesensitizationUtils {
 	/**
 	 * 右侧内容脱敏（保留左侧指定位数）
 	 *
-	 * @param content      待脱敏的原始字符串，允许为空
+	 * @param content      待脱敏的原始字符串
 	 * @param prefixLength 保留的左侧字符数（需满足 0 ≤ prefixLength < 总长度）
 	 * @return 右侧用星号填充的字符串（如：ABC****），
-	 * 当参数非法时直接返回原始输入内容，
+	 * 当参数非法时直接返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hideRight(final String content, final int prefixLength) {
@@ -292,7 +292,7 @@ public class DesensitizationUtils {
 	 * @param content      待脱敏的原始字符串，允许为空
 	 * @param suffixLength 保留的右侧字符数（需满足 0 ≤ suffixLength < 总长度）
 	 * @return 左侧用星号填充的字符串（如：****XYZ），
-	 * 当参数非法时直接返回原始输入内容，
+	 * 当参数非法时直接返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hideLeft(final String content, final int suffixLength) {
@@ -314,7 +314,7 @@ public class DesensitizationUtils {
 	 * @param prefixLength 头部保留字符数（需满足 0 ≤ prefixLength < 总长度）
 	 * @param suffixLength 尾部保留字符数（需满足 0 ≤ suffixLength < 总长度）
 	 * @return 符合首尾保留规则的脱敏字符串（格式示例："AB***EF"），
-	 * 当参数非法时直接返回原始输入内容，
+	 * 当参数非法时直接返回输入参数，
 	 * 当首尾保留长度之和大于等于字符串总长度时返回原始输入内容
 	 * @since 1.0.0
 	 */

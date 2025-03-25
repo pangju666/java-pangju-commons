@@ -47,12 +47,15 @@ public class IdCardUtils {
 	/**
 	 * 验证身份证号码有效性
 	 *
-	 * @param idCardNumber 待验证的身份证号码（必须是非空字符串）
+	 * @param idCardNumber 待验证的身份证号码（只支持18位身份证，必须是非空字符串）
 	 * @return true-有效身份证号码，false-无效身份证号码
 	 * @since 1.0.0
 	 */
 	public static boolean validate(final String idCardNumber) {
 		if (StringUtils.isBlank(idCardNumber)) {
+			return false;
+		}
+		if (idCardNumber.length() != 18) {
 			return false;
 		}
 		if (!RegExUtils.matches(PATTERN, idCardNumber)) {

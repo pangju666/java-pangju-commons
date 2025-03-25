@@ -36,7 +36,7 @@ public class StringFormatUtils {
 	 * @since 1.0.0
 	 */
 	public static String formatAsScreamingSnakeCase(final String str) {
-		return formatAsSnakeCase(str).toUpperCase();
+		return StringUtils.upperCase(formatAsSnakeCase(str));
 	}
 
 	/**
@@ -47,7 +47,7 @@ public class StringFormatUtils {
 	 * @since 1.0.0
 	 */
 	public static String formatAsScreamingKebabCase(final String str) {
-		return formatAsKebabCase(str).toUpperCase();
+		return StringUtils.upperCase(formatAsKebabCase(str));
 	}
 
 	/**
@@ -168,12 +168,14 @@ public class StringFormatUtils {
 		int uppercaseIndex = 0;
 		for (int j = 1; j < chars.length; j++) {
 			if (chars[j] >= 'A' && chars[j] <= 'Z') {
-				if (!uppercase) {
+				if (!uppercase && j < chars.length - 1) {
 					uppercase = true;
 					uppercaseIndex = j;
-				}
-				if (j < chars.length - 1 && (chars[j + 1] >= 'a' && chars[j + 1] <= 'z')) {
-					continue;
+					if (chars[j + 1] >= 'A' && chars[j + 1] <= 'Z') {
+						uppercase = false;
+					} else if (chars[j + 1] >= 'a' && chars[j + 1] <= 'z') {
+						continue;
+					}
 				}
 				chars[j] += 32;
 			} else {

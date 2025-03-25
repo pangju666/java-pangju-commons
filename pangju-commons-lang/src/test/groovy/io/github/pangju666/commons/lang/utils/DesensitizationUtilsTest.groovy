@@ -105,7 +105,7 @@ class DesensitizationUtilsTest extends Specification {
 		where:
 		input    | expected
 		"123456" | "******"
-		null     | ""
+		null | null
 		""       | ""
 	}
 
