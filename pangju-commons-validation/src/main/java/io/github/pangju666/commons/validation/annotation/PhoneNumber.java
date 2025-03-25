@@ -28,19 +28,55 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * 电话号码校验注解
+ * <p>支持类型：
+ * <ul>
+ *     <li>手机号码（type=MOBILE）</li>
+ *     <li>固定电话（type=TEL）</li>
+ *     <li>混合校验（type=MIX）</li>
+ * </ul></p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = PhoneNumberValidator.class)
 public @interface PhoneNumber {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "手机号格式不正确";
 
+	/**
+	 * 电话号码类型（默认混合校验）
+	 *
+	 * @since 1.0.0
+	 */
 	PhoneNumberType type() default PhoneNumberType.MIX;
 
+	/**
+	 * 是否校验运营商号段（默认false）
+	 * <p>true时排除虚拟运营商号段</p>
+	 *
+	 * @since 1.0.0
+	 */
 	boolean strong() default false;
 
+	/**
+	 * 是否要求值不能为空白（仅空格等空白字符）
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notBlank() default false;
 
+	/**
+	 * 是否要求值不能为空字符串
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};

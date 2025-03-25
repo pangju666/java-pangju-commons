@@ -25,6 +25,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的银行卡号
+ *
+ * @author pangju666
+ * @see BankCard
+ * @since 1.0.0
+ */
 public class BankCardValidator implements ConstraintValidator<BankCard, String> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.BANK_CARD, true, true);
 

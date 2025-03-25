@@ -16,7 +16,7 @@
 
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.validation.validator.EnumValidator;
+import io.github.pangju666.commons.validation.validator.EnumNameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -27,15 +27,35 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * 枚举值校验注解
+ * <p>验证字段值是否在指定枚举类的枚举值范围内</p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = EnumValidator.class)
-public @interface Enum {
+@Constraint(validatedBy = EnumNameValidator.class)
+public @interface EnumName {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "不是有效的枚举变量名称";
 
+	/**
+	 * 目标枚举类
+	 *
+	 * @since 1.0.0
+	 */
 	Class<? extends java.lang.Enum> enumClass();
 
+	/**
+	 * 是否忽略大小写匹配
+	 *
+	 * @since 1.0.0
+	 */
 	boolean ignoreCase() default true;
 
 	Class<?>[] groups() default {};

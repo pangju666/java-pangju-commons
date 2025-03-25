@@ -27,11 +27,27 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * HTTP方法校验注解
+ * <p>验证字符串是否符合HTTP请求方法规范，包括：
+ * <ul>
+ *     <li>GET</li>
+ *     <li>POST</li>
+ *     <li>PUT</li>
+ *     <li>DELETE等标准方法</li>
+ * </ul></p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = HttpMethodValidator.class)
 public @interface HttpMethod {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "无效的请求方法名称";
 
 	Class<?>[] groups() default {};

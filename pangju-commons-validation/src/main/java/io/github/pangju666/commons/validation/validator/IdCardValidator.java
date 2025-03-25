@@ -21,6 +21,13 @@ import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+/**
+ * 验证字符串是否为有效的身份证号码
+ *
+ * @author pangju666
+ * @see IdCard
+ * @since 1.0.0
+ */
 public class IdCardValidator implements ConstraintValidator<IdCard, String> {
 	private boolean notBlank;
 	private boolean notEmpty;

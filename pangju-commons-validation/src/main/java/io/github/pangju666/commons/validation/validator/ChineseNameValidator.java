@@ -25,6 +25,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的中文姓名
+ *
+ * @author pangju666
+ * @see ChineseName
+ * @since 1.0.0
+ */
 public class ChineseNameValidator implements ConstraintValidator<ChineseName, String> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.CHINESE_NAME, true, true);
 

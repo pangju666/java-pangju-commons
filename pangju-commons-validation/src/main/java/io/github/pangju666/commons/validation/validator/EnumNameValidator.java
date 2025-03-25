@@ -16,29 +16,39 @@
 
 package io.github.pangju666.commons.validation.validator;
 
-import io.github.pangju666.commons.lang.pool.RegExPool;
-import io.github.pangju666.commons.lang.utils.RegExUtils;
-import io.github.pangju666.commons.validation.annotation.Color;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
+import io.github.pangju666.commons.validation.annotation.EnumName;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.EnumUtils;
 
-import java.util.regex.Pattern;
+import java.util.Objects;
 
-public class ColorValidator implements ConstraintValidator<Color, String> {
-	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.HEX_COLOR, true, true);
-
-	private boolean notBlank;
-	private boolean notEmpty;
+/**
+ * 验证字符串是否为有效的枚举值
+ *
+ * @author pangju666
+ * @see EnumName
+ * @since 1.0.0
+ */
+public class EnumNameValidator implements ConstraintValidator<EnumName, String> {
+	private Class<? extends java.lang.Enum> enumClass;
+	private boolean ignoreCase;
 
 	@Override
-	public void initialize(Color constraintAnnotation) {
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
+	public void initialize(EnumName constraintAnnotation) {
+		this.enumClass = constraintAnnotation.enumClass();
+		this.ignoreCase = constraintAnnotation.ignoreCase();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, PATTERN);
+		if (Objects.isNull(value)) {
+			return true;
+		}
+		if (value.isBlank()) {
+			return false;
+		}
+		return ignoreCase ? EnumUtils.isValidEnumIgnoreCase(enumClass, value) : EnumUtils.isValidEnum(enumClass, value);
 	}
 }

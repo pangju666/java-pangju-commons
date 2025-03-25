@@ -22,6 +22,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * 验证字符串是否为有效的HTTP方法
+ *
+ * @author pangju666
+ * @see HttpMethod
+ * @since 1.0.0
+ */
 public class HttpMethodValidator implements ConstraintValidator<HttpMethod, String> {
 	private static final Set<String> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "HEAD", "DELETE", "OPTIONS");
 

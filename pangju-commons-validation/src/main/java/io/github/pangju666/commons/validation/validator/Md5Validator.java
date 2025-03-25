@@ -24,6 +24,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的MD5哈希值
+ *
+ * @author pangju666
+ * @see Md5
+ * @since 1.0.0
+ */
 public class Md5Validator implements ConstraintValidator<Md5, String> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.MD5, true, true);
 

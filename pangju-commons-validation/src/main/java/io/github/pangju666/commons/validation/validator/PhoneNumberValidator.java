@@ -25,6 +25,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的电话号码
+ *
+ * @author pangju666
+ * @see PhoneNumber
+ * @since 1.0.0
+ */
 public class PhoneNumberValidator implements ConstraintValidator<PhoneNumber, String> {
 	private static final Pattern MOBILE_PHONE_STRONG_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_STRONG, true, true);
 	private static final Pattern MOBILE_PHONE_WEAK_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_WEAK, true, true);

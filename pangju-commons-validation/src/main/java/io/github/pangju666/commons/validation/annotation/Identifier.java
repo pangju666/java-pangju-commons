@@ -27,15 +27,39 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * 标识符格式校验注解
+ * <p>验证字符串是否符合编程语言标识符规范：
+ * <ul>
+ *     <li>以字母或下划线开头</li>
+ *     <li>包含字母、数字和下划线</li>
+ * </ul></p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = IdentifierValidator.class)
 public @interface Identifier {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "标识符格式不正确";
 
+	/**
+	 * 是否要求值不能为空白（仅空格等空白字符）
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notBlank() default false;
 
+	/**
+	 * 是否要求值不能为空字符串
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};

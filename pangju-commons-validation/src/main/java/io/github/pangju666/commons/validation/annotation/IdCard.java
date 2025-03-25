@@ -27,15 +27,39 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * 中国身份证号码校验注解
+ * <p>支持格式：
+ * <ul>
+ *     <li>15位旧版身份证</li>
+ *     <li>18位新版身份证（包含校验码验证）</li>
+ * </ul></p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = IdCardValidator.class)
 public @interface IdCard {
-	String message() default "身份证格式不正确";
+	/**
+	 * 校验失败时的默认消息
+	 */
+	String message() default "银行卡号格式不正确";
 
+	/**
+	 * 是否要求值不能为空白（仅空格等空白字符）
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notBlank() default false;
 
+	/**
+	 * 是否要求值不能为空字符串
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};

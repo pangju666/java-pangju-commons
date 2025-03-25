@@ -24,6 +24,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的数字
+ *
+ * @author pangju666
+ * @see Number
+ * @since 1.0.0
+ */
 public class NumberValidator implements ConstraintValidator<Number, String> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.NUMBER, true, true);
 	private static final Pattern POSITIVE_PATTERN = RegExUtils.compile(RegExPool.POSITIVE_NUMBER, true, true);

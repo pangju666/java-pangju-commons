@@ -23,6 +23,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否匹配指定的正则表达式
+ *
+ * @author pangju666
+ * @see Regex
+ * @since 1.0.0
+ */
 public class RegexValidator implements ConstraintValidator<Regex, String> {
 	private Pattern pattern;
 	private boolean notBlank;

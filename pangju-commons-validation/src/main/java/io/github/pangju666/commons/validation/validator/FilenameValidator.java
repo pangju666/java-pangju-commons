@@ -25,6 +25,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的文件名
+ *
+ * @author pangju666
+ * @see Filename
+ * @since 1.0.0
+ */
 public class FilenameValidator implements ConstraintValidator<Filename, String> {
 	private static final Pattern REGEX = RegExUtils.compile(RegExPool.FILENAME, true, true);
 	private static final Pattern NO_EXTENSION_REGEX = RegExUtils.compile(RegExPool.FILENAME_WITHOUT_EXTENSION, true, true);

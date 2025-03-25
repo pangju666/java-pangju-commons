@@ -23,6 +23,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的请求路径
+ *
+ * @author pangju666
+ * @see RequestPath
+ * @since 1.0.0
+ */
 public class RequestPathValidator implements ConstraintValidator<RequestPath, String> {
 	private static final Pattern PATTERN = RegExUtils.compile("^\\/[\\w/-]+$", true, true);
 

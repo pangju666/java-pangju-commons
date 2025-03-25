@@ -27,15 +27,35 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * 银行卡号校验注解
+ * <p>验证字符串是否符合银行卡号格式规范</p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = BankCardValidator.class)
 public @interface BankCard {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "银行卡号格式不正确";
 
+	/**
+	 * 是否要求值不能为空白（仅空格等空白字符）
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notBlank() default false;
 
+	/**
+	 * 是否要求值不能为空字符串
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};

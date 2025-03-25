@@ -24,6 +24,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的IP地址
+ *
+ * @author pangju666
+ * @see IP
+ * @since 1.0.0
+ */
 public class IPValidator implements ConstraintValidator<IP, String> {
 	private static final Pattern IPV4_PATTERN = RegExUtils.compile(RegExPool.IPV4, true, true);
 	private static final Pattern IPV6_PATTERN = RegExUtils.compile(RegExPool.IPV6, true, true);

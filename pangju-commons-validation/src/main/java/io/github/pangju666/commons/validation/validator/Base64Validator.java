@@ -22,6 +22,13 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.codec.binary.Base64;
 
+/**
+ * 验证字符串是否为有效的Base64编码
+ *
+ * @author pangju666
+ * @see BASE64
+ * @since 1.0.0
+ */
 public class Base64Validator implements ConstraintValidator<BASE64, String> {
 	private boolean notBlank;
 	private boolean notEmpty;

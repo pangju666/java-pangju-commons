@@ -27,11 +27,21 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * HTTP请求路径校验注解
+ * <p>验证字符串是否符合HTTP请求路径格式规范，支持绝对路径和相对路径校验</p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = RequestPathValidator.class)
 public @interface RequestPath {
+	/**
+	 * 校验失败时的默认消息
+	 */
 	String message() default "无效的请求路径";
 
 	Class<?>[] groups() default {};

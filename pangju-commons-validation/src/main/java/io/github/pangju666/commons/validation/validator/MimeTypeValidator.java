@@ -23,6 +23,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的MIME类型
+ *
+ * @author pangju666
+ * @see MimeType
+ * @since 1.0.0
+ */
 public class MimeTypeValidator implements ConstraintValidator<MimeType, String> {
 	private static final Pattern PATTERN = Pattern.compile(RegExPool.MIME_TYPE);
 

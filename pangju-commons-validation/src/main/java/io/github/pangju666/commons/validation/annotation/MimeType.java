@@ -27,15 +27,40 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * MIME类型校验注解
+ * <p>验证字符串是否符合IANA定义的媒体类型规范，如：
+ * <ul>
+ *     <li>text/plain</li>
+ *     <li>image/png</li>
+ *     <li>application/json</li>
+ * </ul></p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = MimeTypeValidator.class)
 public @interface MimeType {
-	String message() default "mime-type格式不正确";
+	/**
+	 * 校验失败时的默认消息
+	 */
+	String message() default "MIME类型格式不正确";
 
+	/**
+	 * 是否要求值不能为空白（仅空格等空白字符）
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notBlank() default false;
 
+	/**
+	 * 是否要求值不能为空字符串
+	 *
+	 * @since 1.0.0
+	 */
 	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};

@@ -16,32 +16,36 @@
 
 package io.github.pangju666.commons.validation.validator;
 
-import io.github.pangju666.commons.validation.annotation.Enum;
+import io.github.pangju666.commons.lang.pool.RegExPool;
+import io.github.pangju666.commons.lang.utils.RegExUtils;
+import io.github.pangju666.commons.validation.annotation.HexColor;
+import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.apache.commons.lang3.EnumUtils;
 
-import java.util.Objects;
+import java.util.regex.Pattern;
 
-public class EnumValidator implements ConstraintValidator<Enum, String> {
-	private Class<? extends java.lang.Enum> enumClass;
-	private boolean ignoreCase;
+/**
+ * 验证字符串是否为有效的十六进制颜色代码
+ *
+ * @author pangju666
+ * @see HexColor
+ * @since 1.0.0
+ */
+public class HexColorValidator implements ConstraintValidator<HexColor, String> {
+	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.HEX_COLOR, true, true);
+
+	private boolean notBlank;
+	private boolean notEmpty;
 
 	@Override
-	public void initialize(Enum constraintAnnotation) {
-		this.enumClass = constraintAnnotation.enumClass();
-		this.ignoreCase = constraintAnnotation.ignoreCase();
+	public void initialize(HexColor constraintAnnotation) {
+		this.notBlank = constraintAnnotation.notBlank();
+		this.notEmpty = constraintAnnotation.notEmpty();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
-		if (Objects.isNull(value)) {
-			return true;
-		}
-		if (value.isBlank()) {
-			return false;
-		}
-		return ignoreCase ? EnumUtils.isValidEnumIgnoreCase(enumClass, value) : EnumUtils.isValidEnum(enumClass, value);
+		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, PATTERN);
 	}
 }

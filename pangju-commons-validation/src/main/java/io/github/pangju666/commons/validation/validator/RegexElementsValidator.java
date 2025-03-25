@@ -24,6 +24,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串集合中的每个元素是否匹配指定的正则表达式
+ *
+ * @author pangju666
+ * @see RegexElements
+ * @since 1.0.0
+ */
 public class RegexElementsValidator implements ConstraintValidator<RegexElements, Collection<String>> {
 	private Pattern pattern;
 	private boolean allMatch;

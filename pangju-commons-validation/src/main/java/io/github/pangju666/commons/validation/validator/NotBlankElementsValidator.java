@@ -23,6 +23,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 
+/**
+ * 验证字符串集合中的每个元素是否为非空白字符串
+ *
+ * @author pangju666
+ * @see NotBlankElements
+ * @since 1.0.0
+ */
 public class NotBlankElementsValidator implements ConstraintValidator<NotBlankElements, Collection<String>> {
 	private boolean allMatch;
 	private boolean notEmpty;

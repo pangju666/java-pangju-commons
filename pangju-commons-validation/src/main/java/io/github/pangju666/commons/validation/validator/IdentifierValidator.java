@@ -24,6 +24,13 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
+/**
+ * 验证字符串是否为有效的标识符
+ *
+ * @author pangju666
+ * @see Identifier
+ * @since 1.0.0
+ */
 public class IdentifierValidator implements ConstraintValidator<Identifier, String> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.IDENTIFIER, true, true);
 
