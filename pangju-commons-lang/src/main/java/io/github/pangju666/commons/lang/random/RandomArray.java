@@ -133,11 +133,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机整数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public int[] randomIntArray(final int startInclusive, final int endExclusive, final int length) {
@@ -171,11 +172,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机长整数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机长整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public long[] randomLongArray(final long startInclusive, final long endExclusive, final int length) {
@@ -209,11 +211,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机单精度浮点数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机单精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public float[] randomFloatArray(final float startInclusive, final float endExclusive, final int length) {
@@ -247,11 +250,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机双精度浮点数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机双精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public double[] randomDoubleArray(final double startInclusive, final double endExclusive, final int length) {
@@ -282,11 +286,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机整数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public int[] randomUniqueIntArray(final int startInclusive, final int endExclusive, final int length) {
@@ -314,11 +319,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机长整数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机长整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public long[] randomUniqueLongArray(final long startInclusive, final long endExclusive, final int length) {
@@ -346,11 +352,12 @@ public class RandomArray {
 	/**
 	 * 生成指定范围内的唯一随机双精度浮点数数组
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public double[] randomUniqueDoubleArray(final double startInclusive, final double endExclusive, final int length) {
@@ -370,6 +377,7 @@ public class RandomArray {
 	 * @param <T>            数值类型
 	 * @return 包含唯一随机值的集合
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	protected <T> Set<T> randomSet(final T startInclusive, final T endExclusive, final int length,

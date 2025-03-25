@@ -135,11 +135,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围随机整数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 包含随机整数的列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Integer> randomIntegerList(final int startInclusive, final int endExclusive, final int length) {
@@ -149,11 +150,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围唯一随机整数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 元素唯一的随机整数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Integer> randomUniqueIntegerList(final int startInclusive, final int endExclusive, final int length) {
@@ -187,11 +189,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围随机单精度浮点数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 包含随机单精度浮点数的列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Float> randomFloatList(final float startInclusive, final float endExclusive, final int length) {
@@ -201,11 +204,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围唯一随机单精度浮点数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 元素唯一的随机单精度浮点数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Float> randomUniqueFloatList(final float startInclusive, final float endExclusive, final int length) {
@@ -239,11 +243,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围随机长整数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 包含随机长整数的列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Long> randomLongList(final long startInclusive, final long endExclusive, final int length) {
@@ -253,11 +258,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围唯一随机长整数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 元素唯一的随机长整数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Long> randomUniqueLongList(final long startInclusive, final long endExclusive, final int length) {
@@ -267,11 +273,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围唯一随机双精度浮点数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Double> randomDoubleList(final double startInclusive, final double endExclusive, final int length) {
@@ -281,11 +288,12 @@ public class RandomList {
 	/**
 	 * 生成指定范围唯一随机双精度浮点数列表
 	 *
-	 * @param startInclusive 最小值（包含）
+	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
 	 * @param length         列表长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
+	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
 	 * @since 1.0.0
 	 */
 	public List<Double> randomUniqueDoubleList(final double startInclusive, final double endExclusive, final int length) {
@@ -336,11 +344,11 @@ public class RandomList {
 		for (int i = 0; i < length; i++) {
 			T value;
 			if (unique) {
-				value = biFunction.apply(startInclusive, endExclusive);
-			} else {
 				do {
 					value = biFunction.apply(startInclusive, endExclusive);
 				} while (values.contains(value));
+			} else {
+				value = biFunction.apply(startInclusive, endExclusive);
 			}
 			values.add(value);
 		}
