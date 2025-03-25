@@ -16,7 +16,8 @@
 
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.validation.validator.BankCardValidator;
+import io.github.pangju666.commons.validation.enums.PhoneNumberType;
+import io.github.pangju666.commons.validation.validator.PhoneNumberValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -30,9 +31,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = BankCardValidator.class)
-public @interface BankCard {
-	String message() default "银行卡号格式不正确";
+@Constraint(validatedBy = PhoneNumberValidator.class)
+public @interface PhoneNumber {
+	String message() default "手机号格式不正确";
+
+	PhoneNumberType type() default PhoneNumberType.MIX;
+
+	boolean strong() default false;
 
 	boolean notBlank() default false;
 
