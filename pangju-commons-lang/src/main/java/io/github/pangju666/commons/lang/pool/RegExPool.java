@@ -193,29 +193,17 @@ public class RegExPool {
 	 */
 	public static final String POSITIVE_FLOAT_NUMBER = "([1-9]\\d*\\.\\d+|0\\.\\d*[1-9])";
 	/**
+	 * 文件Mime Type
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String MIME_TYPE = "^.+/.+$";
+	/**
 	 * 标识符
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9-_]*";
-	/**
-	 * BASE16字符串
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String BASE_16 = "[0-9A-F]+={0,2}";
-	/**
-	 * BASE32字符串
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String BASE_32 = "[A-Z2-7]+={0,2}";
-	/**
-	 * BASE64字符串
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String BASE_64 = "[A-Za-z0-9+\\/]+={0,2}";
+	public static final String IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*";
 	/**
 	 * MD5
 	 *
@@ -228,6 +216,18 @@ public class RegExPool {
 	 * @since 1.0.0
 	 */
 	public static final String BANK_CARD = "[1-9]\\d{9,29}";
+	/**
+	 * 文件名称
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String FILENAME = "[^\\\\<>:\"/|?*.]+(\\.[^\\\\<>:\"/|?*]+)?";
+	/**
+	 * 文件名称（无拓展名）
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String FILENAME_WITHOUT_EXTENSION = "[^\\\\<>:\"/|?*.]+";
 	/**
 	 * UUID
 	 *
