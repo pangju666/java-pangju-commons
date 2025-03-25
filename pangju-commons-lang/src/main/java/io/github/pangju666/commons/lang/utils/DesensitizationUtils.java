@@ -21,103 +21,153 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 
 /**
- * 数据脱敏处理工具类
- *
+ * 数据脱敏处理工具类，符合阿里脱敏规则
  * <p>提供常见敏感数据的脱敏处理方法集合，包括但不限于：
  * <ul>
- *  <li>手机号/电话号码脱敏</li>
- *  <li>身份证号/护照号脱敏</li>
- *  <li>银行卡号脱敏</li>
- *  <li>邮箱地址脱敏</li>
- *  <li>住址脱敏等</li>
+ *  <li>身份证/军官证/护照号脱敏</li>
+ *  <li>社保卡/医疗卡号脱敏</li>
+ *  <li>手机/固话号码脱敏</li>
+ *  <li>邮箱/地址脱敏</li>
+ *  <li>车辆信息脱敏</li>
+ *  <li>银行卡/密码脱敏等</li>
  * </ul>
- * </p>
- *
- * <p>
- *     借鉴自：<a href="https://github.com/chinabugotech/hutool/blob/5.8.36/hutool-core/src/main/java/cn/hutool/core/util/DesensitizedUtil.java">cn.hutool.core.util.DesensitizedUtil 5.8.36</a>
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
 public class DesensitizationUtils {
-	protected static final String EMAIL_REGEX = "(\\w{3})\\w+@(\\w+)";
-	protected static final String GENERAL_FORMAT = "$1***********$2";
-
 	protected DesensitizationUtils() {
 	}
 
 	/**
-	 * 身份证号脱敏处理（保留前0位，后4位）
+	 * 身份证号脱敏处理（保留前1位，后1位）
 	 *
 	 * @param idCard 原始身份证号码
-	 * @return 脱敏后的身份证号（如：***************1234）
+	 * @return 脱敏后的身份证号（如：1***************1），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
-	public static String hideIdCard(final String idCard) {
-		return hideRound(idCard, 0, 4);
+	public static String hideIdCardNumber(final String idCard) {
+		return hideRound(idCard, 1, 1);
 	}
 
 	/**
-	 * 手机号脱敏处理（保留前3位，后4位）
+	 * 军官证号脱敏处理（保留前1位，后1位）
+	 *
+	 * @param militaryIdNumber 原始军官证号码
+	 * @return 脱敏后的军官证号（如：军*************1），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideMilitaryIdNumber(final String militaryIdNumber) {
+		return hideRound(militaryIdNumber, 1, 1);
+	}
+
+	/**
+	 * 护照号脱敏处理（保留前1位，后1位）
+	 *
+	 * @param passportNumber 原始护照号码
+	 * @return 脱敏后的护照号（如：E***************1），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hidePassportNumber(final String passportNumber) {
+		return hideRound(passportNumber, 1, 1);
+	}
+
+	/**
+	 * 社保卡号脱敏处理（动态保留首尾各1/3长度，长度不能被3整除的，首部长度+1）
+	 *
+	 * @param socialSecurityCardNumber 原始社保卡号码
+	 * @return 脱敏后的社保卡号（如：123******789），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideSocialSecurityCardNumber(final String socialSecurityCardNumber) {
+		int length = StringUtils.length(socialSecurityCardNumber);
+		int prefixLength = length / 3;
+		int suffixLength = prefixLength;
+		if (length % 3 != 0) {
+			++prefixLength;
+		}
+		return hideRound(socialSecurityCardNumber, prefixLength, suffixLength);
+	}
+
+	/**
+	 * 医保卡号脱敏处理（动态保留首尾各1/3长度，长度不能被3整除的，首部长度+1）
+	 *
+	 * @param medicalCardNumber 原始医疗卡号码
+	 * @return 脱敏后的医疗卡号（如：C12******456），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideMedicalCardNumber(final String medicalCardNumber) {
+		int length = StringUtils.length(medicalCardNumber);
+		int prefixLength = length / 3;
+		int suffixLength = prefixLength;
+		if (length % 3 != 0) {
+			++prefixLength;
+		}
+		return hideRound(medicalCardNumber, prefixLength, suffixLength);
+	}
+
+	/**
+	 * 手机号脱敏处理（保留前3位，后2位）
 	 *
 	 * @param phoneNumber 原始手机号码
-	 * @return 脱敏后的手机号（如：138****5678）
+	 * @return 脱敏后的手机号（如：138******12），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hidePhoneNumber(final String phoneNumber) {
-		return hideRound(phoneNumber, 3, 4);
+		return hideRound(phoneNumber, 3, 2);
 	}
 
 	/**
-	 * 邮箱脱敏处理（使用正则表达式匹配替换）
+	 * 固定电话脱敏处理（保留区号和后4位）
+	 *
+	 * @param telPhone 原始固定电话号码
+	 * @return 脱敏后的固话号码（如：010****1234），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideTelPhone(final String telPhone) {
+		return hideRound(telPhone, 3, 4);
+	}
+
+	/**
+	 * 邮箱地址脱敏处理（保留用户名前3位，域名全保留）
 	 *
 	 * @param email 原始邮箱地址
-	 * @return 脱敏后的邮箱（如：t***@example.com）
+	 * @return 脱敏后的邮箱（如：tes********@example.com），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hideEmail(final String email) {
-		return hide(email, EMAIL_REGEX, GENERAL_FORMAT);
+		int index = StringUtils.indexOf(email, '@');
+		if (index == -1) {
+			return email;
+		}
+		return hideRound(email, 3, email.length() - index);
 	}
 
 	/**
-	 * 车辆发动机号脱敏处理（保留前1位，后2位）
+	 * 地址脱敏处理（隐藏区/县以下部分的地址）
 	 *
-	 * @param engineNumber 原始发动机号
-	 * @return 脱敏后的发动机号（如：A**12）
+	 * @param address 原始地址信息
+	 * @return 脱敏后的地址（如：北京市朝阳区******），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
-	public static String hideVehicleEngineNumber(final String engineNumber) {
-		return hideRound(engineNumber, 1, 2);
-	}
-
-	/**
-	 * 车辆车架号脱敏处理（保留前3位，后3位）
-	 *
-	 * @param frameNumber 原始车架号
-	 * @return 脱敏后的车架号（如：ABC***XYZ）
-	 * @since 1.0.0
-	 */
-	public static String hideVehicleFrameNumber(final String frameNumber) {
-		return hideRound(frameNumber, 3, 3);
-	}
-
-	/**
-	 * 车牌号脱敏处理（保留前2位，后3位）
-	 *
-	 * @param plateNumber 原始车牌号
-	 * @return 脱敏后的车牌号（如：京A***89）
-	 * @since 1.0.0
-	 */
-	public static String hidePlateNumber(final String plateNumber) {
-		return hideRound(plateNumber, 2, 3);
+	public static String hideAddress(final String address) {
+		if (StringUtils.isBlank(address)) {
+			return address;
+		}
+		int index = StringUtils.lastIndexOfAny(address, "区", "县");
+		if (index == -1) {
+			return address;
+		}
+		return hideRight(address, index + 1);
 	}
 
 	/**
 	 * 昵称脱敏处理（保留首尾各1位）
+	 * <p>适用于普通用户昵称的脱敏展示</p>
 	 *
 	 * @param nickName 原始昵称
-	 * @return 脱敏后的昵称（如：张*三）
+	 * @return 脱敏后的昵称（如：张*三），脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hideNickName(final String nickName) {
@@ -125,21 +175,16 @@ public class DesensitizationUtils {
 	}
 
 	/**
-	 * 银行卡号脱敏处理（保留前后各4位）
-	 *
-	 * @param bankCard 原始银行卡号
-	 * @return 脱敏后的卡号（如：6228******8888）
-	 * @since 1.0.0
-	 */
-	public static String hideBankCard(final String bankCard) {
-		return hideRound(bankCard, 4, 4);
-	}
-
-	/**
 	 * 中文姓名脱敏处理
+	 * <p>根据姓名长度采用不同脱敏策略：
+	 * <ul>
+	 *  <li>3字及以下：隐藏第一个字（如：*三）</li>
+	 *  <li>4-6字：显示最后两个字（如：**不败）</li>
+	 *  <li>6字以上：保留首1位+尾2位（如：欧***莫非）</li>
+	 * </ul>
 	 *
 	 * @param name 原始中文姓名
-	 * @return 脱敏后的姓名（2字姓名：*三；3字及以上：**芳）
+	 * @return 脱敏后的姓名，脱敏失败则返回输入参数
 	 * @since 1.0.0
 	 */
 	public static String hideChineseName(final String name) {
@@ -148,18 +193,66 @@ public class DesensitizationUtils {
 		}
 		int len = name.length();
 		// 根据姓名长度选择脱敏策略
-		if (len < 3) {
-			return hideLeft(name, 1);
-		} else {
+		if (len <= 3) {
+			return hideLeft(name, len - 1);
+		} else if (len <= 6) {
 			return hideLeft(name, 2);
+		} else {
+			return hideRound(name, 1, 2);
 		}
+	}
+
+	/**
+	 * 车辆发动机号脱敏处理（保留前1位，后2位）
+	 *
+	 * @param engineNumber 原始发动机号（通常包含字母数字组合）
+	 * @return 脱敏后的发动机号（如：A**12），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideVehicleEngineNumber(final String engineNumber) {
+		return hideRound(engineNumber, 1, 2);
+	}
+
+	/**
+	 * 车辆车架号脱敏处理（保留前3位，后3位）
+	 * <p>适用于17位VIN码的标准脱敏</p>
+	 *
+	 * @param frameNumber 原始车架号
+	 * @return 脱敏后的车架号（如：ABC***XYZ），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideVehicleFrameNumber(final String frameNumber) {
+		return hideRound(frameNumber, 3, 3);
+	}
+
+	/**
+	 * 车牌号脱敏处理（保留前2位，后3位）
+	 * <p>同时支持新能源车牌和普通车牌格式</p>
+	 *
+	 * @param plateNumber 原始车牌号
+	 * @return 脱敏后的车牌号（如：京A***189），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hidePlateNumber(final String plateNumber) {
+		return hideRound(plateNumber, 2, 3);
+	}
+
+	/**
+	 * 银行卡号脱敏处理（保留前后各4位）
+	 *
+	 * @param bankCard 原始银行卡号
+	 * @return 脱敏后的卡号（如：6228******8888），脱敏失败则返回输入参数
+	 * @since 1.0.0
+	 */
+	public static String hideBankCard(final String bankCard) {
+		return hideRound(bankCard, 4, 4);
 	}
 
 	/**
 	 * 密码脱敏处理（全部替换为星号）
 	 *
 	 * @param password 原始密码
-	 * @return 全星号字符串（如：********）
+	 * @return 全星号字符串（如：********），脱敏失败则返回空字符串
 	 * @since 1.0.0
 	 */
 	public static String hidePassword(final String password) {
@@ -173,62 +266,12 @@ public class DesensitizationUtils {
 	}
 
 	/**
-	 * 地址脱敏处理
-	 *
-	 * @param address 原始地址
-	 * @return 脱敏后的地址（长地址保留前6位，短地址保留前半部分）
-	 * @since 1.0.0
-	 */
-	public static String hideAddress(final String address) {
-		if (StringUtils.isBlank(address)) {
-			return address;
-		}
-		// 根据地址长度选择脱敏策略
-		if (address.length() >= 12) {
-			return hideRight(address, 6);
-		}
-		return hideRight(address, address.length() / 2 - 1);
-	}
-
-	/**
-	 * 固定电话脱敏处理
-	 *
-	 * @param telPhone 原始电话号码（要求包含区号分隔符）
-	 * @return 脱敏后的号码（如：010-****1234）
-	 * @since 1.0.0
-	 */
-	public static String hideTelPhone(final String telPhone) {
-		if (StringUtils.isBlank(telPhone)) {
-			return telPhone;
-		}
-		// 分割区号和号码部分处理
-		String[] temp = telPhone.split("-");
-		temp[1] = hideLeft(temp[1], 4);
-		return temp[0] + "-" + temp[1];
-	}
-
-	/**
-	 * 通用正则替换方法
-	 *
-	 * @param content 原始内容
-	 * @param regex 匹配模式正则表达式
-	 * @param format 替换格式
-	 * @return 正则替换后的字符串
-	 * @since 1.0.0
-	 */
-	public static String hide(final String content, final String regex, final String format) {
-		if (StringUtils.isBlank(content)) {
-			return content;
-		}
-		return content.replaceAll(regex, format);
-	}
-
-	/**
 	 * 右侧内容脱敏（保留左侧指定位数）
 	 *
-	 * @param content 原始内容
-	 * @param prefixLength 保留的左侧字符数
-	 * @return 右侧用星号填充的字符串（如：ABC****）
+	 * @param content      待脱敏的原始字符串，允许为空
+	 * @param prefixLength 保留的左侧字符数（需满足 0 ≤ prefixLength < 总长度）
+	 * @return 右侧用星号填充的字符串（如：ABC****），
+	 * 当参数非法时直接返回原始输入内容，
 	 * @since 1.0.0
 	 */
 	public static String hideRight(final String content, final int prefixLength) {
@@ -246,9 +289,10 @@ public class DesensitizationUtils {
 	/**
 	 * 左侧内容脱敏（保留右侧指定位数）
 	 *
-	 * @param content 原始内容
-	 * @param suffixLength 保留的右侧字符数
-	 * @return 左侧用星号填充的字符串（如：****XYZ）
+	 * @param content      待脱敏的原始字符串，允许为空
+	 * @param suffixLength 保留的右侧字符数（需满足 0 ≤ suffixLength < 总长度）
+	 * @return 左侧用星号填充的字符串（如：****XYZ），
+	 * 当参数非法时直接返回原始输入内容，
 	 * @since 1.0.0
 	 */
 	public static String hideLeft(final String content, final int suffixLength) {
@@ -264,12 +308,14 @@ public class DesensitizationUtils {
 	}
 
 	/**
-	 * 环形脱敏（同时保留首尾部分）
+	 * 环形脱敏处理（保留字符串首尾指定长度内容，中间用星号替代）
 	 *
-	 * @param content 原始内容
-	 * @param prefixLength 头部保留长度
-	 * @param suffixLength 尾部保留长度
-	 * @return 首尾保留+中间星号的格式（如：AB***EF）
+	 * @param content      待脱敏的原始字符串，允许为空
+	 * @param prefixLength 头部保留字符数（需满足 0 ≤ prefixLength < 总长度）
+	 * @param suffixLength 尾部保留字符数（需满足 0 ≤ suffixLength < 总长度）
+	 * @return 符合首尾保留规则的脱敏字符串（格式示例："AB***EF"），
+	 * 当参数非法时直接返回原始输入内容，
+	 * 当首尾保留长度之和大于等于字符串总长度时返回原始输入内容
 	 * @since 1.0.0
 	 */
 	public static String hideRound(final String content, int prefixLength, int suffixLength) {
@@ -284,15 +330,14 @@ public class DesensitizationUtils {
 			return content;
 		}
 		// 保证首尾保留长度合理性
-		if (prefixLength > suffixLength) {
-			prefixLength = suffixLength;
+		if (prefixLength + suffixLength >= content.length()) {
+			return content;
 		}
 		// 构造首部保留+星号+尾部保留的格式
 		int length = StringUtils.length(content);
 		String leftContent = StringUtils.left(content, prefixLength);
 		String rightContent = StringUtils.right(content, suffixLength);
-		rightContent = StringUtils.leftPad(rightContent, length, "*");
-		rightContent = StringUtils.removeStart(rightContent, "***");
-		return leftContent.concat(rightContent);
+		rightContent = StringUtils.leftPad(rightContent, length - leftContent.length(), "*");
+		return leftContent + rightContent;
 	}
 }

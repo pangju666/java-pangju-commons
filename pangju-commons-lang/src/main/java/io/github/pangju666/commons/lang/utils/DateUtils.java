@@ -40,7 +40,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	}
 
 	/**
-	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, {@link Constants#TIME_FORMAT}
+	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, "yyyy-MM-dd HH:mm"
 	 *
 	 * @param str 要解析的日期字符串
 	 * @return 解析成功的Date对象，解析失败或空输入时返回null
@@ -51,7 +51,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	}
 
 	/**
-	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, {@link Constants#TIME_FORMAT}
+	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, "yyyy-MM-dd HH:mm"
 	 *
 	 * @param str         要解析的日期字符串
 	 * @param defaultDate 默认返回值（当解析失败或空输入时使用）
@@ -63,7 +63,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			if (StringUtils.isBlank(str)) {
 				return defaultDate;
 			}
-			return parseDate(str, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT, Constants.TIME_FORMAT);
+			return parseDate(str, Constants.DATE_FORMAT, Constants.DATETIME_FORMAT, "yyyy-MM-dd HH:mm");
 		} catch (ParseException e) {
 			return defaultDate;
 		}
