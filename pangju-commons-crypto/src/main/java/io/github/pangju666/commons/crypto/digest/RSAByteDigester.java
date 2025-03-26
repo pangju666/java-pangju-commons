@@ -41,6 +41,7 @@ import java.util.Objects;
  *
  * @author pangju666
  * @see ByteDigester
+ * @see RSAKey
  * @since 1.0.0
  */
 public final class RSAByteDigester implements ByteDigester {
@@ -91,7 +92,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @param algorithm 签名算法名称（如：SHA256withRSA）
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(String algorithm) {
+	public RSAByteDigester(final String algorithm) {
 		this.key = RSAKey.random(CryptoConstants.RSA_DEFAULT_KEY_SIZE);
 		this.algorithm = algorithm;
 	}
@@ -102,7 +103,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @param keySize RSA 密钥位长度（推荐值：2048/4096）
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(int keySize) {
+	public RSAByteDigester(final int keySize) {
 		this.key = RSAKey.random(keySize);
 	}
 
@@ -113,7 +114,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @param algorithm 签名算法名称
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(int keySize, String algorithm) {
+	public RSAByteDigester(final int keySize, final String algorithm) {
 		this.key = RSAKey.random(keySize);
 		this.algorithm = algorithm;
 	}
@@ -124,7 +125,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @param key 预生成的 RSA 密钥对
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(RSAKey key) {
+	public RSAByteDigester(final RSAKey key) {
 		this.key = key;
 	}
 
@@ -135,7 +136,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @param algorithm 签名算法名称
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(RSAKey key, String algorithm) {
+	public RSAByteDigester(final RSAKey key, final String algorithm) {
 		this.key = key;
 		this.algorithm = algorithm;
 	}
@@ -147,7 +148,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @throws AlreadyInitializedException 已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public synchronized void setKey(RSAKey key) {
+	public synchronized void setKey(final RSAKey key) {
 		Validate.notNull(key, "key 不可为 null");
 		if (initialized) {
 			throw new AlreadyInitializedException();
@@ -162,7 +163,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @throws AlreadyInitializedException 已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public synchronized void setAlgorithm(String algorithm) {
+	public synchronized void setAlgorithm(final String algorithm) {
 		Validate.notNull(algorithm, "algorithm 不可为 null");
 		if (initialized) {
 			throw new AlreadyInitializedException();

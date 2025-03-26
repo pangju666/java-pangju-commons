@@ -1,17 +1,21 @@
 /*
- *   Copyright 2025 pangju666
+ * =============================================================================
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ *   Copyright (c) 2007-2010, The JASYPT team (http://www.jasypt.org)
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ * =============================================================================
  */
 
 package io.github.pangju666.commons.crypto.encryption.numeric;
@@ -20,15 +24,15 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 
 /**
  * 加密模块中需要用到的数字工具类(内部使用)
+ * <p>来源于：{@link org.jasypt.encryption.pbe.NumberUtils}</p>
  *
- * @author pangju
  * @since 1.0.0
  */
-class NumberUtils {
+final class NumberUtils {
 	private NumberUtils() {
 	}
 
-	public static byte[] byteArrayFromInt(final int number) {
+	static byte[] byteArrayFromInt(final int number) {
 		final byte b0 = (byte) (0xff & number);
 		final byte b1 = (byte) (0xff & (number >> 8));
 		final byte b2 = (byte) (0xff & (number >> 16));
@@ -47,7 +51,7 @@ class NumberUtils {
 		return result;
 	}
 
-	public static byte[] processBigIntegerEncryptedByteArray(final byte[] byteArray, final int signum) {
+	static byte[] processBigIntegerEncryptedByteArray(final byte[] byteArray, final int signum) {
 		if (byteArray.length > 4) {
 			final int initialSize = byteArray.length;
 

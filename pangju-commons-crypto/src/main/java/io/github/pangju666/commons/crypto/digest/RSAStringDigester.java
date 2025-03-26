@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
  * @author pangju666
  * @see StringDigester
  * @see RSAByteDigester
+ * @see RSAKey
  * @since 1.0.0
  */
 public final class RSAStringDigester implements StringDigester {
@@ -56,7 +57,7 @@ public final class RSAStringDigester implements StringDigester {
 	 *
 	 * @param byteDigester 底层字节数组摘要处理器（非空）
 	 */
-	public RSAStringDigester(RSAByteDigester byteDigester) {
+	public RSAStringDigester(final RSAByteDigester byteDigester) {
 		this.byteDigester = byteDigester;
 	}
 
@@ -65,7 +66,7 @@ public final class RSAStringDigester implements StringDigester {
 	 *
 	 * @param key RSA密钥对（包含公钥和私钥）
 	 */
-	public void setKey(RSAKey key) {
+	public void setKey(final RSAKey key) {
 		byteDigester.setKey(key);
 	}
 
@@ -74,7 +75,7 @@ public final class RSAStringDigester implements StringDigester {
 	 *
 	 * @param algorithm 要使用的签名算法名称
 	 */
-	public void setAlgorithm(String algorithm) {
+	public void setAlgorithm(final String algorithm) {
 		byteDigester.setAlgorithm(algorithm);
 	}
 

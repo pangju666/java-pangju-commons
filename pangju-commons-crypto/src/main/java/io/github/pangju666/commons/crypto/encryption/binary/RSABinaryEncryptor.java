@@ -57,6 +57,7 @@ import java.util.Objects;
  *
  * @see RSATransformation
  * @see RSAKey
+ * @see BinaryEncryptor
  * @author pangju666
  * @since 1.0.0
  */
@@ -119,7 +120,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @param transformation 加密方案
 	 * @since 1.0.0
 	 */
-	public RSABinaryEncryptor(RSATransformation transformation) {
+	public RSABinaryEncryptor(final RSATransformation transformation) {
 		this.key = RSAKey.random(CryptoConstants.RSA_DEFAULT_KEY_SIZE);
 		this.transformation = transformation;
 	}
@@ -130,7 +131,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @param keySize RSA 密钥长度（单位：bit）
 	 * @since 1.0.0
 	 */
-	public RSABinaryEncryptor(int keySize) {
+	public RSABinaryEncryptor(final int keySize) {
 		this.key = RSAKey.random(keySize);
 	}
 
@@ -141,7 +142,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @param transformation 加密方案
 	 * @since 1.0.0
 	 */
-	public RSABinaryEncryptor(int keySize, RSATransformation transformation) {
+	public RSABinaryEncryptor(final int keySize, final RSATransformation transformation) {
 		this.key = RSAKey.random(keySize);
 		this.transformation = transformation;
 	}
@@ -153,7 +154,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 *
 	 * @since 1.0.0
 	 */
-	public RSABinaryEncryptor(RSAKey key) {
+	public RSABinaryEncryptor(final RSAKey key) {
 		this.key = key;
 	}
 
@@ -164,7 +165,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @param transformation 加密方案
 	 * @since 1.0.0
 	 */
-	public RSABinaryEncryptor(RSAKey key, RSATransformation transformation) {
+	public RSABinaryEncryptor(final RSAKey key, final RSATransformation transformation) {
 		this.key = key;
 		this.transformation = transformation;
 	}
@@ -176,7 +177,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @throws AlreadyInitializedException 如果已经初始化后调用
 	 * @since 1.0.0
 	 */
-	public synchronized void setTransformation(RSATransformation transformation) {
+	public synchronized void setTransformation(final RSATransformation transformation) {
 		Validate.notNull(transformation, "transformation 不可为 null");
 		if (initialized) {
 			throw new AlreadyInitializedException();
@@ -192,7 +193,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 *
 	 * @since 1.0.0
 	 */
-	public synchronized void setKey(RSAKey key) {
+	public synchronized void setKey(final RSAKey key) {
 		Validate.notNull(key, "key 不可为 null");
 		if (initialized) {
 			throw new AlreadyInitializedException();
