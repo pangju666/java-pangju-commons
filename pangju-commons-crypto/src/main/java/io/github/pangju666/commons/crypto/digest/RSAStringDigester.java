@@ -8,13 +8,6 @@ import org.jasypt.digest.StringDigester;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * RSA算法文本消息签名器（私钥签名，公钥验证签名）
- * <br/>这个类是<i>线程安全的</i>
- *
- * @author pangju
- * @since 1.0.0
- */
 public final class RSAStringDigester implements StringDigester {
 	private final RSAByteDigester byteDigester;
 

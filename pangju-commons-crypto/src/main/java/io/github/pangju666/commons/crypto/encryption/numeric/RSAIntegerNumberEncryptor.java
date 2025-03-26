@@ -2,11 +2,11 @@ package io.github.pangju666.commons.crypto.encryption.numeric;
 
 import io.github.pangju666.commons.crypto.encryption.binary.RSABinaryEncryptor;
 import io.github.pangju666.commons.crypto.key.RSAKey;
-import io.github.pangju666.commons.crypto.utils.NumberUtils;
 import org.jasypt.commons.CommonUtils;
 import org.jasypt.util.numeric.IntegerNumberEncryptor;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 /**
@@ -19,7 +19,7 @@ import java.util.Objects;
 public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	private final RSABinaryEncryptor binaryEncryptor;
 
-	public RSAIntegerNumberEncryptor() {
+	public RSAIntegerNumberEncryptor() throws NoSuchAlgorithmException {
 		this.binaryEncryptor = new RSABinaryEncryptor();
 	}
 
@@ -29,10 +29,6 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 
 	public void setKey(RSAKey key) {
 		binaryEncryptor.setKey(key);
-	}
-
-	public void setAlgorithm(String algorithm) {
-		binaryEncryptor.setAlgorithm(algorithm);
 	}
 
 	@Override

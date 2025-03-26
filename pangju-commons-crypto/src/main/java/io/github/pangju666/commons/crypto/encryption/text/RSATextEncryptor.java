@@ -8,6 +8,7 @@ import org.jasypt.commons.CommonUtils;
 import org.jasypt.util.text.TextEncryptor;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * RSA算法文本加密器（公钥加密，私钥解密）
@@ -19,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 public final class RSATextEncryptor implements TextEncryptor {
 	private final RSABinaryEncryptor binaryEncryptor;
 
-	public RSATextEncryptor() {
+	public RSATextEncryptor() throws NoSuchAlgorithmException {
 		this.binaryEncryptor = new RSABinaryEncryptor();
 	}
 
@@ -29,10 +30,6 @@ public final class RSATextEncryptor implements TextEncryptor {
 
 	public void setKey(RSAKey key) {
 		binaryEncryptor.setKey(key);
-	}
-
-	public void setAlgorithm(String algorithm) {
-		binaryEncryptor.setAlgorithm(algorithm);
 	}
 
 	@Override

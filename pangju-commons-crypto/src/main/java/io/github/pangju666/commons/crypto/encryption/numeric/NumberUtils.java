@@ -1,4 +1,20 @@
-package io.github.pangju666.commons.crypto.utils;
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package io.github.pangju666.commons.crypto.encryption.numeric;
 
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 
@@ -8,8 +24,8 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
  * @author pangju
  * @since 1.0.0
  */
-public class NumberUtils {
-	protected NumberUtils() {
+class NumberUtils {
+	private NumberUtils() {
 	}
 
 	public static byte[] byteArrayFromInt(final int number) {
@@ -20,7 +36,7 @@ public class NumberUtils {
 		return new byte[]{b3, b2, b1, b0};
 	}
 
-	protected static int intFromByteArray(final byte[] byteArray) {
+	private static int intFromByteArray(final byte[] byteArray) {
 		if (byteArray == null || byteArray.length == 0) {
 			throw new IllegalArgumentException("无法将空数组转换为int");
 		}
@@ -61,7 +77,7 @@ public class NumberUtils {
 		return byteArray.clone();
 	}
 
-	protected static long maxSafeSizeInBytes() {
+	private static long maxSafeSizeInBytes() {
 		final long max = Runtime.getRuntime().maxMemory();
 		final long free = Runtime.getRuntime().freeMemory();
 		final long total = Runtime.getRuntime().totalMemory();
