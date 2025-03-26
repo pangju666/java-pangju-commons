@@ -5,7 +5,7 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-class StringUtilsTest extends Specification {
+class StringUtilsSpec extends Specification {
 	@Unroll
 	def "测试字符集转换(目标字符集) - 输入: '#input' 目标字符集: #targetCharset"() {
 		setup:

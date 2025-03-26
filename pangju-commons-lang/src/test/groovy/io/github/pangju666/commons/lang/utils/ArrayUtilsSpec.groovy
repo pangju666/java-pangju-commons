@@ -3,7 +3,7 @@ package io.github.pangju666.commons.lang.utils
 
 import spock.lang.Specification
 
-class ArrayUtilsTest extends Specification {
+class ArrayUtilsSpec extends Specification {
 	def "TestPartition"() {
 		expect:
 		ArrayUtils.partition(array as String[], 2) == result

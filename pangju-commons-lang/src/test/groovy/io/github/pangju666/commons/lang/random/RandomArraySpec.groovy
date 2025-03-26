@@ -19,7 +19,7 @@ package io.github.pangju666.commons.lang.random
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RandomArrayTest extends Specification {
+class RandomArraySpec extends Specification {
 	def "测试单例实例获取"() {
 		when: "获取不同安全级别的实例"
 		def insecure = RandomArray.insecure()

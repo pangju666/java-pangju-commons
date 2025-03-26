@@ -6,7 +6,7 @@ import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-class RegExUtilsTest extends Specification {
+class RegExUtilsSpec extends Specification {
 	@Unroll
 	def "测试正则标志位计算 - 输入: #flags 预期值: #expected"() {
 		expect:

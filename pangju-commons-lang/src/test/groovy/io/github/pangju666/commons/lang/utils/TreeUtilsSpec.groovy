@@ -4,7 +4,7 @@ import io.github.pangju666.commons.lang.model.TreeNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class TreeUtilsTest extends Specification {
+class TreeUtilsSpec extends Specification {
 	static class TestNode implements TreeNode<Long, TestNode> {
 		String name
 		Long id

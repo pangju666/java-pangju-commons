@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class DateUtilsTest extends Specification {
+class DateUtilsSpec extends Specification {
 	// 日期解析测试
 	@Unroll
 	def "测试parseDate方法 - 输入：#input 期望格式：#pattern"() {

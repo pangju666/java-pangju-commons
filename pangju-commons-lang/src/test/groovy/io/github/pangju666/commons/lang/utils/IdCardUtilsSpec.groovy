@@ -5,7 +5,7 @@ import spock.lang.Unroll
 
 import java.time.LocalDate
 
-class IdCardUtilsTest extends Specification {
+class IdCardUtilsSpec extends Specification {
 	@Unroll
 	def "测试身份证验证功能 - 身份证号: #idCard 预期结果: #expected"() {
 		expect:

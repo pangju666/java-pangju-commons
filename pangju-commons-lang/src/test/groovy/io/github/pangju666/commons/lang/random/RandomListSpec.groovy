@@ -19,7 +19,7 @@ package io.github.pangju666.commons.lang.random
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RandomListTest extends Specification {
+class RandomListSpec extends Specification {
 	// 单例实例测试
 	def "测试单例实例初始化"() {
 		when:

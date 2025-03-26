@@ -6,7 +6,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-class ReflectionUtilsTest extends Specification {
+class ReflectionUtilsSpec extends Specification {
 
 	class TestClass {
 		private String privateField = "privateValue"

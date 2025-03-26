@@ -3,7 +3,7 @@ package io.github.pangju666.commons.lang.utils
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DesensitizationUtilsTest extends Specification {
+class DesensitizationUtilsSpec extends Specification {
 	// 通用方法测试
 	@Unroll
 	def "测试hideRound方法 - 输入：#input 保留前#pre后#suf位 => #expected"() {

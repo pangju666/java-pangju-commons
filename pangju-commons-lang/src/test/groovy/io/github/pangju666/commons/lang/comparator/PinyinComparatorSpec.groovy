@@ -3,7 +3,7 @@ package io.github.pangju666.commons.lang.comparator
 
 import spock.lang.Specification
 
-class PinyinComparatorTest extends Specification {
+class PinyinComparatorSpec extends Specification {
 	def "Compare"() {
 		given:
 		def comparator = new PinyinComparator()
