@@ -53,6 +53,7 @@ import java.util.Objects;
  *   <li>初始化后（调用 {@link #initialize()}）不可再修改密钥和加密方案</li>
  *   <li>加密/解密操作会自动触发初始化（如果尚未初始化）</li>
  * </ul>
+ * </p>
  *
  * @see RSATransformation
  * @see RSAKey
