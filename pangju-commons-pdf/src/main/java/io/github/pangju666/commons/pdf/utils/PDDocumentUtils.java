@@ -33,9 +33,8 @@ import java.util.function.ObjIntConsumer;
 /**
  * PDF工具类
  *
- * @author 胖橘
- * @version 1.0
- * @since 1.0
+ * @author pangju666
+ * @since 1.0.0
  */
 public class PDDocumentUtils {
 	protected static final long MIN_PDF_BYTES = 50 * 1024 * 1024;

@@ -16,7 +16,6 @@
 
 package io.github.pangju666.commons.lang.utils;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.nio.charset.Charset;
@@ -78,7 +77,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @since 1.0.0
 	 */
 	public static List<String> getNotBlankElements(final Collection<String> collection) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return collection.stream()
@@ -94,7 +93,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @since 1.0.0
 	 */
 	public static List<String> getUniqueNotBlankElements(final Collection<String> collection) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return collection.stream()

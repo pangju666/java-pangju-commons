@@ -17,7 +17,6 @@
 package io.github.pangju666.commons.lang.comparator;
 
 import com.hankcs.hanlp.HanLP;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -76,7 +75,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @since 1.0.0
 	 */
 	public static void order(List<String> list) {
-		if (CollectionUtils.isNotEmpty(list)) {
+		if (Objects.nonNull(list) && !list.isEmpty()) {
 			list.sort(new PinyinComparator());
 		}
 	}
@@ -89,7 +88,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @since 1.0.0
 	 */
 	public static void order(List<String> list, String separator) {
-		if (CollectionUtils.isNotEmpty(list)) {
+		if (Objects.nonNull(list) && !list.isEmpty()) {
 			list.sort(new PinyinComparator(separator));
 		}
 	}

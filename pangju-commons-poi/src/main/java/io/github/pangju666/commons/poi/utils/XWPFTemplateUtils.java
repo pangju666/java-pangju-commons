@@ -24,9 +24,8 @@ import java.util.Map;
 /**
  * 文档渲染工具类，仅支持docx格式文档
  *
- * @author 胖橘
- * @version 1.0
- * @since 1.0
+ * @author pangju666
+ * @since 1.0.0
  */
 public class XWPFTemplateUtils {
 	protected XWPFTemplateUtils() {

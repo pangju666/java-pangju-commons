@@ -18,7 +18,6 @@ package io.github.pangju666.commons.lang.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -442,7 +441,7 @@ public class JsonUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> JsonArray toJsonArray(final Collection<T> collection, final Gson gson) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return new JsonArray();
 		}
 		JsonElement jsonElement = gson.toJsonTree(collection);
@@ -473,7 +472,7 @@ public class JsonUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> JsonArray toJsonArray(final Collection<T> collection, final Gson gson, final TypeToken<Collection<T>> typeToken) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return new JsonArray();
 		}
 		JsonElement jsonElement = gson.toJsonTree(collection, typeToken.getType());

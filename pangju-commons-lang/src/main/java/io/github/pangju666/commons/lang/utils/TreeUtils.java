@@ -17,7 +17,6 @@
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.model.TreeNode;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +47,7 @@ public class TreeUtils {
 	 * @since 1.0.0
 	 */
 	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection, final K rootNodeKey) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()
@@ -72,7 +71,7 @@ public class TreeUtils {
 	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection,
 															   final K rootNodeKey,
 															   final Consumer<T> convertFunc) {
-		if (CollectionUtils.isEmpty(collection)) {
+		if (collection == null || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()
@@ -95,7 +94,7 @@ public class TreeUtils {
 	protected static <K, T extends TreeNode<K, T>> void setChildNodes(final Collection<T> collection,
 																	  final Collection<T> parentNodes,
 																	  final Consumer<T> convertFunc) {
-		if (CollectionUtils.isNotEmpty(parentNodes)) {
+		if (Objects.nonNull(parentNodes) && !parentNodes.isEmpty()) {
 			parentNodes.forEach(parentNode -> {
 				List<T> childNodes = collection.stream()
 					.filter(node -> Objects.equals(node.getParentNodeKey(), parentNode.getNodeKey()))
