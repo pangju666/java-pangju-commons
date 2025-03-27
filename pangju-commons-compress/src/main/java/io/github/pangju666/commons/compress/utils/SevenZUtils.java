@@ -33,13 +33,13 @@ public class SevenZUtils {
 	}
 
 	public static void unCompress(final File compressFile) throws IOException {
-		FileUtils.validateFile(compressFile, "compressFile 不可为 null");
+		FileUtils.checkExists(compressFile, "compressFile 不可为 null", true);
 		File outputDir = new File(FilenameUtils.removeExtension(compressFile.getAbsolutePath()));
 		unCompress(compressFile, outputDir);
 	}
 
 	public static void unCompress(final File compressFile, final File outputDir) throws IOException {
-		FileUtils.validateFile(compressFile, "compressFile 不可为 null");
+		FileUtils.checkExists(compressFile, "compressFile 不可为 null", true);
 
 		String mimeType = FileUtils.getMimeType(compressFile);
 		if (!SEVEN_Z_MIME_TYPE.equals(mimeType)) {
@@ -76,7 +76,7 @@ public class SevenZUtils {
 	}
 
 	public static void compress(final File file) throws IOException {
-		FileUtils.validateFileOrDir(file, "file 不可为 null");
+		FileUtils.checkExists(file, "file 不可为 null", false);
 
 		String fullFilename = FilenameUtils.removeExtension(file.getAbsolutePath());
 		File outputFile = new File(fullFilename + FilenameUtils.EXTENSION_SEPARATOR + EXTENSION);
@@ -94,7 +94,7 @@ public class SevenZUtils {
 	}
 
 	public static void compress(final File file, final SevenZOutputFile sevenZOutputFile) throws IOException {
-		FileUtils.validateFileOrDir(file, "file 不可为 null");
+		FileUtils.checkExists(file, "file 不可为 null", false);
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
 		if (file.isDirectory()) {
@@ -114,7 +114,7 @@ public class SevenZUtils {
 	}
 
 	public static void compress(final Collection<File> files, final SevenZOutputFile sevenZOutputFile) throws IOException {
-		FileUtils.validateFilesOrDirs(files, "files 中元素不可为 null");
+		//FileUtils.validateFilesOrDirs(files, "files 中元素不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
 		for (File file : files) {

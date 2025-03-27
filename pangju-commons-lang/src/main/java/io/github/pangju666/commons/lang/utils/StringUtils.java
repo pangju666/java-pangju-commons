@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 字符串工具类，继承并扩展{@link org.apache.commons.lang3.StringUtils}功能
@@ -77,7 +78,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @since 1.0.0
 	 */
 	public static List<String> getNotBlankElements(final Collection<String> collection) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return collection.stream()
@@ -93,7 +94,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @since 1.0.0
 	 */
 	public static List<String> getUniqueNotBlankElements(final Collection<String> collection) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return collection.stream()

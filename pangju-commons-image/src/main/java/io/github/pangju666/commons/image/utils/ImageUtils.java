@@ -173,7 +173,7 @@ public class ImageUtils {
 	}
 
 	public static ImageSize getImageSize(final File file, final String mimeType) throws IOException {
-		FileUtils.validateFile(file, "file 不可为 null");
+		FileUtils.checkExists(file, "file 不可为 null", true);
 		Validate.notBlank(mimeType, "mimeType 不可为空");
 
 		try {

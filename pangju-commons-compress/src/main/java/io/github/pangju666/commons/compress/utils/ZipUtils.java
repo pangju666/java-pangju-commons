@@ -34,13 +34,13 @@ public class ZipUtils {
 	}
 
 	public static void unCompress(final File compressFile) throws IOException {
-		FileUtils.validateFile(compressFile, "compressFile 不可为 null");
+		FileUtils.checkExists(compressFile, "compressFile 不可为 null", true);
 		File outputDir = new File(FilenameUtils.removeExtension(compressFile.getAbsolutePath()));
 		unCompress(compressFile, outputDir);
 	}
 
 	public static void unCompress(final File compressFile, final File outputDir) throws IOException {
-		FileUtils.validateFile(compressFile, "compressFile 不可为 null");
+		FileUtils.checkExists(compressFile, "compressFile 不可为 null", true);
 
 		String mimeType = FileUtils.getMimeType(compressFile);
 		if (!ZIP_MIME_TYPE.equals(mimeType)) {
@@ -113,7 +113,7 @@ public class ZipUtils {
 	}
 
 	public static void compress(final File file) throws IOException {
-		FileUtils.validateFileOrDir(file, "file 不可为 null");
+		FileUtils.checkExists(file, "file 不可为 null", false);
 
 		String fullFilename = FilenameUtils.removeExtension(file.getAbsolutePath());
 		File outputFile = new File(fullFilename + FilenameUtils.EXTENSION_SEPARATOR + EXTENSION);
@@ -143,7 +143,7 @@ public class ZipUtils {
 	}
 
 	public static void compress(final File file, final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
-		FileUtils.validateFileOrDir(file, "file 不可为 null");
+		FileUtils.checkExists(file, "file 不可为 null", false);
 		Validate.notNull(zipArchiveOutputStream, "zipArchiveOutputStream 不可为 null");
 
 		if (file.isDirectory()) {
@@ -176,7 +176,7 @@ public class ZipUtils {
 
 	public static void compress(final Collection<File> files,
 								final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
-		FileUtils.validateFilesOrDirs(files, "files 中元素不可为 null");
+		//FileUtils.checkExists(files, "files 中元素不可为 null", false);
 		Validate.notNull(zipArchiveOutputStream, "zipArchiveOutputStream 不可为 null");
 
 		for (File file : files) {

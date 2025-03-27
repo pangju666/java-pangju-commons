@@ -17,7 +17,6 @@
 package io.github.pangju666.commons.validation.utils;
 
 import io.github.pangju666.commons.lang.utils.RegExUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -96,7 +95,7 @@ public class ConstraintValidatorUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean validate(final Collection<String> values, boolean allMatch, boolean notEmpty, final Pattern pattern) {
-		if (CollectionUtils.isEmpty(values)) {
+		if (Objects.isNull(values) || values.isEmpty()) {
 			return !notEmpty;
 		}
 		if (allMatch) {
@@ -122,7 +121,7 @@ public class ConstraintValidatorUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> boolean validate(final Collection<T> values, boolean allMatch, boolean notEmpty, final Predicate<T> predicate) {
-		if (CollectionUtils.isEmpty(values)) {
+		if (Objects.isNull(values) || values.isEmpty()) {
 			return !notEmpty;
 		}
 		if (allMatch) {

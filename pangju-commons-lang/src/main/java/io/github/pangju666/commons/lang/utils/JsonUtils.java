@@ -441,7 +441,7 @@ public class JsonUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> JsonArray toJsonArray(final Collection<T> collection, final Gson gson) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return new JsonArray();
 		}
 		JsonElement jsonElement = gson.toJsonTree(collection);
@@ -472,7 +472,7 @@ public class JsonUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> JsonArray toJsonArray(final Collection<T> collection, final Gson gson, final TypeToken<Collection<T>> typeToken) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return new JsonArray();
 		}
 		JsonElement jsonElement = gson.toJsonTree(collection, typeToken.getType());

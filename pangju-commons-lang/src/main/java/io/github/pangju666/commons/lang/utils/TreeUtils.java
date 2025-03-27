@@ -47,7 +47,7 @@ public class TreeUtils {
 	 * @since 1.0.0
 	 */
 	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection, final K rootNodeKey) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()
@@ -71,7 +71,7 @@ public class TreeUtils {
 	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection,
 															   final K rootNodeKey,
 															   final Consumer<T> convertFunc) {
-		if (collection == null || collection.isEmpty()) {
+		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<T> treeNodes = collection.stream()

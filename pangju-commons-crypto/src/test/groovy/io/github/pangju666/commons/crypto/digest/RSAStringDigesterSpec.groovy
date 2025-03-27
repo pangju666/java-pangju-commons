@@ -3,7 +3,6 @@ package io.github.pangju666.commons.crypto.digest
 import io.github.pangju666.commons.crypto.key.RSAKey
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.Hex
-import org.springframework.security.crypto.encrypt.RsaAlgorithm
 import spock.lang.Specification
 
 class RSAStringDigesterSpec extends Specification {
