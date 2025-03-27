@@ -27,17 +27,9 @@
 			<artifactId>metadata-extractor</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parser-image-module</artifactId>
-			<version>${tika.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jai-imageio</groupId>
-			<artifactId>jai-imageio-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jai-imageio</groupId>
-			<artifactId>jai-imageio-jpeg2000</artifactId>
+			<groupId>io.github.pangju666</groupId>
+			<artifactId>pangju-commons-imageio</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.spockframework</groupId>
