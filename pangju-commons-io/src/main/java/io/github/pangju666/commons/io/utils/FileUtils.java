@@ -49,6 +49,23 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 public class FileUtils extends org.apache.commons.io.FileUtils {
+	/**
+	 * 内存映射文件输入流默认缓冲区大小（256KB）
+	 * <p>适用于大文件随机访问场景，平衡内存消耗与IO性能</p>
+	 *
+	 * @see MemoryMappedFileInputStream
+	 * @since 1.0.0
+	 */
+	public static final int DEFAULT_MEMORY_MAPPED_BUFFER_SIZE = 256 * 1024;
+	/**
+	 * 缓冲文件通道输入流默认缓冲区大小（4KB）
+	 * <p>适配大多数存储设备的块大小，优化顺序读写性能</p>
+	 *
+	 * @see BufferedFileChannelInputStream
+	 * @since 1.0.0
+	 */
+	public static final int DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE = 4096;
+
 	protected FileUtils() {
 	}
 
@@ -67,7 +84,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(final File file) throws IOException {
-		return openMemoryMappedFileInputStream(file, IOConstants.DEFAULT_MEMORY_MAPPED_BUFFER_SIZE);
+		return openMemoryMappedFileInputStream(file, DEFAULT_MEMORY_MAPPED_BUFFER_SIZE);
 	}
 
 	/**
@@ -104,7 +121,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(final File file) throws IOException {
-		return openBufferedFileChannelInputStream(file, IOConstants.DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE);
+		return openBufferedFileChannelInputStream(file, DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE);
 	}
 
 	/**

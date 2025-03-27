@@ -16,11 +16,13 @@
 
 package io.github.pangju666.commons.io.utils;
 
-import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -31,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * 增强型IO流操作工具类（继承自 {@link org.apache.commons.io.IOUtils}）
@@ -67,8 +70,92 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	private static final Properties DEFAULT_PROPERTIES = new Properties();
+	/**
+	 * 合法的AES密钥长度集合（单位：字节）
+	 * <p>包含16(128位)、24(192位)、32(256位)三种标准长度</p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String AES_CBC_NO_PADDING = "AES/CBC/NoPadding";
+	/**
+	 * AES/CBC模式PKCS5填充算法标识
+	 * <p>适用于通用加密场景，自动处理数据块填充</p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
+	/**
+	 * AES/CTR模式无填充算法标识
+	 * <p>适用于流加密场景，不需要数据填充</p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String AES_CTR_NO_PADDING = "AES/CTR/NoPadding";
+	/**
+	 * 流缓冲区默认大小（单位：字节）
+	 *
+	 * @since 1.0.0
+	 */
+	public static final int DEFAULT_STREAM_BUFFER_SIZE = 8192;
+	/**
+	 * AES对称加密算法名称
+	 *
+	 * @since 1.0.0
+	 */
+	private static final String AES_ALGORITHM = "AES";
+	/**
+	 * 合法的AES密钥长度集合（单位：字节）
+	 *
+	 * <p>包含16(128位)、24(192位)、32(256位)三种标准长度</p>
+	 *
+	 * @since 1.0.0
+	 */
+	private static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
 
 	protected IOUtils() {
+	}
+
+	public static UnsynchronizedBufferedInputStream toUnsynchronizedBufferedInputStream(final InputStream inputStream) throws IOException {
+		return toUnsynchronizedBufferedInputStream(inputStream, DEFAULT_STREAM_BUFFER_SIZE);
+	}
+
+	public static UnsynchronizedBufferedInputStream toUnsynchronizedBufferedInputStream(final InputStream inputStream, final int bufferSize) throws IOException {
+		return new UnsynchronizedBufferedInputStream.Builder()
+			.setBufferSize(bufferSize)
+			.setInputStream(inputStream)
+			.get();
+	}
+
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes) throws IOException {
+		return toUnsynchronizedByteArrayOutputStream(bytes, DEFAULT_STREAM_BUFFER_SIZE);
+	}
+
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes, final int bufferSize) throws IOException {
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
+			.setBufferSize(bufferSize)
+			.get();
+		outputStream.write(bytes);
+		return outputStream;
+	}
+
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
+		return toUnsynchronizedByteArrayOutputStream(inputStream, DEFAULT_STREAM_BUFFER_SIZE);
+	}
+
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream, final int bufferSize) throws IOException {
+		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
+			.setBufferSize(bufferSize)
+			.get();
+		outputStream.write(inputStream);
+		return outputStream;
+	}
+
+	public static UnsynchronizedByteArrayInputStream toUnsynchronizedByteArrayInputStream(final byte[] bytes) throws IOException {
+		return UnsynchronizedByteArrayInputStream.builder()
+			.setByteArray(bytes)
+			.setOffset(0)
+			.setLength(bytes.length)
+			.get();
 	}
 
 	/**
@@ -94,7 +181,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
 		encrypt(inputStream, outputStream, password, new IvParameterSpec(password),
-			IOConstants.AES_CBC_PKCS5_PADDING);
+			AES_CBC_PKCS5_PADDING);
 	}
 
 	/**
@@ -115,7 +202,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
 		decrypt(inputStream, outputStream, password, new IvParameterSpec(password),
-			IOConstants.AES_CBC_PKCS5_PADDING);
+			AES_CBC_PKCS5_PADDING);
 	}
 
 	/**
@@ -135,7 +222,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 		encrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
-			IOConstants.AES_CBC_PKCS5_PADDING);
+			AES_CBC_PKCS5_PADDING);
 	}
 
 	/**
@@ -155,7 +242,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 		decrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
-			IOConstants.AES_CBC_PKCS5_PADDING);
+			AES_CBC_PKCS5_PADDING);
 	}
 
 	/**
@@ -178,13 +265,13 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 
 		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
 		Validate.notBlank(transformation, "transformation 不可为空");
 
-		SecretKeySpec secretKey = new SecretKeySpec(password, IOConstants.AES_ALGORITHM);
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES_ALGORITHM);
 		try (CryptoOutputStream cryptoOutputStream = new CryptoOutputStream(transformation, DEFAULT_PROPERTIES,
 			outputStream, secretKey, algorithmParameterSpec)) {
 			inputStream.transferTo(cryptoOutputStream);
@@ -211,13 +298,13 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 
 		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
 		Validate.notBlank(transformation, "transformation 不可为空");
 
-		SecretKeySpec secretKey = new SecretKeySpec(password, IOConstants.AES_ALGORITHM);
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES_ALGORITHM);
 		try (CryptoInputStream cryptoInputStream = new CryptoInputStream(transformation, DEFAULT_PROPERTIES,
 			inputStream, secretKey, algorithmParameterSpec)) {
 			cryptoInputStream.transferTo(outputStream);
@@ -275,7 +362,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 
@@ -302,7 +389,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 

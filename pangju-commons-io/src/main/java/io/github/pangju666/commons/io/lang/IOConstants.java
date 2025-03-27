@@ -16,12 +16,9 @@
 
 package io.github.pangju666.commons.io.lang;
 
-import org.apache.commons.io.input.BufferedFileChannelInputStream;
-import org.apache.commons.io.input.MemoryMappedFileInputStream;
 import org.apache.tika.Tika;
 
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * IO相关常量工具类
@@ -67,60 +64,6 @@ public class IOConstants {
 	 * @since 1.0.0
 	 */
 	public static final String APPLICATION_MIME_TYPE_PREFIX = "application/";
-
-	/**
-	 * 内存映射文件输入流默认缓冲区大小（256KB）
-	 * <p>适用于大文件随机访问场景，平衡内存消耗与IO性能</p>
-	 *
-	 * @see MemoryMappedFileInputStream
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_MEMORY_MAPPED_BUFFER_SIZE = 256 * 1024;
-	/**
-	 * 缓冲文件通道输入流默认缓冲区大小（4KB）
-	 * <p>适配大多数存储设备的块大小，优化顺序读写性能</p>
-	 *
-	 * @see BufferedFileChannelInputStream
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE = 4096;
-
-	/**
-	 * AES对称加密算法名称
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_ALGORITHM = "AES";
-	/**
-	 * 合法的AES密钥长度集合（单位：字节）
-	 *
-	 * <p>包含16(128位)、24(192位)、32(256位)三种标准长度</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
-
-	/**
-	 * 合法的AES密钥长度集合（单位：字节）
-	 * <p>包含16(128位)、24(192位)、32(256位)三种标准长度</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CBC_NO_PADDING = "AES/CBC/NoPadding";
-	/**
-	 * AES/CBC模式PKCS5填充算法标识
-	 * <p>适用于通用加密场景，自动处理数据块填充</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
-	/**
-	 * AES/CTR模式无填充算法标识
-	 * <p>适用于流加密场景，不需要数据填充</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CTR_NO_PADDING = "AES/CTR/NoPadding";
 
 	/**
 	 * 默认Tika实例（双重校验锁实现线程安全单例）
