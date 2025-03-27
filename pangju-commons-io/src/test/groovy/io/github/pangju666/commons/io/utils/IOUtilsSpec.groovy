@@ -16,9 +16,9 @@ class IOUtilsSpec extends Specification {
 
 	// 测试常量
 	static final String TEST_TEXT = "Hello, AES Encryption! 测试数据"
-	static final String PASSWORD_16 = "1234567890123456"
-	static final String PASSWORD_24 = "123456789012345678901234"
-	static final String PASSWORD_32 = "12345678901234567890123456789012"
+	static final byte[] PASSWORD_16 = "1234567890123456".getBytes()
+	static final byte[] PASSWORD_24 = "123456789012345678901234".getBytes()
+	static final byte[] PASSWORD_32 = "12345678901234567890123456789012".getBytes()
 	static final byte[] IV_16 = "1234567890123456".bytes
 	static final byte[] IV_INVALID = new byte[15]
 
@@ -38,13 +38,13 @@ class IOUtilsSpec extends Specification {
 	}
 
 	@Unroll
-	def "测试不同密钥长度加密(#password.length()字节)"() {
+	def "测试不同密钥长度加密(#password.length字节)"() {
 		given: "准备测试文件"
-		Path input = createTestFile("keylen_${password.length()}.txt")
+		Path input = createTestFile("keylen_${password.length}.txt")
 		def iv = RandomUtils.secure().randomBytes(16)
 
 		when: "执行加密操作"
-		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(tempDir.resolve("encrypted_${password.length()}")), password, iv)
+		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(tempDir.resolve("encrypted_${password.length}")), password, iv)
 
 		then: "无异常抛出"
 		noExceptionThrown()
@@ -55,9 +55,7 @@ class IOUtilsSpec extends Specification {
 
 	def "测试非法密钥长度异常"() {
 		when: "使用非法长度密钥"
-		IOUtils.encrypt(new ByteArrayInputStream(TEST_TEXT.bytes),
-			new ByteArrayOutputStream(),
-			"invalid")
+		IOUtils.encrypt(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes())
 
 		then: "抛出参数异常"
 		thrown(IllegalArgumentException)
@@ -178,9 +176,7 @@ class IOUtilsSpec extends Specification {
 	// 新增测试用例
 	def "测试CTR非法密钥长度异常"() {
 		when: "使用非法长度密钥"
-		IOUtils.encryptByCtr(new ByteArrayInputStream(TEST_TEXT.bytes),
-			new ByteArrayOutputStream(),
-			"invalid")
+		IOUtils.encryptByCtr(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes())
 
 		then: "抛出参数异常"
 		thrown(IllegalArgumentException)

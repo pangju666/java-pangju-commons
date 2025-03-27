@@ -139,11 +139,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 加密后文件（自动创建父目录）
 	 * @param password   加密密码（长度必须为16字节）
 	 * @throws IOException 当文件读写失败时抛出
-	 * @see org.apache.commons.crypto.stream.CryptoOutputStream
-	 * @see io.github.pangju666.commons.io.utils.IOUtils
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#encrypt(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final String password) throws IOException {
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -152,7 +151,19 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
-	public static void encryptFile(final File inputFile, final File outputFile, final String password, final byte[] iv) throws IOException {
+	/**
+	 * AES/CBC模式文件加密（自定义初始化向量）
+	 * <p>适用于需要固定IV值的特殊加密场景</p>
+	 *
+	 * @param inputFile  原始文件（必须存在）
+	 * @param outputFile 加密后文件（自动创建父目录）
+	 * @param password   加密密码（长度必须为16/24/32字节）
+	 * @param iv         自定义初始化向量（16字节）
+	 * @throws IOException 当文件读写失败时抛出
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -180,11 +191,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *                         <li>输出路径无写入权限</li>
 	 *                     </ul>
 	 * @see #encryptFile
-	 * @see org.apache.commons.crypto.stream.CryptoInputStream
-	 * @see io.github.pangju666.commons.io.utils.IOUtils
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final String password) throws IOException {
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -193,7 +203,23 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
-	public static void decryptFile(final File inputFile, final File outputFile, final String password, final byte[] iv) throws IOException {
+	/**
+	 * AES/CBC模式文件解密（自定义初始化向量）
+	 * <p>需要与加密时使用的IV值完全一致</p>
+	 *
+	 * @param inputFile  加密文件（必须为有效文件）
+	 * @param outputFile 输出文件（自动创建父目录）
+	 * @param password   解密密码（需与加密密码一致）
+	 * @param iv         初始化向量（必须与加密时相同）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>IV值不匹配导致解密失败</li>
+	 *                         <li>输入文件被截断或损坏</li>
+	 *                     </ul>
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -215,11 +241,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 加密后文件
 	 * @param password   加密密码（长度必须为16字节）
 	 * @throws IOException 当文件读写失败时抛出
-	 * @see org.apache.commons.crypto.stream.CtrCryptoOutputStream
-	 * @see io.github.pangju666.commons.io.utils.IOUtils
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#encryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final String password) throws IOException {
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -228,7 +253,19 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final String password, final byte[] iv) throws IOException {
+	/**
+	 * AES/CTR模式文件加密（自定义初始化向量）
+	 * <p>适用于需要指定计数起点的加密场景</p>
+	 *
+	 * @param inputFile  原始文件（必须存在）
+	 * @param outputFile 加密后文件
+	 * @param password   加密密码（长度必须为16/24/32字节）
+	 * @param iv         自定义初始化向量（16字节）
+	 * @throws IOException 当文件读写失败时抛出
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -255,12 +292,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *                         <li>文件损坏或格式不正确</li>
 	 *                         <li>磁盘空间不足</li>
 	 *                     </ul>
-	 * @see #encryptFileByCtr
-	 * @see org.apache.commons.crypto.stream.CtrCryptoInputStream
-	 * @see io.github.pangju666.commons.io.utils.IOUtils
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final String password) throws IOException {
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -269,7 +304,23 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final String password, final byte[] iv) throws IOException {
+	/**
+	 * AES/CTR模式文件解密（自定义初始化向量）
+	 * <p>需要与加密时使用的IV值完全一致</p>
+	 *
+	 * @param inputFile  加密文件（必须存在）
+	 * @param outputFile 解密后文件（自动创建父目录）
+	 * @param password   解密密码（需与加密时一致）
+	 * @param iv         初始化向量（必须与加密时相同）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>IV值不匹配导致解密失败</li>
+	 *                         <li>磁盘空间不足</li>
+	 *                     </ul>
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
 		checkExists(inputFile, "inputFile 不可为 null", true);
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
@@ -290,7 +341,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param file 待删除文件或目录
 	 * @throws IOException 当文件存在但无法删除时抛出
 	 * @since 1.0.0
-	 * @see #forceDelete(File)
+	 * @see FileUtils#forceDelete(File)
 	 */
 	public static void forceDeleteIfExist(final File file) throws IOException {
 		if (exist(file)) {
@@ -623,13 +674,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 校验文件存在性及类型（内部方法）
-	 * <p>被以下公共方法调用：</p>
-	 * <ul>
-	 *     <li>{@link #openMemoryMappedFileInputStream}</li>
-	 *     <li>{@link #parseMetaData}</li>
-	 *     <li>{@link #replaceBaseName}</li>
-	 * </ul>
+	 * 校验文件存在性及类型
 	 *
 	 * @param file    待校验文件
 	 * @param message 空指针异常提示信息

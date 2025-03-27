@@ -22,7 +22,6 @@ import org.apache.commons.crypto.stream.CryptoOutputStream;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.crypto.spec.IvParameterSpec;
@@ -92,9 +91,9 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, String password) throws IOException {
-		Validate.isTrue(StringUtils.length(password) == 16, "password 必须为16字节");
-		encrypt(inputStream, outputStream, password, new IvParameterSpec(password.getBytes()),
+	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+		encrypt(inputStream, outputStream, password, new IvParameterSpec(password),
 			IOConstants.AES_CBC_PKCS5_PADDING);
 	}
 
@@ -113,9 +112,9 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @throws IllegalArgumentException 当密码长度不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, String password) throws IOException {
-		Validate.isTrue(StringUtils.length(password) == 16, "password 必须为16字节");
-		decrypt(inputStream, outputStream, password, new IvParameterSpec(password.getBytes()),
+	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+		decrypt(inputStream, outputStream, password, new IvParameterSpec(password),
 			IOConstants.AES_CBC_PKCS5_PADDING);
 	}
 
@@ -133,7 +132,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 加密配置错误
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, String password, byte[] iv) throws IOException {
+	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 		encrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
 			IOConstants.AES_CBC_PKCS5_PADDING);
@@ -153,7 +152,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 解密验证失败
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, String password, byte[] iv) throws IOException {
+	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 		decrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
 			IOConstants.AES_CBC_PKCS5_PADDING);
@@ -174,18 +173,18 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 算法不可用
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, String password,
+	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password,
 							   AlgorithmParameterSpec algorithmParameterSpec, String transformation) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(StringUtils.length(password)),
+		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 
 		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
 		Validate.notBlank(transformation, "transformation 不可为空");
 
-		SecretKeySpec secretKey = new SecretKeySpec(password.getBytes(), IOConstants.AES_ALGORITHM);
+		SecretKeySpec secretKey = new SecretKeySpec(password, IOConstants.AES_ALGORITHM);
 		try (CryptoOutputStream cryptoOutputStream = new CryptoOutputStream(transformation, DEFAULT_PROPERTIES,
 			outputStream, secretKey, algorithmParameterSpec)) {
 			inputStream.transferTo(cryptoOutputStream);
@@ -207,18 +206,18 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 解密验证失败
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, String password,
+	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password,
 							   AlgorithmParameterSpec algorithmParameterSpec, String transformation) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(StringUtils.length(password)),
+		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 
 		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
 		Validate.notBlank(transformation, "transformation 不可为空");
 
-		SecretKeySpec secretKey = new SecretKeySpec(password.getBytes(), IOConstants.AES_ALGORITHM);
+		SecretKeySpec secretKey = new SecretKeySpec(password, IOConstants.AES_ALGORITHM);
 		try (CryptoInputStream cryptoInputStream = new CryptoInputStream(transformation, DEFAULT_PROPERTIES,
 			inputStream, secretKey, algorithmParameterSpec)) {
 			cryptoInputStream.transferTo(outputStream);
@@ -237,9 +236,9 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 流操作异常
 	 * @since 1.0.0
 	 */
-	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, String password) throws IOException {
-		Validate.isTrue(StringUtils.length(password) == 16, "password 必须为16字节");
-		encryptByCtr(inputStream, outputStream, password, password.getBytes());
+	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+		encryptByCtr(inputStream, outputStream, password, password);
 	}
 
 	/**
@@ -254,9 +253,9 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 流操作异常
 	 * @since 1.0.0
 	 */
-	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, String password) throws IOException {
-		Validate.isTrue(StringUtils.length(password) == 16, "password 必须为16字节");
-		decryptByCtr(inputStream, outputStream, password, password.getBytes());
+	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+		decryptByCtr(inputStream, outputStream, password, password);
 	}
 
 	/**
@@ -272,16 +271,16 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 流操作异常
 	 * @since 1.0.0
 	 */
-	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, String password, byte[] iv) throws IOException {
+	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(StringUtils.length(password)),
+		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 
 		try (CtrCryptoOutputStream cryptoInputStream = new CtrCryptoOutputStream(DEFAULT_PROPERTIES, outputStream,
-			password.getBytes(), iv)) {
+			password, iv)) {
 			inputStream.transferTo(cryptoInputStream);
 		}
 	}
@@ -299,16 +298,16 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                     - 流操作异常
 	 * @since 1.0.0
 	 */
-	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, String password, byte[] iv) throws IOException {
+	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(StringUtils.length(password)),
+		Validate.isTrue(IOConstants.AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
 
 		try (CtrCryptoInputStream cryptoInputStream = new CtrCryptoInputStream(DEFAULT_PROPERTIES, inputStream,
-			password.getBytes(), iv)) {
+			password, iv)) {
 			cryptoInputStream.transferTo(outputStream);
 		}
 	}
