@@ -71,7 +71,7 @@ public class IOConstants {
 	 * @since 1.0.0
 	 * @see Tika
 	 */
-	private static Tika DEFAULT_TIKA;
+	private static volatile Tika DEFAULT_TIKA;
 
 	protected IOConstants() {
 	}
@@ -89,9 +89,8 @@ public class IOConstants {
 	 * @return 配置好的Tika实例，用于文件内容类型检测
 	 * @since 1.0.0
 	 */
-	public static synchronized Tika getDefaultTika() {
+	public static Tika getDefaultTika() {
 		if (Objects.isNull(DEFAULT_TIKA)) {
-			//第一层锁，保证只有一个线程进入
 			synchronized (IOConstants.class) {
 				if (Objects.isNull(DEFAULT_TIKA)) {
 					DEFAULT_TIKA = new Tika();
