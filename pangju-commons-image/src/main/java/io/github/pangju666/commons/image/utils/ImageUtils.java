@@ -401,7 +401,6 @@ public class ImageUtils {
 	 * @return 检测到的MIME类型，未识别返回null
 	 * @throws IOException 流读取失败时抛出
 	 * @see ImageReaderSpi
-	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static String getImageType(final InputStream inputStream) throws IOException {
@@ -575,16 +574,16 @@ public class ImageUtils {
 	 */
 	public static ImageSize getImageSize(InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
+		//TeeInputStream
 		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-		//TODO 解决大图片解析慢问题
-		try {
+		/*try {
 			Metadata metadata = ImageMetadataReader.readMetadata(outputStream.toInputStream());
 			ImageSize imageSize = getImageSize(metadata);
 			if (Objects.nonNull(imageSize)) {
 				return imageSize;
 			}
 		} catch (ImageProcessingException | IOException ignored) {
-		}
+		}*/
 
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(outputStream.toInputStream())) {
 			if (Objects.isNull(imageInputStream)) {
