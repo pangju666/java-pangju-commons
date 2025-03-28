@@ -62,16 +62,16 @@ public enum FileType {
 	 *
 	 * @since 1.0.0
 	 */
-	VIDEO("视频", Collections.emptySet(), "video/"),
+	VIDEO("视频", Collections.singleton("application/vnd.apple.mpegurl"), "video/"),
 	/**
 	 * 压缩包类型（通过具体MIME类型匹配）
 	 *
 	 * @since 1.0.0
 	 */
 	COMPRESS("压缩包", Set.of(
-		"application/x-tar", "application/gzip", "application/x-bzip", "application/x-bzip2",
-		"application/x-zip-compressed", "application/x-uc2-compressed", "application/x-rar-compressed",
-		"application/x-ace-compressed", "application/x-7z-compressed"
+		"application/x-tar", "application/x-gzip", "application/x-bzip", "application/x-bzip2",
+		"application/zip", "application/x-uc2-compressed", "application/x-rar-compressed",
+		"application/x-ace-compressed", "application/x-7z-compressed", "application/vnd.ms-cab-compressed"
 	), null),
 	/**
 	 * 文档类型（通过具体MIME类型匹配）

@@ -19,7 +19,6 @@ application/epub+zip                    epub
 application/fits                        fit  fits  fts
 application/font-tdpfr                  pfr
 application/geo+json                    geojson
-application/gzip                        emz  tgz  gz
 application/hyperstudio                 stk
 application/illustrator                 ai
 application/java-archive                jar
@@ -34,13 +33,12 @@ application/mathematica                 nb  ma  mb
 application/mathml+xml                  mathml
 application/mbox                        mbox
 application/mediaservercontrol+xml      mscml
-application/mp4                         mp4s
-application/x-mpegurl                   m3u8
+application/vnd.apple.mpegurl           m3u8
 application/msword                      doc  dot
 application/mxf                         mxf
 application/oda                         oda
 application/oebps-package+xml           opf
-application/ogg                         ogx
+application/ogg                         ogg
 application/onenote                     onetoc  onetoc2  onetmp  onepkg
 application/patch-ops-error+xml         xer
 application/pdf                         pdf
@@ -96,6 +94,7 @@ application/vnd.acucorp                 atc  acutc
 application/vnd.adobe.aftereffects.project                      aep
 application/vnd.adobe.aftereffects.template                     aet
 application/vnd.adobe.air-application-installer-package+zip     air
+application/vnd.adobe.flash.movie       swf
 application/vnd.adobe.xdp+xml           xdp
 application/vnd.adobe.xfdf              xfdf
 application/vnd.airzip.filesecure.azf   azf
@@ -136,7 +135,6 @@ application/vnd.curl.pcurl              pcurl
 application/vnd.data-vision.rdz         rdz
 application/vnd.denovo.fcselayout-link                          fe_launch
 application/vnd.dna                     dna
-application/vnd.dolby.mlp               mlp
 application/vnd.dpgraph                 dpg
 application/vnd.dreamfactory            dfac
 application/vnd.dynageo                 geo
@@ -475,6 +473,7 @@ application/x-gnucash                   gnucash
 application/x-gnumeric                  gnumeric
 application/x-grib                      grb  grb1  grb2
 application/x-gtar                      gtar
+application/x-gzip                      emz  tgz  gz
 application/x-hdf                       he5  h5  hdf
 application/x-ibooks+zip                ibooks
 application/x-iso9660-image             iso
@@ -532,7 +531,6 @@ application/x-sas-utility               su7  sas7butl
 application/x-sas-view                  sv7  sas7bvew
 application/x-sh                        bash  sh
 application/x-shar                      shar
-application/x-shockwave-flash           swf
 application/x-silverlight-app           xap
 application/x-snappy-framed             sz
 application/x-staroffice-template       vor
@@ -576,9 +574,11 @@ audio/aacp	                            aacp
 audio/adpcm                             adp
 audio/amr                               amr
 audio/basic                             snd  au
+audio/flac                              flac
 audio/midi                              rmi  kar  midi  mid
+audio/mp4                               mp4a  m4a  m4b
 audio/mpeg                              mp2  mp2a  mp3  m3a  m2a  mpga
-audio/ogg                               oga  ogg
+audio/ogg                               oga
 audio/opus                              opus
 audio/speex                             spx
 audio/vnd.adobe.soundbooth              asnd
@@ -594,9 +594,8 @@ audio/wav                               wav
 audio/webm	                            weba
 audio/x-aac                             aac
 audio/x-aiff                            aifc  aiff  aif
-audio/x-flac                            flac
-audio/x-m4a                             mp4a  m4a  m4b
 audio/x-matroska                        mka
+audio/x-mlp                             mlp
 audio/x-mod                             mod
 audio/x-mpegurl                         m3u
 audio/x-ms-wax                          wax
@@ -620,20 +619,23 @@ font/woff2	                            woff2
 
 
 #图像
+image/apng                              apng
 image/avif                              avif
-image/bmp                               dib  bmp
+image/bmp                               bmp
 image/cgm                               cgm
 image/g3fax                             g3
 image/gif                               gif
 image/heic	                            heif heic
 image/ief                               ief
-image/jp2                               jp2
-image/jpeg                              jpe  jfi  jpg  jif  jpeg  jfif
+image/iff                               iff  lbm
+image/jp2                               jp2  jpf
+image/jpeg                              jpg  jpeg
 image/jpm                               jpm  jpgm
-image/jpx                               jpf
+image/jpx                               jpx
 image/nitf                              ntf  nitf
 image/png                               png
 image/prs.btif                          btif
+image/sgi                               sgi  bw  bwf
 image/svg+xml                           svgz  svg
 image/tiff                              tiff  tif
 image/vnd.adobe.photoshop               psd
@@ -647,21 +649,27 @@ image/vnd.fpx                           fpx
 image/vnd.fst                           fst
 image/vnd.fujixerox.edmics-mmr          mmr
 image/vnd.fujixerox.edmics-rlc          rlc
+image/vnd-ms.dds                        dds
 image/vnd.ms-modi                       mdi
 image/vnd.net-fpx                       npx
+image/vnd.radiance                      hdr
 image/vnd.wap.wbmp                      wbmp
 image/vnd.xiff                          xif
 image/webp                              webp
 image/x-bpg                             bpg
 image/x-cmu-raster                      ras
 image/x-cmx                             cmx
+image/x-cursor                          cur  ani
+image/x-dcx                             dcx
 image/x-freehand                        fh11  ft8  fh  fh5  ft11  ft12  fh10  fh7  fh50  fh9  ft7  fh4  fh8  ft9  fh40  fhc  ft10  fh12
 image/x-icns	                        icns
 image/x-icon                            ico
+image/x-jb2                             jb2
 image/x-jp2-codestream                  j2c
 image/x-pcx                             pcx
 image/x-pict                            pict  pct  pic
 image/x-portable-anymap                 pnm
+image/x-portable-arbitrarymap           pam
 image/x-portable-bitmap                 pbm
 image/x-portable-graymap                pgm
 image/x-portable-pixmap                 ppm
@@ -686,13 +694,13 @@ image/x-raw-rawzor                      rwz
 image/x-raw-red                         r3d
 image/x-raw-sigma                       x3f
 image/x-raw-sony                        sr2  srf  arw
-image/x-rgb                             rgb
+image/x-rgb                             rgb  rgba  rgbe  rgbf
+image/x-tga                             tga
 image/x-wmf                             wmf
 image/x-xbitmap                         xbm
 image/x-xcf                             xcf
 image/x-xpixmap                         xpm
-image/x-xwindowdump                     xwd
-
+image/xwd                               xwd
 
 #消息
 message/rfc822                          mime  mhtml  eml  mht  nws
@@ -726,6 +734,7 @@ text/csv                                csv
 text/html                               htm  html  shtml
 text/iso19139+xml                       iso19139
 text/javascript                         js  cjs  mjs
+text/markdown                           md  markdown  mkd  mdtext
 text/plain                              keys  classpath project  list  mf  pom  jmx  xgrm  rnx  egrm  dcl  grm  xroles  fv  xcat  xsp  xmap  ac  xconf  cfg  config  types  rng  xegrm  cwiki  ft  MF  aart  def  ihtml  n3  tld  xlex  xweb  ent  xargs  m4  text  pen  txt  g  am  manifest  vm  meta  vsl  conf  xlog  fn  in  roles  xwelcome  junit  wsdd  jx  xsamples  data  pod
 text/prs.lines.tag                      dsc
 text/richtext                           rtx
@@ -755,9 +764,9 @@ text/x-aspectj                          aj
 text/x-assembly                         asm  s
 text/x-awk                              awk
 text/x-basic                            bas
-text/x-c                                dic
+text/x-c                                c
 text/x-c++hdr                           hpp  hh  hp    h++  hxx
-text/x-c++src                           cpp  cxx  cc  c  c++
+text/x-c++                              cpp  cxx  cc
 text/x-cgi                              cgi
 text/x-chdr                             h
 text/x-clojure                          clj
@@ -766,8 +775,8 @@ text/x-coffeescript                     coffee
 text/x-coldfusion                       cfc  cfml  cfm
 text/x-common-lisp                      lsp  cl  lisp  jl
 text/x-csharp                           cs
-text/x-csrc                             c
 text/x-d                                d
+text/x-dic                              dic
 text/x-diff                             patch  diff
 text/x-eiffel                           e
 text/x-emacs-lisp                       el
@@ -817,15 +826,14 @@ text/x-vcalendar                        vcs
 text/x-vcard                            vcf
 text/x-verilog                          v
 text/x-vhdl                             vhdl  vhd
-text/x-web-markdown                     md  markdown  mkd  mdtext
 text/x-yacc                             y
-text/x-yaml                             yaml  yml
 text/xml                                xml
-
+text/yaml                               yaml  yml
 
 #视频
 video/3gpp                              3gp
 video/3gpp2                             3g2
+video/avi                               avi
 video/h261                              h261
 video/h263                              h263
 video/h264                              h264
@@ -836,7 +844,6 @@ video/mp4                               mp4v  mp4  mpg4
 video/mpeg                              mpeg  m2v  mpe  mpg  m1v  mpa
 video/ogg                               ogv
 video/quicktime                         qt  mov
-video/vnd.dlna.mpeg-tts                 ts
 video/vnd.fvt                           fvt
 video/vnd.mpegurl                       mxu  m4u
 video/vnd.ms-playready.media.pyv        pyv
@@ -857,7 +864,6 @@ video/x-ms-wm                           wm
 video/x-ms-wmv                          wmv
 video/x-ms-wmx                          wmx
 video/x-ms-wvx                          wvx
-video/x-msvideo                         avi
 video/x-ogm                             ogm
 video/x-sgi-movie                       movie
 
