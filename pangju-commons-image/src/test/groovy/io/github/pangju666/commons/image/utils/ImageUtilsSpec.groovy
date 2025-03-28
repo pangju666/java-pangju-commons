@@ -1,6 +1,5 @@
 package io.github.pangju666.commons.image.utils
 
-
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
@@ -31,14 +30,6 @@ class ImageUtilsSpec extends Specification {
 		"${TEST_IMAGES_DIR}test.xwd"
 	]
 
-	def "test"() {
-		setup:
-		/*for (final def mimeType in Set.of(ImageIO.getReaderMIMETypes())) {
-			println mimeType
-		}*/
-		println ImageUtils.getImageSize(new FileInputStream(new File("D:\\workspace\\resource\\图片\\wac_nearside.tif")))
-	}
-
 	// 测试 isSupportImageType 系列方法
 	@Unroll
 	def "isSupportImageType应该正确识别文件"() {
@@ -46,7 +37,7 @@ class ImageUtilsSpec extends Specification {
 		def file = new File(TEST_IMAGES[index])
 
 		when:
-		def result = ImageUtils.isSupportImageType(inputType == 'File' ? file :
+		def result = ImageUtils.isSupportType(inputType == 'File' ? file :
 			inputType == 'Path' ? file.toPath() :
 				inputType == 'Bytes' ? Files.readAllBytes(file.toPath()) :
 					new FileInputStream(file))
@@ -75,7 +66,7 @@ class ImageUtilsSpec extends Specification {
 					new FileInputStream(testData)
 
 		when:
-		def result = ImageUtils.isSameImageType(input, mimeType)
+		def result = ImageUtils.isSameType(input, mimeType)
 
 		then:
 		result == expected
@@ -85,7 +76,7 @@ class ImageUtilsSpec extends Specification {
 		0     | 'File'        | 'image/x-bmp'              || true
 		10    | 'Path'        | 'image/x-webp'             || true
 		2     | 'Bytes'       | 'image/vnd.microsoft.icon' || true
-		9     | 'InputStream' | 'image/x-tiff'             || true
+		9 | 'InputStream' | 'image/tiff' || true
 		6     | 'File'        | 'image/jpeg'               || false
 		5     | 'File'        | 'image/x-pcx'              || true
 		3     | 'File'        | 'image/x-iff'              || true
@@ -103,7 +94,7 @@ class ImageUtilsSpec extends Specification {
 					new FileInputStream(testData)
 
 		when:
-		def result = ImageUtils.getImageType(input)
+		def result = ImageUtils.getMimeType(input)
 
 		then:
 		result == expectedType
@@ -112,10 +103,10 @@ class ImageUtilsSpec extends Specification {
 		index | inputType     | expectedType
 		0     | 'File'        | 'image/bmp'
 		10    | 'Path'        | 'image/webp'
-		2     | 'Bytes'       | 'image/x-icon'
+		2 | 'Bytes' | 'image/vnd.microsoft.icon'
 		9     | 'InputStream' | 'image/tiff'
 		6     | 'File'        | 'image/png'
-		5     | 'File'        | 'image/x-pcx'
+		5 | 'File'  | 'image/pcx'
 		3     | 'File'        | 'image/iff'
 		8     | 'File'        | 'image/tga'
 	}
@@ -131,7 +122,7 @@ class ImageUtilsSpec extends Specification {
 					new FileInputStream(testData)
 
 		when:
-		def size = ImageUtils.getImageSize(input)
+		def size = ImageUtils.getSize(input)
 
 		then:
 		size?.width() == expectedWidth
@@ -142,7 +133,7 @@ class ImageUtilsSpec extends Specification {
 		0     | 'File'        | 'image/bmp'    | 600           | 600
 		10    | 'Path'        | 'image/webp'   | 1170          | 1428
 		2     | 'Bytes'       | 'image/x-icon' | 32            | 32
-		9     | 'InputStream' | 'image/tiff'   | 600           | 600
+		9 | 'InputStream' | 'image/tiff' | 4095 | 2559
 		6     | 'File'        | 'image/png'    | 860           | 540
 		5     | 'File'        | 'image/x-pcx'  | 260           | 450
 		3     | 'File'        | 'image/iff'    | 320           | 200
@@ -152,7 +143,7 @@ class ImageUtilsSpec extends Specification {
 	// 测试异常情况
 	def "getImageSize应该正确处理无效输入"() {
 		when:
-		def size = ImageUtils.getImageSize(new byte[0])
+		def size = ImageUtils.getSize(new byte[0])
 
 		then:
 		size == null
@@ -164,7 +155,7 @@ class ImageUtilsSpec extends Specification {
 		def largeFile = new File("${TEST_IMAGES_DIR}/large.png")
 
 		when:
-		def result = ImageUtils.getImageSize(largeFile)
+		def result = ImageUtils.getSize(largeFile)
 
 		then:
 		result != null
@@ -177,7 +168,7 @@ class ImageUtilsSpec extends Specification {
 
 		when:
 		def results = (1..100).parallelStream().map {
-			ImageUtils.getImageSize(file)
+			ImageUtils.getSize(file)
 		}.toList()
 
 		then:
