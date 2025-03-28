@@ -725,6 +725,17 @@ public class ImageUtils {
 
 	/**
 	 * 获取文件的EXIF方向信息
+	 * <p>完整方向说明：
+	 * <ul>
+	 *   <li>1: 正常方向</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 旋转90度+水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 旋转270度+水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
 	 *
 	 * @param file 要检查的文件对象，允许为null，null将返回false
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
@@ -745,6 +756,17 @@ public class ImageUtils {
 
 	/**
 	 * 获取路径对应文件的EXIF方向信息
+	 * <p>完整方向说明：
+	 * <ul>
+	 *   <li>1: 正常方向</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 旋转90度+水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 旋转270度+水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
 	 *
 	 * @param path 要检查的文件路径，允许为null，null将返回false
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
@@ -765,6 +787,17 @@ public class ImageUtils {
 
 	/**
 	 * 获取字节数组数据的EXIF方向信息
+	 * <p>完整方向说明：
+	 * <ul>
+	 *   <li>1: 正常方向</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 旋转90度+水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 旋转270度+水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
 	 *
 	 * @param bytes 要检查的字节数组，允许为空，空将返回false
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
@@ -784,6 +817,17 @@ public class ImageUtils {
 
 	/**
 	 * 获取输入流的EXIF方向信息
+	 * <p>完整方向说明：
+	 * <ul>
+	 *   <li>1: 正常方向</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 旋转90度+水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 旋转270度+水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
 	 *
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
@@ -802,6 +846,17 @@ public class ImageUtils {
 
 	/**
 	 * 从元数据中获取EXIF方向信息
+	 * <p>完整方向说明：
+	 * <ul>
+	 *   <li>1: 正常方向</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 旋转90度+水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 旋转270度+水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
 	 *
 	 * @param metadata 图像元数据对象，不可为null
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
