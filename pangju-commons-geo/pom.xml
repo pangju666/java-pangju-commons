@@ -7,8 +7,8 @@
 		<artifactId>pangju-commons-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>pangju-commons-gis</artifactId>
-	<description>java 公共GIS工具库</description>
+	<artifactId>pangju-commons-geo</artifactId>
+	<description>java 公共geo工具库</description>
 
 	<properties>
 		<geotools.version>32.2</geotools.version>
@@ -30,13 +30,11 @@
 			<groupId>org.geotools.xsd</groupId>
 			<artifactId>gt-xsd-kml</artifactId>
 			<version>${geotools.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-geojson</artifactId>
 			<version>${geotools.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.spockframework</groupId>

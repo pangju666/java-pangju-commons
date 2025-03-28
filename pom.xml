@@ -18,7 +18,7 @@
 	<modules>
 		<module>pangju-commons-crypto</module>
 		<module>pangju-commons-compress</module>
-		<module>pangju-commons-gis</module>
+		<module>pangju-commons-geo</module>
 		<module>pangju-commons-image</module>
 		<module>pangju-commons-imageio</module>
 		<module>pangju-commons-io</module>
@@ -68,7 +68,7 @@
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-gis</artifactId>
+				<artifactId>pangju-commons-geo</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 			<dependency>

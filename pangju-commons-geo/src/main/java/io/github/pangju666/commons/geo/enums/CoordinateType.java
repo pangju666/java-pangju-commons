@@ -1,7 +1,7 @@
-package io.github.pangju666.commons.gis.enums;
+package io.github.pangju666.commons.geo.enums;
 
-import io.github.pangju666.commons.gis.model.Coordinate;
-import io.github.pangju666.commons.gis.utils.CoordinateUtils;
+import io.github.pangju666.commons.geo.model.Coordinate;
+import io.github.pangju666.commons.geo.utils.CoordinateUtils;
 
 import java.math.BigDecimal;
 

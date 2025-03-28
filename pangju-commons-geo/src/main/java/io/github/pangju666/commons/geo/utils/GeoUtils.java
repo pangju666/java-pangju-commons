@@ -1,7 +1,7 @@
-package io.github.pangju666.commons.gis.utils;
+package io.github.pangju666.commons.geo.utils;
 
-import io.github.pangju666.commons.gis.model.GeoJsonFeature;
-import io.github.pangju666.commons.gis.model.KmlPlaceMark;
+import io.github.pangju666.commons.geo.model.GeoJsonFeature;
+import io.github.pangju666.commons.geo.model.KmlPlaceMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.geotools.api.feature.Property;

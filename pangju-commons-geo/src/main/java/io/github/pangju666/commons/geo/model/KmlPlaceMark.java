@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.gis.model;
+package io.github.pangju666.commons.geo.model;
 
 import org.locationtech.jts.geom.Geometry;
 

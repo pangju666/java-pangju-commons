@@ -1,8 +1,8 @@
-package io.github.pangju666.commons.gis.utils;
+package io.github.pangju666.commons.geo.utils;
 
 import ch.obermuhlner.math.big.BigDecimalMath;
-import io.github.pangju666.commons.gis.lang.GisConstants;
-import io.github.pangju666.commons.gis.model.Coordinate;
+import io.github.pangju666.commons.geo.lang.GisConstants;
+import io.github.pangju666.commons.geo.model.Coordinate;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

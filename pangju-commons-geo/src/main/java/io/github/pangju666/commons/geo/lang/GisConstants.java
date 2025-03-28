@@ -1,4 +1,4 @@
-package io.github.pangju666.commons.gis.lang;
+package io.github.pangju666.commons.geo.lang;
 
 import java.math.BigDecimal;
 
