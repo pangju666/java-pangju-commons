@@ -386,34 +386,20 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
-	/**
-	 * 判断文件是否存在
-	 * <p>空安全版本的文件存在性检查，等效于：</p>
-	 * <pre>{@code
-	 * file != null && file.exists()
-	 * }</pre>
-	 *
-	 * @param file 待检查文件对象（允许为null）
-	 * @return 当且仅当文件非空且存在时返回true
-	 * @since 1.0.0
-	 */
 	public static boolean exist(final File file) {
-		return Objects.nonNull(file) && file.exists();
+		return exist(file, false);
 	}
 
-	/**
-	 * 判断文件是否不存在
-	 * <p>空安全版本的文件不存在检查，等效于：</p>
-	 * <pre>{@code
-	 * file == null || !file.exists()
-	 * }</pre>
-	 *
-	 * @param file 待检查文件对象（允许为null）
-	 * @return 当文件为null或不存在时返回true
-	 * @since 1.0.0
-	 */
 	public static boolean notExist(final File file) {
-		return Objects.isNull(file) || !file.exists();
+		return exist(file, false);
+	}
+
+	public static boolean exist(final File file, boolean isFile) {
+		return Objects.nonNull(file) && file.exists() && (!isFile || file.isFile());
+	}
+
+	public static boolean notExist(final File file, boolean isFile) {
+		return Objects.isNull(file) || !file.exists() || (isFile && file.isDirectory());
 	}
 
 	/**
@@ -542,13 +528,15 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * </ul>
 	 *
 	 * @param file     目标文件
-	 * @param mimeType 预期MIME类型（标准格式）
+	 * @param mimeType 预期MIME类型（不区分大小写，为空字符串则返回null）
 	 * @return 匹配成功返回true
 	 * @throws IOException 当文件不可读时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean isMimeType(final File file, final String mimeType) throws IOException {
-		Validate.notBlank(mimeType, "mimeType 不可为空");
+		if (StringUtils.isBlank(mimeType)) {
+			return false;
+		}
 		checkExists(file, "file 不可为 null", true);
 		String fileMimeType = IOConstants.getDefaultTika().detect(file);
 		return mimeType.equalsIgnoreCase(fileMimeType);

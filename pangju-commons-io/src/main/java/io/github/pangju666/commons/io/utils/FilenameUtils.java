@@ -73,12 +73,13 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * <p>注意：检测结果基于文件扩展名而非实际内容</p>
 	 *
 	 * @param filename 文件名（包含扩展名）
-	 * @return 小写格式的MIME类型字符串（如："image/png"）
-	 * @throws IllegalArgumentException 当filename为空时抛出
+	 * @return 小写格式的MIME类型字符串（如："image/png"），文件名为空字符串时返回null
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final String filename) {
-		Validate.notBlank(filename, "filename 不可为空");
+		if (StringUtils.isBlank(filename)) {
+			return null;
+		}
 		return MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase());
 	}
 
@@ -181,18 +182,16 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * 精确匹配MIME类型
 	 *
 	 * @param filename 待检测文件名
-	 * @param mimeType 目标MIME类型（不区分大小写）
+	 * @param mimeType 目标MIME类型（不区分大小写，为空字符串则返回null）
 	 * @return 当满足以下条件时返回true：
 	 * <ul>
 	 *     <li>文件名非空</li>
 	 *     <li>检测到的MIME类型与目标类型完全匹配（忽略大小写）</li>
 	 * </ul>
-	 * @throws IllegalArgumentException 当mimeType为空时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean isMimeType(final String filename, final String mimeType) {
-		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (StringUtils.isBlank(filename)) {
+		if (StringUtils.isAnyBlank(filename, mimeType)) {
 			return false;
 		}
 		String fileMimeType = MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase());
