@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-io</artifactId>
-	<description>java 公共IO工具库</description>
+	<description>java 公共IO库</description>
 
 	<licenses>
 		<license>
