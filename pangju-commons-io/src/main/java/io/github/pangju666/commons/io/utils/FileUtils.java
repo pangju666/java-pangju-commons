@@ -688,7 +688,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws FileNotFoundException 当路径不存在或类型不匹配时抛出
 	 * @since 1.0.0
 	 */
-	public static void checkExists(final File file, final String message, boolean isFile) throws FileNotFoundException {
+	protected static void checkExists(final File file, final String message, boolean isFile) throws FileNotFoundException {
 		Objects.requireNonNull(file, message);
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.toString());
