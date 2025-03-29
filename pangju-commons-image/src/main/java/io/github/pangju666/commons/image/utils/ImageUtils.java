@@ -39,9 +39,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -136,31 +133,6 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断路径对应的文件是否与指定MIME类型匹配（有些图像具有多个MIME类型）
-	 *
-	 * @param path     要检查的文件路径，允许为null，null将返回false
-	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
-	 * @return 如果匹配返回true，否则返回false
-	 * @throws IOException              当路径不存在或读取失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @see ImageReaderSpi
-	 * @since 1.0.0
-	 */
-	public static boolean isSameType(final Path path, final String mimeType) throws IOException {
-		if (Objects.isNull(path)) {
-			return false;
-		}
-		if (StringUtils.isBlank(mimeType)) {
-			return false;
-		}
-		checkPath(path);
-
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(path.toFile())) {
-			return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
-		}
-	}
-
-	/**
 	 * 判断字节数组数据是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param bytes    要检查的字节数组，允许为空，空将返回false
@@ -239,9 +211,9 @@ public class ImageUtils {
 	 * @param file 要检查的文件对象，允许为null，null将返回false
 	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final File file) throws IOException {
 		if (Objects.isNull(file)) {
@@ -255,35 +227,14 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 获取路径对应文件的MIME类型（使用ImageIO获取）
-	 *
-	 * @param path 要检查的文件路径，允许为null，null将返回false
-	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
-	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see ImageReaderSpi
-	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 */
-	public static String getMimeType(final Path path) throws IOException {
-		if (Objects.isNull(path)) {
-			return null;
-		}
-		checkPath(path);
-
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(path.toFile())) {
-			return getMimeType(imageInputStream);
-		}
-	}
-
-	/**
 	 * 获取字节数组数据的MIME类型（使用ImageIO获取）
 	 *
 	 * @param bytes 要检查的字节数组，允许为空，空将返回false
 	 * @return 数据的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当读取数据失败时抛出
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final byte[] bytes) throws IOException {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -303,9 +254,9 @@ public class ImageUtils {
 	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "imageInputStream 不可为 null");
@@ -328,9 +279,9 @@ public class ImageUtils {
 	 * @param imageInputStream 要检查的图像输入流，不可为null
 	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IllegalArgumentException 当图像输入流为null时抛出
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final ImageInputStream imageInputStream) {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
@@ -344,9 +295,9 @@ public class ImageUtils {
 	 * @param metadata 图像元数据对象，不可为null
 	 * @return MIME类型，无法获取或metadata-extractor不支持时返回null
 	 * @throws IllegalArgumentException 当元数据为null时抛出
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -372,10 +323,10 @@ public class ImageUtils {
 	 * @param file 要检查的文件对象，允许为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @apiNote 超过100MB时，请参考{@link #getSize(File, boolean)}
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
-	 * @apiNote 超过100MB时，请参考{@link #getSize(File, boolean)}
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
 		return getSize(file, true);
@@ -388,10 +339,10 @@ public class ImageUtils {
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
 		if (Objects.isNull(file)) {
@@ -418,66 +369,15 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 获取路径对应文件的图像尺寸（自动处理EXIF方向）
-	 *
-	 * @param path 要检查的文件路径，允许为null
-	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see MetadataReader
-	 * @see ImageReader
-	 * @since 1.0.0
-	 * @apiNote 超过100MB时，请参考{@link #getSize(Path, boolean)}
-	 */
-	public static ImageSize getSize(final Path path) throws IOException {
-		return getSize(path, true);
-	}
-
-	/**
-	 * 获取路径对应文件的图像尺寸（可选择是否优先使用元数据）
-	 *
-	 * @param path        要检查的文件路径，允许为null
-	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
-	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see MetadataReader
-	 * @see ImageReader
-	 * @since 1.0.0
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
-	 */
-	public static ImageSize getSize(final Path path, final boolean useMetadata) throws IOException {
-		if (Objects.isNull(path)) {
-			return null;
-		}
-		checkPath(path);
-
-		if (useMetadata) {
-			try {
-				Metadata metadata = ImageMetadataReader.readMetadata(path.toFile());
-				ImageSize imageSize = getSize(metadata);
-				if (Objects.nonNull(imageSize)) {
-					return imageSize;
-				}
-			} catch (ImageProcessingException | IOException ignored) {
-			}
-		}
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(path.toFile())) {
-			if (Objects.isNull(imageInputStream)) {
-				return null;
-			}
-			return getSize(imageInputStream);
-		}
-	}
-
-	/**
 	 * 获取字节数组数据的图像尺寸（自动处理EXIF方向）
 	 *
 	 * @param bytes 要检查的字节数组，允许为空
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
+	 * @apiNote 超过100MB时，请参考{@link #getSize(byte[], boolean)}
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
-	 * @apiNote 超过100MB时，请参考{@link #getSize(byte[], boolean)}
 	 */
 	public static ImageSize getSize(final byte[] bytes) throws IOException {
 		return getSize(bytes, true);
@@ -490,10 +390,10 @@ public class ImageUtils {
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -509,12 +409,12 @@ public class ImageUtils {
 	 *
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当读取流失败时抛出
+	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @since 1.0.0
+	 * @apiNote 超过100MB时，请参考{@link #getSize(InputStream, boolean)}
 	 * @see MetadataReader
 	 * @see ImageReader
-	 * @apiNote 超过100MB时，请参考{@link #getSize(InputStream, boolean)}
+	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final InputStream inputStream) throws IOException {
 		return getSize(inputStream, true);
@@ -526,12 +426,12 @@ public class ImageUtils {
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当读取流失败时抛出
+	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @since 1.0.0
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 * @see MetadataReader
 	 * @see ImageReader
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
+	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final InputStream inputStream, final boolean useMetadata) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -571,10 +471,10 @@ public class ImageUtils {
 	 *
 	 * @param imageInputStream 要检查的图像输入流，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当读取流失败时抛出
+	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当图像输入流为null时抛出
-	 * @since 1.0.0
 	 * @see ImageReader
+	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final ImageInputStream imageInputStream) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
@@ -602,8 +502,8 @@ public class ImageUtils {
 	 * @param metadata 图像元数据对象，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IllegalArgumentException 当元数据为null时抛出
-	 * @since 1.0.0
 	 * @see MetadataReader
+	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -667,37 +567,6 @@ public class ImageUtils {
 		checkFile(file);
 
 		Metadata metadata = ImageMetadataReader.readMetadata(file);
-		return getExifOrientation(metadata);
-	}
-
-	/**
-	 * 获取路径对应文件的EXIF方向信息
-	 * <p>完整方向说明：
-	 * <ul>
-	 *   <li>1: 正常方向</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转180度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 旋转90度+水平翻转</li>
-	 *   <li>6: 顺时针旋转90度</li>
-	 *   <li>7: 旋转270度+水平翻转</li>
-	 *   <li>8: 逆时针旋转90度</li>
-	 * </ul>
-	 *
-	 * @param path 要检查的文件路径，允许为null，null将返回false
-	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
-	 * @throws IOException              当路径不存在或读取失败时抛出
-	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @see MetadataReader
-	 * @since 1.0.0
-	 */
-	public static Integer getExifOrientation(final Path path) throws IOException, ImageProcessingException {
-		if (Objects.isNull(path)) {
-			return null;
-		}
-		checkPath(path);
-
-		Metadata metadata = ImageMetadataReader.readMetadata(path.toFile());
 		return getExifOrientation(metadata);
 	}
 
@@ -844,19 +713,6 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 校验文件路径有效性
-	 *
-	 * @param path 要检查的文件路径，不可为null
-	 * @throws NoSuchFileException 当路径不存在或不是常规文件时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkPath(final Path path) throws NoSuchFileException {
-		if (!Files.exists(path) || !Files.isRegularFile(path)) {
-			throw new NoSuchFileException(path.toString());
-		}
-	}
-
-	/**
 	 * 校验文件有效性
 	 *
 	 * @param file 要检查的文件对象，不可为null
@@ -865,7 +721,7 @@ public class ImageUtils {
 	 */
 	protected static void checkFile(final File file) throws FileNotFoundException {
 		if (!file.exists() || !file.isFile()) {
-			throw new FileNotFoundException(file.toString());
+			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 	}
 }

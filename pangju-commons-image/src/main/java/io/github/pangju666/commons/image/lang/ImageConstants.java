@@ -46,6 +46,13 @@ public class ImageConstants {
 	 */
 	public static int BLACK_HEX_RGB = 0xFF000000;
 	/**
+	 * 不支持透明通道的图像格式集合
+	 *
+	 * @see java.awt.image.BufferedImage#TYPE_INT_RGB
+	 * @since 1.0.0
+	 */
+	public static volatile Set<String> NON_TRANSPARENT_IMAGE_FORMATS = Set.of("jpeg", "bmp", "gif");
+	/**
 	 * 支持图像格式的MIME类型集合（懒加载）
 	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
 	 * <p>使用双重检查锁实现线程安全初始化</p>

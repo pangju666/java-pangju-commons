@@ -16,6 +16,8 @@
 
 package io.github.pangju666.commons.image.model;
 
+import org.apache.commons.lang3.Validate;
+
 /**
  * 图像尺寸记录类
  * <p>表示经过方向校正后的图像实际显示尺寸，包含宽度和高度两个不可变属性</p>
@@ -42,10 +44,13 @@ public record ImageSize(int width, int height) {
 	 * @since 1.0.0
 	 */
 	public ImageSize scaleByWidth(final int targetWidth) {
+		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于0");
+
 		if (width > height) {
 			double ratio = (double) width / height;
 			return new ImageSize(targetWidth, (int) Math.max(targetWidth / ratio, 1));
 		}
+
 		double ratio = (double) height / width;
 		return new ImageSize(targetWidth, (int) Math.max(targetWidth * ratio, 1));
 	}
@@ -65,12 +70,34 @@ public record ImageSize(int width, int height) {
 	 * @since 1.0.0
 	 */
 	public ImageSize scaleByHeight(final int targetHeight) {
+		Validate.isTrue(targetHeight > 0, "inputImage 必须大于0");
+
 		if (width > height) {
 			double ratio = (double) width / height;
 			return new ImageSize((int) Math.max(targetHeight * ratio, 1), targetHeight);
 		}
+
 		double ratio = (double) height / width;
 		return new ImageSize((int) Math.max(targetHeight / ratio, 1), targetHeight);
+	}
+
+	/**
+	 * 双约束等比缩放
+	 * <p>算法说明：</p>
+	 * <ol>
+	 *   <li>优先保持宽高比适配目标宽度</li>
+	 *   <li>若计算后的高度超过目标高度，则改为适配目标高度</li>
+	 *   <li>最终尺寸不超过任一目标维度</li>
+	 *   <li>计算结果像素值不小于1</li>
+	 * </ol>
+	 *
+	 * @param targetSize 最大允许尺寸（宽度必须 > 0，高度必须大于0）
+	 * @return 满足双约束的等比缩放尺寸
+	 * @throws IllegalArgumentException 当任一参数 ≤ 0时抛出
+	 * @since 1.0.0
+	 */
+	public ImageSize scale(final ImageSize targetSize) {
+		return scale(targetSize.width(), targetSize.height());
 	}
 
 	/**
@@ -90,6 +117,9 @@ public record ImageSize(int width, int height) {
 	 * @since 1.0.0
 	 */
 	public ImageSize scale(final int targetWidth, final int targetHeight) {
+		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于0");
+		Validate.isTrue(targetHeight > 0, "inputImage 必须大于0");
+
 		double ratio = (double) width / height;
 		if (width > height) {
 			double actualHeight = Math.max(targetWidth / ratio, 1);

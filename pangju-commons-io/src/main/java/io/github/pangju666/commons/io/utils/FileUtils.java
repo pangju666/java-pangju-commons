@@ -691,10 +691,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	protected static void checkExists(final File file, final String message, boolean isFile) throws FileNotFoundException {
 		Objects.requireNonNull(file, message);
 		if (!file.exists()) {
-			throw new FileNotFoundException(file.toString());
+			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (isFile && !file.isFile()) {
-			throw new FileNotFoundException(file.toString());
+			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 	}
 }
