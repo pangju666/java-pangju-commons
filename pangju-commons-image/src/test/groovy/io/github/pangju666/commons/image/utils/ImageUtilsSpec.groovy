@@ -49,13 +49,17 @@ class ImageUtilsSpec extends Specification {
 		where:
 		index | inputType     | mimeType                   || expected
 		0     | 'File'        | 'image/x-bmp'              || true
-		10    | 'Path'        | 'image/x-webp'             || true
-		2     | 'Bytes'       | 'image/vnd.microsoft.icon' || true
-		9 | 'InputStream' | 'image/tiff' || true
-		6     | 'File'        | 'image/jpeg'               || false
-		5     | 'File'        | 'image/x-pcx'              || true
+		1  | 'Bytes'       | 'image/gif'                || true
+		2  | 'InputStream' | 'image/vnd.microsoft.icon' || true
 		3     | 'File'        | 'image/x-iff'              || true
-		8     | 'File'        | 'image/x-tga'              || true
+		4  | 'File'        | 'image/jpeg'               || true
+		5  | 'File'        | 'image/pcx'                || true
+		6  | 'File'        | 'image/png'                || true
+		7  | 'File'        | 'image/svg+xml'            || true
+		8  | 'File'        | 'image/tga'                || true
+		9  | 'File'        | 'image/tiff'               || true
+		10 | 'File'        | 'image/webp'               || true
+		11 | 'File'        | 'image/xwd'                || true
 	}
 
 	// 测试 getImageType 系列方法
@@ -77,13 +81,17 @@ class ImageUtilsSpec extends Specification {
 		where:
 		index | inputType     | expectedType
 		0     | 'File'        | 'image/bmp'
-		10    | 'Path'        | 'image/webp'
-		2 | 'Bytes' | 'image/vnd.microsoft.icon'
-		9     | 'InputStream' | 'image/tiff'
-		6     | 'File'        | 'image/png'
-		5 | 'File'  | 'image/pcx'
+		1  | 'Bytes'       | 'image/gif'
+		2  | 'InputStream' | 'image/vnd.microsoft.icon'
 		3     | 'File'        | 'image/iff'
+		4  | 'File'        | 'image/jpeg'
+		5  | 'File'        | 'image/pcx'
+		6  | 'File'        | 'image/png'
+		7  | 'File'        | 'image/svg'
 		8     | 'File'        | 'image/tga'
+		9  | 'File'        | 'image/tiff'
+		10 | 'File'        | 'image/webp'
+		11 | 'File'        | 'image/xwd'
 	}
 
 	// 测试 getImageSize 系列方法
@@ -106,7 +114,6 @@ class ImageUtilsSpec extends Specification {
 		where:
 		index | inputType     | expectedType   | expectedWidth | expectedHeight
 		0     | 'File'        | 'image/bmp'    | 600           | 600
-		10    | 'Path'        | 'image/webp'   | 1170          | 1428
 		2     | 'Bytes'       | 'image/x-icon' | 32            | 32
 		9 | 'InputStream' | 'image/tiff' | 4095 | 2559
 		6     | 'File'        | 'image/png'    | 860           | 540

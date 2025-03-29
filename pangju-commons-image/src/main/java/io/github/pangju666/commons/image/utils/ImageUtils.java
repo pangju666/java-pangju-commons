@@ -23,6 +23,7 @@ import com.drew.metadata.MetadataReader;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.file.FileTypeDirectory;
+import com.twelvemonkeys.image.ImageUtil;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
@@ -39,6 +40,10 @@ import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.Kernel;
+import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.Collection;
 import java.util.Iterator;
@@ -47,6 +52,22 @@ import java.util.Objects;
 /**
  * 图像处理工具类
  * <p>提供全面的图像处理能力，包括格式检测、尺寸获取、EXIF方向处理等，支持多种输入源（文件、路径、字节数组、流）</p>
+ * <p>推荐以下方法：
+ * <ol>
+ *     <li>{@link ImageUtil#createCopy(BufferedImage)} 深拷贝图像</li>
+ *     <li>{@link ImageUtil#toBuffered(BufferedImage, int)} 修改图像颜色类型</li>
+ *     <li>{@link ImageUtil#createFlipped(Image, int)} 翻转图像</li>
+ *     <li>{@link ImageUtil#createRotated(Image, int)} 旋转图像</li>
+ *     <li>{@link ImageUtil#createRotated(Image, double)} 旋转图像</li>
+ *     <li>{@link ImageUtil#hasTransparentPixels(RenderedImage, boolean)} 测试图像是否有透明或半透明像素</li>
+ *     <li>{@link ImageUtil#waitForImage(Image, long)} 等待图像完全加载</li>
+ *     <li>{@link ImageUtil#waitForImages(Image[], long)} 等待大量图像完全加载</li>
+ *     <li>{@link ImageUtil#convolve(BufferedImage, Kernel, int)} 使用卷积矩阵卷积图像</li>
+ *     <li>{@link ImageUtil#sharpen(BufferedImage, float)} 使用卷积矩阵锐化图像</li>
+ *     <li>{@link ImageUtil#blur(BufferedImage, float)} 创建给定图像的模糊版本</li>
+ *     <li>{@link ImageUtil#createResampled(Image, int, int, int)} 缩放图像</li>
+ * </ol>
+ * </p>
  *
  * @author pangju666
  * @see ImageReader
