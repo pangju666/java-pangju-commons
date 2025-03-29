@@ -19,6 +19,7 @@ package io.github.pangju666.commons.image.utils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataReader;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.file.FileTypeDirectory;
@@ -371,9 +372,10 @@ public class ImageUtils {
 	 * @param file 要检查的文件对象，允许为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB时，请参考{@link #getSize(File, boolean)}
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
 		return getSize(file, true);
@@ -382,20 +384,14 @@ public class ImageUtils {
 	/**
 	 * 获取文件的图像尺寸（可选择是否优先使用元数据）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>文件对象允许为null，null将返回null</li>
-	 *     <li>文件必须存在且为常规文件</li>
-	 *     <li>超过100MB且不考虑自动修正图像方向时，useMetadata建议为false</li>
-	 * </ul></p>
-	 *
 	 * @param file        要检查的文件对象，允许为null
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
 		if (Objects.isNull(file)) {
@@ -424,18 +420,13 @@ public class ImageUtils {
 	/**
 	 * 获取路径对应文件的图像尺寸（自动处理EXIF方向）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>路径对象允许为null，null将返回null</li>
-	 *     <li>路径必须指向存在的常规文件</li>
-	 * </ul></p>
-	 *
 	 * @param path 要检查的文件路径，允许为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB时，请参考{@link #getSize(Path, boolean)}
 	 */
 	public static ImageSize getSize(final Path path) throws IOException {
 		return getSize(path, true);
@@ -444,20 +435,14 @@ public class ImageUtils {
 	/**
 	 * 获取路径对应文件的图像尺寸（可选择是否优先使用元数据）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>路径对象允许为null，null将返回null</li>
-	 *     <li>路径必须指向存在的常规文件</li>
-	 *     <li>超过100MB且不考虑自动修正图像方向时，useMetadata建议为false</li>
-	 * </ul></p>
-	 *
 	 * @param path        要检查的文件路径，允许为null
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final Path path, final boolean useMetadata) throws IOException {
 		if (Objects.isNull(path)) {
@@ -486,17 +471,13 @@ public class ImageUtils {
 	/**
 	 * 获取字节数组数据的图像尺寸（自动处理EXIF方向）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>字节数组允许为空，空将返回null</li>
-	 * </ul></p>
-	 *
 	 * @param bytes 要检查的字节数组，允许为空
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB时，请参考{@link #getSize(byte[], boolean)}
 	 */
 	public static ImageSize getSize(final byte[] bytes) throws IOException {
 		return getSize(bytes, true);
@@ -505,20 +486,14 @@ public class ImageUtils {
 	/**
 	 * 获取字节数组数据的图像尺寸（可选择是否优先使用元数据）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>字节数组允许为空，空将返回null</li>
-	 *     <li>超过100MB且不考虑自动修正图像方向时，useMetadata建议为false</li>
-	 * </ul>
-	 * </p>
-	 *
 	 * @param bytes       要检查的字节数组，允许为空
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -532,19 +507,14 @@ public class ImageUtils {
 	/**
 	 * 获取输入流的图像尺寸（自动处理EXIF方向）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>输入流不可为null</li>
-	 *     <li>流读取后不会被关闭</li>
-	 * </ul></p>
-	 *
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
 	 * @since 1.0.0
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
+	 * @apiNote 超过100MB时，请参考{@link #getSize(InputStream, boolean)}
 	 */
 	public static ImageSize getSize(final InputStream inputStream) throws IOException {
 		return getSize(inputStream, true);
@@ -553,21 +523,15 @@ public class ImageUtils {
 	/**
 	 * 获取输入流的图像尺寸（可选择是否优先使用元数据）
 	 *
-	 * <p>注意事项：
-	 * <ul>
-	 *     <li>输入流不可为null</li>
-	 *     <li>流读取后不会被关闭</li>
-	 *     <li>超过100MB且不考虑自动修正图像方向时，useMetadata建议为false</li>
-	 * </ul></p>
-	 *
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
 	 * @since 1.0.0
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @see ImageReader
+	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 */
 	public static ImageSize getSize(final InputStream inputStream, final boolean useMetadata) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -603,7 +567,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 获取图像输入流的图像尺寸（不修正图像方向）
+	 * 获取图像输入流的图像尺寸（不处理图像EXIF方向）
 	 *
 	 * @param imageInputStream 要检查的图像输入流，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
@@ -639,7 +603,7 @@ public class ImageUtils {
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IllegalArgumentException 当元数据为null时抛出
 	 * @since 1.0.0
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 */
 	public static ImageSize getSize(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -693,7 +657,7 @@ public class ImageUtils {
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final File file) throws IOException, ImageProcessingException {
@@ -724,7 +688,7 @@ public class ImageUtils {
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IOException              当路径不存在或读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final Path path) throws IOException, ImageProcessingException {
@@ -755,7 +719,7 @@ public class ImageUtils {
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IOException              当读取数据失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
@@ -786,7 +750,7 @@ public class ImageUtils {
 	 * @throws IOException              当读取流失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final InputStream inputStream) throws IOException, ImageProcessingException {
@@ -813,7 +777,7 @@ public class ImageUtils {
 	 * @param metadata 图像元数据对象，不可为null
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IllegalArgumentException 当元数据为null时抛出
-	 * @see com.drew.metadata.MetadataReader
+	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final Metadata metadata) {
