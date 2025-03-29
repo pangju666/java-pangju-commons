@@ -93,10 +93,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-clippath</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
 		</dependency>
 		<dependency>

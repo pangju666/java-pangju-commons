@@ -30,31 +30,6 @@ class ImageUtilsSpec extends Specification {
 		"${TEST_IMAGES_DIR}test.xwd"
 	]
 
-	// 测试 isSupportImageType 系列方法
-	@Unroll
-	def "isSupportImageType应该正确识别文件"() {
-		given:
-		def file = new File(TEST_IMAGES[index])
-
-		when:
-		def result = ImageUtils.isSupportType(inputType == 'File' ? file :
-			inputType == 'Path' ? file.toPath() :
-				inputType == 'Bytes' ? Files.readAllBytes(file.toPath()) :
-					new FileInputStream(file))
-
-		then:
-		result == expected
-
-		where:
-		index | inputType     || expected
-		0     | 'File'        || true
-		1     | 'Path'        || true
-		2     | 'Bytes'       || true
-		3     | 'InputStream' || true
-		4     | 'File'        || true
-		5     | 'File'        || true
-	}
-
 	// 测试 isSameImageType 系列方法
 	@Unroll
 	def "isSameImageType应该正确比较"() {

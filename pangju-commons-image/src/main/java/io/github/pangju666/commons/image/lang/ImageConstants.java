@@ -30,34 +30,6 @@ import java.util.Set;
  */
 public class ImageConstants {
 	/**
-	 * JPEG格式标准MIME类型
-	 * <p>对应值：image/jpeg</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String JPEG_MIME_TYPE = "image/jpeg";
-	/**
-	 * PNG格式标准MIME类型
-	 * <p>对应值：image/png</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String PNG_MIME_TYPE = "image/png";
-	/**
-	 * WEBP格式标准MIME类型
-	 * <p>对应值：image/webp</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String WEBP_MIME_TYPE = "image/webp";
-	/**
-	 * BMP格式标准MIME类型
-	 * <p>对应值：image/bmp</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String BMP_MIME_TYPE = "image/bmp";
-	/**
 	 * 白色RGB十六进制表示
 	 * <p>格式：0xAARRGGBB</p>
 	 * <p>实际值：0xFFFFFFFF（不透明纯白）</p>

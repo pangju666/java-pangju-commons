@@ -22,7 +22,9 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.file.FileTypeDirectory;
+import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
@@ -65,85 +67,22 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 检查指定文件是否是ImageIO支持的图像类型
+	 * 检查图像MIME类型是否是ImageIO支持的图像类型
 	 *
-	 * @param file 要检查的文件对象，允许为null，null将返回false
+	 * @param type 图像MIME类型，允许为空，空将返回false
 	 * @return 如果文件是支持的图像类型返回true，否则返回false
-	 * @throws IOException 当文件不存在或读取失败时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
 	 */
-	public static boolean isSupportType(final File file) throws IOException {
-		if (Objects.isNull(file)) {
+	public static boolean isSupportType(final String type) {
+		if (StringUtils.isBlank(type)) {
 			return false;
 		}
-		checkFile(file);
-
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
-			return Objects.nonNull(getMimeType(imageInputStream));
-		}
+		return ImageConstants.getSupportImageTypes().contains(type);
 	}
 
 	/**
-	 * 检查指定路径对应的文件是否是ImageIO支持的图像类型
-	 *
-	 * @param path 要检查的文件路径，允许为null，null将返回false
-	 * @return 如果文件是支持的图像类型返回true，否则返回false
-	 * @throws IOException 当路径不存在或读取失败时抛出
-	 * @see ImageReaderSpi
-	 * @since 1.0.0
-	 */
-	public static boolean isSupportType(final Path path) throws IOException {
-		if (Objects.isNull(path)) {
-			return false;
-		}
-		checkPath(path);
-
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(path.toFile())) {
-			return Objects.nonNull(getMimeType(imageInputStream));
-		}
-	}
-
-	/**
-	 * 检查字节数组数据是否是ImageIO支持的图像类型
-	 *
-	 * @param bytes 要检查的字节数组，允许为空，空将返回false
-	 * @return 如果数据是支持的图像类型返回true，否则返回false
-	 * @throws IOException 当读取数据失败时抛出
-	 * @see ImageReaderSpi
-	 * @since 1.0.0
-	 */
-	public static boolean isSupportType(final byte[] bytes) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return false;
-		}
-
-		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
-			return Objects.nonNull(getMimeType(imageInputStream));
-		}
-	}
-
-	/**
-	 * 检查输入流是否是ImageIO支持的图像类型
-	 *
-	 * @param inputStream 要检查的输入流，不可为null
-	 * @return 如果流数据是支持的图像类型返回true，否则返回false
-	 * @throws IOException              当读取流失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @see ImageReaderSpi
-	 * @since 1.0.0
-	 */
-	public static boolean isSupportType(final InputStream inputStream) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
-			return Objects.nonNull(getMimeType(imageInputStream));
-		}
-	}
-
-	/**
-	 * 判断两个MIME类型是否属于同一图像类型（有些图像属于多个MIME类型）
+	 * 判断两个MIME类型是否属于同一图像类型（有些图像具有多个MIME类型）
 	 *
 	 * @param mimeType1 第一个MIME类型，允许为空，空将返回false
 	 * @param mimeType2 第二个MIME类型，允许为空，空将返回false
@@ -172,7 +111,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断文件是否与指定MIME类型匹配（有些图像属于多个MIME类型）
+	 * 判断文件是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param file     要检查的文件对象，允许为null，null将返回false
 	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
@@ -196,7 +135,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断路径对应的文件是否与指定MIME类型匹配（有些图像属于多个MIME类型）
+	 * 判断路径对应的文件是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param path     要检查的文件路径，允许为null，null将返回false
 	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
@@ -221,7 +160,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断字节数组数据是否与指定MIME类型匹配（有些图像属于多个MIME类型）
+	 * 判断字节数组数据是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param bytes    要检查的字节数组，允许为空，空将返回false
 	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
@@ -245,7 +184,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断输入流是否与指定MIME类型匹配（有些图像属于多个MIME类型）
+	 * 判断输入流是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param inputStream 要检查的输入流，不可为null
 	 * @param mimeType    要匹配的MIME类型，允许为空，空将返回false
@@ -275,7 +214,7 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断图像输入流是否与指定MIME类型匹配（有些图像属于多个MIME类型）
+	 * 判断图像输入流是否与指定MIME类型匹配（有些图像具有多个MIME类型）
 	 *
 	 * @param imageInputStream 要检查的图像输入流，不可为null
 	 * @param mimeType         要匹配的MIME类型，允许为空，空将返回false
@@ -297,10 +236,11 @@ public class ImageUtils {
 	 * 获取文件的MIME类型（使用ImageIO获取）
 	 *
 	 * @param file 要检查的文件对象，允许为null，null将返回false
-	 * @return 文件的MIME类型，无法获取时返回null
+	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final File file) throws IOException {
 		if (Objects.isNull(file)) {
@@ -317,10 +257,11 @@ public class ImageUtils {
 	 * 获取路径对应文件的MIME类型（使用ImageIO获取）
 	 *
 	 * @param path 要检查的文件路径，允许为null，null将返回false
-	 * @return 文件的MIME类型，无法获取时返回null
+	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当路径不存在或读取失败时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final Path path) throws IOException {
 		if (Objects.isNull(path)) {
@@ -337,10 +278,11 @@ public class ImageUtils {
 	 * 获取字节数组数据的MIME类型（使用ImageIO获取）
 	 *
 	 * @param bytes 要检查的字节数组，允许为空，空将返回false
-	 * @return 数据的MIME类型，无法获取时返回null
+	 * @return 数据的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当读取数据失败时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final byte[] bytes) throws IOException {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -357,17 +299,25 @@ public class ImageUtils {
 	 * 获取输入流的MIME类型（使用ImageIO获取）
 	 *
 	 * @param inputStream 要检查的输入流，不可为null
-	 * @return 流的MIME类型，无法获取时返回null
+	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当输入流为null时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "imageInputStream 不可为 null");
 
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
-			return getMimeType(imageInputStream);
+		if (inputStream instanceof BufferedInputStream bufferedInputStream) {
+			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+				return getMimeType(imageInputStream);
+			}
+		} else {
+			try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+				 ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+				return getMimeType(imageInputStream);
+			}
 		}
 	}
 
@@ -375,10 +325,11 @@ public class ImageUtils {
 	 * 获取图像输入流的MIME类型（使用ImageIO获取）
 	 *
 	 * @param imageInputStream 要检查的图像输入流，不可为null
-	 * @return 流的MIME类型，无法获取时返回null
+	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IllegalArgumentException 当图像输入流为null时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final ImageInputStream imageInputStream) {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
@@ -390,10 +341,11 @@ public class ImageUtils {
 	 * 从元数据中获取MIME类型
 	 *
 	 * @param metadata 图像元数据对象，不可为null
-	 * @return MIME类型，无法获取时返回null
+	 * @return MIME类型，无法获取或metadata-extractor不支持时返回null
 	 * @throws IllegalArgumentException 当元数据为null时抛出
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
+	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 */
 	public static String getMimeType(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");

@@ -40,5 +40,11 @@
 			<artifactId>pangju-commons-imageio</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parser-image-module</artifactId>
+			<version>${tika.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
