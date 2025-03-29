@@ -51,7 +51,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
@@ -68,7 +68,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非null）
+	 * @param outputFormat 输出图片格式（非null，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
@@ -127,7 +127,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
@@ -144,7 +144,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
@@ -199,7 +199,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param height       目标高度（>0）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
@@ -216,7 +216,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param width        目标宽度（>0）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
@@ -233,7 +233,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
@@ -251,7 +251,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param height       目标高度（>0）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
@@ -276,7 +276,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param width        目标宽度（>0）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
@@ -301,7 +301,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputStream 输出流（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当发生I/O错误时抛出
@@ -431,7 +431,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param height       目标高度（>0）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
@@ -448,7 +448,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param width        目标宽度（>0）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
@@ -465,7 +465,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
@@ -483,7 +483,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param height       目标高度（>0）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
@@ -509,7 +509,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param width        目标宽度（>0）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
@@ -535,7 +535,7 @@ public class ThumbnailUtils {
 	 * @param inputImage   原始图像（非null）
 	 * @param imageSize    目标尺寸（非null）
 	 * @param outputFile   输出文件（非null）
-	 * @param outputFormat 图片格式（非空，如PNG/JPG）
+	 * @param outputFormat 输出图片格式（非空，如PNG/JPG）
 	 * @param filterType   重采样滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 是否成功写入
 	 * @throws IOException              当outputFile是目录或I/O错误时抛出
@@ -710,7 +710,7 @@ public class ThumbnailUtils {
 	 *
 	 * @param inputImage      原始图像
 	 * @param outputImageSize 输出尺寸
-	 * @param outputFormat    图片格式（如PNG/JPG）
+	 * @param outputFormat    输出图片格式（非空，如PNG/JPG）
 	 * @param filterType      滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
 	 * @return 处理后的图像
 	 * @since 1.0.0
