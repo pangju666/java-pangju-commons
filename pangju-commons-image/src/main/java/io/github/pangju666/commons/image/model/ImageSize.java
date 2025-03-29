@@ -29,6 +29,11 @@ import org.apache.commons.lang3.Validate;
  * @since 1.0.0
  */
 public record ImageSize(int width, int height) {
+	public ImageSize {
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
+	}
+
 	/**
 	 * 根据目标宽度等比缩放
 	 * <p>算法说明：</p>
@@ -93,10 +98,11 @@ public record ImageSize(int width, int height) {
 	 *
 	 * @param targetSize 最大允许尺寸（宽度必须 > 0，高度必须大于0）
 	 * @return 满足双约束的等比缩放尺寸
-	 * @throws IllegalArgumentException 当任一参数 ≤ 0时抛出
+	 * @throws IllegalArgumentException 当参数为null时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scale(final ImageSize targetSize) {
+		Validate.notNull(targetSize, "targetSize 不可为 null");
 		return scale(targetSize.width(), targetSize.height());
 	}
 

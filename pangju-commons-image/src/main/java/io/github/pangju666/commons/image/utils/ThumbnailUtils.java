@@ -57,9 +57,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize,
-									 final OutputStream outputStream, final String outputFormat) throws IOException {
-		return scale(inputImage, imageSize, outputStream, outputFormat, ResampleOp.FILTER_TRIANGLE);
+	public static boolean forceScale(final BufferedImage inputImage, final OutputStream outputStream,
+									 final ImageSize imageSize, final String outputFormat) throws IOException {
+		return scale(inputImage, outputStream, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize, final OutputStream outputStream,
+	public static boolean forceScale(final BufferedImage inputImage, final OutputStream outputStream, final ImageSize imageSize,
 									 final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
@@ -97,8 +97,8 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile) throws IOException {
-		return scale(inputImage, imageSize, outputFile,
+	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize) throws IOException {
+		return scale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), ResampleOp.FILTER_TRIANGLE);
 	}
 
@@ -114,9 +114,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 									 final int filterType) throws IOException {
-		return scale(inputImage, imageSize, outputFile,
+		return scale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), filterType);
 	}
 
@@ -132,9 +132,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 									 final String outputFormat) throws IOException {
-		return scale(inputImage, imageSize, outputFile, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scale(inputImage, outputFile, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean forceScale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 									 final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
@@ -204,9 +204,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final OutputStream outputStream,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final OutputStream outputStream, final int height,
 										final String outputFormat) throws IOException {
-		return scaleByHeight(inputImage, height, outputStream, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scaleByHeight(inputImage, outputStream, height, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -221,9 +221,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final OutputStream outputStream,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final OutputStream outputStream, final int width,
 									   final String outputFormat) throws IOException {
-		return scaleByWidth(inputImage, width, outputStream, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scaleByWidth(inputImage, outputStream, width, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -239,9 +239,9 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final OutputStream outputStream,
+	public static boolean scale(final BufferedImage inputImage, final OutputStream outputStream, final ImageSize imageSize,
 								final String outputFormat) throws IOException {
-		return scale(inputImage, imageSize, outputStream, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scale(inputImage, outputStream, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -257,7 +257,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final OutputStream outputStream,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final OutputStream outputStream, final int height,
 										final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(height > 0, "height 必须大于0");
@@ -282,7 +282,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final OutputStream outputStream,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final OutputStream outputStream, final int width,
 									   final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(width > 0, "width 必须大于0");
@@ -308,7 +308,7 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final OutputStream outputStream,
+	public static boolean scale(final BufferedImage inputImage, final OutputStream outputStream, final ImageSize imageSize,
 								final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
@@ -331,8 +331,8 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final File outputFile) throws IOException {
-		return scaleByHeight(inputImage, height, outputFile,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final File outputFile, final int height) throws IOException {
+		return scaleByHeight(inputImage, outputFile, height,
 			FilenameUtils.getExtension(outputFile.getName()), ResampleOp.FILTER_TRIANGLE);
 	}
 
@@ -347,8 +347,8 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final File outputFile) throws IOException {
-		return scaleByWidth(inputImage, width, outputFile,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final File outputFile, final int width) throws IOException {
+		return scaleByWidth(inputImage, outputFile, width,
 			FilenameUtils.getExtension(outputFile.getName()), ResampleOp.FILTER_TRIANGLE);
 	}
 
@@ -364,8 +364,8 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile) throws IOException {
-		return scale(inputImage, imageSize, outputFile,
+	public static boolean scale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize) throws IOException {
+		return scale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), ResampleOp.FILTER_TRIANGLE);
 	}
 
@@ -381,9 +381,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final File outputFile,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final File outputFile, final int height,
 										final int filterType) throws IOException {
-		return scaleByHeight(inputImage, height, outputFile,
+		return scaleByHeight(inputImage, outputFile, height,
 			FilenameUtils.getExtension(outputFile.getName()), filterType);
 	}
 
@@ -399,9 +399,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final File outputFile,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final File outputFile, final int width,
 									   final int filterType) throws IOException {
-		return scaleByWidth(inputImage, width, outputFile,
+		return scaleByWidth(inputImage, outputFile, width,
 			FilenameUtils.getExtension(outputFile.getName()), filterType);
 	}
 
@@ -418,9 +418,9 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean scale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 								final int filterType) throws IOException {
-		return scale(inputImage, imageSize, outputFile,
+		return scale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), filterType);
 	}
 
@@ -436,9 +436,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final File outputFile,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final File outputFile, final int height,
 										final String outputFormat) throws IOException {
-		return scaleByHeight(inputImage, height, outputFile, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scaleByHeight(inputImage, outputFile, height, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -453,9 +453,9 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final File outputFile,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final File outputFile, final int width,
 									   final String outputFormat) throws IOException {
-		return scaleByWidth(inputImage, width, outputFile, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scaleByWidth(inputImage, outputFile, width, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -471,9 +471,9 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean scale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 								final String outputFormat) throws IOException {
-		return scale(inputImage, imageSize, outputFile, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return scale(inputImage, outputFile, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -489,7 +489,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或高度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByHeight(final BufferedImage inputImage, final int height, final File outputFile,
+	public static boolean scaleByHeight(final BufferedImage inputImage, final File outputFile, final int height,
 										final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(height > 0, "height 必须大于0");
@@ -515,7 +515,7 @@ public class ThumbnailUtils {
 	 * @throws IllegalArgumentException 当任一参数为空或宽度<=0时抛出
 	 * @since 1.0.0
 	 */
-	public static boolean scaleByWidth(final BufferedImage inputImage, final int width, final File outputFile,
+	public static boolean scaleByWidth(final BufferedImage inputImage, final File outputFile, final int width,
 									   final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(width > 0, "width 必须大于0");
@@ -542,7 +542,7 @@ public class ThumbnailUtils {
 	 * @see ImageSize#scale(ImageSize)
 	 * @since 1.0.0
 	 */
-	public static boolean scale(final BufferedImage inputImage, final ImageSize imageSize, final File outputFile,
+	public static boolean scale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 								final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
