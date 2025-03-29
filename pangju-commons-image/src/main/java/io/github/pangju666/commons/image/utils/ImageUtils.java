@@ -37,6 +37,7 @@ import org.apache.commons.lang3.Validate;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.ImageInputStream;
 import java.io.*;
 import java.util.Collection;
@@ -65,18 +66,33 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 检查图像MIME类型是否是ImageIO支持的图像类型
+	 * 检查MIME类型是否是ImageIO支持可读取的图像类型
 	 *
-	 * @param type 图像MIME类型，允许为空，空将返回false
-	 * @return 如果文件是支持的图像类型返回true，否则返回false
+	 * @param imageMimeType 图像MIME类型，允许为空，空将返回false
+	 * @return 如果是支持读取的图像类型返回true，否则返回false
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
 	 */
-	public static boolean isSupportType(final String type) {
-		if (StringUtils.isBlank(type)) {
+	public static boolean isSupportReadType(final String imageMimeType) {
+		if (StringUtils.isBlank(imageMimeType)) {
 			return false;
 		}
-		return ImageConstants.getSupportImageTypes().contains(type);
+		return ImageConstants.getSupportReadImageTypes().contains(imageMimeType);
+	}
+
+	/**
+	 * 检查图像MIME类型是否是ImageIO支持可写入的图像类型
+	 *
+	 * @param imageMimeType 图像MIME类型，允许为空，空将返回false
+	 * @return 如果是支持写入的图像类型返回true，否则返回false
+	 * @see ImageWriterSpi
+	 * @since 1.0.0
+	 */
+	public static boolean isSupportWriteType(final String imageMimeType) {
+		if (StringUtils.isBlank(imageMimeType)) {
+			return false;
+		}
+		return ImageConstants.getSupportWriteImageTypes().contains(imageMimeType);
 	}
 
 	/**
