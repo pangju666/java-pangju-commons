@@ -21,30 +21,12 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * 图像处理相关常量类
- * <p>提供图像处理过程中使用的标准常量值，包括颜色值、MIME类型、支持格式集合等</p>
- * <p>本类定义的常量均与图像处理规范标准保持一致</p>
+ * 图像处理相关常量
  *
  * @author pangju666
  * @since 1.0.0
  */
 public class ImageConstants {
-	/**
-	 * 白色RGB十六进制表示
-	 * <p>格式：0xAARRGGBB</p>
-	 * <p>实际值：0xFFFFFFFF（不透明纯白）</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static int WHITE_HEX_RGB = 0xFFFFFFFF;
-	/**
-	 * 黑色RGB十六进制表示
-	 * <p>格式：0xAARRGGBB</p>
-	 * <p>实际值：0xFF000000（不透明纯黑）</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static int BLACK_HEX_RGB = 0xFF000000;
 	/**
 	 * 不支持透明通道的图像格式集合
 	 *
