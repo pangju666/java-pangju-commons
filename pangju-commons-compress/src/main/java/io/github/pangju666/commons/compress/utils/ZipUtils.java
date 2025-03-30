@@ -55,6 +55,44 @@ public class ZipUtils {
 	}
 
 	/**
+	 * 检查指定文件是否为ZIP格式
+	 *
+	 * @param file 待检测的File对象，需确保文件存在且可读
+	 * @return boolean 当且仅当文件存在且检测为ZIP格式时返回true
+	 * @throws IOException 当文件访问异常时抛出
+	 * @since 1.0.0
+	 */
+	public static boolean isZip(final File file) throws IOException {
+		return FileUtils.exist(file, true) &&
+			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.ZIP_MIME_TYPE);
+	}
+
+	/**
+	 * 检查字节数组是否为ZIP格式数据
+	 *
+	 * @param bytes 待检测的字节数组，非空数组才会进行格式检测
+	 * @return boolean 当且仅当数组非空且检测为ZIP格式时返回true
+	 * @since 1.0.0
+	 */
+	public static boolean isZip(final byte[] bytes) {
+		return ArrayUtils.isNotEmpty(bytes) &&
+			IOConstants.getDefaultTika().detect(bytes).equals(CompressConstants.ZIP_MIME_TYPE);
+	}
+
+	/**
+	 * 检查输入流是否为ZIP格式数据
+	 *
+	 * @param inputStream 待检测的输入流，需确保流可读取且未关闭
+	 * @return boolean 当且仅当流非空且检测为ZIP格式时返回true
+	 * @throws IOException 当流读取异常时抛出
+	 * @since 1.0.0
+	 */
+	public static boolean isZip(final InputStream inputStream) throws IOException {
+		return Objects.nonNull(inputStream) &&
+			IOConstants.getDefaultTika().detect(inputStream).equals(CompressConstants.ZIP_MIME_TYPE);
+	}
+
+	/**
 	 * 解压ZIP文件到指定目录
 	 *
 	 * @param inputFile ZIP文件（必须存在且为有效ZIP文件）
@@ -103,9 +141,9 @@ public class ZipUtils {
 	/**
 	 * 从输入流解压ZIP内容
 	 *
-	 * @param inputStream ZIP输入流（自动关闭）
+	 * @param inputStream ZIP输入流
 	 * @param outputDir   输出目录（自动创建）
-	 * @throws IOException 流内容不是有效ZIP格式时抛出：
+	 * @throws IOException 流内容不是有效ZIP格式时抛出
 	 * @throws NullPointerException inputStream为null时抛出
 	 * @since 1.0.0
 	 */

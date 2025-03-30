@@ -53,6 +53,44 @@ public class SevenZUtils {
 	}
 
 	/**
+	 * 检查指定文件是否为7z压缩格式
+	 *
+	 * @param file 待检查的文件对象，不可为null且需实际存在
+	 * @return 当文件存在且检测为7z格式时返回true，否则false
+	 * @throws IOException 当文件访问发生I/O异常时抛出
+	 * @since 1.0.0
+	 */
+	public static boolean is7z(final File file) throws IOException {
+		return FileUtils.exist(file, true) &&
+			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.SEVEN_Z_MIME_TYPE);
+	}
+
+	/**
+	 * 检查字节数组内容是否为7z压缩格式
+	 *
+	 * @param bytes 待检查的字节数组，不可为空数组或null
+	 * @return 当数组非空且内容检测为7z格式时返回true，否则false
+	 * @since 1.0.0
+	 */
+	public static boolean is7z(final byte[] bytes) {
+		return ArrayUtils.isNotEmpty(bytes) &&
+			IOConstants.getDefaultTika().detect(bytes).equals(CompressConstants.SEVEN_Z_MIME_TYPE);
+	}
+
+	/**
+	 * 检查输入流内容是否为7z压缩格式
+	 *
+	 * @param inputStream 待检查的输入流对象，不可为null
+	 * @return 当输入流非空且内容检测为7z格式时返回true，否则false
+	 * @throws IOException 当流读取发生I/O异常时抛出
+	 * @since 1.0.0
+	 */
+	public static boolean is7z(final InputStream inputStream) throws IOException {
+		return Objects.nonNull(inputStream) &&
+			IOConstants.getDefaultTika().detect(inputStream).equals(CompressConstants.SEVEN_Z_MIME_TYPE);
+	}
+
+	/**
 	 * 解压7z文件到指定目录
 	 *
 	 * @param inputFile 7z文件（必须存在且可读）
@@ -77,26 +115,6 @@ public class SevenZUtils {
 		}
 		try (SevenZFile sevenZFile = new SevenZFile.Builder().setFile(inputFile).get()) {
 			unCompress(sevenZFile, outputDir);
-		}
-	}
-
-	/**
-	 * 从字节数组解压7z内容
-	 *
-	 * @param bytes     字节数组
-	 * @param outputDir 输出目录（自动创建）
-	 * @throws IOException 内容不是有效7z格式时抛出：
-	 * @since 1.0.0
-	 */
-	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
-		if (ArrayUtils.isNotEmpty(bytes)) {
-			String mimeType = IOConstants.getDefaultTika().detect(bytes);
-			if (!CompressConstants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {
-				throw new IOException("不是7z类型文件");
-			}
-			try (SevenZFile sevenZFile = new SevenZFile.Builder().setByteArray(bytes).get()) {
-				unCompress(sevenZFile, outputDir);
-			}
 		}
 	}
 
