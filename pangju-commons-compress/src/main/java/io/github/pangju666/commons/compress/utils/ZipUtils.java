@@ -107,9 +107,6 @@ public class ZipUtils {
 	 */
 	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
-		if (inputFile.exists() && !inputFile.isFile()) {
-			throw new IOException(inputFile.getAbsolutePath() + " 不是一个文件路径");
-		}
 
 		String mimeType = FileUtils.getMimeType(inputFile);
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {

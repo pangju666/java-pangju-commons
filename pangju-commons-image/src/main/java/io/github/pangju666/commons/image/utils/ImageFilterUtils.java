@@ -439,7 +439,10 @@ public class ImageFilterUtils {
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws IOException {
-		if (file.exists() && file.isDirectory()) {
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
+		}
+		if (!file.isFile()) {
 			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
