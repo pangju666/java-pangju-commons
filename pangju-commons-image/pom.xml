@@ -31,13 +31,19 @@
 			<artifactId>common-image</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.spockframework</groupId>
-			<artifactId>spock-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-imageio</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parser-image-module</artifactId>
+			<version>${tika.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.spockframework</groupId>
+			<artifactId>spock-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
