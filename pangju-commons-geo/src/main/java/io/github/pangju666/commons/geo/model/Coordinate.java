@@ -70,42 +70,6 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	}
 
 	/**
-	 * 单精度坐标构造方法
-	 *
-	 * @param longitude 经度（十进制度数）
-	 * @param latitude  纬度（十进制度数）
-	 * @see #Coordinate(BigDecimal, BigDecimal)
-	 * @since 1.0.0
-	 */
-	public Coordinate(float longitude, float latitude) {
-		this(BigDecimal.valueOf(longitude), BigDecimal.valueOf(latitude));
-	}
-
-	/**
-	 * 长整数坐标构造方法
-	 *
-	 * @param longitude 经度整数值（自动转换为BigDecimal）
-	 * @param latitude  纬度整数值（自动转换为BigDecimal）
-	 * @see #Coordinate(BigDecimal, BigDecimal)
-	 * @since 1.0.0
-	 */
-	public Coordinate(long longitude, long latitude) {
-		this(BigDecimal.valueOf(longitude), BigDecimal.valueOf(latitude));
-	}
-
-	/**
-	 * 整数坐标构造方法
-	 *
-	 * @param longitude 经度整数值（自动转换为BigDecimal）
-	 * @param latitude  纬度整数值（自动转换为BigDecimal）
-	 * @see #Coordinate(BigDecimal, BigDecimal)
-	 * @since 1.0.0
-	 */
-	public Coordinate(int longitude, int latitude) {
-		this(BigDecimal.valueOf(longitude), BigDecimal.valueOf(latitude));
-	}
-
-	/**
 	 * 度分秒格式构造方法
 	 *
 	 * @param longitude 经度字符串（格式示例：116°23'29.34"E）
@@ -139,11 +103,12 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	 * 转换为度分秒格式字符串
 	 *
 	 * @return 格式示例：116°23'29.34"E,39°54'15.12"N
-	 * @see CoordinateUtils#toDMS(BigDecimal)
+	 * @see CoordinateUtils#toLongitudeDms(BigDecimal)
+	 * @see CoordinateUtils#toLatitudeDMS(BigDecimal)
 	 * @since 1.0.0
 	 */
 	@Override
 	public String toString() {
-		return CoordinateUtils.toDMS(longitude) + "," + CoordinateUtils.toDMS(latitude);
+		return CoordinateUtils.toLongitudeDms(longitude) + "," + CoordinateUtils.toLatitudeDMS(latitude);
 	}
 }

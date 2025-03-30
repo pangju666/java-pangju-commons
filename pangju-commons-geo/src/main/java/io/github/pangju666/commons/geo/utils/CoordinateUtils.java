@@ -19,12 +19,27 @@ package io.github.pangju666.commons.geo.utils;
 import ch.obermuhlner.math.big.BigDecimalMath;
 import io.github.pangju666.commons.geo.lang.GeoConstants;
 import io.github.pangju666.commons.geo.model.Coordinate;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.Objects;
 
+/**
+ * 地理坐标转换工具类
+ * <p>提供坐标系转换、度分秒格式处理等核心功能，支持高精度地理计算</p>
+ *
+ * <h3>主要功能增强：</h3>
+ * <ul>
+ *     <li><strong>经纬度分离处理</strong> - 新增纬度/经度专用转换方法</li>
+ *     <li><strong>输入验证增强</strong> - 自动过滤无效坐标值</li>
+ *     <li><strong>国际化支持</strong> - 使用标准方向字符常量</li>
+ * </ul>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class CoordinateUtils {
 	/**
 	 * 圆周率
@@ -44,6 +59,13 @@ public class CoordinateUtils {
 	 * @since 1.0.0
 	 */
 	protected static final BigDecimal EE = BigDecimal.valueOf(0.00669342162296594323);
+	/**
+	 * 经纬度度分秒格式
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final String DMS_FORMAT = "%s" + GeoConstants.RADIUS_CHAR + "%s" +
+		GeoConstants.MINUTE_CHAR + "%.2f" + GeoConstants.SECONDS_CHAR + "%c";
 
 	protected static final BigDecimal ZERO_ONE = BigDecimal.valueOf(0.1);
 	protected static final BigDecimal ZERO_TWO = BigDecimal.valueOf(0.2);
@@ -56,7 +78,6 @@ public class CoordinateUtils {
 	protected static final BigDecimal THIRTY_FIVE = BigDecimal.valueOf(35);
 	protected static final BigDecimal FORTY = BigDecimal.valueOf(40);
 	protected static final BigDecimal SIXTY = BigDecimal.valueOf(60);
-	protected static final BigDecimal NINETY = BigDecimal.valueOf(90);
 	protected static final BigDecimal NEGATE_ONE_HUNDRED = BigDecimal.valueOf(-100);
 	protected static final BigDecimal ONE_HUNDRED_AND_FIVE = BigDecimal.valueOf(105);
 	protected static final BigDecimal ONE_HUNDRED_AND_FIFTY = BigDecimal.valueOf(150);
@@ -70,73 +91,91 @@ public class CoordinateUtils {
 	}
 
 	/**
-	 * 将十进制经纬度转换为度分秒格式经纬度
+	 * 将十进制纬度转换为度分秒格式
 	 *
-	 * @param coordinate 十进制经纬度（范围：经度-180~180，纬度-90~90）
-	 * @return 度分秒经纬度（示例：116°23'29.34"E）
-	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @param coordinate 十进制纬度值（范围：-90° ~ 90°）
+	 * @return 度分秒格式纬度字符串（示例：39°54'15.12"N），超出范围返回null
 	 * @since 1.0.0
 	 */
-	public static String toDMS(final BigDecimal coordinate) {
-		Validate.notNull(coordinate, "coordinate 不可为 null");
+	public static String toLatitudeDMS(final BigDecimal coordinate) {
+		if (Objects.isNull(coordinate)) {
+			return null;
+		}
+		if (coordinate.doubleValue() > GeoConstants.MAX_LATITUDE || coordinate.doubleValue() < GeoConstants.MIN_LATITUDE) {
+			return null;
+		}
+		return toDMS(coordinate, true);
+	}
 
-		// 确保输入值为正数以方便计算
-		boolean isNegative = coordinate.signum() < 0;
-		BigDecimal absDecimalDegree = coordinate.abs();
-
-		// 计算度、分和秒
-		BigDecimal degrees = absDecimalDegree.setScale(0, RoundingMode.DOWN); // 取整得到度
-		BigDecimal remaining = absDecimalDegree.subtract(degrees);            // 剩余的小数部分
-		BigDecimal minutes = remaining.multiply(SIXTY).setScale(0, RoundingMode.DOWN); // 计算分
-		BigDecimal seconds = remaining.multiply(SIXTY)
-			.subtract(minutes)
-			.multiply(SIXTY)
-			.setScale(2, RoundingMode.HALF_UP); // 计算秒，保留两位小数
-
-		// 判断方向
-		boolean b = coordinate.abs().compareTo(NINETY) <= 0;
-		String direction = isNegative ? (b ? "S" : "W") : (b ? "N" : "E");
-
-		// 格式化输出
-		return String.format("%s°%s'%.2f\"%s", degrees.toPlainString(), minutes.toPlainString(), seconds.doubleValue(), direction);
+	/**
+	 * 将十进制经度转换为度分秒格式
+	 *
+	 * @param coordinate 十进制经度值（范围：-180° ~ 180°）
+	 * @return 度分秒格式经度字符串（示例：116°23'29.34"E），超出范围返回null
+	 * @since 1.0.0
+	 */
+	public static String toLongitudeDms(final BigDecimal coordinate) {
+		if (Objects.isNull(coordinate)) {
+			return null;
+		}
+		if (coordinate.doubleValue() > GeoConstants.MAX_LONGITUDE || coordinate.doubleValue() < GeoConstants.MIN_LONGITUDE) {
+			return null;
+		}
+		return toDMS(coordinate, false);
 	}
 
 	/**
 	 * 将度分秒格式经纬度转换为十进制度经纬度
 	 *
-	 * @param coordinate 度分秒格式经纬度（示例：116°23'29.34"E）
-	 * @return 十进制经纬度
-	 * @throws IllegalArgumentException 当参数为空或格式错误时抛出
+	 * @param dms 度分秒格式经纬度（示例：116°23'29.34"E）
+	 * @return 十进制经纬度，方向为西/南时返回负数。输入空值返回null
 	 * @throws NumberFormatException    当数值解析失败时抛出
 	 * @since 1.0.0
 	 */
-	public static BigDecimal fromDMS(final String coordinate) {
-		Validate.notBlank(coordinate, "coordinate 不可为 null");
+	public static BigDecimal fromDMS(final String dms) {
+		if (StringUtils.isBlank(dms)) {
+			return null;
+		}
 
-		int degreeIndex = coordinate.indexOf(GeoConstants.RADIUS_CHAR);
-		BigDecimal degreeNumber = new BigDecimal(coordinate.substring(0, degreeIndex));
+		try {
+			int degreeIndex = dms.indexOf(GeoConstants.RADIUS_CHAR);
+			BigDecimal degreeNumber = new BigDecimal(dms.substring(0, degreeIndex));
 
-		int minuteIndex = coordinate.indexOf(GeoConstants.MINUTE_CHAR, degreeIndex);
-		BigDecimal minuteNumber = new BigDecimal(coordinate.substring(degreeIndex + 1, minuteIndex));
+			int minuteIndex = dms.indexOf(GeoConstants.MINUTE_CHAR, degreeIndex);
+			BigDecimal minuteNumber = new BigDecimal(dms.substring(degreeIndex + 1, minuteIndex));
 
-		int secondsIndex = coordinate.indexOf(GeoConstants.SECONDS_CHAR, minuteIndex);
-		BigDecimal secondsNumber = new BigDecimal(coordinate.substring(minuteIndex + 1, secondsIndex));
+			int secondsIndex = dms.indexOf(GeoConstants.SECONDS_CHAR, minuteIndex);
+			BigDecimal secondsNumber = new BigDecimal(dms.substring(minuteIndex + 1, secondsIndex));
 
-		return degreeNumber.add(minuteNumber.divide(SIXTY, MathContext.DECIMAL32))
-			.add(secondsNumber.divide(THREE_THOUSAND_AND_SIX_HUNDRED, MathContext.DECIMAL32));
+			boolean negative = false;
+			char direction = dms.charAt(dms.length() - 1);
+			if (direction == GeoConstants.WEST_CHAR || direction == GeoConstants.SOUTH_CHAR) {
+				negative = true;
+			}
+
+			BigDecimal coordinate = degreeNumber.add(minuteNumber.divide(SIXTY, MathContext.DECIMAL32))
+				.add(secondsNumber.divide(THREE_THOUSAND_AND_SIX_HUNDRED, MathContext.DECIMAL32));
+			if (negative) {
+				coordinate = coordinate.negate();
+			}
+			return coordinate;
+		} catch (StringIndexOutOfBoundsException e) {
+			throw new NumberFormatException("无效的度分秒格式经纬度");
+		}
 	}
 
 	/**
 	 * GCJ-02坐标系转WGS-84坐标系
 	 *
 	 * @param coordinate GCJ-02坐标（必须为中国境内坐标）
-	 * @return WGS-84坐标系坐标
-	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @return WGS-84坐标系坐标，输入空值返回null
 	 * @apiNote 转换存在约50-500米误差
 	 * @since 1.0.0
 	 */
 	public static Coordinate GCJ02ToWGS84(final Coordinate coordinate) {
-		Validate.notNull(coordinate, "coordinate 不可为 null");
+		if (Objects.isNull(coordinate)) {
+			return null;
+		}
 
 		if (coordinate.isOutOfChina()) {
 			return coordinate;
@@ -151,13 +190,14 @@ public class CoordinateUtils {
 	 * WGS-84坐标系转GCJ-02坐标系
 	 *
 	 * @param coordinate WGS-84坐标（必须为中国境内坐标）
-	 * @return GCJ-02坐标系坐标
-	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @return GCJ-02坐标系坐标，输入空值返回null
 	 * @apiNote 中国境外坐标直接返回原值
 	 * @since 1.0.0
 	 */
 	public static Coordinate WGS84ToGCJ02(final Coordinate coordinate) {
-		Validate.notNull(coordinate, "coordinate 不可为 null");
+		if (Objects.isNull(coordinate)) {
+			return null;
+		}
 
 		if (coordinate.isOutOfChina()) {
 			return coordinate;
@@ -207,7 +247,7 @@ public class CoordinateUtils {
 	 * 经度偏移变换计算
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @param latitude  纬度偏移基数（已减35.0）
 	 * @return 经度偏移值
 	 * @since 1.0.0
 	 */
@@ -259,7 +299,7 @@ public class CoordinateUtils {
 	 * 纬度偏移变换计算（内部算法）
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @param latitude  纬度偏移基数（已减35.0）
 	 * @return 纬度偏移值
 	 * @since 1.0.0
 	 */
@@ -305,5 +345,40 @@ public class CoordinateUtils {
 					MathContext.DECIMAL32).multiply(THREE_HUNDRED_AND_TWENTY))
 				.multiply(TWO)
 				.divide(THREE, MathContext.DECIMAL32));
+	}
+
+	/**
+	 * 将十进制纬度转换为度分秒格式
+	 *
+	 * @param coordinate 十进制度数值
+	 * @param latitude   坐标类型标记：true表示纬度，false表示经度
+	 * @return 格式化的度分秒字符串
+	 * @implNote 方向字符根据坐标类型和正负值自动确定：
+	 * <ul>
+	 *     <li>纬度：N(北纬)/S(南纬)</li>
+	 *     <li>经度：E(东经)/W(西经)</li>
+	 * </ul>
+	 * @since 1.0.0
+	 */
+	protected static String toDMS(BigDecimal coordinate, boolean latitude) {
+		// 确保输入值为正数以方便计算
+		boolean isNegative = coordinate.signum() < 0;
+		BigDecimal absDecimalDegree = coordinate.abs();
+
+		// 计算度、分和秒
+		BigDecimal degrees = absDecimalDegree.setScale(0, RoundingMode.DOWN); // 取整得到度
+		BigDecimal remaining = absDecimalDegree.subtract(degrees);            // 剩余的小数部分
+		BigDecimal minutes = remaining.multiply(SIXTY).setScale(0, RoundingMode.DOWN); // 计算分
+		BigDecimal seconds = remaining.multiply(SIXTY)
+			.subtract(minutes)
+			.multiply(SIXTY)
+			.setScale(2, RoundingMode.HALF_UP); // 计算秒，保留两位小数
+
+		// 判断方向
+		char direction = isNegative ? (latitude ? GeoConstants.SOUTH_CHAR : GeoConstants.WEST_CHAR) :
+			(latitude ? GeoConstants.North_DIRECTION : GeoConstants.EAST_CHAR);
+
+		// 格式化输出
+		return String.format(DMS_FORMAT, degrees.toPlainString(), minutes.toPlainString(), seconds.doubleValue(), direction);
 	}
 }

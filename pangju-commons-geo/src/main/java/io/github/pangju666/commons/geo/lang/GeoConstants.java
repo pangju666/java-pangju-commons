@@ -36,13 +36,37 @@ public class GeoConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final char MINUTE_CHAR = '′';
+	public static final char MINUTE_CHAR = '\'';
 	/**
 	 * 秒
 	 *
 	 * @since 1.0.0
 	 */
-	public static final char SECONDS_CHAR = '″';
+	public static final char SECONDS_CHAR = '\"';
+	/**
+	 * 北
+	 *
+	 * @since 1.0.0
+	 */
+	public static final char North_DIRECTION = 'N';
+	/**
+	 * 南
+	 *
+	 * @since 1.0.0
+	 */
+	public static final char SOUTH_CHAR = 'S';
+	/**
+	 * 东
+	 *
+	 * @since 1.0.0
+	 */
+	public static final char EAST_CHAR = 'E';
+	/**
+	 * 西
+	 *
+	 * @since 1.0.0
+	 */
+	public static final char WEST_CHAR = 'W';
 
 	/**
 	 * 中国最小纬度
