@@ -20,6 +20,7 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.MemoryMappedFileInputStream;
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -70,10 +71,39 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 打开内存映射文件输入流（默认缓冲区）
+	 * 创建非同步缓冲输入流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 *
+	 * @param file 输入文件（必须存在且为文件）
+	 * @return 包装后的缓冲输入流
+	 * @throws IOException 当流初始化失败时抛出
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file) throws IOException {
+		return openUnsynchronizedBufferedInputStream(file, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建非同步缓冲输入流（自定义缓冲区）
+	 *
+	 * @param file       输入文件（必须存在且为文件）
+	 * @param bufferSize 缓冲区大小（单位：字节）
+	 * @return 包装后的缓冲输入流
+	 * @throws IOException 当流初始化失败时抛出
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file, final int bufferSize) throws IOException {
+		checkExists(file, "file不可为 null", true);
+		return new UnsynchronizedBufferedInputStream.Builder()
+			.setBufferSize(bufferSize)
+			.setFile(file)
+			.get();
+	}
+
+	/**
+	 * 打开内存映射文件输入流（{@link #DEFAULT_MEMORY_MAPPED_BUFFER_SIZE 默认缓冲区}）
 	 * <p>适用于需要随机访问的大文件读取场景</p>
 	 *
-	 * @param file 目标文件（必须存在且为文件）
+	 * @param file 输入文件（必须存在且为文件）
 	 * @return 配置好的内存映射输入流
 	 * @throws FileNotFoundException 当以下情况时抛出：
 	 *                               <ul>
@@ -91,7 +121,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * 打开内存映射文件输入流（自定义缓冲区）
 	 * <p>示例：读取4K对齐的SSD存储设备文件时可设置为4096字节</p>
 	 *
-	 * @param file       目标文件
+	 * @param file       输入文件（必须存在且为文件）
 	 * @param bufferSize 自定义缓冲区大小（单位：字节）
 	 * @return 内存映射输入流实例
 	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
@@ -107,10 +137,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 打开内存映射文件输入流（默认缓冲区）
+	 * 打开内存映射文件输入流（{@link #DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE 默认缓冲区}）
 	 * <p>适用于需要随机访问的大文件读取场景</p>
 	 *
-	 * @param file 目标文件（必须存在且为文件）
+	 * @param file 输入文件（必须存在且为文件）
 	 * @return 配置好的内存映射输入流
 	 * @throws FileNotFoundException 当以下情况时抛出：
 	 *                               <ul>
@@ -128,7 +158,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * 打开内存映射文件输入流（自定义缓冲区）
 	 * <p>示例：读取4K对齐的SSD存储设备文件时可设置为4096字节</p>
 	 *
-	 * @param file       目标文件
+	 * @param file       输入文件（必须存在且为文件）
 	 * @param bufferSize 自定义缓冲区大小（单位：字节）
 	 * @return 内存映射输入流实例
 	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出

@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.io.utils;
 
+import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -92,12 +94,6 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	public static final String AES_CTR_NO_PADDING = "AES/CTR/NoPadding";
 	/**
-	 * 流缓冲区默认大小（单位：字节）
-	 *
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_STREAM_BUFFER_SIZE = 8192;
-	/**
 	 * AES对称加密算法名称
 	 *
 	 * @since 1.0.0
@@ -115,47 +111,112 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	protected IOUtils() {
 	}
 
-	public static UnsynchronizedBufferedInputStream toUnsynchronizedBufferedInputStream(final InputStream inputStream) throws IOException {
-		return toUnsynchronizedBufferedInputStream(inputStream, DEFAULT_STREAM_BUFFER_SIZE);
+	/**
+	 * 创建非同步缓冲输入流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 *
+	 * @param inputStream 原始输入流（必须非null）
+	 * @return 包装后的缓冲输入流
+	 * @throws IOException          当流初始化失败时抛出
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream) throws IOException {
+		return unsynchronizedBuffer(inputStream, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
 	}
 
-	public static UnsynchronizedBufferedInputStream toUnsynchronizedBufferedInputStream(final InputStream inputStream, final int bufferSize) throws IOException {
+	/**
+	 * 创建非同步缓冲输入流（自定义缓冲区）
+	 *
+	 * @param inputStream 原始输入流（必须非null）
+	 * @param bufferSize  缓冲区大小（单位：字节）
+	 * @return 包装后的缓冲输入流
+	 * @throws IOException          当流初始化失败时抛出
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream, final int bufferSize) throws IOException {
+		Objects.requireNonNull(inputStream, "inputStream");
 		return new UnsynchronizedBufferedInputStream.Builder()
 			.setBufferSize(bufferSize)
 			.setInputStream(inputStream)
 			.get();
 	}
 
-	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes) throws IOException {
-		return toUnsynchronizedByteArrayOutputStream(bytes, DEFAULT_STREAM_BUFFER_SIZE);
+	/**
+	 * 创建非同步字节数组输入流
+	 *
+	 * @param bytes 原始字节数组（允许空数组）
+	 * @return 可重复读取的输入流
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedByteArrayInputStream toUnsynchronizedByteArrayInputStream(final byte[] bytes) throws IOException {
+		return UnsynchronizedByteArrayInputStream.builder()
+			.setByteArray(ArrayUtils.nullToEmpty(bytes))
+			.setOffset(0)
+			.setLength(ArrayUtils.getLength(bytes))
+			.get();
 	}
 
+	/**
+	 * 创建非同步字节数组输出流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 *
+	 * @param bytes 原始字节数组（允许空数组）
+	 * @return 包含原始数据的输出流
+	 * @throws IOException 当写入失败时抛出
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes) throws IOException {
+		return toUnsynchronizedByteArrayOutputStream(bytes, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建非同步字节数组输出流（自定义缓冲区）
+	 *
+	 * @param bytes 原始字节数组（允许空数组）
+	 * @param bufferSize  缓冲区大小（单位：字节）
+	 * @return 包含原始数据的输出流
+	 * @throws IOException 当写入失败时抛出
+	 * @since 1.0.0
+	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes, final int bufferSize) throws IOException {
 		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
 			.setBufferSize(bufferSize)
 			.get();
-		outputStream.write(bytes);
+		outputStream.write(ArrayUtils.nullToEmpty(bytes));
 		return outputStream;
 	}
 
+	/**
+	 * 创建非同步字节数组输出流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 *
+	 * @param inputStream 输入流（必须可读且未关闭）
+	 * @return 包含输入流内容的输出流
+	 * @throws IOException 当读取失败时抛出
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @since 1.0.0
+	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
-		return toUnsynchronizedByteArrayOutputStream(inputStream, DEFAULT_STREAM_BUFFER_SIZE);
+		return toUnsynchronizedByteArrayOutputStream(inputStream, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
 	}
 
+	/**
+	 * 创建非同步字节数组输出流（自定义缓冲区）
+	 *
+	 * @param inputStream 输入流（必须可读且未关闭）
+	 * @param bufferSize  初始缓冲区容量（单位：字节）
+	 * @return 包含输入流内容的输出流
+	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @throws IOException             当读取失败时抛出
+	 * @since 1.0.0
+	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream, final int bufferSize) throws IOException {
+		Objects.requireNonNull(inputStream, "inputStream");
 		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
 			.setBufferSize(bufferSize)
 			.get();
 		outputStream.write(inputStream);
 		return outputStream;
-	}
-
-	public static UnsynchronizedByteArrayInputStream toUnsynchronizedByteArrayInputStream(final byte[] bytes) throws IOException {
-		return UnsynchronizedByteArrayInputStream.builder()
-			.setByteArray(bytes)
-			.setOffset(0)
-			.setLength(bytes.length)
-			.get();
 	}
 
 	/**
