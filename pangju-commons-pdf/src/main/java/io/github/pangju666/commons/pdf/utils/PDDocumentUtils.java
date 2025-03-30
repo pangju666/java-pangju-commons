@@ -38,10 +38,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.function.ObjIntConsumer;
 
@@ -110,6 +107,7 @@ public class PDDocumentUtils {
 	public static PDDocument getDocument(final File file) throws IOException {
 		Validate.notNull(file, "file 不可为 null");
 		checkFile(file);
+
 		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
 			return null;
 		}
@@ -119,6 +117,7 @@ public class PDDocumentUtils {
 	public static PDDocument getDocument(final File file, final String password) throws IOException {
 		Validate.notNull(file, "file 不可为 null");
 		checkFile(file);
+
 		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
 			return null;
 		}
@@ -300,6 +299,13 @@ public class PDDocumentUtils {
 		return renderer.renderImage(page - 1);
 	}
 
+	public static BufferedImage getImage(final PDDocument document, final int page, final int scale) throws IOException {
+		Validate.notNull(document, "document 不可为 null");
+
+		PDFRenderer renderer = new PDFRenderer(document);
+		return renderer.renderImage(page - 1, scale);
+	}
+
 	public static BufferedImage getImage(final PDDocument document, final int page, final float dpi) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 
@@ -307,16 +313,46 @@ public class PDDocumentUtils {
 		return renderer.renderImageWithDPI(page - 1, dpi);
 	}
 
+	public static void merge(final Collection<PDDocument> documents, final OutputStream outputStream, final MemoryUsageSetting memoryUsageSetting) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		try (PDDocument outputDocument = merge(documents, memoryUsageSetting)) {
+			outputDocument.save(outputStream);
+		}
+	}
+
+	public static void merge(final Collection<PDDocument> documents, final File outputFile) throws IOException {
+		Validate.notNull(outputFile, "outputFile 不可为 null");
+		if (outputFile.exists() && !outputFile.isFile()) {
+			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+		}
+
+		try (PDDocument outputDocument = merge(documents, computeMemoryUsageSetting(outputFile.length()))) {
+			outputDocument.save(outputFile);
+		}
+	}
+
+	public static void merge(final Collection<PDDocument> documents, final File outputFile, final MemoryUsageSetting memoryUsageSetting) throws IOException {
+		Validate.notNull(outputFile, "outputFile 不可为 null");
+		if (outputFile.exists() && !outputFile.isFile()) {
+			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+		}
+
+		try (PDDocument outputDocument = merge(documents, memoryUsageSetting)) {
+			outputDocument.save(outputFile);
+		}
+	}
+
 	public static PDDocument merge(final Collection<PDDocument> documents, final MemoryUsageSetting memoryUsageSetting) throws IOException {
 		Validate.notNull(memoryUsageSetting, "memoryUsageSetting 不可为 null");
 		Validate.notEmpty(documents, "documents 不可为空");
 
 		PDFMergerUtility mergerUtility = new PDFMergerUtility();
-		PDDocument result = new PDDocument(memoryUsageSetting.streamCache);
+		PDDocument outputDocument = new PDDocument(memoryUsageSetting.streamCache);
 		for (PDDocument document : documents) {
-			mergerUtility.appendDocument(result, document);
+			mergerUtility.appendDocument(outputDocument, document);
 		}
-		return result;
+		return outputDocument;
 	}
 
 	public static void split(final PDDocument document, final ObjIntConsumer<PDDocument> action) throws IOException {
@@ -410,7 +446,7 @@ public class PDDocumentUtils {
 		}
 	}
 
-	protected static void parseOutline(PDOutlineNode node, List<PDFDirectory> result) throws IOException {
+	protected static void parseOutline(final PDOutlineNode node, final List<PDFDirectory> result) throws IOException {
 		PDOutlineItem item = node.getFirstChild();
 		while (item != null) {
 			int pageIndex = getPageIndex(item);
@@ -421,7 +457,7 @@ public class PDDocumentUtils {
 		}
 	}
 
-	protected static int getPageIndex(PDOutlineItem item) throws IOException {
+	protected static int getPageIndex(final PDOutlineItem item) throws IOException {
 		if (item.getDestination() instanceof PDPageDestination destination) {
 			return destination.retrievePageNumber();
 		} else if (item.getAction() instanceof PDActionGoTo action) {

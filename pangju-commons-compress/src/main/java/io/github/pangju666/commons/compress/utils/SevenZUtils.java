@@ -105,15 +105,12 @@ public class SevenZUtils {
 	 */
 	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
-		if (inputFile.exists() && !inputFile.isFile()) {
-			throw new IOException(inputFile.getAbsolutePath() + " 不是一个文件路径");
-		}
 
 		String mimeType = FileUtils.getMimeType(inputFile);
 		if (!CompressConstants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {
 			throw new IOException(inputFile.getAbsolutePath() + "不是7z类型文件");
 		}
-		try (SevenZFile sevenZFile = new SevenZFile.Builder().setFile(inputFile).get()) {
+		try (SevenZFile sevenZFile = SevenZFile.builder().setFile(inputFile).get()) {
 			unCompress(sevenZFile, outputDir);
 		}
 	}
@@ -140,21 +137,21 @@ public class SevenZUtils {
 			FileUtils.forceMkdir(outputDir);
 		}
 
-		SevenZArchiveEntry zipEntry = sevenZFile.getNextEntry();
-		while (Objects.nonNull(zipEntry)) {
-			File file = new File(outputDir, zipEntry.getName());
-			if (zipEntry.isDirectory()) {
+		SevenZArchiveEntry archiveEntry = sevenZFile.getNextEntry();
+		while (Objects.nonNull(archiveEntry)) {
+			File file = new File(outputDir, archiveEntry.getName());
+			if (archiveEntry.isDirectory()) {
 				if (!file.exists()) {
 					FileUtils.forceMkdir(file);
 				}
 			} else {
-				try (InputStream inputStream = sevenZFile.getInputStream(zipEntry);
+				try (InputStream inputStream = sevenZFile.getInputStream(archiveEntry);
 					 FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
 					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
-			zipEntry = sevenZFile.getNextEntry();
+			archiveEntry = sevenZFile.getNextEntry();
 		}
 	}
 
