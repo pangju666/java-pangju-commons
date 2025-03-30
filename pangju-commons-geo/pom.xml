@@ -10,10 +10,6 @@
 	<artifactId>pangju-commons-geo</artifactId>
 	<description>java 公共geo工具库</description>
 
-	<properties>
-		<geotools.version>32.2</geotools.version>
-	</properties>
-
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -23,18 +19,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>ch.obermuhlner</groupId>
 			<artifactId>big-math</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools.xsd</groupId>
-			<artifactId>gt-xsd-kml</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-geojson</artifactId>
-			<version>${geotools.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.spockframework</groupId>
