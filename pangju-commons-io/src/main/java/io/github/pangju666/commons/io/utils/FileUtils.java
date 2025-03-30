@@ -718,13 +718,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws FileNotFoundException 当路径不存在或类型不匹配时抛出
 	 * @since 1.0.0
 	 */
-	protected static void checkExists(final File file, final String message, boolean isFile) throws FileNotFoundException {
+	protected static void checkExists(final File file, final String message, boolean isFile) throws IOException {
 		Objects.requireNonNull(file, message);
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (isFile && !file.isFile()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
+			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

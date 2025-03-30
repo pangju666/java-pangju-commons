@@ -750,9 +750,9 @@ public class ThumbnailUtils {
 	 * @throws FileNotFoundException 当文件是目录时抛出
 	 * @since 1.0.0
 	 */
-	protected static void checkFile(final File file) throws FileNotFoundException {
+	protected static void checkFile(final File file) throws IOException {
 		if (file.exists() && file.isDirectory()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
+			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

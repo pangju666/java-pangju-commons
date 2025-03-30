@@ -756,9 +756,9 @@ public class ImageUtils {
 	 * @throws FileNotFoundException 当文件不存在或不是常规文件时抛出
 	 * @since 1.0.0
 	 */
-	protected static void checkFile(final File file) throws FileNotFoundException {
+	protected static void checkFile(final File file) throws IOException {
 		if (!file.exists() || !file.isFile()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
+			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }
