@@ -30,12 +30,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.ObjIntConsumer;
 
-/**
- * PDF工具类
- *
- * @author pangju666
- * @since 1.0.0
- */
 public class PDDocumentUtils {
 	protected static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
 	protected static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
@@ -54,12 +48,7 @@ public class PDDocumentUtils {
 		}
 	}
 
-	/**
-	 * 判断是否为PDF文件
-	 *
-	 * @param file 文件
-	 * @return 是否为PDF文件
-	 */
+
 	public static boolean isPDF(final File file) throws IOException {
 		return FileUtils.exist(file) && file.isFile() && PdfConstants.PDF_MIME_TYPE.equals(FileUtils.getMimeType(file));
 	}
@@ -74,12 +63,6 @@ public class PDDocumentUtils {
 			PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(inputStream));
 	}
 
-	/**
-	 * 创建新文档，并拷贝源文档的属性至新文档
-	 *
-	 * @param sourceDocument 源文档
-	 * @return 创建的新文档
-	 */
 	public static PDDocument createDocument(final PDDocument sourceDocument) {
 		PDDocument document = new PDDocument();
 		// 复制文档属性
@@ -89,36 +72,6 @@ public class PDDocumentUtils {
 		return document;
 	}
 
-	/**
-	 * 获取文档对象
-	 *
-	 * @param inputStream 文档输入流
-	 */
-	public static PDDocument getDocument(final InputStream inputStream) throws IOException {
-		return Loader.loadPDF(inputStream.readAllBytes());
-	}
-
-	public static PDDocument getDocument(final byte[] bytes) throws IOException {
-		if (!isPDF(bytes)) {
-			return null;
-		}
-		return Loader.loadPDF(bytes);
-	}
-
-	/**
-	 * 获取文档对象
-	 *
-	 * @param documentPath 文档路径
-	 */
-	public static PDDocument getDocument(final String documentPath) throws IOException {
-		return getDocument(new File(documentPath));
-	}
-
-	/**
-	 * 获取文档对象
-	 *
-	 * @param documentFile 文档文件
-	 */
 	public static PDDocument getDocument(final File documentFile) throws IOException {
 		if (FileUtils.notExist(documentFile)) {
 			return null;

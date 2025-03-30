@@ -26,7 +26,6 @@
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>jbig2-imageio</artifactId>
@@ -34,13 +33,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
-			<artifactId>jai-imageio-core</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-jpeg2000</artifactId>
-			<optional>true</optional>
+			<scope>true</scope>
 		</dependency>
 	</dependencies>
 </project>
