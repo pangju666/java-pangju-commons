@@ -9,7 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-compress</artifactId>
-	<description>java 公共文件压缩工具库</description>
+	<description>java 公共文件压缩库</description>
 
 	<licenses>
 		<license>
@@ -20,12 +20,12 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-compress</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.tukaani</groupId>

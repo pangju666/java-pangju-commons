@@ -421,7 +421,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	public static boolean notExist(final File file) {
-		return exist(file, false);
+		return notExist(file, false);
 	}
 
 	public static boolean exist(final File file, boolean isFile) {
