@@ -31,6 +31,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
@@ -48,23 +49,23 @@ public class PDDocumentUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
+	public static final long MIN_PDF_BYTES = 50 * 1024 * 1024;
 	/**
 	 * PDF文件处理的最大内存阈值（500MB），超过此大小将使用临时文件处理
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
+	public static final long MAX_PDF_BYTES = 500 * 1024 * 1024;
 	/**
 	 * 混合内存模式下最大内存使用量（100MB）
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
+	public static final long MIXED_MAX_MAIN_MEMORY_BYTES = 100 * 1024 * 1024;
 
-	protected static final MemoryUsageSetting MAIN_MEMORY_ONLY_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMainMemoryOnly();
-	protected static final MemoryUsageSetting TEMP_FILE_ONLY_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupTempFileOnly();
-	protected static final MemoryUsageSetting MIXED_PAGE_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMixed(MIXED_MAX_MAIN_MEMORY_BYTES);
+	public static final MemoryUsageSetting MAIN_MEMORY_ONLY_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMainMemoryOnly();
+	public static final MemoryUsageSetting TEMP_FILE_ONLY_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupTempFileOnly();
+	public static final MemoryUsageSetting MIXED_PAGE_MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMixed(MIXED_MAX_MAIN_MEMORY_BYTES);
 
 	protected PDDocumentUtils() {
 	}
@@ -94,13 +95,18 @@ public class PDDocumentUtils {
 			PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(inputStream));
 	}
 
-	public static PDDocument createDocument(final PDDocument source) {
+	public static PDDocument createDocument(final PDDocument source) throws IOException {
 		Validate.notNull(source, "source 不可为 null");
 
 		PDDocument newDocument = new PDDocument();
-		newDocument.getDocument().setVersion(source.getVersion());
+		newDocument.setVersion(source.getVersion());
 		newDocument.setDocumentInformation(source.getDocumentInformation());
-		newDocument.getDocumentCatalog().setViewerPreferences(source.getDocumentCatalog().getViewerPreferences());
+		if (Objects.nonNull(source.getDocumentCatalog().getMetadata())) {
+			newDocument.getDocumentCatalog().setMetadata(source.getDocumentCatalog().getMetadata());
+		}
+		for (PDSignature signatureDictionary : source.getSignatureDictionaries()) {
+			newDocument.addSignature(signatureDictionary);
+		}
 		return newDocument;
 	}
 
