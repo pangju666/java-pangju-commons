@@ -293,7 +293,9 @@ public class PDDocumentUtils {
 	public static void addImage(final PDDocument document, final byte[] bytes, final int page) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(page > 0, "page 不可为小于等于0");
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (ArrayUtils.isEmpty(bytes)) {
+			return;
+		}
 
 		PDImageXObject imageObject = PDImageXObject.createFromByteArray(document, bytes, null);
 		addImageToDocument(document, imageObject, page, 0, 0, imageObject.getWidth(), imageObject.getHeight());
@@ -321,7 +323,9 @@ public class PDDocumentUtils {
 		Validate.isTrue(y > 0, "y 不可为小于等于0");
 		Validate.isTrue(width > 0, "width 不可为小于等于0");
 		Validate.isTrue(height > 0, "height 不可为小于等于0");
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (ArrayUtils.isEmpty(bytes)) {
+			return;
+		}
 
 		PDImageXObject imageObject = PDImageXObject.createFromByteArray(document, bytes, null);
 		addImageToDocument(document, imageObject, page, x, y, width, height);
@@ -412,11 +416,10 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面的图像列表(使用默认缩放比例1)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param pages    要获取的页码集合(从1开始)
 	 * @return 包含指定页面图像的列表
 	 * @throws IOException              如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或pages为空
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document,
@@ -427,19 +430,20 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面的图像列表(使用指定缩放比例)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param scale 图像缩放比例
-	 * @param pages 要获取的页码集合(从1开始)
+	 * @param pages 要获取的页码集合(从1开始)，允许为空，空则返回空列表
 	 * @return 包含指定页面图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或scale小于等于0或pages为空
+	 * @throws IllegalArgumentException 如果scale小于等于0
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final int scale,
 													final Collection<Integer> pages) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(scale > 0, "dpi 不可为小于等于0");
-		Validate.notEmpty(pages, "pages 不可为空");
+		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
+			return Collections.emptyList();
+		}
 
 		List<Integer> validPages = checkPages(document, pages);
 		PDFRenderer renderer = new PDFRenderer(document);
@@ -454,19 +458,20 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面的图像列表(使用指定DPI)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param dpi 图像DPI值
-	 * @param pages 要获取的页码集合(从1开始)
+	 * @param pages 要获取的页码集合(从1开始)，允许为空，空则返回空列表
 	 * @return 包含指定页面图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或dpi小于等于0或pages为空
+	 * @throws IllegalArgumentException 如果dpi小于等于0
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final float dpi,
 													final Collection<Integer> pages) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(dpi > 0, "dpi 不可为小于等于0");
-		Validate.notEmpty(pages, "pages 不可为空");
+		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
+			return Collections.emptyList();
+		}
 
 		List<Integer> validPages = checkPages(document, pages);
 		PDFRenderer renderer = new PDFRenderer(document);
@@ -481,12 +486,12 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面范围的图像列表(使用默认缩放比例1)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param startPage 起始页码(从1开始)
 	 * @param endPage 结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或页码无效
+	 * @throws IllegalArgumentException 如果页码无效
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document,
@@ -497,18 +502,20 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面范围的图像列表(使用指定缩放比例)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param scale 图像缩放比例
 	 * @param startPage 起始页码(从1开始)
 	 * @param endPage 结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或scale小于等于0或页码无效
+	 * @throws IllegalArgumentException 如果scale小于等于0或页码无效
      * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final int scale,
 													final int startPage, final int endPage) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		Validate.isTrue(scale > 0, "scale 不可为小于等于0");
 		Validate.isTrue(startPage > 0, "startPage 不可为小于等于0");
 		Validate.isTrue(endPage > 0, "endPage 不可为小于等于0");
@@ -527,18 +534,20 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档指定页面范围的图像列表(使用指定DPI)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param dpi 图像DPI值
 	 * @param startPage 起始页码(从1开始)
 	 * @param endPage 结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或dpi小于等于0或页码无效
+	 * @throws IllegalArgumentException 如果dpi小于等于0或页码无效
      * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final float dpi,
 													final int startPage, final int endPage) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		Validate.isTrue(dpi > 0, "dpi 不可为小于等于0");
 		Validate.isTrue(startPage > 0, "startPage 不可为小于等于0");
 		Validate.isTrue(endPage > 0, "endPage 不可为小于等于0");
@@ -557,10 +566,9 @@ public class PDDocumentUtils {
 	/**
 	 * 提取PDF文档中的所有图像(使用默认缩放比例1)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @return 包含所有页面图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null
 	 * @since 1.0.0
      */
 	public static List<BufferedImage> getPageImages(final PDDocument document) throws IOException {
@@ -570,15 +578,17 @@ public class PDDocumentUtils {
 	/**
 	 * 提取PDF文档中的所有图像(使用指定缩放比例)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param scale 图像缩放比例
 	 * @return 包含所有页面图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或scale小于等于0
+	 * @throws IllegalArgumentException 如果scale小于等于0
 	 * @since 1.0.0
      */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final int scale) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		Validate.isTrue(scale > 0, "scale 不可为小于等于0");
 
 		PDFRenderer renderer = new PDFRenderer(document);
@@ -593,15 +603,17 @@ public class PDDocumentUtils {
 	/**
 	 * 提取PDF文档中的所有图像(使用指定DPI)
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @param dpi 图像DPI值
 	 * @return 包含所有页面图像的列表
 	 * @throws IOException 如果渲染失败
-	 * @throws IllegalArgumentException 如果document为null或dpi小于等于0
+	 * @throws IllegalArgumentException 如果dpi小于等于0
 	 * @since 1.0.0
      */
 	public static List<BufferedImage> getPageImages(final PDDocument document, final float dpi) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		Validate.isTrue(dpi > 0, "dpi 不可为小于等于0");
 
 		PDFRenderer renderer = new PDFRenderer(document);
@@ -696,15 +708,17 @@ public class PDDocumentUtils {
 	/**
 	 * 按页拆分PDF文档(指定每n页拆分)
 	 *
-	 * @param document 要拆分的PDF文档
+	 * @param document 要拆分的PDF文档，允许为null，nul则返回空列表
 	 * @param splitPage 每n页拆分一次
 	 * @return 拆分后的文档列表
 	 * @throws IOException 如果拆分失败
-	 * @throws IllegalArgumentException 如果document为null或splitPage小于等于0
+	 * @throws IllegalArgumentException 如果splitPage小于等于0
 	 * @since 1.0.0
      */
 	public static List<PDDocument> split(final PDDocument document, final int splitPage) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		Validate.isTrue(splitPage > 0, "splitPage 必须大于0");
 
 		int totalPages = document.getNumberOfPages();
@@ -761,15 +775,17 @@ public class PDDocumentUtils {
 	 * 复制PDF文档的指定页码集合
 	 *
 	 * @param document 源PDF文档
-	 * @param pages 要复制的页码集合(1-based)
+	 * @param pages 要复制的页码集合(1-based)，允许为空，空则返回空文档
 	 * @return 复制后的文档对象
 	 * @throws IOException 如果复制失败
-	 * @throws IllegalArgumentException 如果document为null或pages为空
+	 * @throws IllegalArgumentException 如果document为null
 	 * @since 1.0.0
 	 */
 	public static PDDocument copy(final PDDocument document, final Collection<Integer> pages) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notEmpty(pages, "pages 不可为空");
+		if (Objects.isNull(pages) || pages.isEmpty()) {
+			return createDocument(document);
+		}
 
 		List<Integer> validPages = checkPages(document, pages);
 		PDDocument copyDocument = createDocument(document);
@@ -783,15 +799,15 @@ public class PDDocumentUtils {
 	/**
 	 * 获取PDF文档的书签列表
 	 *
-	 * @param document PDF文档
+	 * @param document PDF文档，允许为null，nul则返回空列表
 	 * @return 书签列表
 	 * @throws IOException 如果读取书签失败
-	 * @throws IllegalArgumentException 如果document为null
 	 * @since 1.0.0
      */
 	public static List<Bookmark> getBookmarks(final PDDocument document) throws IOException {
-		Validate.notNull(document, "document 不可为 null");
-
+		if (Objects.isNull(document)) {
+			return Collections.emptyList();
+		}
 		PDDocumentOutline outline = document.getDocumentCatalog().getDocumentOutline();
 		if (Objects.isNull(outline)) {
 			return Collections.emptyList();
@@ -809,7 +825,7 @@ public class PDDocumentUtils {
 	 * @throws IOException 如果解析失败
 	 * @since 1.0.0
      */
-	protected static void parseOutline(final PDOutlineNode node, final List<Bookmark> bookmarks) throws IOException {
+	protected static void parseOutline(final PDOutlineNode node, final Collection<Bookmark> bookmarks) throws IOException {
 		PDOutlineItem item = node.getFirstChild();
 		while (Objects.nonNull(item)) {
 			int pageIndex = getPageIndex(item);

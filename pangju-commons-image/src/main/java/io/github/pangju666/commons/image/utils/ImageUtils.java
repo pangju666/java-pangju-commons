@@ -265,16 +265,17 @@ public class ImageUtils {
 	/**
 	 * 获取字节数组数据的MIME类型（使用ImageIO获取）
 	 *
-	 * @param bytes 要检查的字节数组
+	 * @param bytes 要检查的字节数组，允许为null
 	 * @return 数据的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final byte[] bytes) throws IOException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
@@ -431,7 +432,9 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (ArrayUtils.isEmpty(bytes)) {
+			return null;
+		}
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return parseSizeByByteArrayInputStream(inputStream, useMetadata);
