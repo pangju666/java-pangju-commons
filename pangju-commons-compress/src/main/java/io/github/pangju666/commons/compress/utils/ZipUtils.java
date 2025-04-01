@@ -123,16 +123,17 @@ public class ZipUtils {
 	 * @param bytes     字节数组
 	 * @param outputDir 输出目录（自动创建）
 	 * @throws IOException 内容不是有效ZIP格式时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
-		if (ArrayUtils.isNotEmpty(bytes)) {
-			String mimeType = IOConstants.getDefaultTika().detect(bytes);
-			if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-				throw new IOException("不是zip类型文件");
-			}
-			unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
+			throw new IOException("不是zip类型文件");
 		}
+		unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
 	}
 
 	/**

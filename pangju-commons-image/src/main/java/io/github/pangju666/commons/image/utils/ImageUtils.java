@@ -266,17 +266,16 @@ public class ImageUtils {
 	/**
 	 * 获取字节数组数据的MIME类型（使用ImageIO获取）
 	 *
-	 * @param bytes 要检查的字节数组，允许为空，空将返回false
+	 * @param bytes 要检查的字节数组
 	 * @return 数据的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当读取数据失败时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final byte[] bytes) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
@@ -427,15 +426,14 @@ public class ImageUtils {
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return parseSizeByByteArrayInputStream(inputStream, useMetadata);
@@ -625,13 +623,12 @@ public class ImageUtils {
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IOException              当读取数据失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		Metadata metadata = ImageMetadataReader.readMetadata(IOUtils.toUnsynchronizedByteArrayInputStream(bytes));
 		return getExifOrientation(metadata);
