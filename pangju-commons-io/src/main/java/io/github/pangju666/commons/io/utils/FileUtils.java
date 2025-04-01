@@ -507,6 +507,20 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
+	 * 检测是否为模型文件
+	 * <p>支持格式：obj/stl/fbx/glb等模型格式</p>
+	 *
+	 * @param file 待检测文件
+	 * @return 当文件内容被识别为模型类型时返回true
+	 * @throws IOException 当文件无法读取时抛出
+	 * @since 1.0.0
+	 */
+	public static boolean isModelType(final File file) throws IOException {
+		checkExists(file, "file 不可为 null", true);
+		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.MODEL_MIME_TYPE_PREFIX);
+	}
+
+	/**
 	 * 检测是否为视频文件
 	 * <p>支持格式：MP4/AVI/MOV/MKV等20+种主流视频格式</p>
 	 *

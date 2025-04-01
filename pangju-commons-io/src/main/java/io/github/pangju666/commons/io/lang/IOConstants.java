@@ -53,6 +53,12 @@ public class IOConstants {
 	 */
 	public static final String AUDIO_MIME_TYPE_PREFIX = "audio/";
 	/**
+	 * 文本类型MIME前缀（如："mode/obj"）
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String MODEL_MIME_TYPE_PREFIX = "model/";
+	/**
 	 * 文本类型MIME前缀（如："text/plain"）
 	 *
 	 * @since 1.0.0
