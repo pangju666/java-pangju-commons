@@ -44,6 +44,35 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+/**
+ * PDF文档操作工具类，提供了一系列静态方法来处理PDF文档的常见操作。
+ * <p>
+ * 主要功能包括：
+ * <ul>
+ *   <li>PDF文档的加载和验证</li>
+ *   <li>PDF文档的合并与拆分</li>
+ *   <li>PDF页面的复制与提取</li>
+ *   <li>图像与PDF的相互转换</li>
+ *   <li>PDF目录结构的解析</li>
+ *   <li>内存使用优化策略</li>
+ * </ul>
+ * <p>
+ * 本工具类基于Apache PDFBox库实现，提供了更简洁易用的API封装。
+ * <p>
+ * 内存使用策略：
+ * <ul>
+ *   <li>小于50MB的PDF文件使用纯内存模式处理</li>
+ *   <li>50MB-500MB之间的PDF文件使用混合内存模式处理</li>
+ *   <li>大于500MB的PDF文件使用临时文件模式处理</li>
+ * </ul>
+ *
+ * @author pangju666
+ * @version 1.0.0
+ * @see org.apache.pdfbox.pdmodel.PDDocument
+ * @see org.apache.pdfbox.multipdf.PDFMergerUtility
+ * @see org.apache.pdfbox.rendering.PDFRenderer
+ * @since 1.0.0
+ */
 public class PDDocumentUtils {
 	/**
 	 * PDF文件处理的最小内存阈值（50MB），小于此值将完全在内存中处理
