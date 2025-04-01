@@ -748,6 +748,7 @@ public class ImageUtils {
 	 *
 	 * @param file 要检查的文件对象，不可为null
 	 * @throws FileNotFoundException 当文件不存在或不是常规文件时抛出
+	 * @throws IllegalArgumentException 当file是目录时抛出
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws IOException {
@@ -755,7 +756,7 @@ public class ImageUtils {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (!file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

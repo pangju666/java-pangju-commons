@@ -748,6 +748,7 @@ public class ThumbnailUtils {
 	 *
 	 * @param file 文件对象
 	 * @throws FileNotFoundException 当文件是目录时抛出
+	 * @throws IllegalArgumentException 当file是目录时抛出
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws IOException {
@@ -755,7 +756,7 @@ public class ThumbnailUtils {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (!file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

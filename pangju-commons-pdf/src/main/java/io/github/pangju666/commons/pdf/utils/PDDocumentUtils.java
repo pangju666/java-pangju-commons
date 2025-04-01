@@ -844,15 +844,15 @@ public class PDDocumentUtils {
 	 *
 	 * @param file 要检查的文件
 	 * @throws FileNotFoundException 如果文件不存在
-	 * @throws IOException 如果路径不是文件
+	 * @throws IllegalArgumentException 当outputDir不是一个文件时
 	 * @since 1.0.0
 	 */
-	protected static void checkFile(final File file) throws IOException {
+	protected static void checkFile(final File file) throws FileNotFoundException {
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (!file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 

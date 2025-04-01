@@ -420,6 +420,7 @@ public class ImageFilterUtils {
 	 * @param imageType 目标图像类型（如{@link BufferedImage#TYPE_INT_ARGB}）
 	 * @return 处理后的新图像（原图不受影响）
 	 * @throws IllegalArgumentException 当任一参数为null时抛出
+	 * @throws IllegalArgumentException 当outputDir不是一个文件时
 	 * @since 1.0.0
 	 * @see ImageUtil#filter(Image, ImageFilter)
 	 */
@@ -435,7 +436,7 @@ public class ImageFilterUtils {
 	 * 文件校验
 	 *
 	 * @param file 文件对象
-	 * @throws FileNotFoundException 当文件是目录时抛出
+	 * @throws FileNotFoundException 当file是目录时抛出
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws IOException {
@@ -443,7 +444,7 @@ public class ImageFilterUtils {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (!file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

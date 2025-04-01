@@ -729,7 +729,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param message 空指针异常提示信息
 	 * @param isFile  类型校验标记：
 	 *               true=必须为文件，false=允许目录
-	 * @throws FileNotFoundException 当路径不存在或类型不匹配时抛出
+	 * @throws IllegalArgumentException 当file是目录时抛出
+	 * @throws FileNotFoundException 当文件不存在时抛出
 	 * @since 1.0.0
 	 */
 	protected static void checkExists(final File file, final String message, boolean isFile) throws IOException {
@@ -738,7 +739,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
 		if (isFile && !file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

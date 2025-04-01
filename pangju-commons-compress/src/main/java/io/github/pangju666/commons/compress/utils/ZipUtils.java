@@ -110,7 +110,7 @@ public class ZipUtils {
 
 		String mimeType = FileUtils.getMimeType(inputFile);
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-			throw new IOException(inputFile.getAbsolutePath() + "不是zip类型文件");
+			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
 		}
 		try (ZipFile zipFile = ZipFile.builder().setFile(inputFile).get()) {
 			unCompress(zipFile, outputDir);
@@ -131,7 +131,7 @@ public class ZipUtils {
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-			throw new IOException("不是zip类型文件");
+			throw new IllegalArgumentException("不是zip类型文件");
 		}
 		unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
 	}
@@ -162,9 +162,9 @@ public class ZipUtils {
 	 *
 	 * @param zipFile   已打开的ZipFile实例
 	 * @param outputDir 解压目标目录（自动创建）
+	 * @throws IllegalArgumentException 当outputDir不是一个目录时
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>zipFile为null</li>
 	 *                         <li>目录条目创建失败</li>
 	 *                         <li>文件写入权限不足</li>
 	 *                     </ul>
@@ -174,7 +174,7 @@ public class ZipUtils {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IOException(outputDir.getAbsolutePath() + " 不是一个目录路径");
+			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
 		} else {
 			FileUtils.forceMkdir(outputDir);
 		}
@@ -202,9 +202,9 @@ public class ZipUtils {
 	 *
 	 * @param archiveInputStream ZIP归档输入流
 	 * @param outputDir          解压目标目录（自动创建）
+	 * @throws IllegalArgumentException 当outputDir不是一个目录时
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输入流为null</li>
 	 *                         <li>流内容已损坏</li>
 	 *                         <li>目录结构创建失败</li>
 	 *                     </ul>
@@ -214,7 +214,7 @@ public class ZipUtils {
 		Validate.notNull(archiveInputStream, "archiveInputStream 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IOException(outputDir.getAbsolutePath() + " 不是一个目录路径");
+			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
 		} else {
 			FileUtils.forceMkdir(outputDir);
 		}
@@ -241,17 +241,17 @@ public class ZipUtils {
 	 *
 	 * @param inputFile  要压缩的文件或目录（必须存在）
 	 * @param outputFile 输出ZIP文件（自动创建父目录）
+	 * @throws IllegalArgumentException 当outputFile不是一个文件时
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
-	 *                         <li>输出路径是目录</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
 		}
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
@@ -317,9 +317,9 @@ public class ZipUtils {
 	 *
 	 * @param inputFiles 要压缩的文件集合（自动过滤null和不存在的文件）
 	 * @param outputFile 输出ZIP文件
+	 * @throws IllegalArgumentException 当outputFile不是一个文件时
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输出文件路径无效</li>
 	 *                         <li>所有输入文件均无效</li>
 	 *                     </ul>
 	 * @since 1.0.0
@@ -327,7 +327,7 @@ public class ZipUtils {
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
 		}
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
