@@ -6,11 +6,7 @@ import com.deepoove.poi.data.RenderData;
 import com.deepoove.poi.data.TextRenderData;
 import com.deepoove.poi.template.ElementTemplate;
 import com.deepoove.poi.template.MetaTemplate;
-import io.github.pangju666.commons.io.lang.IOConstants;
-import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,26 +25,6 @@ import java.util.Map;
  */
 public class XWPFTemplateUtils {
 	protected XWPFTemplateUtils() {
-	}
-
-	public static boolean isXWPFFile(final File file) throws IOException {
-		Validate.isTrue(FileUtils.exist(file), "文件不存在");
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
-	}
-
-	public static boolean isXWPFFile(final String filePath) throws IOException {
-		return isXWPFFile(new File(filePath));
-	}
-
-	public static boolean isXWPFFile(final byte[] bytes) {
-		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
-	}
-
-	public static boolean isXWPFFile(final InputStream inputStream) throws IOException {
-		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
 	}
 
 	/**

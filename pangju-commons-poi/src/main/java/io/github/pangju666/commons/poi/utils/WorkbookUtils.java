@@ -2,6 +2,7 @@ package io.github.pangju666.commons.poi.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.DateUtils;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
@@ -16,10 +17,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -28,50 +26,104 @@ public class WorkbookUtils {
 	protected WorkbookUtils() {
 	}
 
-	public static boolean isWorkbookFile(final File file) throws IOException {
-		Validate.isTrue(FileUtils.exist(file), "文件不存在");
+	public static boolean isXls(final File file) throws IOException {
+		if (FileUtils.notExist(file)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		return PoiConstants.XLS_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXls(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return PoiConstants.XLS_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXls(final InputStream inputStream) throws IOException {
+		if (Objects.isNull(inputStream)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return PoiConstants.XLS_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXlsx(final File file) throws IOException {
+		if (FileUtils.notExist(file)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		return PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXlsx(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isXlsx(final InputStream inputStream) throws IOException {
+		if (Objects.isNull(inputStream)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isWorkbook(final File file) throws IOException {
+		if (FileUtils.notExist(file)) {
+			return false;
+		}
 		String mimeType = IOConstants.getDefaultTika().detect(file);
 		return PoiConstants.XLS_MIME_TYPE.equals(mimeType) || PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
 	}
 
-	public static boolean isWorkbookFile(final String filePath) throws IOException {
-		return isWorkbookFile(new File(filePath));
-	}
-
-	public static boolean isWorkbookFile(final byte[] bytes) throws IOException {
+	public static boolean isWorkbook(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
 		return PoiConstants.XLS_MIME_TYPE.equals(mimeType) || PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
 	}
 
-	public static boolean isWorkbookFile(final InputStream inputStream) throws IOException {
+	public static boolean isWorkbook(final InputStream inputStream) throws IOException {
+		if (Objects.isNull(inputStream)) {
+			return false;
+		}
 		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
 		return PoiConstants.XLS_MIME_TYPE.equals(mimeType) || PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
 	}
 
-	public static Workbook getWorkbook(final String filePath) throws IOException {
-		return getWorkbook(new File(filePath));
+	public static Workbook getWorkbook(final File file) throws IOException {
+		Validate.notNull(file, "file 不可为 null");
+		checkFile(file);
+
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
+			return getWorkbook(inputStream, mimeType);
+		}
 	}
 
-	public static Workbook getWorkbook(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return null;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		if (!PoiConstants.XLSX_MIME_TYPE.equals(mimeType) && !PoiConstants.XLS_MIME_TYPE.equals(mimeType)) {
-			return null;
-		}
-		try (InputStream inputStream = FileUtils.openInputStream(file)) {
-			return switch (mimeType) {
-				case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
-				case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);
-				default -> null;
-			};
+	public static Workbook getWorkbook(final File file, final String mimeType) throws IOException {
+		Validate.notNull(file, "file 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
+		checkFile(file);
+
+		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
+			return getWorkbook(inputStream, mimeType);
 		}
 	}
 
 	public static Workbook getWorkbook(final InputStream inputStream, final String mimeType) throws IOException {
-		if (Objects.isNull(inputStream)) {
-			return null;
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
+
+		if (!PoiConstants.XLSX_MIME_TYPE.equals(mimeType) && !PoiConstants.XLS_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是xlsx或xls文件");
 		}
 		return switch (mimeType) {
 			case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
@@ -81,20 +133,19 @@ public class WorkbookUtils {
 	}
 
 	public static Workbook getWorkbook(final byte[] bytes) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!PoiConstants.XLSX_MIME_TYPE.equals(mimeType) && !PoiConstants.XLS_MIME_TYPE.equals(mimeType)) {
-			return null;
-		}
-		try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
-			return switch (mimeType) {
-				case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
-				case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);
-				default -> null;
-			};
-		}
+		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+		return getWorkbook(inputStream, mimeType);
+	}
+
+	public static Workbook getWorkbook(final byte[] bytes, final String mimeType) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.notBlank(mimeType, "mimeType 不可为空");
+
+		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+		return getWorkbook(inputStream, mimeType);
 	}
 
 	public static List<Sheet> getSheets(final Workbook workbook) {
@@ -105,6 +156,9 @@ public class WorkbookUtils {
 	}
 
 	public static List<Row> getRows(final Workbook workbook) {
+		if (Objects.isNull(workbook)) {
+			return Collections.emptyList();
+		}
 		return stream(workbook)
 			.map(IterableUtils::toList)
 			.flatMap(List::stream)
@@ -119,6 +173,9 @@ public class WorkbookUtils {
 	}
 
 	public static List<Row> getRows(final Sheet sheet, final int startRowNum) {
+		if (Objects.isNull(sheet)) {
+			return Collections.emptyList();
+		}
 		return getRows(sheet, startRowNum, sheet.getLastRowNum());
 	}
 
@@ -136,6 +193,9 @@ public class WorkbookUtils {
 	}
 
 	public static List<Cell> getCells(final Workbook workbook) {
+		if (Objects.isNull(workbook)) {
+			return Collections.emptyList();
+		}
 		return stream(workbook)
 			.map(IterableUtils::toList)
 			.flatMap(List::stream)
@@ -145,6 +205,11 @@ public class WorkbookUtils {
 	}
 
 	public static List<Cell> getCells(final Workbook workbook, final Row.MissingCellPolicy policy) {
+		if (Objects.isNull(workbook)) {
+			return Collections.emptyList();
+		}
+		Validate.notNull(policy, "policy 不可为 null");
+
 		return stream(workbook)
 			.map(IterableUtils::toList)
 			.flatMap(List::stream)
@@ -157,6 +222,8 @@ public class WorkbookUtils {
 		if (Objects.isNull(sheet)) {
 			return Collections.emptyList();
 		}
+		Validate.notNull(policy, "policy 不可为 null");
+
 		return stream(sheet)
 			.map(row -> getCells(row, policy))
 			.flatMap(List::stream)
@@ -174,18 +241,30 @@ public class WorkbookUtils {
 	}
 
 	public static List<Cell> getCells(final Row row) {
+		if (Objects.isNull(row)) {
+			return Collections.emptyList();
+		}
 		return IterableUtils.toList(row);
 	}
 
 	public static List<Cell> getCells(final Row row, final Row.MissingCellPolicy policy) {
+		if (Objects.isNull(row)) {
+			return Collections.emptyList();
+		}
 		return getCells(row, row.getFirstCellNum(), row.getLastCellNum(), policy);
 	}
 
 	public static List<Cell> getCells(final Row row, final int startCellNum) {
+		if (Objects.isNull(row)) {
+			return Collections.emptyList();
+		}
 		return getCells(row, startCellNum, row.getLastCellNum(), Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
 	}
 
 	public static List<Cell> getCells(final Row row, final int startCellNum, final Row.MissingCellPolicy policy) {
+		if (Objects.isNull(row)) {
+			return Collections.emptyList();
+		}
 		return getCells(row, startCellNum, row.getLastCellNum(), policy);
 	}
 
@@ -194,9 +273,11 @@ public class WorkbookUtils {
 	}
 
 	public static List<Cell> getCells(final Row row, final int startCellNum, final int endCellNum, final Row.MissingCellPolicy policy) {
+		Validate.notNull(policy, "policy 不可为 null");
 		if (Objects.isNull(row)) {
 			return Collections.emptyList();
 		}
+
 		int startNum = Math.max(row.getFirstCellNum(), startCellNum);
 		int endNum = Math.max(row.getLastCellNum(), endCellNum);
 		List<Cell> cells = new ArrayList<>(endNum - startNum + 1);
@@ -240,6 +321,8 @@ public class WorkbookUtils {
 	}
 
 	public static Cell getMergedRegionCell(final Sheet sheet, final int row, final int column) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
 		int sheetMergeCount = sheet.getNumMergedRegions();
 		for (int i = 0; i < sheetMergeCount; i++) {
 			CellRangeAddress ca = sheet.getMergedRegion(i);
@@ -274,29 +357,41 @@ public class WorkbookUtils {
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
-			return switch (cell.getCellType()) {
-				case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-				case STRING -> Objects.toString(cell.getStringCellValue(), defaultValue);
-				case BOOLEAN -> BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
-				default -> defaultValue;
-			};
+		return switch (cell.getCellType()) {
+			case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+			case STRING -> Objects.toString(cell.getStringCellValue(), defaultValue);
+			case BOOLEAN -> BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
+			default -> defaultValue;
+		};
 	}
 
 	public static String getStringFormulaCellValue(final Cell cell, final Workbook workbook) {
+		if (isEmptyCell(cell)) {
+			return StringUtils.EMPTY;
+		}
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getStringFormulaCellValue(cell, null, evaluator);
+		return getStringFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static String getStringFormulaCellValue(final Cell cell, final String defaultValue, final Workbook workbook) {
+	public static String getStringFormulaCellValue(final Cell cell, final Workbook workbook, final String defaultValue) {
+		if (isEmptyCell(cell)) {
+			return defaultValue;
+		}
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getStringFormulaCellValue(cell, defaultValue, evaluator);
+		return getStringFormulaCellValue(cell, evaluator, defaultValue);
 	}
 
 	public static String getStringFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator) {
-		return getStringFormulaCellValue(cell, null, evaluator);
+		return getStringFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static String getStringFormulaCellValue(final Cell cell, final String defaultValue, final FormulaEvaluator evaluator) {
+	public static String getStringFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator, final String defaultValue) {
+		Validate.notNull(evaluator, "evaluator 不可为 null");
+
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
@@ -336,20 +431,26 @@ public class WorkbookUtils {
 	}
 
 	public static Double getNumericFormulaCellValue(final Cell cell, final Workbook workbook) {
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getNumericFormulaCellValue(cell, null, evaluator);
+		return getNumericFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static Double getNumericFormulaCellValue(final Cell cell, final Double defaultValue, final Workbook workbook) {
+	public static Double getNumericFormulaCellValue(final Cell cell, final Workbook workbook, final Double defaultValue) {
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getNumericFormulaCellValue(cell, defaultValue, evaluator);
+		return getNumericFormulaCellValue(cell, evaluator, defaultValue);
 	}
 
 	public static Double getNumericFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator) {
-		return getNumericFormulaCellValue(cell, null, evaluator);
+		return getNumericFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static Double getNumericFormulaCellValue(final Cell cell, final Double defaultValue, final FormulaEvaluator evaluator) {
+	public static Double getNumericFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator, final Double defaultValue) {
+		Validate.notNull(evaluator, "evaluator 不可为 null");
+
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
@@ -389,20 +490,26 @@ public class WorkbookUtils {
 	}
 
 	public static Boolean getBooleanFormulaCellValue(final Cell cell, final Workbook workbook) {
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getBooleanFormulaCellValue(cell, null, evaluator);
+		return getBooleanFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static Boolean getBooleanFormulaCellValue(final Cell cell, final Boolean defaultValue, final Workbook workbook) {
+	public static Boolean getBooleanFormulaCellValue(final Cell cell, final Workbook workbook, final Boolean defaultValue) {
+		Validate.notNull(workbook, "workbook 不可为 null");
+
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-		return getBooleanFormulaCellValue(cell, defaultValue, evaluator);
+		return getBooleanFormulaCellValue(cell, evaluator, defaultValue);
 	}
 
 	public static Boolean getBooleanFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator) {
-		return getBooleanFormulaCellValue(cell, null, evaluator);
+		return getBooleanFormulaCellValue(cell, evaluator, null);
 	}
 
-	public static Boolean getBooleanFormulaCellValue(final Cell cell, final Boolean defaultValue, final FormulaEvaluator evaluator) {
+	public static Boolean getBooleanFormulaCellValue(final Cell cell, final FormulaEvaluator evaluator, final Boolean defaultValue) {
+		Validate.notNull(evaluator, "evaluator 不可为 null");
+
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
@@ -451,6 +558,8 @@ public class WorkbookUtils {
 	}
 
 	public static int countRow(final Sheet sheet) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
 		int lastRowNum = sheet.getLastRowNum();
 		if (lastRowNum == -1) {
 			return 0;
@@ -459,6 +568,8 @@ public class WorkbookUtils {
 	}
 
 	public static int countCell(final Row row) {
+		Validate.notNull(row, "row 不可为 null");
+
 		short lastCellNum = row.getLastCellNum();
 		if (lastCellNum == -1) {
 			return 0;
@@ -479,6 +590,8 @@ public class WorkbookUtils {
 	}
 
 	public static void createTitleRow(final Sheet sheet, final int rowNum, final CellStyle rowStyle, final String... titles) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
 		Row row = sheet.createRow(rowNum);
 		if (Objects.nonNull(rowStyle)) {
 			row.setRowStyle(rowStyle);
@@ -494,6 +607,8 @@ public class WorkbookUtils {
 	}
 
 	public static void createTitleRow(final Row row, final CellStyle cellStyle, final String... titles) {
+		Validate.notNull(row, "row 不可为 null");
+
 		for (int i = 0; i < titles.length; i++) {
 			Cell cell = row.createCell(i);
 			if (Objects.nonNull(cellStyle)) {
@@ -504,6 +619,8 @@ public class WorkbookUtils {
 	}
 
 	public static void setAdjustColWidth(final Sheet sheet) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
 		Row row = sheet.getRow(0);
 		if (Objects.nonNull(row)) {
 			setAdjustColWidth(sheet, row.getPhysicalNumberOfCells());
@@ -511,9 +628,28 @@ public class WorkbookUtils {
 	}
 
 	public static void setAdjustColWidth(final Sheet sheet, final int columnCount) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
 		for (int i = 0; i < columnCount; i++) {
 			sheet.autoSizeColumn(i);
 			sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 17 / 10);
+		}
+	}
+
+	/**
+	 * 检查文件有效性
+	 *
+	 * @param file 要检查的文件
+	 * @throws FileNotFoundException    如果文件不存在
+	 * @throws IllegalArgumentException 当file不是一个文件时
+	 * @since 1.0.0
+	 */
+	protected static void checkFile(final File file) throws FileNotFoundException {
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
+		}
+		if (!file.isFile()) {
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

@@ -1,0 +1,89 @@
+package io.github.pangju666.commons.poi.utils;
+
+import io.github.pangju666.commons.io.lang.IOConstants;
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.poi.lang.PoiConstants;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.poi.xwpf.usermodel.Document;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
+import java.io.*;
+import java.util.Objects;
+
+/**
+ * 文档渲染工具类，仅支持docx格式文档
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
+public class XWPFDocumentUtils {
+	protected XWPFDocumentUtils() {
+	}
+
+	public static boolean isDocx(final File file) throws IOException {
+		if (FileUtils.notExist(file)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isDocx(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static boolean isDocx(final InputStream inputStream) throws IOException {
+		if (Objects.isNull(inputStream)) {
+			return false;
+		}
+		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+	}
+
+	public static Document getDocument(final File file) throws IOException {
+		Validate.notNull(file, "file 不可为 null");
+		checkFile(file);
+
+		String mimeType = IOConstants.getDefaultTika().detect(file);
+		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是docx文件");
+		}
+		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
+			return new XWPFDocument(inputStream);
+		}
+	}
+
+	public static Document getDocument(final byte[] bytes) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是docx文件");
+		}
+		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+		return new XWPFDocument(inputStream);
+	}
+
+	/**
+	 * 检查文件有效性
+	 *
+	 * @param file 要检查的文件
+	 * @throws FileNotFoundException    如果文件不存在
+	 * @throws IllegalArgumentException 当file不是一个文件时
+	 * @since 1.0.0
+	 */
+	protected static void checkFile(final File file) throws FileNotFoundException {
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
+		}
+		if (!file.isFile()) {
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
+		}
+	}
+}
