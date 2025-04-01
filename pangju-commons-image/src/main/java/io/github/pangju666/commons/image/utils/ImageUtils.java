@@ -248,14 +248,13 @@ public class ImageUtils {
 	 * @param file 要检查的文件对象，允许为null，null将返回false
 	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
 	 * @see ImageReaderSpi
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final File file) throws IOException {
-		if (Objects.isNull(file)) {
-			return null;
-		}
+		Validate.notNull(file, "file 不可为 null");
 		checkFile(file);
 
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
@@ -375,15 +374,14 @@ public class ImageUtils {
 	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
-		if (Objects.isNull(file)) {
-			return null;
-		}
+		Validate.notNull(file, "file 不可为 null");
 		checkFile(file);
 
 		if (useMetadata) {
@@ -592,13 +590,12 @@ public class ImageUtils {
 	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
+	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @see MetadataReader
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final File file) throws IOException, ImageProcessingException {
-		if (Objects.isNull(file)) {
-			return null;
-		}
+		Validate.notNull(file, "file 不可为 null");
 		checkFile(file);
 
 		Metadata metadata = ImageMetadataReader.readMetadata(file);
