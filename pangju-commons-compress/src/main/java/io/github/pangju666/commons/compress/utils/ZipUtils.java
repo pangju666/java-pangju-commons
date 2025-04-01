@@ -93,15 +93,15 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 解压ZIP文件到指定目录
+	 * 解压缩ZIP文件到指定目录
 	 *
-	 * @param inputFile ZIP文件（必须存在且为有效ZIP文件）
-	 * @param outputDir 输出目录（自动创建）
+	 * @param inputFile 要解压的ZIP文件，不可为null
+	 * @param outputDir 解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输入文件不是ZIP格式</li>
+	 *                         <li>输入文件不是有效的ZIP格式</li>
 	 *                         <li>输出路径不是目录</li>
-	 *                         <li>ZIP文件损坏</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -158,15 +158,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 从ZipFile对象解压到目录
+	 * 从ZipFile对象解压缩到指定目录
 	 *
-	 * @param zipFile   已打开的ZipFile实例
-	 * @param outputDir 解压目标目录（自动创建）
-	 * @throws IllegalArgumentException 当outputDir不是一个目录时
+	 * @param zipFile   已打开的ZipFile对象，不可为null
+	 * @param outputDir 解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>目录条目创建失败</li>
-	 *                         <li>文件写入权限不足</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -198,15 +197,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 从ZIP输入流解压到目录
+	 * 从ZipArchiveInputStream解压缩到指定目录
 	 *
-	 * @param archiveInputStream ZIP归档输入流
-	 * @param outputDir          解压目标目录（自动创建）
-	 * @throws IllegalArgumentException 当outputDir不是一个目录时
+	 * @param archiveInputStream ZIP输入流，不可为null
+	 * @param outputDir          解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>流内容已损坏</li>
-	 *                         <li>目录结构创建失败</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -239,12 +237,13 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到ZIP文件
 	 *
-	 * @param inputFile  要压缩的文件或目录（必须存在）
-	 * @param outputFile 输出ZIP文件（自动创建父目录）
-	 * @throws IllegalArgumentException 当outputFile不是一个文件时
+	 * @param inputFile  要压缩的文件或目录，不可为null且必须存在
+	 * @param outputFile 输出ZIP文件，会自动覆盖已存在文件
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
+	 *                         <li>输出路径不是文件</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -285,15 +284,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 压缩文件/目录到ZIP输出流
+	 * 压缩文件/目录到ZipArchiveOutputStream
 	 *
-	 * @param inputFile              要压缩的文件或目录
-	 * @param zipArchiveOutputStream ZIP输出流（必须已打开）
+	 * @param inputFile              要压缩的文件或目录，不可为null且必须存在
+	 * @param zipArchiveOutputStream ZIP输出流，不可为null
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
-	 *                         <li>输出流已关闭</li>
-	 *                         <li>目录遍历失败</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -313,14 +311,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 批量压缩文件
+	 * 批量压缩文件/目录到ZIP文件
 	 *
-	 * @param inputFiles 要压缩的文件集合（自动过滤null和不存在的文件）
-	 * @param outputFile 输出ZIP文件
-	 * @throws IllegalArgumentException 当outputFile不是一个文件时
+	 * @param inputFiles 要压缩的文件/目录集合，可为null或空集合
+	 * @param outputFile 输出ZIP文件，会自动覆盖已存在文件
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>所有输入文件均无效</li>
+	 *                         <li>输出路径不是文件</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */

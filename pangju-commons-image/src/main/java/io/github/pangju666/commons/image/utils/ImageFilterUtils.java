@@ -436,7 +436,8 @@ public class ImageFilterUtils {
 	 * 文件校验
 	 *
 	 * @param file 文件对象
-	 * @throws FileNotFoundException 当file是目录时抛出
+	 * @throws FileNotFoundException 当文件不存在或不是常规文件时抛出
+	 * @throws IllegalArgumentException 当file是目录时抛出
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws IOException {

@@ -844,7 +844,7 @@ public class PDDocumentUtils {
 	 *
 	 * @param file 要检查的文件
 	 * @throws FileNotFoundException 如果文件不存在
-	 * @throws IllegalArgumentException 当outputDir不是一个文件时
+	 * @throws IllegalArgumentException 当file不是一个文件时
 	 * @since 1.0.0
 	 */
 	protected static void checkFile(final File file) throws FileNotFoundException {
