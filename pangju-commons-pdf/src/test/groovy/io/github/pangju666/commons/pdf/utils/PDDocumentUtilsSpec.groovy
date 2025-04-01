@@ -187,4 +187,15 @@ class PDDocumentUtilsSpec extends Specification {
 		then:
 		copy.getNumberOfPages() == 2
 	}
+
+    def "test getDi"() {
+        given:
+        PDDocument document = Loader.loadPDF(new File("src/test/resources/alibaba.pdf"))
+
+        when:
+        def bookmarks = PDDocumentUtils.getBookmarks(document)
+
+        then:
+        bookmarks.size() == 2
+    }
 }

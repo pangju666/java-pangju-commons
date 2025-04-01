@@ -19,7 +19,7 @@ package io.github.pangju666.commons.pdf.utils;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.pdf.lang.PdfConstants;
-import io.github.pangju666.commons.pdf.model.PDFDirectory;
+import io.github.pangju666.commons.pdf.model.Bookmark;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.pdfbox.Loader;
@@ -781,42 +781,41 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档的目录结构
+	 * 获取PDF文档的书签列表
 	 *
 	 * @param document PDF文档
-	 * @return 目录结构列表
-	 * @throws IOException 如果读取目录失败
+	 * @return 书签列表
+	 * @throws IOException 如果读取书签失败
 	 * @throws IllegalArgumentException 如果document为null
 	 * @since 1.0.0
      */
-	public static List<PDFDirectory> getDictionaries(final PDDocument document) throws IOException {
+	public static List<Bookmark> getBookmarks(final PDDocument document) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 
 		PDDocumentOutline outline = document.getDocumentCatalog().getDocumentOutline();
-		if (outline != null) {
-			List<PDFDirectory> result = new ArrayList<>();
-			parseOutline(outline, result);
-			return result;
-		} else {
+		if (Objects.isNull(outline)) {
 			return Collections.emptyList();
 		}
+		List<Bookmark> bookmarks = new ArrayList<>();
+		parseOutline(outline, bookmarks);
+		return bookmarks;
 	}
 
 	/**
-	 * 解析PDF文档大纲节点并构建目录结构
+	 * 解析PDF文档并构建书签列表
 	 *
 	 * @param node 大纲节点
-	 * @param result 目录结构结果列表
+	 * @param bookmarks 书签列表
 	 * @throws IOException 如果解析失败
 	 * @since 1.0.0
      */
-	protected static void parseOutline(final PDOutlineNode node, final List<PDFDirectory> result) throws IOException {
+	protected static void parseOutline(final PDOutlineNode node, final List<Bookmark> bookmarks) throws IOException {
 		PDOutlineItem item = node.getFirstChild();
-		while (item != null) {
+		while (Objects.nonNull(item)) {
 			int pageIndex = getPageIndex(item);
-			PDFDirectory PDFDirectory = new PDFDirectory(item.getTitle(), pageIndex);
-			result.add(PDFDirectory);
-			parseOutline(item, PDFDirectory.children());
+			Bookmark bookmark = new Bookmark(item.getTitle(), pageIndex == -1 ? null : pageIndex + 1);
+			bookmarks.add(bookmark);
+			parseOutline(item, bookmark.children());
 			item = item.getNextSibling();
 		}
 	}

@@ -20,23 +20,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * PDF文档目录结构
+ * PDF文档书签
  * <p>
- * 表示PDF文档中的目录项，包含目录名称、页码和子目录列表
+ * 表示PDF文档中的书签项，包含书签名称、页码和子书签列表
  * </p>
  *
- * @param name      目录名称
- * @param pageIndex 目录对应的页码(1-based)，可为null表示无页码
- * @param children  子目录列表，默认为空列表
+ * @param name      书签名称
+ * @param pageNumber 书签对应的页码(从1开始)，可为null表示无页码
+ * @param children  子书签列表，默认为空列表
  * @author pangju666
  * @since 1.0.0
  */
-public record PDFDirectory(String name, Integer pageIndex, List<PDFDirectory> children) {
-	public PDFDirectory {
+public record Bookmark(String name, Integer pageNumber, List<Bookmark> children) {
+	public Bookmark {
 		children = new ArrayList<>();
 	}
 
-	public PDFDirectory(String name, Integer pageIndex) {
+	public Bookmark(String name, Integer pageIndex) {
 		this(name, pageIndex, new ArrayList<>());
 	}
 }
