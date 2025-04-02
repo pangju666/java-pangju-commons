@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-lang</artifactId>
-	<description>java 公共基础库</description>
+	<description>基础工具类库</description>
 
 	<licenses>
 		<license>

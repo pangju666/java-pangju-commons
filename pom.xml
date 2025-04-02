@@ -12,7 +12,7 @@
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>pangju-commons</name>
-	<description>java 公共工具类库父级依赖，集成了部分Apache工具包，部分参考自RuoYi和HuTool</description>
+	<description>公共工具类库父级，部分参考自HuTool、Spring Boot、Mybatis plus</description>
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>

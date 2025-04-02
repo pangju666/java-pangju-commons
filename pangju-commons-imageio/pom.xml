@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-imageio</artifactId>
-	<description>java 公共图片ImageIO解析库，集成了各个库的ImageIO包</description>
+	<description>ImageIO解析库，集成了各个库的ImageIO包</description>
 
 	<licenses>
 		<license>

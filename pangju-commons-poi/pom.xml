@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-poi</artifactId>
-	<description>java 公共POI工具库（基于Apache POI）</description>
+	<description>POI工具库（基于Apache poi 和 poi-tl）</description>
 
 	<licenses>
 		<license>

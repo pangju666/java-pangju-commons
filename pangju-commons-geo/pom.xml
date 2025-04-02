@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-geo</artifactId>
-	<description>java 公共geo工具库</description>
+	<description>geo工具类库</description>
 
 	<licenses>
 		<license>
