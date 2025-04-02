@@ -21,40 +21,40 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.0.0
  */
-public class XWPFDocumentUtils {
-	protected XWPFDocumentUtils() {
+public class HWPFDocumentUtils {
+	protected HWPFDocumentUtils() {
 	}
 
-	public static boolean isDocx(final File file) throws IOException {
+	public static boolean isDoc(final File file) throws IOException {
 		if (FileUtils.notExist(file)) {
 			return false;
 		}
 		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+		return PoiConstants.DOC_MIME_TYPE.equals(mimeType);
 	}
 
-	public static boolean isDocx(final byte[] bytes) {
+	public static boolean isDoc(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
 		}
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+		return PoiConstants.DOC_MIME_TYPE.equals(mimeType);
 	}
 
-	public static boolean isDocx(final InputStream inputStream) throws IOException {
+	public static boolean isDoc(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
 			return false;
 		}
 		String mimeType = IOConstants.getDefaultTika().detect(inputStream);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+		return PoiConstants.DOC_MIME_TYPE.equals(mimeType);
 	}
 
 	public static Document getDocument(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		String mimeType = IOConstants.getDefaultTika().detect(file);
-		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是docx文件");
+		if (!PoiConstants.DOC_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是doc文件");
 		}
 		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
 			return new XWPFDocument(inputStream);
@@ -65,8 +65,8 @@ public class XWPFDocumentUtils {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是docx文件");
+		if (!PoiConstants.DOC_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是doc文件");
 		}
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return new XWPFDocument(inputStream);

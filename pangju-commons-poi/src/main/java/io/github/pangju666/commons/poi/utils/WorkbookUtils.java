@@ -5,13 +5,14 @@ import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.DateUtils;
+import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -21,7 +22,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -578,45 +584,78 @@ public class WorkbookUtils {
 		return lastCellNum - row.getFirstCellNum() + 1;
 	}
 
-	public static void createTitleRow(final Sheet sheet, final String... titles) {
-		createTitleRow(sheet, 0, null, titles);
-	}
-
-	public static void createTitleRow(final Sheet sheet, final CellStyle rowStyle, final String... titles) {
-		createTitleRow(sheet, 0, rowStyle, titles);
-	}
-
-	public static void createTitleRow(final Sheet sheet, final int rowNum, final String... titles) {
-		createTitleRow(sheet, rowNum, null, titles);
-	}
-
-	public static void createTitleRow(final Sheet sheet, final int rowNum, final CellStyle rowStyle, final String... titles) {
+	public static Row getRow(final Sheet sheet, final int rowNum) {
 		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum > 0, "rowNum 必须大于等于0");
 
-		Row row = sheet.createRow(rowNum);
+		return ObjectUtils.defaultIfNull(sheet.getRow(rowNum), sheet.createRow(rowNum));
+	}
+
+	public static Cell getCell(final Row row, final int cellNum) {
+		Validate.notNull(row, "row 不可为 null");
+		Validate.isTrue(cellNum > 0, "cellNum 必须大于等于0");
+
+		return ObjectUtils.defaultIfNull(row.getCell(cellNum), row.createCell(cellNum));
+	}
+
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final String... titles) {
+		return createTitleRow(sheet, 0, null, titles);
+	}
+
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final CellStyle rowStyle, final String... titles) {
+		return createTitleRow(sheet, 0, rowStyle, titles);
+	}
+
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final int rowNum, final String... titles) {
+		return createTitleRow(sheet, rowNum, null, titles);
+	}
+
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final int rowNum, final CellStyle rowStyle,
+													  final String... titles) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Map<String, Integer> titleIndexMap = new HashMap<>(titles.length);
+		Row row = getRow(sheet, rowNum);
 		if (Objects.nonNull(rowStyle)) {
 			row.setRowStyle(rowStyle);
 		}
 		for (int i = 0; i < titles.length; i++) {
 			Cell cell = row.createCell(i);
 			cell.setCellValue(titles[i]);
+			titleIndexMap.put(titles[i], i);
 		}
+		return titleIndexMap;
 	}
 
-	public static void createTitleRow(final Row row, final String... titles) {
-		createTitleRow(row, null, titles);
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final List<String> titles) {
+		return createTitleRow(sheet, titles, 0, null);
 	}
 
-	public static void createTitleRow(final Row row, final CellStyle cellStyle, final String... titles) {
-		Validate.notNull(row, "row 不可为 null");
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final List<String> titles, final CellStyle rowStyle) {
+		return createTitleRow(sheet, titles, 0, rowStyle);
+	}
 
-		for (int i = 0; i < titles.length; i++) {
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final List<String> titles, final int rowNum) {
+		return createTitleRow(sheet, titles, rowNum, null);
+	}
+
+	public static Map<String, Integer> createTitleRow(final Sheet sheet, final List<String> titles,
+													  final int rowNum, final CellStyle rowStyle) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Map<String, Integer> titleIndexMap = new HashMap<>(titles.size());
+		Row row = getRow(sheet, rowNum);
+		if (Objects.nonNull(rowStyle)) {
+			row.setRowStyle(rowStyle);
+		}
+		for (int i = 0; i < titles.size(); i++) {
 			Cell cell = row.createCell(i);
-			if (Objects.nonNull(cellStyle)) {
-				cell.setCellStyle(cellStyle);
-			}
-			cell.setCellValue(titles[i]);
+			cell.setCellValue(titles.get(i));
+			titleIndexMap.put(titles.get(i), i);
 		}
+		return titleIndexMap;
 	}
 
 	public static void setAdjustColWidth(final Sheet sheet) {
@@ -637,5 +676,161 @@ public class WorkbookUtils {
 		}
 	}
 
+	public static void addRow(final Sheet sheet, final Consumer<Row> consumer) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.notNull(consumer, "consumer 不可为 null");
 
+		Row row = sheet.createRow(sheet.getLastRowNum() + 1);
+		consumer.accept(row);
+	}
+
+	public static void insertRow(final Sheet sheet, final Consumer<Row> consumer, final int rowNum) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.notNull(consumer, "consumer 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Row row = sheet.createRow(rowNum);
+		consumer.accept(row);
+	}
+
+	public static void addRow(final Sheet sheet, final Object... values) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, sheet.getLastRowNum() + 1, null, values);
+	}
+
+	public static void insertRow(final Sheet sheet, final int rowNum, final Object... values) {
+		insertRow(sheet, rowNum, null, values);
+	}
+
+	public static void addRow(final Sheet sheet, final CellStyle cellStyle, final Object... values) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, sheet.getLastRowNum() + 1, cellStyle, values);
+	}
+
+	public static void insertRow(final Sheet sheet, final int rowNum, final CellStyle cellStyle, final Object... values) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Row row = getRow(sheet, rowNum);
+		if (ArrayUtils.isEmpty(values)) {
+			return;
+		}
+		for (int i = 0; i < values.length; i++) {
+			createCell(row, i, values[i], cellStyle);
+		}
+	}
+
+	public static void addRow(final Sheet sheet, final List<Object> values) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, values, sheet.getLastRowNum() + 1, null);
+	}
+
+	public static void insertRow(final Sheet sheet, final List<Object> values, final int rowNum) {
+		insertRow(sheet, values, rowNum, null);
+	}
+
+	public static void addRow(final Sheet sheet, final List<Object> values, final CellStyle cellStyle) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, values, sheet.getLastRowNum() + 1, cellStyle);
+	}
+
+	public static void insertRow(final Sheet sheet, final List<Object> values, final int rowNum, final CellStyle cellStyle) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Row row = getRow(sheet, rowNum);
+		if (CollectionUtils.isEmpty(values)) {
+			return;
+		}
+		for (int i = 0; i < values.size(); i++) {
+			createCell(row, i, values.get(i), cellStyle);
+		}
+	}
+
+	public static void addRow(final Sheet sheet, final Collection<Pair<Object, Integer>> valueIndexPairs) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, valueIndexPairs, sheet.getLastRowNum() + 1, null);
+	}
+
+	public static void insertRow(final Sheet sheet, final Collection<Pair<Object, Integer>> valueIndexPairs,
+								 final int rowNum) {
+		insertRow(sheet, valueIndexPairs, rowNum, null);
+	}
+
+	public static void addRow(final Sheet sheet, final Collection<Pair<Object, Integer>> valueIndexPairs,
+							  final CellStyle cellStyle) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+
+		insertRow(sheet, valueIndexPairs, sheet.getLastRowNum() + 1, cellStyle);
+	}
+
+	public static void insertRow(final Sheet sheet, final Collection<Pair<Object, Integer>> valueIndexPairs,
+								 final int rowNum, final CellStyle cellStyle) {
+		Validate.notNull(sheet, "sheet 不可为 null");
+		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
+
+		Row row = getRow(sheet, rowNum);
+		if (CollectionUtils.isEmpty(valueIndexPairs)) {
+			return;
+		}
+
+		for (Pair<Object, Integer> valueIndexPair : valueIndexPairs) {
+			if (Objects.isNull(valueIndexPair) || Objects.isNull(valueIndexPair.getRight())) {
+				continue;
+			}
+			createCell(row, valueIndexPair.getRight(), valueIndexPair.getLeft(), cellStyle);
+		}
+	}
+
+	protected static void createCell(final Row row, final int i, final Object value, final CellStyle style) {
+		Cell cell = row.createCell(i);
+		if (Objects.isNull(value)) {
+			cell.setBlank();
+		} else if (value instanceof Number numberValue) {
+			cell.setCellValue(numberValue.doubleValue());
+		} else if (value instanceof Boolean booleanValue) {
+			cell.setCellValue(booleanValue);
+		} else if (value instanceof String str) {
+			cell.setCellValue(str);
+		} else if (value instanceof Date dateValue) {
+			cell.setCellValue(dateValue);
+		} else if (value instanceof LocalDate localDate) {
+			cell.setCellValue(localDate);
+		} else if (value instanceof LocalDateTime localDateTime) {
+			cell.setCellValue(localDateTime);
+		} else if (value instanceof Calendar calendar) {
+			cell.setCellValue(calendar);
+		} else if (value instanceof RichTextString richTextString) {
+			cell.setCellValue(richTextString);
+		} else if (value instanceof Hyperlink hyperlink) {
+			cell.setHyperlink(hyperlink);
+		} else if (value instanceof URI uri) {
+			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
+			Hyperlink hyperlink;
+			if (StringUtils.equals(uri.getScheme(), "file")) {
+				hyperlink = creationHelper.createHyperlink(HyperlinkType.FILE);
+			} else {
+				hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
+			}
+			hyperlink.setLabel(uri.toString());
+			hyperlink.setAddress(uri.toString());
+			cell.setHyperlink(hyperlink);
+		} else if (value instanceof URL url) {
+			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
+			Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
+			hyperlink.setLabel(url.toString());
+			hyperlink.setAddress(url.toString());
+			cell.setHyperlink(hyperlink);
+		} else {
+			cell.setCellValue(JsonUtils.toString(value));
+		}
+		if (Objects.nonNull(style)) {
+			cell.setCellStyle(style);
+		}
+	}
 }
