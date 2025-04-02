@@ -16,15 +16,13 @@
 
 package io.github.pangju666.commons.pdf.lang;
 
-import io.github.pangju666.commons.io.lang.IOConstants;
-
 /**
  * PDF相关常量
  *
  * @author pangju666
  * @since 1.0.0
  */
-public class PdfConstants extends IOConstants {
+public class PdfConstants {
 	/**
 	 * PDF MIME类型
 	 *

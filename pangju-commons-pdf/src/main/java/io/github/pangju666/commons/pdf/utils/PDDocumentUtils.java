@@ -151,8 +151,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isPDF(final File file) throws IOException {
-		return FileUtils.exist(file, true) &&
-			PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file));
+		return FileUtils.isMimeType(file, PdfConstants.PDF_MIME_TYPE);
 	}
 
 	/**

@@ -63,8 +63,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isZip(final File file) throws IOException {
-		return FileUtils.exist(file, true) &&
-			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.ZIP_MIME_TYPE);
+		return FileUtils.isMimeType(file, CompressConstants.ZIP_MIME_TYPE);
 	}
 
 	/**

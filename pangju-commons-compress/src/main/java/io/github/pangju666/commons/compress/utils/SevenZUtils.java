@@ -60,8 +60,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean is7z(final File file) throws IOException {
-		return FileUtils.exist(file, true) &&
-			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.SEVEN_Z_MIME_TYPE);
+		return FileUtils.isMimeType(file, CompressConstants.SEVEN_Z_MIME_TYPE);
 	}
 
 	/**

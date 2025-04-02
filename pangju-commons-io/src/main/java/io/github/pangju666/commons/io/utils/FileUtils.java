@@ -421,7 +421,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	public static boolean notExist(final File file) {
-		return notExist(file, false);
+		return !exist(file, false);
 	}
 
 	public static boolean exist(final File file, boolean isFile) {
@@ -429,7 +429,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	public static boolean notExist(final File file, boolean isFile) {
-		return Objects.isNull(file) || !file.exists() || (isFile && file.isDirectory());
+		return !exist(file, isFile);
 	}
 
 	/**
