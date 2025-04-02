@@ -26,11 +26,7 @@ public class XWPFDocumentUtils {
 	}
 
 	public static boolean isDocx(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return false;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.DOCX_MIME_TYPE.equals(mimeType);
+		return FileUtils.isMimeType(file, PoiConstants.DOCX_MIME_TYPE);
 	}
 
 	public static boolean isDocx(final byte[] bytes) {

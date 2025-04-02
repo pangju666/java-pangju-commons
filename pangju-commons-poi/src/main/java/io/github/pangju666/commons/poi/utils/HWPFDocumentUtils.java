@@ -26,11 +26,7 @@ public class HWPFDocumentUtils {
 	}
 
 	public static boolean isDoc(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return false;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.DOC_MIME_TYPE.equals(mimeType);
+		return FileUtils.isMimeType(file, PoiConstants.DOC_MIME_TYPE);
 	}
 
 	public static boolean isDoc(final byte[] bytes) {

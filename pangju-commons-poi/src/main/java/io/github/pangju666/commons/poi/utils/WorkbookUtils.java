@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.time.LocalDate;
@@ -36,11 +37,7 @@ public class WorkbookUtils {
 	}
 
 	public static boolean isXls(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return false;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.XLS_MIME_TYPE.equals(mimeType);
+		return FileUtils.isMimeType(file, PoiConstants.XLS_MIME_TYPE);
 	}
 
 	public static boolean isXls(final byte[] bytes) {
@@ -60,11 +57,7 @@ public class WorkbookUtils {
 	}
 
 	public static boolean isXlsx(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return false;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
+		return FileUtils.isMimeType(file, PoiConstants.XLSX_MIME_TYPE);
 	}
 
 	public static boolean isXlsx(final byte[] bytes) {
@@ -84,11 +77,7 @@ public class WorkbookUtils {
 	}
 
 	public static boolean isWorkbook(final File file) throws IOException {
-		if (FileUtils.notExist(file)) {
-			return false;
-		}
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		return PoiConstants.XLS_MIME_TYPE.equals(mimeType) || PoiConstants.XLSX_MIME_TYPE.equals(mimeType);
+		return FileUtils.isAnyMimeType(file, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLS_MIME_TYPE);
 	}
 
 	public static boolean isWorkbook(final byte[] bytes) {
@@ -814,11 +803,16 @@ public class WorkbookUtils {
 			Hyperlink hyperlink;
 			if (StringUtils.equals(uri.getScheme(), "file")) {
 				hyperlink = creationHelper.createHyperlink(HyperlinkType.FILE);
+				hyperlink.setAddress(uri.toString());
 			} else {
 				hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
+				try {
+					hyperlink.setAddress(uri.toURL().toString());
+				} catch (MalformedURLException e) {
+					cell.setBlank();
+				}
 			}
 			hyperlink.setLabel(uri.toString());
-			hyperlink.setAddress(uri.toString());
 			cell.setHyperlink(hyperlink);
 		} else if (value instanceof URL url) {
 			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
