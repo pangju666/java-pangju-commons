@@ -17,8 +17,11 @@
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.enums.RegexFlag;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -65,6 +68,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @since 1.0.0
 	 */
 	public static Pattern compile(final Pattern pattern, final int flags) {
+		Validate.notNull(pattern, "pattern 不可为null");
 		return Pattern.compile(pattern.pattern(), flags);
 	}
 
@@ -92,6 +96,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @since 1.0.0
 	 */
 	public static Pattern compile(final String regex, final int flags, final boolean matchStart, final boolean matchEnd) {
+		Validate.notBlank(regex, "regex 不可为空");
 		return Pattern.compile((matchStart && !regex.startsWith("^") ? "^" : "") + regex +
 			(matchEnd && !regex.endsWith("$") ? "$" : ""), flags);
 	}
@@ -99,13 +104,17 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	/**
 	 * 检查字符串是否完全匹配正则表达式
 	 *
-	 * @param pattern 正则表达式字符串
+	 * @param regex 正则表达式字符串
 	 * @param str 要匹配的目标字符串
 	 * @return 完全匹配时返回true
 	 * @since 1.0.0
 	 */
-	public static boolean matches(final String pattern, final String str) {
-		return Pattern.compile(pattern).matcher(str).matches();
+	public static boolean matches(final String regex, final String str) {
+		Validate.notBlank(regex, "regex 不可为空");
+		if (StringUtils.isBlank(str)) {
+			return false;
+		}
+		return Pattern.compile(regex).matcher(str).matches();
 	}
 
 	/**
@@ -117,19 +126,24 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean matches(final Pattern pattern, final String str) {
+		Validate.notNull(pattern, "pattern 不可为null");
+		if (StringUtils.isBlank(str)) {
+			return false;
+		}
 		return pattern.matcher(str).matches();
 	}
 
 	/**
 	 * 查找字符串中所有匹配正则表达式的子串
 	 *
-	 * @param pattern 正则表达式字符串
+	 * @param regex 正则表达式字符串
 	 * @param str 要查找的目标字符串
 	 * @return 包含所有匹配子串的列表（可能为空列表）
 	 * @since 1.0.0
 	 */
-	public static List<String> find(final String pattern, final String str) {
-		return find(Pattern.compile(pattern), str);
+	public static List<String> find(final String regex, final String str) {
+		Validate.notBlank(regex, "regex 不可为空");
+		return find(Pattern.compile(regex), str);
 	}
 
 	/**
@@ -141,6 +155,10 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @since 1.0.0
 	 */
 	public static List<String> find(final Pattern pattern, final String str) {
+		Validate.notNull(pattern, "pattern 不可为null");
+		if (StringUtils.isBlank(str)) {
+			return Collections.emptyList();
+		}
 		List<String> result = new ArrayList<>();
 		Matcher matcher = pattern.matcher(str);
 		while (matcher.find()) {

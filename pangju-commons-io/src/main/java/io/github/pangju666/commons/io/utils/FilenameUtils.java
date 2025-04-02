@@ -122,6 +122,25 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	}
 
 	/**
+	 * 判断是否为模型类型
+	 *
+	 * @param filename 待检测文件名
+	 * @return 当满足以下条件时返回true：
+	 * <ul>
+	 *     <li>文件名非空</li>
+	 *     <li>MIME类型以 {@link IOConstants#MODEL_MIME_TYPE_PREFIX} 开头</li>
+	 * </ul>
+	 * @since 1.0.0
+	 */
+	public static boolean isModelType(final String filename) {
+		if (StringUtils.isBlank(filename)) {
+			return false;
+		}
+		return MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase())
+			.startsWith(IOConstants.MODEL_MIME_TYPE_PREFIX);
+	}
+
+	/**
 	 * 判断是否为视频类型
 	 *
 	 * @param filename 待检测文件名

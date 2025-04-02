@@ -179,13 +179,13 @@ public class KeyPairUtils {
 	 * @return 解析成功的PrivateKey对象，当输入为空时返回null
 	 * @throws InvalidKeySpecException  当密钥规格与算法不匹配时抛出
 	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @see PKCS8EncodedKeySpec
 	 * @since 1.0.0
 	 */
 	public static PrivateKey getPrivateKeyFromPKCS8RawBytes(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		if (ArrayUtils.isEmpty(encodedKey)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
+
 		KeySpec keySpec = new PKCS8EncodedKeySpec(encodedKey);
 		return getKeyFactory(algorithm).generatePrivate(keySpec);
 	}
@@ -216,13 +216,13 @@ public class KeyPairUtils {
 	 * @return 解析成功的PublicKey对象，当输入为空时返回null
 	 * @throws InvalidKeySpecException  当密钥规格与算法不匹配时抛出
 	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @see X509EncodedKeySpec
 	 * @since 1.0.0
 	 */
 	public static PublicKey getPublicKeyFromX509RawBytes(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		if (ArrayUtils.isEmpty(encodedKey)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
+
 		KeySpec keySpec = new X509EncodedKeySpec(encodedKey);
 		return getKeyFactory(algorithm).generatePublic(keySpec);
 	}

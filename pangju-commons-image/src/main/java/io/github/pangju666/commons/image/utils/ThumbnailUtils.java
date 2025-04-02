@@ -19,13 +19,13 @@ package io.github.pangju666.commons.image.utils;
 import com.twelvemonkeys.image.ResampleOp;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -155,9 +155,8 @@ public class ThumbnailUtils {
 									 final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage = resample(inputImage, imageSize, outputFormat, filterType);
 		return ImageIO.write(outputImage, outputFormat.toLowerCase(), outputFile);
@@ -494,9 +493,8 @@ public class ThumbnailUtils {
 										final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(height > 0, "height 必须大于0");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scaleByHeight(height);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);
@@ -520,9 +518,8 @@ public class ThumbnailUtils {
 									   final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(width > 0, "width 必须大于0");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scaleByWidth(width);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);
@@ -547,9 +544,8 @@ public class ThumbnailUtils {
 								final String outputFormat, final int filterType) throws IOException {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scale(imageSize);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);
@@ -743,19 +739,5 @@ public class ThumbnailUtils {
 		return resampleOp.filter(inputImage, null);
 	}
 
-	/**
-	 * 文件校验
-	 *
-	 * @param file 文件对象
-	 * @throws FileNotFoundException 当文件是目录时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws IOException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IOException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
-	}
+
 }

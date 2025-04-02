@@ -63,8 +63,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isZip(final File file) throws IOException {
-		return FileUtils.exist(file, true) &&
-			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.ZIP_MIME_TYPE);
+		return FileUtils.isMimeType(file, CompressConstants.ZIP_MIME_TYPE);
 	}
 
 	/**
@@ -93,15 +92,15 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 解压ZIP文件到指定目录
+	 * 解压缩ZIP文件到指定目录
 	 *
-	 * @param inputFile ZIP文件（必须存在且为有效ZIP文件）
-	 * @param outputDir 输出目录（自动创建）
+	 * @param inputFile 要解压的ZIP文件，不可为null
+	 * @param outputDir 解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输入文件不是ZIP格式</li>
+	 *                         <li>输入文件不是有效的ZIP格式</li>
 	 *                         <li>输出路径不是目录</li>
-	 *                         <li>ZIP文件损坏</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -110,7 +109,7 @@ public class ZipUtils {
 
 		String mimeType = FileUtils.getMimeType(inputFile);
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-			throw new IOException(inputFile.getAbsolutePath() + "不是zip类型文件");
+			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
 		}
 		try (ZipFile zipFile = ZipFile.builder().setFile(inputFile).get()) {
 			unCompress(zipFile, outputDir);
@@ -123,16 +122,17 @@ public class ZipUtils {
 	 * @param bytes     字节数组
 	 * @param outputDir 输出目录（自动创建）
 	 * @throws IOException 内容不是有效ZIP格式时抛出
+	 * @throws IllegalArgumentException 字节数组为空时抛出
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
-		if (ArrayUtils.isNotEmpty(bytes)) {
-			String mimeType = IOConstants.getDefaultTika().detect(bytes);
-			if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-				throw new IOException("不是zip类型文件");
-			}
-			unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		String mimeType = IOConstants.getDefaultTika().detect(bytes);
+		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
+			throw new IllegalArgumentException("不是zip类型文件");
 		}
+		unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
 	}
 
 	/**
@@ -157,15 +157,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 从ZipFile对象解压到目录
+	 * 从ZipFile对象解压缩到指定目录
 	 *
-	 * @param zipFile   已打开的ZipFile实例
-	 * @param outputDir 解压目标目录（自动创建）
+	 * @param zipFile   已打开的ZipFile对象，不可为null
+	 * @param outputDir 解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>zipFile为null</li>
-	 *                         <li>目录条目创建失败</li>
-	 *                         <li>文件写入权限不足</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -173,7 +172,7 @@ public class ZipUtils {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IOException(outputDir.getAbsolutePath() + " 不是一个目录路径");
+			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
 		} else {
 			FileUtils.forceMkdir(outputDir);
 		}
@@ -197,15 +196,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 从ZIP输入流解压到目录
+	 * 从ZipArchiveInputStream解压缩到指定目录
 	 *
-	 * @param archiveInputStream ZIP归档输入流
-	 * @param outputDir          解压目标目录（自动创建）
+	 * @param archiveInputStream ZIP输入流，不可为null
+	 * @param outputDir          解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输入流为null</li>
-	 *                         <li>流内容已损坏</li>
-	 *                         <li>目录结构创建失败</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -213,7 +211,7 @@ public class ZipUtils {
 		Validate.notNull(archiveInputStream, "archiveInputStream 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IOException(outputDir.getAbsolutePath() + " 不是一个目录路径");
+			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
 		} else {
 			FileUtils.forceMkdir(outputDir);
 		}
@@ -238,19 +236,20 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到ZIP文件
 	 *
-	 * @param inputFile  要压缩的文件或目录（必须存在）
-	 * @param outputFile 输出ZIP文件（自动创建父目录）
+	 * @param inputFile  要压缩的文件或目录，不可为null且必须存在
+	 * @param outputFile 输出ZIP文件，会自动覆盖已存在文件
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
-	 *                         <li>输出路径是目录</li>
+	 *                         <li>输出路径不是文件</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
 		}
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
@@ -284,15 +283,14 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 压缩文件/目录到ZIP输出流
+	 * 压缩文件/目录到ZipArchiveOutputStream
 	 *
-	 * @param inputFile              要压缩的文件或目录
-	 * @param zipArchiveOutputStream ZIP输出流（必须已打开）
+	 * @param inputFile              要压缩的文件或目录，不可为null且必须存在
+	 * @param zipArchiveOutputStream ZIP输出流，不可为null
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
-	 *                         <li>输出流已关闭</li>
-	 *                         <li>目录遍历失败</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -312,21 +310,21 @@ public class ZipUtils {
 	}
 
 	/**
-	 * 批量压缩文件
+	 * 批量压缩文件/目录到ZIP文件
 	 *
-	 * @param inputFiles 要压缩的文件集合（自动过滤null和不存在的文件）
-	 * @param outputFile 输出ZIP文件
+	 * @param inputFiles 要压缩的文件/目录集合，可为null或空集合
+	 * @param outputFile 输出ZIP文件，会自动覆盖已存在文件
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输出文件路径无效</li>
-	 *                         <li>所有输入文件均无效</li>
+	 *                         <li>输出路径不是文件</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
 		}
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {

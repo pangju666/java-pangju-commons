@@ -58,6 +58,12 @@ public enum FileType {
 	 */
 	AUDIO("音频", Collections.emptySet(), "audio/"),
 	/**
+	 * 模型类型（通过MIME类型前缀 model/ 匹配）
+	 *
+	 * @since 1.0.0
+	 */
+	MODEL("模型", Collections.emptySet(), "model/"),
+	/**
 	 * 视频类型（通过MIME类型前缀 video/ 匹配）
 	 *
 	 * @since 1.0.0

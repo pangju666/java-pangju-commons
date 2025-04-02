@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.*;
-import java.nio.file.NoSuchFileException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -61,8 +60,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean is7z(final File file) throws IOException {
-		return FileUtils.exist(file, true) &&
-			IOConstants.getDefaultTika().detect(file).equals(CompressConstants.SEVEN_Z_MIME_TYPE);
+		return FileUtils.isMimeType(file, CompressConstants.SEVEN_Z_MIME_TYPE);
 	}
 
 	/**
@@ -91,15 +89,15 @@ public class SevenZUtils {
 	}
 
 	/**
-	 * 解压7z文件到指定目录
+	 * 解压缩7z文件到指定目录
 	 *
-	 * @param inputFile 7z文件（必须存在且可读）
-	 * @param outputDir 解压目录（自动创建不存在的父目录）
+	 * @param inputFile 要解压的7z文件，不可为null
+	 * @param outputDir 解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输入文件不是有效7z格式</li>
-	 *                         <li>输出路径指向已存在的非目录文件</li>
-	 *                         <li>文件损坏或包含非法路径</li>
+	 *                         <li>输入文件不是有效的7z格式</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -108,7 +106,7 @@ public class SevenZUtils {
 
 		String mimeType = FileUtils.getMimeType(inputFile);
 		if (!CompressConstants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {
-			throw new IOException(inputFile.getAbsolutePath() + "不是7z类型文件");
+			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是7z类型文件");
 		}
 		try (SevenZFile sevenZFile = SevenZFile.builder().setFile(inputFile).get()) {
 			unCompress(sevenZFile, outputDir);
@@ -116,15 +114,14 @@ public class SevenZUtils {
 	}
 
 	/**
-	 * 从SevenZFile对象解压到目录
+	 * 从SevenZFile对象解压缩到指定目录
 	 *
-	 * @param sevenZFile 已打开的7z文件对象
-	 * @param outputDir  解压目录（自动创建）
+	 * @param sevenZFile 已打开的SevenZFile对象，不可为null
+	 * @param outputDir  解压输出目录，会自动创建不存在的目录
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>sevenZFile为null</li>
-	 *                         <li>目录条目创建失败</li>
-	 *                         <li>文件写入权限不足</li>
+	 *                         <li>输出路径不是目录</li>
+	 *                         <li>解压过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -132,7 +129,7 @@ public class SevenZUtils {
 		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IOException(outputDir.getAbsolutePath() + " 不是一个目录路径");
+			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
 		} else {
 			FileUtils.forceMkdir(outputDir);
 		}
@@ -177,15 +174,14 @@ public class SevenZUtils {
 	}
 
 	/**
-	 * 压缩文件/目录到7z输出流
+	 * 压缩文件/目录到SevenZOutputFile对象
 	 *
-	 * @param inputFile        要压缩的文件或目录
-	 * @param sevenZOutputFile 7z输出流（必须已打开）
+	 * @param inputFile        要压缩的文件或目录，不可为null且必须存在
+	 * @param sevenZOutputFile 已打开的SevenZOutputFile对象，不可为null
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在</li>
-	 *                         <li>输出流已关闭</li>
-	 *                         <li>目录遍历失败</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -205,22 +201,21 @@ public class SevenZUtils {
 	}
 
 	/**
-	 * 批量压缩文件到7z文件
+	 * 压缩多个文件/目录到7z文件
 	 *
-	 * @param inputFiles 要压缩的文件集合（自动过滤null和不存在的文件）
-	 * @param outputFile 输出7z文件
+	 * @param inputFiles 要压缩的文件/目录集合，可为null或空集合
+	 * @param outputFile 输出7z文件，会自动覆盖已存在文件
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输出文件路径无效</li>
-	 *                         <li>输入文件不存在</li>
-	 *                         <li>文件重复添加</li>
+	 *                         <li>输出路径不是文件</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IOException(outputFile.getAbsolutePath() + " 不是一个文件路径");
+			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
 		}
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
@@ -229,15 +224,13 @@ public class SevenZUtils {
 	}
 
 	/**
-	 * 批量压缩文件到7z输出流
+	 * 压缩多个文件/目录到SevenZOutputFile对象
 	 *
-	 * @param inputFiles       要压缩的文件集合（自动过滤null和不存在的文件）
-	 * @param sevenZOutputFile 7z输出流（必须已打开）
+	 * @param inputFiles       要压缩的文件/目录集合，可为null或空集合
+	 * @param sevenZOutputFile 已打开的SevenZOutputFile对象，不可为null
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>输出流为null</li>
-	 *                         <li>文件添加失败</li>
-	 *                         <li>流已关闭</li>
+	 *                         <li>压缩过程中发生I/O错误</li>
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
@@ -247,7 +240,7 @@ public class SevenZUtils {
 		inputFiles = Objects.isNull(inputFiles) ? Collections.emptyList() : inputFiles;
 		for (File file : inputFiles) {
 			if (FileUtils.notExist(file)) {
-				throw new NoSuchFileException(file.getAbsolutePath());
+				throw new FileNotFoundException(file.getAbsolutePath());
 			}
 			if (file.isDirectory()) {
 				addDir(file, sevenZOutputFile, null);
