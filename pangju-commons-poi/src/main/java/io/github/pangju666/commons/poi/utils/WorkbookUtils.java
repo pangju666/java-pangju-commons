@@ -17,7 +17,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -99,8 +102,7 @@ public class WorkbookUtils {
 	}
 
 	public static Workbook getWorkbook(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		String mimeType = IOConstants.getDefaultTika().detect(file);
 		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
@@ -109,9 +111,8 @@ public class WorkbookUtils {
 	}
 
 	public static Workbook getWorkbook(final File file, final String mimeType) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		try (FileInputStream inputStream = FileUtils.openInputStream(file)) {
 			return getWorkbook(inputStream, mimeType);
@@ -636,20 +637,5 @@ public class WorkbookUtils {
 		}
 	}
 
-	/**
-	 * 检查文件有效性
-	 *
-	 * @param file 要检查的文件
-	 * @throws FileNotFoundException    如果文件不存在
-	 * @throws IllegalArgumentException 当file不是一个文件时
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws FileNotFoundException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
-	}
+
 }

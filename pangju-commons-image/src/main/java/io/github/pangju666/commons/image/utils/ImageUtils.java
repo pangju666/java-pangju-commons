@@ -156,13 +156,10 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final File file, final String mimeType) throws IOException {
-		if (Objects.isNull(file)) {
-			return false;
-		}
 		if (StringUtils.isBlank(mimeType)) {
 			return false;
 		}
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
 			return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
@@ -254,8 +251,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
 			return getMimeType(imageInputStream);
@@ -382,8 +378,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		if (useMetadata) {
 			try {
@@ -598,8 +593,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final File file) throws IOException, ImageProcessingException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		Metadata metadata = ImageMetadataReader.readMetadata(file);
 		return getExifOrientation(metadata);
@@ -746,20 +740,5 @@ public class ImageUtils {
 		return mimeTypes;
 	}
 
-	/**
-	 * 校验文件有效性
-	 *
-	 * @param file 要检查的文件对象，不可为null
-	 * @throws FileNotFoundException 当文件不存在或不是常规文件时抛出
-	 * @throws IllegalArgumentException 当file是目录时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws IOException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
-	}
+
 }

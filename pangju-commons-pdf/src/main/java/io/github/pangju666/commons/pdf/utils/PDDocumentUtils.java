@@ -214,8 +214,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
      */
 	public static PDDocument getDocument(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
 			throw new IllegalArgumentException("不是一个pdf文件");
@@ -236,8 +235,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
      */
 	public static PDDocument getDocument(final File file, final String password) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
 			throw new IllegalArgumentException("不是一个pdf文件");
@@ -377,9 +375,8 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
      */
 	public static void addImage(final PDDocument document, final File imageFile, final int page) throws IOException {
-		Validate.notNull(imageFile, "file 不可为 null");
 		Validate.isTrue(page > 0, "page 不可为小于等于0");
-		checkFile(imageFile);
+		FileUtils.checkFile(imageFile, "imageFile 不可为 null");
 
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
 		addImageToDocument(document, imageObject, page, 0, 0, imageObject.getWidth(), imageObject.getHeight());
@@ -401,13 +398,12 @@ public class PDDocumentUtils {
 	 */
 	public static void addImage(final PDDocument document, final File imageFile, final int page,
 								final int x, final int y, final int width, final int height) throws IOException {
-		Validate.notNull(imageFile, "file 不可为 null");
 		Validate.isTrue(page > 0, "page 不可为小于等于0");
 		Validate.isTrue(x > 0, "x 不可为小于等于0");
 		Validate.isTrue(y > 0, "y 不可为小于等于0");
 		Validate.isTrue(width > 0, "width 不可为小于等于0");
 		Validate.isTrue(height > 0, "height 不可为小于等于0");
-		checkFile(imageFile);
+		FileUtils.checkFile(imageFile, "imageFile 不可为 null");
 
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
 		addImageToDocument(document, imageObject, page, x, y, width, height);
@@ -855,22 +851,6 @@ public class PDDocumentUtils {
 		return -1;
 	}
 
-	/**
-	 * 检查文件有效性
-	 *
-	 * @param file 要检查的文件
-	 * @throws FileNotFoundException 如果文件不存在
-	 * @throws IllegalArgumentException 当file不是一个文件时
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws FileNotFoundException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
-	}
 
 	/**
 	 * 将图像添加到PDF文档

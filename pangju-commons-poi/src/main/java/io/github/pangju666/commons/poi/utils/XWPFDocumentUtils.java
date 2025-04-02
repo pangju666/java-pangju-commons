@@ -9,7 +9,10 @@ import org.apache.commons.lang3.Validate;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -47,8 +50,7 @@ public class XWPFDocumentUtils {
 	}
 
 	public static Document getDocument(final File file) throws IOException {
-		Validate.notNull(file, "file 不可为 null");
-		checkFile(file);
+		FileUtils.checkFile(file, "file 不可为 null");
 
 		String mimeType = IOConstants.getDefaultTika().detect(file);
 		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
@@ -70,20 +72,5 @@ public class XWPFDocumentUtils {
 		return new XWPFDocument(inputStream);
 	}
 
-	/**
-	 * 检查文件有效性
-	 *
-	 * @param file 要检查的文件
-	 * @throws FileNotFoundException    如果文件不存在
-	 * @throws IllegalArgumentException 当file不是一个文件时
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws FileNotFoundException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
-	}
+
 }

@@ -92,7 +92,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file, final int bufferSize) throws IOException {
-		checkExists(file, "file不可为 null", true);
+		checkFile(file, "file不可为 null");
 		return new UnsynchronizedBufferedInputStream.Builder()
 			.setBufferSize(bufferSize)
 			.setFile(file)
@@ -128,7 +128,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(final File file, final int bufferSize) throws IOException {
-		checkExists(file, "file不可为 null", true);
+		checkFile(file, "file不可为 null");
 		return MemoryMappedFileInputStream
 			.builder()
 			.setFile(file)
@@ -165,7 +165,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(final File file, final int bufferSize) throws IOException {
-		checkExists(file, "file不可为 null", true);
+		checkFile(file, "file不可为 null");
 		return BufferedFileChannelInputStream
 			.builder()
 			.setFile(file)
@@ -190,7 +190,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -211,7 +211,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -242,7 +242,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -267,7 +267,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -292,7 +292,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -313,7 +313,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -343,7 +343,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -368,7 +368,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkExists(inputFile, "inputFile 不可为 null", true);
+		checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 InputStream inputStream = openInputStream(inputFile)) {
@@ -449,7 +449,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static Map<String, String> parseMetaData(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		Metadata metadata = new Metadata();
 		try (Reader reader = IOConstants.getDefaultTika().parse(file, metadata)) {
 			return Arrays.stream(metadata.names())
@@ -474,7 +474,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see org.apache.tika.Tika
 	 */
 	public static String getMimeType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file);
 	}
 
@@ -488,7 +488,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImageType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
@@ -502,7 +502,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isTextType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
@@ -516,7 +516,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isModelType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.MODEL_MIME_TYPE_PREFIX);
 	}
 
@@ -530,7 +530,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isVideoType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
@@ -544,7 +544,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAudioType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
@@ -558,7 +558,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isApplicationType(final File file) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
@@ -581,7 +581,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		if (StringUtils.isBlank(mimeType)) {
 			return false;
 		}
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		String fileMimeType = IOConstants.getDefaultTika().detect(file);
 		return mimeType.equalsIgnoreCase(fileMimeType);
 	}
@@ -602,7 +602,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final String... mimeTypes) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
@@ -626,7 +626,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final Collection<String> mimeTypes) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		if (mimeTypes == null || mimeTypes.isEmpty()) {
 			return false;
 		}
@@ -645,7 +645,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File rename(final File file, String newFilename) throws IOException {
-		checkExists(file, "file 不可为 null", false);
+		checkExists(file, "file 不可为 null");
 		if (file.isFile()) {
 			newFilename = FilenameUtils.getName(newFilename);
 			Validate.notBlank(newFilename, "newFilename 必须为文件名");
@@ -676,7 +676,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File replaceBaseName(final File file, final String newBaseName) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		String newFilePath = FilenameUtils.replaceBaseName(file.getAbsolutePath(), newBaseName);
 		File destFile = new File(newFilePath);
 		if (destFile.exists()) {
@@ -710,7 +710,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static File replaceExtension(final File file, final String newExtension) throws IOException {
-		checkExists(file, "file 不可为 null", true);
+		checkFile(file, "file 不可为 null");
 		String newFilePath = FilenameUtils.replaceExtension(file.getAbsolutePath(), newExtension);
 		File destFile = new File(newFilePath);
 		if (destFile.exists()) {
@@ -723,23 +723,34 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 校验文件存在性及类型
+	 * 校验文件是否存在
 	 *
 	 * @param file    待校验文件
 	 * @param message 空指针异常提示信息
-	 * @param isFile  类型校验标记：
-	 *               true=必须为文件，false=允许目录
 	 * @throws IllegalArgumentException 当file是目录时抛出
 	 * @throws FileNotFoundException 当文件不存在时抛出
 	 * @since 1.0.0
 	 */
-	protected static void checkExists(final File file, final String message, boolean isFile) throws IOException {
+	public static void checkFile(final File file, final String message) throws IOException {
+		checkExists(file, message);
+		if (!file.isFile()) {
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
+		}
+	}
+
+	/**
+	 * 校验file是否存在
+	 *
+	 * @param file    待校验目录
+	 * @param message 空指针异常提示信息
+	 * @throws IllegalArgumentException 当file不是目录时抛出
+	 * @throws FileNotFoundException 当目录不存在时抛出
+	 * @since 1.0.0
+	 */
+	protected static void checkExists(final File file, final String message) throws IOException {
 		Objects.requireNonNull(file, message);
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (isFile && !file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 }

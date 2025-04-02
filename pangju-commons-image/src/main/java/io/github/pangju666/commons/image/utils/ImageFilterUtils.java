@@ -20,6 +20,7 @@ import com.twelvemonkeys.image.BrightnessContrastFilter;
 import com.twelvemonkeys.image.GrayFilter;
 import com.twelvemonkeys.image.ImageUtil;
 import io.github.pangju666.commons.image.lang.ImageConstants;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -29,7 +30,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
 import java.awt.image.RGBImageFilter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -360,8 +360,7 @@ public class ImageFilterUtils {
 	 * @see ImageUtil#filter(Image, ImageFilter)
 	 */
 	public static void filter(final BufferedImage inputImage, final ImageFilter filter, final File outputFile) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage = filter(inputImage, filter);
 		ImageIO.write(outputImage, FilenameUtils.getExtension(outputFile.getName()), outputFile);
@@ -381,9 +380,8 @@ public class ImageFilterUtils {
 	 */
 	public static void filter(final BufferedImage inputImage, final ImageFilter filter, final File outputFile,
 							  final String outputFormat) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		checkFile(outputFile);
+		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage;
 		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat.toLowerCase())) {
@@ -430,22 +428,5 @@ public class ImageFilterUtils {
 
 		Image filterImage = ImageUtil.filter(image, filter);
 		return ImageUtil.toBuffered(filterImage, imageType);
-	}
-
-	/**
-	 * 文件校验
-	 *
-	 * @param file 文件对象
-	 * @throws FileNotFoundException 当文件不存在或不是常规文件时抛出
-	 * @throws IllegalArgumentException 当file是目录时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkFile(final File file) throws IOException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-		if (!file.isFile()) {
-			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
-		}
 	}
 }
