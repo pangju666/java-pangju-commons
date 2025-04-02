@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-pdf</artifactId>
-	<description>java 公共PDF工具库（基于Apache Pdfbox）</description>
+	<description>PDF工具库（基于Apache pdfbox）</description>
 
 	<licenses>
 		<license>

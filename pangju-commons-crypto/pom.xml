@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-crypto</artifactId>
-	<description>java 公共加解密库（基于jasypt拓展）</description>
+	<description>加解密工具类库（基于jasypt）</description>
 
 	<licenses>
 		<license>

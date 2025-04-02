@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-image</artifactId>
-	<description>java 公共图片库</description>
+	<description>图片工具类库（基于metadata-extractor和twelvemonkeys）</description>
 
 	<licenses>
 		<license>

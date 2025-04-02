@@ -9,7 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-compress</artifactId>
-	<description>java 公共文件压缩库</description>
+	<description>文件压缩工具类库（基于apache compress）</description>
 
 	<licenses>
 		<license>
