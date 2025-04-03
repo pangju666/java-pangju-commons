@@ -19,10 +19,7 @@ package io.github.pangju666.commons.lang.utils;
 import org.apache.commons.lang3.Validate;
 
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 字符串工具类，继承并扩展{@link org.apache.commons.lang3.StringUtils}功能
@@ -98,6 +95,25 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
+			.filter(StringUtils::isNotBlank)
+			.distinct()
+			.toList();
+	}
+
+	public static List<String> getNotBlankElements(final String... strings) {
+		if (Objects.isNull(strings) || strings.length == 0) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(strings)
+			.filter(StringUtils::isNotBlank)
+			.toList();
+	}
+
+	public static List<String> getUniqueNotBlankElements(final String... strings) {
+		if (Objects.isNull(strings) || strings.length == 0) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(strings)
 			.filter(StringUtils::isNotBlank)
 			.distinct()
 			.toList();

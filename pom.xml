@@ -26,6 +26,7 @@
 		<module>pangju-commons-pdf</module>
 		<module>pangju-commons-poi</module>
 		<module>pangju-commons-validation</module>
+		<module>pangju-commons-all</module>
 	</modules>
 
 	<properties>
@@ -104,6 +105,11 @@
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-commons-validation</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-all</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
