@@ -18,12 +18,18 @@ package io.github.pangju666.commons.lang.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import io.github.pangju666.commons.lang.gson.deserializer.*;
+import io.github.pangju666.commons.lang.gson.serializer.ClassJsonSerializer;
+import io.github.pangju666.commons.lang.gson.serializer.DateJsonSerializer;
+import io.github.pangju666.commons.lang.gson.serializer.LocalDateJsonSerializer;
+import io.github.pangju666.commons.lang.gson.serializer.LocalDateTimeJsonSerializer;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * JSON处理工具类
@@ -39,15 +45,25 @@ public class JsonUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Gson DEFAULT_GSON;
-
-	static {
-		DEFAULT_GSON = new GsonBuilder()
-			.setPrettyPrinting()
-			.create();
-	}
+	public static final Gson DEFAULT_GSON = createGsonBuilder().create();
 
 	protected JsonUtils() {
+	}
+
+	public static GsonBuilder createGsonBuilder() {
+		return new GsonBuilder()
+			.registerTypeAdapter(Date.class, new DateJsonSerializer())
+			.registerTypeAdapter(LocalDate.class, new LocalDateJsonSerializer())
+			.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonSerializer())
+			.registerTypeAdapter(BigInteger.class, new BigIntegerDeserializer())
+			.registerTypeAdapter(BigDecimal.class, new BigDecimalDeserializer())
+			.registerTypeAdapter(Date.class, new DateJsonDeserializer())
+			.registerTypeAdapter(LocalDate.class, new LocalDateJsonDeserializer())
+			.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonDeserializer())
+			.registerTypeAdapter(Class.class, new ClassJsonDeserializer())
+			.registerTypeAdapter(Class.class, new ClassJsonSerializer())
+			.serializeNulls()
+			.setPrettyPrinting();
 	}
 
 	/**
@@ -168,10 +184,10 @@ public class JsonUtils {
 	/**
 	 * 序列化对象为JSON字符串（指定类型，自定义GSON）
 	 *
-	 * @param src   要序列化的对象
-	 * @param gson  自定义Gson实例
+	 * @param src    要序列化的对象
+	 * @param gson   自定义Gson实例
 	 * @param _class 目标类类型
-	 * @param <T>   对象类型
+	 * @param <T>    对象类型
 	 * @return JSON字符串（空输入返回空字符串）
 	 * @since 1.0.0
 	 */
@@ -185,9 +201,9 @@ public class JsonUtils {
 	/**
 	 * 序列化泛型对象为JSON字符串（使用默认GSON）
 	 *
-	 * @param src      要序列化的对象
+	 * @param src       要序列化的对象
 	 * @param typeToken 类型标记
-	 * @param <T>      对象类型
+	 * @param <T>       对象类型
 	 * @return JSON字符串（空输入返回空字符串）
 	 * @since 1.0.0
 	 */
@@ -198,10 +214,10 @@ public class JsonUtils {
 	/**
 	 * 序列化泛型对象为JSON字符串（自定义GSON）
 	 *
-	 * @param src      要序列化的对象
-	 * @param gson     自定义Gson实例
+	 * @param src       要序列化的对象
+	 * @param gson      自定义Gson实例
 	 * @param typeToken 类型标记
-	 * @param <T>      对象类型
+	 * @param <T>       对象类型
 	 * @return JSON字符串（空输入返回空字符串）
 	 * @since 1.0.0
 	 */
@@ -245,9 +261,9 @@ public class JsonUtils {
 	/**
 	 * 反序列化JsonElement到泛型对象（使用默认GSON）
 	 *
-	 * @param json     JsonElement对象
+	 * @param json      JsonElement对象
 	 * @param typeToken 类型标记
-	 * @param <T>      返回值类型
+	 * @param <T>       返回值类型
 	 * @return 反序列化后的对象（null、JsonNull输入返回null）
 	 * @since 1.0.0
 	 */
@@ -258,10 +274,10 @@ public class JsonUtils {
 	/**
 	 * 反序列化JsonElement到泛型对象（自定义GSON）
 	 *
-	 * @param json     JsonElement对象
-	 * @param gson     自定义Gson实例
+	 * @param json      JsonElement对象
+	 * @param gson      自定义Gson实例
 	 * @param typeToken 类型标记
-	 * @param <T>      返回值类型
+	 * @param <T>       返回值类型
 	 * @return 反序列化后的对象（null、JsonNull输入返回null）
 	 * @since 1.0.0
 	 */
@@ -289,7 +305,7 @@ public class JsonUtils {
 	 *
 	 * @param src  要序列化的对象
 	 * @param gson 自定义Gson实例
-	 * @param <T> 对象类型
+	 * @param <T>  对象类型
 	 * @return JsonElement对象（null输入返回JsonNull）
 	 * @since 1.0.0
 	 */
@@ -303,9 +319,9 @@ public class JsonUtils {
 	/**
 	 * 序列化对象为JsonElement（指定类型，使用默认GSON）
 	 *
-	 * @param src   要序列化的对象
+	 * @param src    要序列化的对象
 	 * @param _class 目标类类型
-	 * @param <T>   对象类型
+	 * @param <T>    对象类型
 	 * @return JsonElement对象（null输入返回JsonNull）
 	 * @since 1.0.0
 	 */
@@ -316,10 +332,10 @@ public class JsonUtils {
 	/**
 	 * 序列化对象为JsonElement（指定类型，自定义GSON）
 	 *
-	 * @param src   要序列化的对象
-	 * @param gson  自定义Gson实例
+	 * @param src    要序列化的对象
+	 * @param gson   自定义Gson实例
 	 * @param _class 目标类类型
-	 * @param <T>   对象类型
+	 * @param <T>    对象类型
 	 * @return JsonElement对象（null输入返回JsonNull）
 	 * @since 1.0.0
 	 */
@@ -333,9 +349,9 @@ public class JsonUtils {
 	/**
 	 * 序列化泛型对象为JsonElement（使用默认GSON）
 	 *
-	 * @param src      要序列化的对象
+	 * @param src       要序列化的对象
 	 * @param typeToken 类型标记
-	 * @param <T>      对象类型
+	 * @param <T>       对象类型
 	 * @return JsonElement对象（null输入返回JsonNull）
 	 * @since 1.0.0
 	 */
@@ -346,10 +362,10 @@ public class JsonUtils {
 	/**
 	 * 序列化泛型对象为JsonElement（自定义GSON）
 	 *
-	 * @param src      要序列化的对象
-	 * @param gson     自定义Gson实例
+	 * @param src       要序列化的对象
+	 * @param gson      自定义Gson实例
 	 * @param typeToken 类型标记
-	 * @param <T>      对象类型
+	 * @param <T>       对象类型
 	 * @return JsonElement对象（null输入返回JsonNull）
 	 * @since 1.0.0
 	 */
