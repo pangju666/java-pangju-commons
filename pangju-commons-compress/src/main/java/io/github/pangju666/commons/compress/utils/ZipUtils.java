@@ -223,7 +223,9 @@ public class ZipUtils {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException("不是zip类型文件");
 		}
-		unCompress(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), outputDir);
+		try (ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
+			unCompress(zipArchiveInputStream, outputDir);
+		}
 	}
 
 	/**
@@ -284,12 +286,7 @@ public class ZipUtils {
 	 */
 	public static void unCompress(final ZipFile zipFile, final File outputDir) throws IOException {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
-		Validate.notNull(outputDir, "outputDir 不可为 null");
-		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
-		} else {
-			FileUtils.forceMkdir(outputDir);
-		}
+		FileUtils.forceMkdir(outputDir);
 
 		Iterator<ZipArchiveEntry> iterator = zipFile.getEntries().asIterator();
 		while (iterator.hasNext()) {
@@ -332,12 +329,7 @@ public class ZipUtils {
 	 */
 	public static void unCompress(final ZipArchiveInputStream archiveInputStream, final File outputDir) throws IOException {
 		Validate.notNull(archiveInputStream, "archiveInputStream 不可为 null");
-		Validate.notNull(outputDir, "outputDir 不可为 null");
-		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
-		} else {
-			FileUtils.forceMkdir(outputDir);
-		}
+		FileUtils.forceMkdir(outputDir);
 
 		ZipArchiveEntry zipEntry = archiveInputStream.getNextEntry();
 		while (Objects.nonNull(zipEntry)) {
@@ -381,11 +373,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
-		}
-
+		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
 			compress(inputFile, zipArchiveOutputStream);
 		}
@@ -442,10 +430,7 @@ public class ZipUtils {
 	 */
 	public static void compress(final File inputFile, final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
 		Validate.notNull(zipArchiveOutputStream, "zipArchiveOutputStream 不可为 null");
-		Validate.notNull(inputFile, "inputFile 不可为 null");
-		if (!inputFile.exists()) {
-			throw new FileNotFoundException(inputFile.getAbsolutePath());
-		}
+		FileUtils.checkExists(inputFile, "inputFile 不可为 null");
 
 		if (inputFile.isDirectory()) {
 			addDir(inputFile, zipArchiveOutputStream, null);
@@ -478,11 +463,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
-		}
-
+		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
 			compress(inputFiles, zipArchiveOutputStream);
 		}

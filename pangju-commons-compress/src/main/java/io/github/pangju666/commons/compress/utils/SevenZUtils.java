@@ -177,12 +177,7 @@ public class SevenZUtils {
 	 */
 	public static void unCompress(final SevenZFile sevenZFile, final File outputDir) throws IOException {
 		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
-		Validate.notNull(outputDir, "outputDir 不可为 null");
-		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new IllegalArgumentException(outputDir.getAbsolutePath() + " 不是一个目录路径");
-		} else {
-			FileUtils.forceMkdir(outputDir);
-		}
+		FileUtils.forceMkdir(outputDir);
 
 		SevenZArchiveEntry archiveEntry = sevenZFile.getNextEntry();
 		while (Objects.nonNull(archiveEntry)) {
@@ -225,8 +220,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-
+		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFile, sevenZOutputFile);
 		}
@@ -288,11 +282,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		if (outputFile.exists() && !outputFile.isFile()) {
-			throw new IllegalArgumentException(outputFile.getAbsolutePath() + " 不是一个文件路径");
-		}
-
+		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFiles, sevenZOutputFile);
 		}
