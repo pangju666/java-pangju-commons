@@ -204,8 +204,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 *
 	 * @param keySize 密钥长度(bit)，必须满足：
 	 *                <ul>
-	 *                  <li>≥1024</li>
-	 *                  <li≤8192</li>
+	 *                  <li>&gt;=1024</li>
+	 *                  <li>&lt;=8192</li>
 	 *                </ul>
 	 * @throws IllegalArgumentException 当keySize不满足要求时抛出
 	 * @since 1.0.0

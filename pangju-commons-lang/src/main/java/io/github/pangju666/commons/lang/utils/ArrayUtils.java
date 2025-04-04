@@ -23,8 +23,15 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 数组操作工具类，继承并扩展了{@link org.apache.commons.lang3.ArrayUtils}的功能
- * <p>新增数组分块方法，支持基本类型数组及对象数组的分块操作，功能类似{@link org.apache.commons.collections4.ListUtils#partition}的数组实现</p>
+ * 数组操作工具类
+ * <p>
+ * 继承并扩展了{@link org.apache.commons.lang3.ArrayUtils}的功能，提供以下增强特性：
+ * <ul>
+ *   <li>数组分割功能：将数组按指定大小分割成子数组列表</li>
+ *   <li>支持所有基本类型数组和泛型数组操作</li>
+ *   <li>线程安全的方法实现</li>
+ * </ul>
+ * </p>
  *
  * @author pangju666
  * @see org.apache.commons.lang3.ArrayUtils
@@ -35,11 +42,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<boolean[]> partition(final boolean[] array, final int size) {
@@ -66,11 +77,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将byte数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<byte[]> partition(final byte[] array, final int size) {
@@ -97,11 +112,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将char数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的char数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<char[]> partition(final char[] array, final int size) {
@@ -128,11 +147,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将double数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的double数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<double[]> partition(final double[] array, final int size) {
@@ -159,11 +182,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将float数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的float数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<float[]> partition(final float[] array, final int size) {
@@ -190,11 +217,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将int数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的int数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<int[]> partition(final int[] array, final int size) {
@@ -221,11 +252,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将long数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的long数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<long[]> partition(final long[] array, final int size) {
@@ -252,11 +287,15 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将short数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
+	 * @param array 要分割的short数组
+	 * @param size 每个子数组的大小
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	public static List<short[]> partition(final short[] array, final int size) {
@@ -283,13 +322,16 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	}
 
 	/**
-	 * 将指定数组按给定大小分块（类似 {@link org.apache.commons.collections4.ListUtils#partition ListUtils.partition}）
+	 * 将泛型数组分割成指定大小的子数组列表
+	 * <p>
+	 * 如果数组为空或size小于等于0，返回空列表。
+	 * 最后一个子数组的大小可能小于指定size。
+	 * </p>
 	 *
-	 * @param array 待分块的数组（null或空数组时返回空列表）
-	 * @param size  每块的大小（小于等于0时返回空列表）
-	 * @param <T>   数组元素的类型
-	 * @return 包含分块数组的不可变列表（当array无效或size不合法时返回{@link Collections#emptyList()}）
-	 * @see Array#newInstance
+	 * @param array 要分割的数组
+	 * @param size 每个子数组的大小
+	 * @param <T> 数组元素类型
+	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
 	@SuppressWarnings("unchecked")

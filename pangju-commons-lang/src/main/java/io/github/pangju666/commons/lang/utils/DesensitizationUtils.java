@@ -269,7 +269,7 @@ public class DesensitizationUtils {
 	 * 右侧内容脱敏（保留左侧指定位数）
 	 *
 	 * @param content      待脱敏的原始字符串
-	 * @param prefixLength 保留的左侧字符数（需满足 0 ≤ prefixLength < 总长度）
+	 * @param prefixLength 保留的左侧字符数（需满足 0 &lt;= prefixLength &lt; 总长度）
 	 * @return 右侧用星号填充的字符串（如：ABC****），
 	 * 当参数非法时直接返回输入参数
 	 * @since 1.0.0
@@ -290,7 +290,7 @@ public class DesensitizationUtils {
 	 * 左侧内容脱敏（保留右侧指定位数）
 	 *
 	 * @param content      待脱敏的原始字符串，允许为空
-	 * @param suffixLength 保留的右侧字符数（需满足 0 ≤ suffixLength < 总长度）
+	 * @param suffixLength 保留的右侧字符数（需满足 0 &lt;= suffixLength &lt; 总长度）
 	 * @return 左侧用星号填充的字符串（如：****XYZ），
 	 * 当参数非法时直接返回输入参数
 	 * @since 1.0.0
@@ -311,8 +311,8 @@ public class DesensitizationUtils {
 	 * 环形脱敏处理（保留字符串首尾指定长度内容，中间用星号替代）
 	 *
 	 * @param content      待脱敏的原始字符串，允许为空
-	 * @param prefixLength 头部保留字符数（需满足 0 ≤ prefixLength < 总长度）
-	 * @param suffixLength 尾部保留字符数（需满足 0 ≤ suffixLength < 总长度）
+	 * @param prefixLength 头部保留字符数（需满足 0 &lt;= prefixLength &lt; 总长度）
+	 * @param suffixLength 尾部保留字符数（需满足 0 &lt;= suffixLength &lt; 总长度）
 	 * @return 符合首尾保留规则的脱敏字符串（格式示例："AB***EF"），
 	 * 当参数非法时直接返回输入参数，
 	 * 当首尾保留长度之和大于等于字符串总长度时返回原始输入内容
