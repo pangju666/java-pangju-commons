@@ -121,7 +121,7 @@ public class ThumbnailUtils {
 	 */
 	public static boolean forceScale(final BufferedImage inputImage, final OutputStream outputStream,
 									 final ImageSize imageSize, final String outputFormat) throws IOException {
-		return scale(inputImage, outputStream, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return forceScale(inputImage, outputStream, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -222,7 +222,7 @@ public class ThumbnailUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize) throws IOException {
-		return scale(inputImage, outputFile, imageSize,
+		return forceScale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), ResampleOp.FILTER_TRIANGLE);
 	}
 
@@ -269,7 +269,7 @@ public class ThumbnailUtils {
 	 */
 	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 									 final int filterType) throws IOException {
-		return scale(inputImage, outputFile, imageSize,
+		return forceScale(inputImage, outputFile, imageSize,
 			FilenameUtils.getExtension(outputFile.getName()), filterType);
 	}
 
@@ -320,7 +320,7 @@ public class ThumbnailUtils {
 	 */
 	public static boolean forceScale(final BufferedImage inputImage, final File outputFile, final ImageSize imageSize,
 									 final String outputFormat) throws IOException {
-		return scale(inputImage, outputFile, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
+		return forceScale(inputImage, outputFile, imageSize, outputFormat, ResampleOp.FILTER_TRIANGLE);
 	}
 
 	/**
@@ -375,7 +375,7 @@ public class ThumbnailUtils {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage = resample(inputImage, imageSize, outputFormat, filterType);
 		return ImageIO.write(outputImage, outputFormat.toLowerCase(), outputFile);
@@ -1251,7 +1251,7 @@ public class ThumbnailUtils {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(height > 0, "height 必须大于0");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scaleByHeight(height);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);
@@ -1310,7 +1310,7 @@ public class ThumbnailUtils {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scaleByWidth(width);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);
@@ -1371,7 +1371,7 @@ public class ThumbnailUtils {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(imageSize, "imageSize 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		ImageSize outputImageSize = new ImageSize(inputImage.getWidth(), inputImage.getHeight()).scale(imageSize);
 		BufferedImage outputImage = resample(inputImage, outputImageSize, outputFormat, filterType);

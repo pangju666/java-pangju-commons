@@ -220,7 +220,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFile, sevenZOutputFile);
 		}
@@ -282,7 +282,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFiles, sevenZOutputFile);
 		}

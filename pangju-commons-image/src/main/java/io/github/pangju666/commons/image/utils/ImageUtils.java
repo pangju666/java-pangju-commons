@@ -28,6 +28,7 @@ import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -239,7 +240,6 @@ public class ImageUtils {
 			return false;
 		}
 		FileUtils.checkFile(file, "file 不可为 null");
-
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
 			return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
 		}
@@ -308,8 +308,12 @@ public class ImageUtils {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
 				return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
 			}
+		} else if (inputStream instanceof UnsynchronizedBufferedInputStream bufferedInputStream) {
+			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+				return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
+			}
 		} else {
-			try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+			try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				 ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
 				return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
 			}
@@ -370,7 +374,6 @@ public class ImageUtils {
 	 */
 	public static String getMimeType(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
-
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
 			return getMimeType(imageInputStream);
 		}
@@ -440,8 +443,12 @@ public class ImageUtils {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
 				return getMimeType(imageInputStream);
 			}
+		} else if (inputStream instanceof UnsynchronizedBufferedInputStream bufferedInputStream) {
+			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+				return getMimeType(imageInputStream);
+			}
 		} else {
-			try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+			try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				 ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
 				return getMimeType(imageInputStream);
 			}
@@ -593,7 +600,6 @@ public class ImageUtils {
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
-
 		if (useMetadata) {
 			try {
 				Metadata metadata = ImageMetadataReader.readMetadata(file);
@@ -894,7 +900,6 @@ public class ImageUtils {
 	 */
 	public static Integer getExifOrientation(final File file) throws IOException, ImageProcessingException {
 		FileUtils.checkFile(file, "file 不可为 null");
-
 		Metadata metadata = ImageMetadataReader.readMetadata(file);
 		return getExifOrientation(metadata);
 	}

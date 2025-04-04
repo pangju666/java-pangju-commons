@@ -687,7 +687,7 @@ public class ImageFilterUtils {
 	 * @since 1.0.0
 	 */
 	public static void filter(final BufferedImage inputImage, final ImageFilter filter, final File outputFile) throws IOException {
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage = filter(inputImage, filter);
 		ImageIO.write(outputImage, FilenameUtils.getExtension(outputFile.getName()), outputFile);
@@ -732,7 +732,7 @@ public class ImageFilterUtils {
 	public static void filter(final BufferedImage inputImage, final ImageFilter filter, final File outputFile,
 							  final String outputFormat) throws IOException {
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		FileUtils.checkFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		BufferedImage outputImage;
 		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat.toLowerCase())) {

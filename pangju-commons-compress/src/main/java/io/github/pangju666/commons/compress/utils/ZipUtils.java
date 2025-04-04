@@ -373,7 +373,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
 			compress(inputFile, zipArchiveOutputStream);
 		}
@@ -430,7 +430,7 @@ public class ZipUtils {
 	 */
 	public static void compress(final File inputFile, final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
 		Validate.notNull(zipArchiveOutputStream, "zipArchiveOutputStream 不可为 null");
-		FileUtils.checkExists(inputFile, "inputFile 不可为 null");
+		FileUtils.check(inputFile, "inputFile 不可为 null");
 
 		if (inputFile.isDirectory()) {
 			addDir(inputFile, zipArchiveOutputStream, null);
@@ -463,7 +463,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		FileUtils.checkOutputFile(outputFile, "outputFile 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
 			compress(inputFiles, zipArchiveOutputStream);
 		}
