@@ -17,19 +17,39 @@
 package io.github.pangju666.commons.crypto.digest;
 
 import io.github.pangju666.commons.crypto.key.RSAKey;
+import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.digest.StringDigester;
+import org.jasypt.exceptions.EncryptionInitializationException;
 
 import java.nio.charset.StandardCharsets;
 
 /**
- * 基于RSA算法的字符串摘要处理器，用于执行消息签名和验证操作
+ * RSA字符串签名处理器
  * <p>
- * 该类是线程安全的
- * </p>
+ * 本类实现了基于RSA算法的字符串签名功能，提供以下核心能力：
+ * <ul>
+ *   <li><strong>字符串签名</strong> - 对字符串消息生成数字签名</li>
+ *   <li><strong>签名验证</strong> - 验证字符串消息与签名的匹配性</li>
+ *   <li><strong>多格式支持</strong> - 支持Base64和十六进制编码格式</li>
+ *   <li><strong>线程安全</strong> - 所有操作都进行了同步控制</li>
+ * </ul>
+ *
+ * <h3>典型使用场景：</h3>
+ * <ul>
+ *   <li>API请求参数签名验证</li>
+ *   <li>配置文件完整性校验</li>
+ *   <li>消息防篡改保护</li>
+ * </ul>
+ *
+ * <h3>编码格式说明：</h3>
+ * <ul>
+ *   <li>{@link #digest(String)}/{@link #matches(String, String)} - 使用Base64编码</li>
+ *   <li>{@link #digestToHexString(String)}/{@link #matchesFromHexString(String, String)} - 使用十六进制编码</li>
+ * </ul>
  *
  * @author pangju666
  * @see StringDigester
@@ -39,23 +59,42 @@ import java.nio.charset.StandardCharsets;
  */
 public final class RSAStringDigester implements StringDigester {
 	/**
-	 * 底层字节数组摘要处理器实例
+	 * 底层字节数组签名处理器
+	 * <p>实际执行签名操作的核心组件，具有以下特性：</p>
+	 * <ul>
+	 *   <li>非null</li>
+	 *   <li>线程安全</li>
+	 *   <li>延迟初始化</li>
+	 * </ul>
 	 *
+	 * @see RSAByteDigester
 	 * @since 1.0.0
 	 */
 	private final RSAByteDigester byteDigester;
 
 	/**
-	 * 创建使用默认配置的摘要处理器
+	 * 构造方法（使用默认配置）
+	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和默认算法("SHA256withRSA")的实例</p>
+	 *
+	 * @see RSAByteDigester#RSAByteDigester()
+	 * @since 1.0.0
 	 */
 	public RSAStringDigester() {
 		this.byteDigester = new RSAByteDigester();
 	}
 
 	/**
-	 * 使用指定的字节数组摘要处理器创建实例
+	 * 构造方法（自定义底层处理器）
+	 * <p>使用指定的字节数组签名处理器创建实例</p>
 	 *
-	 * @param byteDigester 底层字节数组摘要处理器（非空）
+	 * @param byteDigester 底层处理器，必须满足：
+	 *                     <ul>
+	 *                       <li>非null</li>
+	 *                       <li>已配置有效密钥</li>
+	 *                     </ul>
+	 * @throws NullPointerException 当byteDigester为null时抛出
+	 * @see RSAByteDigester
+	 * @since 1.0.0
 	 */
 	public RSAStringDigester(final RSAByteDigester byteDigester) {
 		this.byteDigester = byteDigester;
@@ -63,27 +102,73 @@ public final class RSAStringDigester implements StringDigester {
 
 	/**
 	 * 设置RSA密钥对
+	 * <p>更新签名处理器使用的密钥对</p>
 	 *
-	 * @param key RSA密钥对（包含公钥和私钥）
+	 * @param key 新的密钥对，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>至少包含公钥或私钥</li>
+	 *            </ul>
+	 * @throws NullPointerException 当key为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
+	 * @see RSAByteDigester#setKey(RSAKey)
+	 * @since 1.0.0
 	 */
 	public void setKey(final RSAKey key) {
 		byteDigester.setKey(key);
 	}
 
 	/**
-	 * 设置签名算法（如SHA256withRSA）
+	 * 设置签名算法
+	 * <p>更新签名处理器使用的算法</p>
 	 *
-	 * @param algorithm 要使用的签名算法名称
+	 * @param algorithm 新的算法名称，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>JCA标准算法名称</li>
+	 *                  </ul>
+	 * @throws NullPointerException 当algorithm为null时抛出
+	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature">JCA标准算法名称</a>
+	 * @since 1.0.0
 	 */
 	public void setAlgorithm(final String algorithm) {
 		byteDigester.setAlgorithm(algorithm);
 	}
 
 	/**
-	 * 对消息进行签名，返回Base64编码的签名结果
+	 * 初始化签名组件
+	 * <p>触发底层签名处理器的初始化操作，具有以下特性：</p>
+	 * <ul>
+	 *   <li>自动检测可用密钥</li>
+	 *   <li>按需初始化签名/验证功能</li>
+	 *   <li>线程安全</li>
+	 * </ul>
+	 * <p><strong>注意：</strong>此方法通常不需要显式调用，会在首次签名/验证时自动触发。</p>
 	 *
-	 * @param message 要签名的原始消息
-	 * @return Base64编码的签名结果，空消息返回空字符串
+	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
+	 *         <ul>
+	 *           <li>未配置任何密钥</li>
+	 *           <li>算法不支持</li>
+	 *           <li>密钥无效</li>
+	 *         </ul>
+	 * @see RSAByteDigester#initialize()
+	 * @since 1.0.0
+	 */
+	public void initialize() {
+		byteDigester.initialize();
+	}
+
+	/**
+	 * 生成Base64编码签名
+	 * <p>对输入字符串生成Base64编码的数字签名</p>
+	 *
+	 * @param message 要签名的消息，空字符串返回空字符串
+	 * @return Base64编码的签名结果，具有以下特性：
+	 *         <ul>
+	 *           <li>非null</li>
+	 *           <li>空输入返回空字符串</li>
+	 *         </ul>
+	 * @see RSAByteDigester#digest(byte[])
 	 * @since 1.0.0
 	 */
 	@Override
@@ -95,11 +180,17 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 验证消息与Base64编码的签名是否匹配
+	 * 验证Base64编码签名
+	 * <p>验证消息与Base64编码签名的匹配性</p>
 	 *
 	 * @param message 原始消息
-	 * @param digest  Base64编码的待验证签名
-	 * @return 验证结果（true=匹配，false=不匹配）
+	 * @param digest  Base64编码的签名
+	 * @return 验证结果，满足以下条件时返回true：
+	 *         <ul>
+	 *           <li>消息和签名都为空</li>
+	 *           <li>签名与消息匹配</li>
+	 *         </ul>
+	 * @see RSAByteDigester#matches(byte[], byte[])
 	 * @since 1.0.0
 	 */
 	@Override
@@ -114,10 +205,17 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 对消息进行签名，返回十六进制字符串形式的签名结果
+	 * 生成十六进制编码签名
+	 * <p>对输入字符串生成十六进制编码的数字签名</p>
 	 *
-	 * @param message 要签名的原始消息
-	 * @return 十六进制编码的签名结果，空消息返回空字符串
+	 * @param message 要签名的消息，空字符串返回空字符串
+	 * @return 十六进制编码的签名结果，具有以下特性：
+	 *         <ul>
+	 *           <li>非null</li>
+	 *           <li>空输入返回空字符串</li>
+	 *           <li>长度是原始签名的两倍</li>
+	 *         </ul>
+	 * @see RSAByteDigester#digest(byte[])
 	 * @since 1.0.0
 	 */
 	public String digestToHexString(String message) {
@@ -128,12 +226,14 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 验证消息与十六进制编码的签名是否匹配
+	 * 验证十六进制编码签名
+	 * <p>验证消息与十六进制编码签名的匹配性</p>
 	 *
 	 * @param message 原始消息
-	 * @param digest  十六进制编码的待验证签名
-	 * @return 验证结果（true=匹配，false=不匹配）
-	 * @throws RuntimeException 当十六进制解码失败时抛出
+	 * @param digest  十六进制编码的签名
+	 * @return 验证结果
+	 * @throws RuntimeException 当签名格式无效时抛出
+	 * @see RSAByteDigester#matches(byte[], byte[])
 	 * @since 1.0.0
 	 */
 	public boolean matchesFromHexString(String message, String digest) {

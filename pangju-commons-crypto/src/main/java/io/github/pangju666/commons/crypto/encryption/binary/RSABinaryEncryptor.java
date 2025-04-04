@@ -43,17 +43,29 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Objects;
 
 /**
- * RSA 二进制数据加密解密器，支持分段加密和解密操作。
+ * RSA 二进制数据加密解密器
  * <p>
- * 本类实现了 {@link BinaryEncryptor} 接口，使用 RSA 算法对二进制数据进行加密/解密操作，
- * 支持使用不同填充模式和算法配置。默认使用 OAEPWithSHA-256 填充模式。
- * <p>
- * 该类是线程安全的，但需要注意：
+ * 本类实现了基于RSA算法的二进制数据加密/解密功能，提供以下核心能力：
  * <ul>
- *   <li>初始化后（调用 {@link #initialize()}）不可再修改密钥和加密方案</li>
- *   <li>加密/解密操作会自动触发初始化（如果尚未初始化）</li>
+ *   <li><strong>分段加密/解密</strong> - 自动处理大数据的分块操作</li>
+ *   <li><strong>多密钥支持</strong> - 支持公钥加密/私钥解密</li>
+ *   <li><strong>算法扩展</strong> - 支持多种填充模式(如OAEPWithSHA-256)</li>
+ *   <li><strong>线程安全</strong> - 所有关键操作都进行了同步控制</li>
  * </ul>
- * </p>
+ *
+ * <h3>典型使用场景：</h3>
+ * <ul>
+ *   <li>敏感数据加密存储</li>
+ *   <li>安全通信数据传输</li>
+ *   <li>数字信封实现</li>
+ * </ul>
+ *
+ * <h3>线程安全说明：</h3>
+ * <p>本类所有公共方法均已实现线程安全，但需要注意：</p>
+ * <ul>
+ *   <li>初始化后不可修改密钥和加密方案</li>
+ *   <li>加密/解密操作会自动触发初始化</li>
+ * </ul>
  *
  * @see RSATransformation
  * @see RSAKey
@@ -64,50 +76,104 @@ import java.util.Objects;
 public final class RSABinaryEncryptor implements BinaryEncryptor {
 	/**
 	 * 解密密码器实例（延迟初始化）
+	 * <p>用于解密操作的{@link Cipher}实例，具有以下特性：</p>
+	 * <ul>
+	 *   <li>使用私钥初始化</li>
+	 *   <li>线程安全（通过外部同步控制）</li>
+	 *   <li>按需初始化</li>
+	 * </ul>
 	 *
+	 * @see #initialize()
 	 * @since 1.0.0
 	 */
 	private Cipher decryptCipher;
+
 	/**
 	 * 加密密码器实例（延迟初始化）
+	 * <p>用于加密操作的{@link Cipher}实例，具有以下特性：</p>
+	 * <ul>
+	 *   <li>使用公钥初始化</li>
+	 *   <li>线程安全（通过外部同步控制）</li>
+	 *   <li>按需初始化</li>
+	 * </ul>
 	 *
+	 * @see #initialize()
 	 * @since 1.0.0
 	 */
 	private Cipher encryptCipher;
+
 	/**
-	 * 加密时每个分块的最大字节数（根据公钥和加密方案计算得出）
+	 * 加密分块大小（字节）
+	 * <p>根据公钥和加密方案计算得出，表示：</p>
+	 * <ul>
+	 *   <li>单次加密操作的最大数据量</li>
+	 *   <li>初始化后不可修改</li>
+	 * </ul>
 	 *
+	 * @see RSATransformation#getEncryptBlockSize(RSAPublicKeySpec)
 	 * @since 1.0.0
 	 */
 	private int encryptBlockSize;
+
 	/**
-	 * 解密时每个分块的最大字节数（根据私钥和加密方案计算得出）
+	 * 解密分块大小（字节）
+	 * <p>根据私钥和加密方案计算得出，表示：</p>
+	 * <ul>
+	 *   <li>单次解密操作的最大数据量</li>
+	 *   <li>初始化后不可修改</li>
+	 * </ul>
 	 *
+	 * @see RSATransformation#getDecryptBlockSize(RSAPrivateKeySpec)
 	 * @since 1.0.0
 	 */
 	private int decryptBlockSize;
+
 	/**
-	 * RSA 密钥对（可包含公钥/私钥/两者）
+	 * RSA密钥对容器
+	 * <p>存储用于加密/解密的非对称密钥对，必须满足：</p>
+	 * <ul>
+	 *   <li>非null</li>
+	 *   <li>至少包含公钥或私钥</li>
+	 *   <li>初始化后不可更改</li>
+	 * </ul>
 	 *
+	 * @see RSAKey
 	 * @since 1.0.0
 	 */
 	private RSAKey key;
+
 	/**
-	 * 是否已初始化的标志位
+	 * 初始化状态标识
+	 * <p>表示加密组件是否已完成初始化，具有以下特性：</p>
+	 * <ul>
+	 *   <li>true：已完成初始化</li>
+	 *   <li>false：未初始化</li>
+	 * </ul>
 	 *
+	 * @see #initialize()
 	 * @since 1.0.0
 	 */
 	private boolean initialized = false;
+
 	/**
-	 * RSA 加密方案（算法/填充模式配置），默认使用 RSA/ECB/OAEPWithSHA-256AndMGF1Padding
+	 * RSA加密方案
+	 * <p>定义加密算法和填充模式，具有以下特性：</p>
+	 * <ul>
+	 *   <li>默认使用OAEPWithSHA-256填充</li>
+	 *   <li>初始化后不可更改</li>
+	 *   <li>决定分块大小计算方式</li>
+	 * </ul>
 	 *
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	private RSATransformation transformation = new RSAOEAPWithSHA256Transformation();
 
 	/**
 	 * 构造方法（使用默认密钥长度和加密方案）
+	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和默认加密方案的实例</p>
 	 *
+	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor() {
@@ -116,8 +182,15 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 构造方法（使用默认密钥长度和指定加密方案）
+	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和自定义加密方案的实例</p>
 	 *
-	 * @param transformation 加密方案
+	 * @param transformation 加密方案，必须满足：
+	 *                       <ul>
+	 *                         <li>非null</li>
+	 *                         <li>有效的RSA转换方案</li>
+	 *                       </ul>
+	 * @throws NullPointerException 当transformation为null时抛出
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final RSATransformation transformation) {
@@ -127,8 +200,14 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 构造方法（使用指定密钥长度和默认加密方案）
+	 * <p>创建使用自定义密钥长度和默认加密方案的实例</p>
 	 *
-	 * @param keySize RSA 密钥长度（单位：bit）
+	 * @param keySize 密钥长度(bit)，必须满足：
+	 *                <ul>
+	 *                  <li>≥1024</li>
+	 *                  <li≤8192</li>
+	 *                </ul>
+	 * @throws IllegalArgumentException 当keySize不满足要求时抛出
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final int keySize) {
@@ -137,9 +216,12 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 构造方法（使用指定密钥长度和加密方案）
+	 * <p>创建完全自定义配置的实例</p>
 	 *
-	 * @param keySize        密钥长度（单位：bit）
-	 * @param transformation 加密方案
+	 * @param keySize 密钥长度(bit)，必须≥1024
+	 * @param transformation 加密方案，非null
+	 * @throws NullPointerException 当transformation为null时抛出
+	 * @throws IllegalArgumentException 当keySize不满足要求时抛出
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final int keySize, final RSATransformation transformation) {
@@ -149,9 +231,15 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 构造方法（使用已有密钥和默认加密方案）
+	 * <p>使用预生成的RSA密钥对创建实例</p>
 	 *
-	 * @param key 预生成的 RSA 密钥对
-	 *
+	 * @param key RSA密钥对，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>至少包含公钥或私钥</li>
+	 *            </ul>
+	 * @throws NullPointerException 当key为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final RSAKey key) {
@@ -160,9 +248,12 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 构造方法（使用已有密钥和指定加密方案）
+	 * <p>使用预生成的RSA密钥对和自定义加密方案创建实例</p>
 	 *
-	 * @param key            预生成的 RSA 密钥对
-	 * @param transformation 加密方案
+	 * @param key RSA密钥对，必须包含至少一个密钥
+	 * @param transformation 加密方案，非null
+	 * @throws NullPointerException 当key或transformation为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final RSAKey key, final RSATransformation transformation) {
@@ -171,10 +262,17 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	}
 
 	/**
-	 * 设置加密方案（必须在初始化前调用）
+	 * 设置加密方案（初始化前有效）
+	 * <p>在实例初始化前设置新的加密方案，用于替换默认方案。</p>
 	 *
-	 * @param transformation 新的加密方案
-	 * @throws AlreadyInitializedException 如果已经初始化后调用
+	 * @param transformation 新的加密方案，必须满足：
+	 *                       <ul>
+	 *                         <li>非null</li>
+	 *                         <li>有效的RSA转换方案</li>
+	 *                       </ul>
+	 * @throws NullPointerException 当transformation为null时抛出
+	 * @throws AlreadyInitializedException 已初始化后调用时抛出
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	public synchronized void setTransformation(final RSATransformation transformation) {
@@ -186,11 +284,18 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	}
 
 	/**
-	 * 设置 RSA 密钥（必须在初始化前调用）
+	 * 设置RSA密钥对（初始化前有效）
+	 * <p>在实例初始化前设置新的RSA密钥对，用于替换默认生成的密钥。</p>
 	 *
-	 * @param key 新的密钥对
-	 * @throws AlreadyInitializedException 如果已经初始化后调用
-	 *
+	 * @param key 新的密钥容器，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>至少包含公钥或私钥</li>
+	 *            </ul>
+	 * @throws NullPointerException 当key为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
+	 * @throws AlreadyInitializedException 已初始化后调用时抛出
+	 * @see #initialize()
 	 * @since 1.0.0
 	 */
 	public synchronized void setKey(final RSAKey key) {
@@ -202,13 +307,22 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	}
 
 	/**
-	 * 初始化加密/解密组件
-	 * <p>
-	 * 根据当前配置的密钥和加密方案初始化 Cipher 实例，
-	 * 自动计算加密/解密分块大小
+	 * 初始化加密组件
+	 * <p>根据当前配置初始化加密/解密处理器，此方法会自动检测可用密钥：</p>
+	 * <ul>
+	 *   <li>存在公钥：初始化加密功能</li>
+	 *   <li>存在私钥：初始化解密功能</li>
+	 * </ul>
+	 * <p><strong>注意：</strong>此方法会自动被{@link #encrypt(byte[])}和{@link #decrypt(byte[])}调用，通常不需要手动调用。</p>
 	 *
-	 * @throws EncryptionInitializationException 如果初始化过程中出现密钥相关异常
-	 *
+	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
+	 *         <ul>
+	 *             <li>未配置任何密钥</li>
+	 *             <li>算法不支持</li>
+	 *             <li>密钥无效</li>
+	 *         </ul>
+	 * @see #encrypt(byte[])
+	 * @see #decrypt(byte[])
 	 * @since 1.0.0
 	 */
 	public synchronized void initialize() {
@@ -241,13 +355,25 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 加密二进制数据
+	 * <p>使用公钥加密原始数据，自动处理大数据分块，流程包括：</p>
+	 * <ol>
+	 *   <li>检查输入数据</li>
+	 *   <li>自动初始化(如需要)</li>
+	 *   <li>分块加密数据</li>
+	 *   <li>返回加密结果</li>
+	 * </ol>
 	 *
-	 * @param binary 要加密的原始二进制数据
-	 * @return 加密后的字节数组
-	 * @throws EncryptionOperationNotPossibleException 如果：<br>
-	 *         1. 未设置公钥<br>
-	 *         2. 加密过程中出现密码学异常
-	 *
+	 * @param binary 要加密的数据，允许为空数组(返回空数组)
+	 * @return 加密后的数据，具有以下特性：
+	 *         <ul>
+	 *           <li>非null</li>
+	 *           <li>空输入返回空数组</li>
+	 *         </ul>
+	 * @throws EncryptionOperationNotPossibleException 当以下情况发生时抛出：
+	 *         <ul>
+	 *           <li>未设置公钥</li>
+	 *           <li>加密过程出现异常</li>
+	 *         </ul>
 	 * @since 1.0.0
 	 */
 	public byte[] encrypt(final byte[] binary) {
@@ -269,13 +395,25 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 解密二进制数据
+	 * <p>使用私钥解密数据，自动处理大数据分块，流程包括：</p>
+	 * <ol>
+	 *   <li>检查输入数据</li>
+	 *   <li>自动初始化(如需要)</li>
+	 *   <li>分块解密数据</li>
+	 *   <li>返回解密结果</li>
+	 * </ol>
 	 *
-	 * @param encryptedBinary 要解密的二进制数据
-	 * @return 解密后的原始字节数组
-	 * @throws EncryptionOperationNotPossibleException 如果：<br>
-	 *         1. 未设置私钥<br>
-	 *         2. 解密过程中出现密码学异常
-	 *
+	 * @param encryptedBinary 要解密的数据，允许为空数组(返回空数组)
+	 * @return 解密后的原始数据，具有以下特性：
+	 *         <ul>
+	 *           <li>非null</li>
+	 *           <li>空输入返回空数组</li>
+	 *         </ul>
+	 * @throws EncryptionOperationNotPossibleException 当以下情况发生时抛出：
+	 *         <ul>
+	 *           <li>未设置私钥</li>
+	 *           <li>解密过程出现异常</li>
+	 *         </ul>
 	 * @since 1.0.0
 	 */
 	public byte[] decrypt(final byte[] encryptedBinary) {
@@ -297,18 +435,22 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 执行分段加密/解密操作
+	 * <p>内部方法，处理大数据的分块加密/解密，流程包括：</p>
+	 * <ol>
+	 *   <li>检查输入数据长度</li>
+	 *   <li>分块处理数据</li>
+	 *   <li>合并处理结果</li>
+	 * </ol>
 	 *
-	 * @param cipher 密码器实例（加密/解密模式已初始化）
-	 * @param input  输入数据
-	 * @param size   每个分块的最大字节数
-	 * @return 处理后的完整字节数组
-	 * @throws IllegalBlockSizeException 数据块大小不符合要求
-	 * @throws BadPaddingException       填充错误
-	 *
+	 * @param cipher 已初始化的密码器实例
+	 * @param input  要处理的数据
+	 * @param size   单次处理的最大字节数
+	 * @return 处理后的完整数据
+	 * @throws IllegalBlockSizeException 当数据块大小不符合要求时抛出
+	 * @throws BadPaddingException 当填充错误时抛出
 	 * @since 1.0.0
 	 */
-	private byte[] doFinal(final Cipher cipher, final byte[] input, final int size)
-		throws IllegalBlockSizeException, BadPaddingException {
+	private byte[] doFinal(final Cipher cipher, final byte[] input, final int size) throws IllegalBlockSizeException, BadPaddingException {
 		if (input.length <= size) {
 			return cipher.doFinal(input);
 		}

@@ -26,7 +26,7 @@
 		<module>pangju-commons-pdf</module>
 		<module>pangju-commons-poi</module>
 		<module>pangju-commons-validation</module>
-		<module>pangju-commons-all</module>
+		<module>pangju-commons-bom</module>
 	</modules>
 
 	<properties>
@@ -54,66 +54,6 @@
 		<developerConnection>scm:git@github.com:pangju666/java-pangju-commons.git</developerConnection>
 		<url>https://github.com/pangju666/java-pangju-commons</url>
 	</scm>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-crypto</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-compress</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-geo</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-image</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-imageio</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-io</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-lang</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-pdf</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-poi</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-validation</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-all</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
 		<testSourceDirectory>src/test/groovy</testSourceDirectory>

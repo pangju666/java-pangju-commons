@@ -9,7 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-compress</artifactId>
-	<description>文件压缩工具类库（基于apache compress）</description>
+	<description>文件压缩工具类库（基于commons-compress）</description>
 
 	<licenses>
 		<license>
@@ -22,6 +22,7 @@
 		<dependency>
 			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-io</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

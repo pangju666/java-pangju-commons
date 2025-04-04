@@ -1,0 +1,74 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.pangju666</groupId>
+		<artifactId>pangju-commons-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>pangju-commons-bom</artifactId>
+	<description>java 公共库集成模块</description>
+	<packaging>pom</packaging>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-crypto</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-compress</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-geo</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-image</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-imageio</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-io</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-lang</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-pdf</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-poi</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-commons-validation</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>

@@ -30,19 +30,34 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 /**
- * RSA算法整数加密器（公钥加密，私钥解密），提供大整数安全加解密能力
+ * 基于RSA算法的大整数加密解密器，提供精确的数值加密能力
  * <p>
- * 本类通过将BigInteger转换为字节数组进行加密，保留原始数值的数学特性，
- * 适用于需要精确加密/解密整数数值的场景，如金融交易、密码学协议等。
+ * 本类实现了{@link IntegerNumberEncryptor}接口，专门用于处理BigInteger类型的加密和解密，
+ * 保留原始数值的数学特性，适用于需要精确数值运算的安全场景。
  * </p>
  *
- * <p><b>线程安全实现：</b>
+ * <h3>核心特性</h3>
  * <ul>
- *   <li>配置方法(setKey/setTransformation)使用synchronized保证原子性</li>
- *   <li>底层加密器实例(final修饰)初始化后不可变</li>
- *   <li>加密/解密操作本身无状态，支持并发调用</li>
+ *   <li><b>精确加密</b> - 保持BigInteger的数值精度和符号位</li>
+ *   <li><b>安全算法</b> - 采用RSA非对称加密算法，支持2048/3072/4096位密钥</li>
+ *   <li><b>编码规范</b> - 使用二进制补码格式处理数值，确保跨平台一致性</li>
+ *   <li><b>长度标识</b> - 自动添加4字节长度头，支持变长数据解密</li>
  * </ul>
- * </p>
+ *
+ * <h3>典型应用场景</h3>
+ * <ol>
+ *   <li>金融交易金额加密</li>
+ *   <li>密码学协议中的大数运算</li>
+ *   <li>数据库ID字段加密</li>
+ *   <li>需要精确恢复的数值加密</li>
+ * </ol>
+ *
+ * <h3>技术实现细节</h3>
+ * <ul>
+ *   <li>加密流程：BigInteger → 补码字节数组 → RSA加密 → 添加长度头 → 新BigInteger</li>
+ *   <li>解密流程：加密BigInteger → 提取数据 → RSA解密 → 重构原始BigInteger</li>
+ *   <li>最大加密长度：密钥长度/8 - 填充长度 - 4字节头</li>
+ * </ul>
  *
  * @author pangju666
  * @since 1.0.0
@@ -55,13 +70,14 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	/**
 	 * 核心RSA二进制加密处理器，执行底层加密运算
 	 * <p>
-	 * 设计特性：
-	 * <ul>
-	 *   <li>通过构造函数注入，生命周期与宿主对象一致</li>
-	 *   <li>配置变更通过代理模式实现</li>
-	 *   <li>实际加密操作委托给此实例</li>
-	 * </ul>
+	 * 此实例通过构造函数注入，具有以下设计特性：
 	 * </p>
+	 * <ul>
+	 *   <li><b>不可变性</b> - final修饰确保线程安全</li>
+	 *   <li><b>委托模式</b> - 所有加密操作最终委托给此实例</li>
+	 *   <li><b>配置代理</b> - 配置变更通过此实例的对应方法实现</li>
+	 *   <li><b>生命周期</b> - 与宿主对象绑定，不可单独存在</li>
+	 * </ul>
 	 *
 	 * @since 1.0.0
 	 */
@@ -70,14 +86,13 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	/**
 	 * 构建使用默认安全配置的加密器
 	 * <p>
-	 * 默认安全参数：
-	 * <ul>
-	 *   <li>密钥强度：2048位RSA密钥</li>
-	 *   <li>加密方案：RSA/ECB/OAEPWithSHA-256AndMGF1Padding</li>
-	 *   <li>字符编码：UTF-8</li>
-	 *   <li>填充方式：OAEP最优非对称加密填充</li>
-	 * </ul>
+	 * 默认采用行业推荐的安全配置：
 	 * </p>
+	 * <ul>
+	 *   <li><b>密钥强度</b>：2048位RSA密钥（平衡安全与性能）</li>
+	 *   <li><b>加密方案</b>：RSA/ECB/OAEPWithSHA-256AndMGF1Padding</li>
+	 *   <li><b>填充方式</b>：最优非对称加密填充(OAEP)</li>
+	 * </ul>
 	 *
 	 * @throws EncryptionInitializationException 当密钥生成失败时抛出
 	 * @since 1.0.0
@@ -89,7 +104,12 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	/**
 	 * 构造方法（使用默认密钥长度和指定加密方案）
 	 *
-	 * @param transformation 加密方案
+	 * @param transformation 加密方案，支持：
+	 *                       <ul>
+	 *                         <li>PKCS1v1.5 - 兼容性好但安全性较低</li>
+	 *                         <li>OAEP - 安全性高（推荐）</li>
+	 *                       </ul>
+	 * @throws NullPointerException 当传入null参数时抛出
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final RSATransformation transformation) {
@@ -98,8 +118,24 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 
 	/**
 	 * 构造方法（使用指定密钥长度和默认加密方案）
+	 * <p>
+	 * 允许自定义密钥长度但使用默认的OAEP加密方案。
+	 * </p>
 	 *
-	 * @param keySize RSA 密钥长度（单位：bit）
+	 * <h3>密钥长度建议</h3>
+	 * <ul>
+	 *   <li><b>生产环境</b>：2048位（平衡安全与性能）</li>
+	 *   <li><b>高安全需求</b>：3072或4096位</li>
+	 *   <li><b>测试用途</b>：1024位（不推荐生产环境）</li>
+	 * </ul>
+	 *
+	 * @param keySize RSA密钥长度（单位：bit），有效值：
+	 *                <ul>
+	 *                  <li>1024（仅测试）</li>
+	 *                  <li>2048（推荐）</li>
+	 *                  <li>3072/4096（高安全）</li>
+	 *                </ul>
+	 * @throws IllegalArgumentException 当密钥长度不在上述范围内时抛出
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final int keySize) {
@@ -108,9 +144,20 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 
 	/**
 	 * 构造方法（使用指定密钥长度和加密方案）
+	 * <p>
+	 * 完全自定义配置构造方法，需确保密钥长度与加密方案兼容。
+	 * </p>
 	 *
-	 * @param keySize        密钥长度（单位：bit）
+	 * <h3>兼容性要求</h3>
+	 * <ul>
+	 *   <li>OAEP方案要求最小2048位密钥</li>
+	 *   <li>PKCS#1方案兼容1024位密钥</li>
+	 *   <li>3072/4096位密钥推荐使用OAEP方案</li>
+	 * </ul>
+	 *
+	 * @param keySize 密钥长度（单位：bit）
 	 * @param transformation 加密方案
+	 * @throws IllegalArgumentException 当密钥长度与方案不兼容时抛出
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final int keySize, final RSATransformation transformation) {
@@ -119,9 +166,20 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 
 	/**
 	 * 构造方法（使用已有密钥和默认加密方案）
+	 * <p>
+	 * 适用于密钥预生成场景，使用默认OAEP加密方案。
+	 * </p>
 	 *
-	 * @param key 预生成的 RSA 密钥对
+	 * <h3>密钥要求</h3>
+	 * <ul>
+	 *   <li>必须包含有效的公钥（加密）或私钥（解密）</li>
+	 *   <li>密钥强度应与安全需求匹配</li>
+	 *   <li>支持硬件安全模块(HSM)生成的密钥</li>
+	 * </ul>
 	 *
+	 * @param key 预生成的RSA密钥对
+	 * @throws NullPointerException 当密钥为null时抛出
+	 * @see RSAKey
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final RSAKey key) {
@@ -130,9 +188,20 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 
 	/**
 	 * 构造方法（使用已有密钥和指定加密方案）
+	 * <p>
+	 * 完全自定义配置构造方法，需确保密钥与加密方案兼容。
+	 * </p>
 	 *
-	 * @param key            预生成的 RSA 密钥对
+	 * <h3>验证规则</h3>
+	 * <ul>
+	 *   <li>检查密钥长度是否支持所选方案</li>
+	 *   <li>验证密钥是否包含必要参数</li>
+	 *   <li>确保密钥未过期或被撤销</li>
+	 * </ul>
+	 *
+	 * @param key 预生成的RSA密钥对
 	 * @param transformation 加密方案
+	 * @throws IllegalArgumentException 当密钥与方案不兼容时抛出
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final RSAKey key, final RSATransformation transformation) {
@@ -142,20 +211,32 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	/**
 	 * 使用预配置的加密器构建实例
 	 * <p>
-	 * 适用场景：
-	 * <ul>
-	 *   <li>复用已有加密器配置</li>
-	 *   <li>需要自定义生命周期管理</li>
-	 *   <li>实现加密器热切换</li>
-	 * </ul>
+	 * 高级构造方法，适用于需要精细控制加密器生命周期的场景。
 	 * </p>
 	 *
-	 * @param binaryEncryptor 预初始化的加密器实例，需满足：
+	 * <h3>典型使用场景</h3>
+	 * <ul>
+	 *   <li><b>加密器池</b>：复用预配置的加密器实例</li>
+	 *   <li><b>热更新</b>：实现加密方案的无缝切换</li>
+	 *   <li><b>性能优化</b>：预初始化加密器减少首次加密延迟</li>
+	 * </ul>
+	 *
+	 * <h3>技术要求</h3>
+	 * <ul>
+	 *   <li>加密器必须已完成密钥配置</li>
+	 *   <li>加密方案必须与密钥兼容</li>
+	 *   <li>加密器应处于未初始化或已初始化状态</li>
+	 * </ul>
+	 *
+	 * @param binaryEncryptor 预配置的RSABinaryEncryptor实例，要求：
 	 *                        <ul>
-	 *                          <li>已完成密钥配置</li>
-	 *                          <li>已设置有效加密方案</li>
+	 *                          <li>非null</li>
+	 *                          <li>已完成必要配置</li>
+	 *                          <li>未被其他线程独占使用</li>
 	 *                        </ul>
-	 * @throws NullPointerException 当传入null参数时抛出
+	 * @throws NullPointerException 当参数为null时抛出
+	 * @throws IllegalStateException 当加密器配置不完整时抛出
+	 * @see RSABinaryEncryptor
 	 * @since 1.0.0
 	 */
 	public RSAIntegerNumberEncryptor(final RSABinaryEncryptor binaryEncryptor) {
@@ -164,23 +245,26 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	}
 
 	/**
-	 * 配置加密算法方案
+	 * 配置RSA加密方案
 	 * <p>
-	 * 重要约束：
-	 * <ul>
-	 *   <li>必须在首次加密操作前调用</li>
-	 *   <li>修改方案会导致已有加密数据不可解密</li>
-	 *   <li>不同方案的密钥可能不兼容</li>
-	 * </ul>
+	 * 修改加密/填充方案，影响后续所有加密操作。
 	 * </p>
 	 *
-	 * @param transformation 加密方案枚举实例，支持：
+	 * <h3>方案选择指南</h3>
+	 * <table border="1">
+	 *   <tr><th>方案</th><th>安全性</th><th>兼容性</th><th>推荐场景</th></tr>
+	 *   <tr><td>PKCS1v1.5</td><td>中</td><td>高</td><td>传统系统兼容</td></tr>
+	 *   <tr><td>OAEP</td><td>高</td><td>中</td><td>新系统(推荐)</td></tr>
+	 * </table>
+	 *
+	 * @param transformation 加密方案枚举，必须：
 	 *                       <ul>
-	 *                         <li>PKCS1v1.5填充方案</li>
-	 *                         <li>OAEP填充方案（推荐）</li>
+	 *                         <li>非null</li>
+	 *                         <li>与当前密钥长度兼容</li>
 	 *                       </ul>
-	 * @throws AlreadyInitializedException 若已执行过加密操作后调用
-	 * @throws NullPointerException        当传入null参数时抛出
+	 * @throws AlreadyInitializedException 如果已执行过加密操作
+	 * @throws IllegalArgumentException 当方案与密钥不兼容时抛出
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	public void setTransformation(final RSATransformation transformation) {
@@ -188,10 +272,28 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	}
 
 	/**
-	 * 设置 RSA 密钥（必须在初始化前调用）
+	 * 更新RSA密钥对
+	 * <p>
+	 * 动态更换加密/解密使用的密钥对。
+	 * </p>
 	 *
-	 * @param key 新的密钥对
-	 * @throws AlreadyInitializedException 如果已经初始化后调用
+	 * <h3>密钥更换流程</h3>
+	 * <ol>
+	 *   <li>验证新密钥有效性</li>
+	 *   <li>检查与当前加密方案的兼容性</li>
+	 *   <li>原子性更新密钥引用</li>
+	 *   <li>重置内部状态</li>
+	 * </ol>
+	 *
+	 * @param key 新的RSA密钥对，必须：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>包含有效的公钥或私钥</li>
+	 *              <li>与当前加密方案兼容</li>
+	 *            </ul>
+	 * @throws AlreadyInitializedException 如果已初始化后调用
+	 * @throws EncryptionInitializationException 当密钥无效时抛出
+	 * @see RSAKey
 	 * @since 1.0.0
 	 */
 	public void setKey(final RSAKey key) {
@@ -199,33 +301,58 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	}
 
 	/**
+	 * 初始化加密组件
+	 * <p>根据当前配置初始化加密/解密处理器，此方法会自动检测可用密钥：</p>
+	 * <ul>
+	 *   <li>存在公钥：初始化加密功能</li>
+	 *   <li>存在私钥：初始化解密功能</li>
+	 * </ul>
+	 * <p><strong>注意：</strong>此方法会自动被{@link #encrypt(BigInteger)}和{@link #decrypt(BigInteger)}调用，通常不需要手动调用。</p>
+	 *
+	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
+	 *                                           <ul>
+	 *                                               <li>未配置任何密钥</li>
+	 *                                               <li>算法不支持</li>
+	 *                                               <li>密钥无效</li>
+	 *                                           </ul>
+	 * @see #encrypt(BigInteger)
+	 * @see #decrypt(BigInteger)
+	 * @since 1.0.0
+	 */
+	public void initialize() {
+		binaryEncryptor.initialize();
+	}
+
+	/**
 	 * 加密BigInteger整数
 	 * <p>
-	 * 加密流程：
-	 * <ol>
-	 *   <li>将BigInteger转换为二进制补码格式字节数组</li>
-	 *   <li>使用RSA公钥加密字节数据</li>
-	 *   <li>在加密结果前附加4字节长度信息</li>
-	 *   <li>组合生成新的BigInteger</li>
-	 * </ol>
+	 * 实现{@link IntegerNumberEncryptor}接口的核心方法，提供精确的数值加密。
 	 * </p>
 	 *
-	 * @param number 待加密整数，允许为null
-	 * @return 加密后的BigInteger对象，具有以下特征：
+	 * <h3>加密数据格式</h3>
+	 * <pre>
+	 * +----------------+----------------+
+	 * | 4字节长度头(MSB) | RSA加密数据体 |
+	 * +----------------+----------------+
+	 * </pre>
+	 *
+	 * @param number 待加密整数，处理规则：
+	 *               <ul>
+	 *                 <li>null → 返回null</li>
+	 *                 <li>0 → 加密后的非零值</li>
+	 *                 <li>负数 → 保留符号位</li>
+	 *               </ul>
+	 * @return 加密后的BigInteger，具有以下特征：
 	 *         <ul>
-	 *           <li>符号位表示加密数据的符号</li>
-	 *           <li>数值部分为加密后的二进制数据</li>
-	 *           <li>null输入返回null</li>
-	 *         </ul>
-	 * @throws EncryptionInitializationException 当：
-	 *         <ul>
-	 *           <li>未设置公钥</li>
-	 *           <li>加密方案未配置</li>
+	 *           <li>数值部分为加密数据</li>
+	 *           <li>符号位与原始数据无关</li>
+	 *           <li>长度 = 加密数据长度 + 4字节</li>
 	 *         </ul>
 	 * @throws EncryptionOperationNotPossibleException 当：
 	 *         <ul>
-	 *           <li>输入数据超过RSA最大加密长度</li>
-	 *           <li>加密过程发生错误</li>
+	 *           <li>数值超过最大加密长度</li>
+	 *           <li>公钥未初始化</li>
+	 *           <li>加密失败</li>
 	 *         </ul>
 	 * @since 1.0.0
 	 */
@@ -244,31 +371,32 @@ public final class RSAIntegerNumberEncryptor implements IntegerNumberEncryptor {
 	/**
 	 * 解密BigInteger密文
 	 * <p>
-	 * 解密流程：
-	 * <ol>
-	 *   <li>从加密BigInteger中提取二进制补码字节数组</li>
-	 *   <li>解析前4字节获取加密数据长度</li>
-	 *   <li>使用RSA私钥解密数据部分</li>
-	 *   <li>重构原始BigInteger</li>
-	 * </ol>
+	 * 精确还原加密前的原始数值，保证数值一致性。
 	 * </p>
 	 *
-	 * @param encryptedNumber 加密后的BigInteger，允许为null
-	 * @return 解密后的原始整数，保证：
+	 * <h3>解密验证</h3>
+	 * <ul>
+	 *   <li>校验长度头与实际数据长度是否匹配</li>
+	 *   <li>验证私钥是否与加密公钥配对</li>
+	 *   <li>检查填充方案是否一致</li>
+	 * </ul>
+	 *
+	 * @param encryptedNumber 加密后的BigInteger，必须：
+	 *                        <ul>
+	 *                          <li>由本类{@link #encrypt(BigInteger)}方法生成</li>
+	 *                          <li>未被篡改</li>
+	 *                        </ul>
+	 * @return 解密后的原始数值，保证：
 	 *         <ul>
 	 *           <li>数值与加密前完全一致</li>
-	 *           <li>符号位保留原始状态</li>
+	 *           <li>符号位正确还原</li>
 	 *           <li>null输入返回null</li>
-	 *         </ul>
-	 * @throws EncryptionInitializationException 当：
-	 *         <ul>
-	 *           <li>未设置私钥</li>
-	 *           <li>加密方案不匹配</li>
 	 *         </ul>
 	 * @throws EncryptionOperationNotPossibleException 当：
 	 *         <ul>
-	 *           <li>输入数据格式错误</li>
-	 *           <li>解密失败（如密钥不匹配）</li>
+	 *           <li>输入格式非法</li>
+	 *           <li>私钥不匹配</li>
+	 *           <li>解密失败</li>
 	 *         </ul>
 	 * @since 1.0.0
 	 */
