@@ -24,30 +24,56 @@ import java.math.BigDecimal;
 
 /**
  * 地理坐标模型类
- * <p>表示一个地理坐标点，提供坐标验证、格式转换和位置判断功能</p>
+ * <p>
+ * 表示一个具有高精度的地理坐标点，封装了坐标验证、格式转换和位置判断功能。
+ * 本类使用BigDecimal保证计算精度，适用于地理信息系统(GIS)、地图服务等场景。
+ * </p>
  *
- * <h3>特性说明：</h3>
+ * <h3>核心特性</h3>
+ * <table border="1">
+ *   <tr><th>特性</th><th>说明</th><th>实现方式</th></tr>
+ *   <tr><td>不可变性</td><td>线程安全</td><td>record类型自动实现</td></tr>
+ *   <tr><td>精度保障</td><td>避免浮点误差</td><td>使用BigDecimal存储</td></tr>
+ *   <tr><td>自动验证</td><td>构造时校验</td><td>Apache Commons Validate</td></tr>
+ *   <tr><td>格式转换</td><td>支持多种格式</td><td>CoordinateUtils工具类</td></tr>
+ * </table>
+ *
+ * <h3>典型应用</h3>
  * <ul>
- *     <li><strong>不可变对象</strong> - 保证线程安全</li>
- *     <li><strong>精确计算</strong> - 使用BigDecimal保持高精度</li>
- *     <li><strong>自动验证</strong> - 构造时自动校验坐标有效性</li>
- *     <li><strong>格式支持</strong> - 支持十进制度、度分秒格式转换</li>
+ *   <li>地图坐标点存储</li>
+ *   <li>GPS数据处理</li>
+ *   <li>坐标系统转换</li>
+ *   <li>地理围栏判断</li>
  * </ul>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see GeoConstants
+ * @see CoordinateUtils
  */
 public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	/**
 	 * 主构造方法
+	 * <p>
+	 * 创建坐标对象并进行严格验证：
+	 * <ul>
+	 *   <li>参数非空检查</li>
+	 *   <li>经度范围：[-180, 180]</li>
+	 *   <li>纬度范围：[-90, 90]</li>
+	 * </ul>
+	 * </p>
 	 *
-	 * @param longitude 经度（必须满足：-180 ≤ longitude ≤ 180）
-	 * @param latitude  纬度（必须满足：-90 ≤ latitude ≤ 90）
-	 * @throws IllegalArgumentException 当参数不符合以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>经度/纬度为null</li>
-	 *                                      <li>坐标值超出合法范围</li>
-	 *                                  </ul>
+	 * @param longitude 经度值，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>在有效范围内</li>
+	 *                  </ul>
+	 * @param latitude 纬度值，必须满足：
+	 *                 <ul>
+	 *                   <li>非null</li>
+	 *                   <li>在有效范围内</li>
+	 *                 </ul>
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public Coordinate {
@@ -59,9 +85,13 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 
 	/**
 	 * 双精度坐标构造方法
+	 * <p>
+	 * 将double类型坐标转换为BigDecimal后创建对象，
+	 * 适用于从GPS设备等获取的原始坐标数据。
+	 * </p>
 	 *
-	 * @param longitude 经度（十进制度数）
-	 * @param latitude  纬度（十进制度数）
+	 * @param longitude 经度（十进制度数），示例：116.404
+	 * @param latitude 纬度（十进制度数），示例：39.915
 	 * @see #Coordinate(BigDecimal, BigDecimal)
 	 * @since 1.0.0
 	 */
@@ -71,10 +101,14 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 
 	/**
 	 * 度分秒格式构造方法
+	 * <p>
+	 * 解析度分秒(DMS)格式字符串创建坐标对象，
+	 * 支持标准格式如：116°23'29.34"E。
+	 * </p>
 	 *
-	 * @param longitude 经度字符串（格式示例：116°23'29.34"E）
-	 * @param latitude  纬度字符串（格式示例：39°54'15.12"N）
-	 * @throws NumberFormatException 当字符串格式不符合度分秒规范时抛出
+	 * @param longitude 经度字符串，示例：116°23'29.34"E
+	 * @param latitude 纬度字符串，示例：39°54'15.12"N
+	 * @throws NumberFormatException 当格式不符合规范时抛出
 	 * @see CoordinateUtils#fromDMS(String)
 	 * @since 1.0.0
 	 */
@@ -83,9 +117,17 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	}
 
 	/**
-	 * 判断坐标是否在中国境外
+	 * 中国境内判断
+	 * <p>
+	 * 根据中国地理边界判断坐标是否在境外，
+	 * 边界值参考GeoConstants中的定义。
+	 * </p>
 	 *
-	 * @return true表示不在中国境内范围
+	 * @return 判断结果：
+	 *         <ul>
+	 *           <li>true - 境外或边界上</li>
+	 *           <li>false - 境内</li>
+	 *         </ul>
 	 * @see GeoConstants#CHINA_MIN_LONGITUDE
 	 * @see GeoConstants#CHINA_MAX_LONGITUDE
 	 * @see GeoConstants#CHINA_MIN_LATITUDE
@@ -100,9 +142,13 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	}
 
 	/**
-	 * 转换为度分秒格式字符串
+	 * 度分秒格式输出
+	 * <p>
+	 * 将坐标转换为标准度分秒表示，
+	 * 格式示例：116°23'29.34"E,39°54'15.12"N
+	 * </p>
 	 *
-	 * @return 格式示例：116°23'29.34"E,39°54'15.12"N
+	 * @return 格式化后的坐标字符串
 	 * @see CoordinateUtils#toLongitudeDms(BigDecimal)
 	 * @see CoordinateUtils#toLatitudeDMS(BigDecimal)
 	 * @since 1.0.0

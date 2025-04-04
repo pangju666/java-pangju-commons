@@ -26,93 +26,108 @@ import java.math.BigDecimal;
  */
 public class GeoConstants {
 	/**
-	 * 度
+	 * 度符号(°)
+	 * <p>用于表示经纬度的度单位</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char RADIUS_CHAR = '°';
 	/**
-	 * 分
+	 * 分符号(')
+	 * <p>用于表示经纬度的分单位</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char MINUTE_CHAR = '\'';
 	/**
-	 * 秒
+	 * 秒符号(")
+	 * <p>用于表示经纬度的秒单位</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char SECONDS_CHAR = '\"';
+
 	/**
-	 * 北
+	 * 北方标识符(N)
+	 * <p>用于表示北纬或向北方向</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char North_DIRECTION = 'N';
 	/**
-	 * 南
+	 * 南方标识符(S)
+	 * <p>用于表示南纬或向南方向</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char SOUTH_CHAR = 'S';
 	/**
-	 * 东
+	 * 东方标识符(E)
+	 * <p>用于表示东经或向东方向</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char EAST_CHAR = 'E';
 	/**
-	 * 西
+	 * 西方标识符(W)
+	 * <p>用于表示西经或向西方向</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final char WEST_CHAR = 'W';
 
 	/**
-	 * 中国最小纬度
+	 * 全球最小纬度值(-90°)
+	 * <p>表示地球南极点的纬度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final double MIN_LATITUDE = -90;
 	/**
-	 * 最小纬度
+	 * 全球最大纬度值(90°)
+	 * <p>表示地球北极点的纬度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final double MAX_LATITUDE = 90;
 	/**
-	 * 最大纬度
+	 * 全球最小经度值(-180°)
+	 * <p>表示国际日期变更线以西的经度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final double MIN_LONGITUDE = -180;
 	/**
-	 * 最大经度
+	 * 全球最大经度值(180°)
+	 * <p>表示国际日期变更线以东的经度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final double MAX_LONGITUDE = 180;
-
 	/**
-	 * 中国最小纬度
+	 * 中国实际最小纬度值(0.8293°)
+	 * <p>表示中国最南端曾母暗沙的纬度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final BigDecimal CHINA_MIN_LATITUDE = BigDecimal.valueOf(0.8293);
 	/**
-	 * 中国最大纬度
+	 * 中国实际最大纬度值(55.8271°)
+	 * <p>表示中国最北端漠河的纬度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final BigDecimal CHINA_MAX_LATITUDE = BigDecimal.valueOf(55.8271);
 	/**
-	 * 中国最小经度
+	 * 中国实际最小经度值(72.004°)
+	 * <p>表示中国最西端帕米尔高原的经度</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final BigDecimal CHINA_MIN_LONGITUDE = BigDecimal.valueOf(72.004);
 	/**
-	 * 中国最大经度
+	 * 中国实际最大经度值(137.8347°)
+	 * <p>表示中国最东端黑龙江与乌苏里江交汇处的经度</p>
 	 *
 	 * @since 1.0.0
 	 */

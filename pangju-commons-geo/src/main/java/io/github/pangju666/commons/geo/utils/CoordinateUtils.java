@@ -28,39 +28,56 @@ import java.util.Objects;
 
 /**
  * 地理坐标转换工具类
- * <p>提供坐标系转换、度分秒格式处理等核心功能，支持高精度地理计算</p>
+ * <p>
+ * 提供高精度的地理坐标转换功能，包括坐标系转换、度分秒格式处理等核心能力。
+ * 本工具类使用BigDecimal保证计算精度，适用于GIS系统、地图服务等场景。
+ * </p>
  *
- * <h3>主要功能增强：</h3>
+ * <h3>核心功能</h3>
+ * <table border="1">
+ *   <tr><th>功能类别</th><th>方法</th><th>精度</th></tr>
+ *   <tr><td>坐标系转换</td><td>WGS84ToGCJ02/GCJ02ToWGS84</td><td>±50-500米</td></tr>
+ *   <tr><td>格式转换</td><td>toLatitudeDMS/toLongitudeDms/fromDMS</td><td>0.01秒</td></tr>
+ *   <tr><td>偏移计算</td><td>computeGcj02Delta</td><td>高精度</td></tr>
+ * </table>
+ *
+ * <h3>技术实现</h3>
  * <ul>
- *     <li><strong>经纬度分离处理</strong> - 新增纬度/经度专用转换方法</li>
- *     <li><strong>输入验证增强</strong> - 自动过滤无效坐标值</li>
- *     <li><strong>国际化支持</strong> - 使用标准方向字符常量</li>
+ *   <li>使用BigDecimalMath进行高精度数学运算</li>
+ *   <li>基于WGS84椭球体参数计算</li>
+ *   <li>GCJ02偏移算法参考公开实现</li>
  * </ul>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see GeoConstants
+ * @see Coordinate
  */
 public class CoordinateUtils {
 	/**
-	 * 圆周率
+	 * 圆周率π
+	 * <p>用于地理坐标计算的高精度π值，精度达小数点后22位</p>
 	 *
 	 * @since 1.0.0
 	 */
 	protected static final BigDecimal PI = BigDecimal.valueOf(3.1415926535897932384626);
 	/**
-	 * 长半轴
+	 * WGS84椭球体长半轴
+	 * <p>单位：米，标准值：6378245.0</p>
 	 *
 	 * @since 1.0.0
 	 */
 	protected static final BigDecimal A = BigDecimal.valueOf(6378245.0);
 	/**
-	 * 偏心率平方
+	 * WGS84椭球体偏心率平方
+	 * <p>标准值：0.00669342162296594323</p>
 	 *
 	 * @since 1.0.0
 	 */
 	protected static final BigDecimal EE = BigDecimal.valueOf(0.00669342162296594323);
 	/**
-	 * 经纬度度分秒格式
+	 * 度分秒格式模板
+	 * <p>格式示例：116°23'29.34"E</p>
 	 *
 	 * @since 1.0.0
 	 */
@@ -92,9 +109,18 @@ public class CoordinateUtils {
 
 	/**
 	 * 将十进制纬度转换为度分秒格式
+	 * <p>
+	 * 转换规则：
+	 * <ol>
+	 *   <li>1° = 60'</li>
+	 *   <li>1' = 60"</li>
+	 *   <li>南纬自动添加S后缀</li>
+	 * </ol>
+	 * </p>
 	 *
-	 * @param coordinate 十进制纬度值（范围：-90° ~ 90°）
-	 * @return 度分秒格式纬度字符串（示例：39°54'15.12"N），超出范围返回null
+	 * @param coordinate 十进制纬度值，范围[-90, 90]
+	 * @return 格式化字符串，示例：39°54'15.12"N
+	 * @throws IllegalArgumentException 当坐标超出范围时抛出
 	 * @since 1.0.0
 	 */
 	public static String toLatitudeDMS(final BigDecimal coordinate) {
@@ -109,9 +135,18 @@ public class CoordinateUtils {
 
 	/**
 	 * 将十进制经度转换为度分秒格式
+	 * <p>
+	 * 转换规则：
+	 * <ol>
+	 *   <li>1° = 60'</li>
+	 *   <li>1' = 60"</li>
+	 *   <li>西经自动添加W后缀</li>
+	 * </ol>
+	 * </p>
 	 *
-	 * @param coordinate 十进制经度值（范围：-180° ~ 180°）
-	 * @return 度分秒格式经度字符串（示例：116°23'29.34"E），超出范围返回null
+	 * @param coordinate 十进制经度值，范围[-180, 180]
+	 * @return 格式化字符串，示例：116°23'29.34"E
+	 * @throws IllegalArgumentException 当坐标超出范围时抛出
 	 * @since 1.0.0
 	 */
 	public static String toLongitudeDms(final BigDecimal coordinate) {
@@ -125,11 +160,18 @@ public class CoordinateUtils {
 	}
 
 	/**
-	 * 将度分秒格式经纬度转换为十进制度经纬度
+	 * 将度分秒格式经纬度转换为十进制度
+	 * <p>
+	 * 支持格式示例：
+	 * <ul>
+	 *   <li>116°23'29.34"E</li>
+	 *   <li>39°54'15.12"N</li>
+	 * </ul>
+	 * </p>
 	 *
-	 * @param dms 度分秒格式经纬度（示例：116°23'29.34"E）
-	 * @return 十进制经纬度，方向为西/南时返回负数。输入空值返回null
-	 * @throws NumberFormatException    当数值解析失败时抛出
+	 * @param dms 度分秒格式字符串
+	 * @return 十进制度数值，西经/南纬为负值
+	 * @throws NumberFormatException 当格式不符合规范时抛出
 	 * @since 1.0.0
 	 */
 	public static BigDecimal fromDMS(final String dms) {
@@ -166,10 +208,26 @@ public class CoordinateUtils {
 
 	/**
 	 * GCJ-02坐标系转WGS-84坐标系
+	 * <p>
+	 * 实现火星坐标系(GCJ-02)到世界大地坐标系(WGS-84)的逆向转换，
+	 * 适用于需要获取GPS原始坐标的场景。
+	 * </p>
 	 *
-	 * @param coordinate GCJ-02坐标（必须为中国境内坐标）
-	 * @return WGS-84坐标系坐标，输入空值返回null
-	 * @apiNote 转换存在约50-500米误差
+	 * <h3>转换原理</h3>
+	 * <ol>
+	 *   <li>计算GCJ-02坐标的偏移量</li>
+	 *   <li>从GCJ-02坐标中减去偏移量</li>
+	 *   <li>返回近似WGS-84坐标</li>
+	 * </ol>
+	 *
+	 * @param coordinate GCJ-02坐标，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>中国境内坐标</li>
+	 *                  </ul>
+	 * @return WGS-84坐标系坐标，境外坐标直接返回原值
+	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @apiNote 转换精度约50-500米，无法完全还原原始WGS-84坐标
 	 * @since 1.0.0
 	 */
 	public static Coordinate GCJ02ToWGS84(final Coordinate coordinate) {
@@ -188,10 +246,26 @@ public class CoordinateUtils {
 
 	/**
 	 * WGS-84坐标系转GCJ-02坐标系
+	 * <p>
+	 * 实现世界大地坐标系(WGS-84)到火星坐标系(GCJ-02)的正向转换，
+	 * 适用于需要适配国内地图服务的场景。
+	 * </p>
 	 *
-	 * @param coordinate WGS-84坐标（必须为中国境内坐标）
-	 * @return GCJ-02坐标系坐标，输入空值返回null
-	 * @apiNote 中国境外坐标直接返回原值
+	 * <h3>转换原理</h3>
+	 * <ol>
+	 *   <li>计算WGS-84坐标的偏移量</li>
+	 *   <li>向WGS-84坐标加上偏移量</li>
+	 *   <li>返回GCJ-02坐标</li>
+	 * </ol>
+	 *
+	 * @param coordinate WGS-84坐标，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>中国境内坐标</li>
+	 *                  </ul>
+	 * @return GCJ-02坐标系坐标，境外坐标直接返回原值
+	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @apiNote 中国境外坐标不做转换直接返回
 	 * @since 1.0.0
 	 */
 	public static Coordinate WGS84ToGCJ02(final Coordinate coordinate) {
@@ -210,10 +284,26 @@ public class CoordinateUtils {
 
 	/**
 	 * 计算GCJ-02坐标系偏移量
+	 * <p>
+	 * 基于WGS84椭球体参数和中国区域加密算法，
+	 * 计算给定坐标的经/纬度偏移量。
+	 * </p>
 	 *
-	 * @param coordinate 原始坐标
-	 * @return 经/纬度偏移量
-	 * @apiNote 网上找到的实现
+	 * <h3>算法说明</h3>
+	 * <ul>
+	 *   <li>使用正弦函数叠加实现非线性偏移</li>
+	 *   <li>考虑了椭球体曲率影响</li>
+	 *   <li>105°E,35°N为基准偏移点</li>
+	 * </ul>
+	 *
+	 * @param coordinate 原始坐标，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>中国境内坐标</li>
+	 *                  </ul>
+	 * @return 包含经/纬度偏移量的坐标对象
+	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @apiNote 算法参考公开的GCJ-02实现
 	 * @since 1.0.0
 	 */
 	protected static Coordinate computeGcj02Delta(final Coordinate coordinate) {
@@ -245,10 +335,21 @@ public class CoordinateUtils {
 
 	/**
 	 * 经度偏移变换计算
+	 * <p>
+	 * 实现GCJ-02加密算法中的经度偏移计算，
+	 * 包含多个正弦波叠加的非线性变换。
+	 * </p>
+	 *
+	 * <h3>计算公式</h3>
+	 * <pre>
+	 * deltaLng = 300 + lng + 2*lat + 0.1*lng² + 0.1*lng*lat
+	 *          + 0.1√|lng| + 20sin(6πlng) + 20sin(2πlng)
+	 *          + 40sin(πlng/3) + 160sin(πlng/12) + 320sin(πlng/30)
+	 * </pre>
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude  纬度偏移基数（已减35.0）
-	 * @return 经度偏移值
+	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @return 计算出的经度偏移值
 	 * @since 1.0.0
 	 */
 	protected static BigDecimal transformLongitude(final BigDecimal longitude, final BigDecimal latitude) {
@@ -296,11 +397,22 @@ public class CoordinateUtils {
 	}
 
 	/**
-	 * 纬度偏移变换计算（内部算法）
+	 * 纬度偏移变换计算
+	 * <p>
+	 * 实现GCJ-02加密算法中的纬度偏移计算，
+	 * 包含多个正弦波叠加的非线性变换。
+	 * </p>
+	 *
+	 * <h3>计算公式</h3>
+	 * <pre>
+	 * deltaLat = -100 + 2*lng + 3*lat + 0.2*lat² + 0.1*lng*lat
+	 *          + 0.2√|lng| + 20sin(6πlng) + 20sin(2πlng)
+	 *          + 40sin(πlat/3) + 160sin(πlat/12) + 320sin(πlat/30)
+	 * </pre>
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude  纬度偏移基数（已减35.0）
-	 * @return 纬度偏移值
+	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @return 计算出的纬度偏移值
 	 * @since 1.0.0
 	 */
 	protected static BigDecimal transformLatitude(final BigDecimal longitude, final BigDecimal latitude) {
@@ -348,16 +460,20 @@ public class CoordinateUtils {
 	}
 
 	/**
-	 * 将十进制纬度转换为度分秒格式
+	 * 将十进制坐标转换为度分秒格式
+	 * <p>
+	 * 内部实现十进制度到度分秒(DMS)格式的转换，
+	 * 支持经度和纬度两种类型的格式化。
+	 * </p>
 	 *
 	 * @param coordinate 十进制度数值
-	 * @param latitude   坐标类型标记：true表示纬度，false表示经度
-	 * @return 格式化的度分秒字符串
-	 * @implNote 方向字符根据坐标类型和正负值自动确定：
-	 * <ul>
-	 *     <li>纬度：N(北纬)/S(南纬)</li>
-	 *     <li>经度：E(东经)/W(西经)</li>
-	 * </ul>
+	 * @param latitude 坐标类型标记：
+	 *                <ul>
+	 *                  <li>true - 纬度</li>
+	 *                  <li>false - 经度</li>
+	 *                </ul>
+	 * @return 格式化后的度分秒字符串
+	 * @implNote 转换过程保留2位小数精度
 	 * @since 1.0.0
 	 */
 	protected static String toDMS(BigDecimal coordinate, boolean latitude) {
