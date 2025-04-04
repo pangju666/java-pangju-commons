@@ -19,33 +19,76 @@ package io.github.pangju666.commons.image.model;
 import org.apache.commons.lang3.Validate;
 
 /**
- * 图像尺寸记录类
- * <p>表示经过方向校正后的图像实际显示尺寸，包含宽度和高度两个不可变属性</p>
- * <p>本类提供多种尺寸缩放计算方法，所有计算结果均保持原始宽高比</p>
+ * 图像尺寸模型类
+ * <p>
+ * 表示经过方向校正后的图像实际显示尺寸，封装了宽度和高度两个不可变属性，
+ * 提供多种保持宽高比的尺寸缩放计算方法。
+ * </p>
  *
- * @param width  实际显示宽度（像素，必须 > 0）
- * @param height 实际显示高度（像素，必须 > 0）
+ * <h3>核心特性</h3>
+ * <ul>
+ *   <li><strong>不可变性</strong> - 线程安全，适合并发场景</li>
+ *   <li><strong>宽高比保持</strong> - 所有缩放操作保持原始比例</li>
+ *   <li><strong>像素保护</strong> - 计算结果最小为1像素</li>
+ * </ul>
+ *
+ * <h3>典型应用</h3>
+ * <ul>
+ *   <li>图像缩略图生成</li>
+ *   <li>响应式图片尺寸计算</li>
+ *   <li>图片裁剪预处理</li>
+ * </ul>
+ *
+ * @param width 图像宽度（像素），必须满足：
+ *             <ul>
+ *               <li>大于0</li>
+ *               <li>不超过Integer.MAX_VALUE</li>
+ *             </ul>
+ * @param height 图像高度（像素），必须满足：
+ *              <ul>
+ *                <li>大于0</li>
+ *                <li>不超过Integer.MAX_VALUE</li>
+ *              </ul>
  * @author pangju666
  * @since 1.0.0
  */
 public record ImageSize(int width, int height) {
+	/**
+	 * 规范构造方法
+	 * <p>
+	 * 对宽度和高度进行有效性验证：
+	 * <ul>
+	 *   <li>必须为正整数</li>
+	 *   <li>不超过Integer.MAX_VALUE</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
+	 * @since 1.0.0
+	 */
 	public ImageSize {
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.isTrue(height > 0, "height 必须大于0");
 	}
 
 	/**
-	 * 根据目标宽度等比缩放
-	 * <p>算法说明：</p>
-	 * <ol>
-	 *   <li>当原始宽>高时：保持宽高比，高度按比例缩小</li>
-	 *   <li>当原始宽≤高时：保持宽高比，高度按比例放大</li>
-	 *   <li>计算结果像素值不小于1</li>
-	 * </ol>
+	 * 基于目标宽度的等比缩放
+	 * <p>
+	 * 保持原始宽高比，按目标宽度计算新尺寸：
+	 * <ul>
+	 *   <li>当宽>高时：高度按比例缩小</li>
+	 *   <li>当宽≤高时：高度按比例放大</li>
+	 *   <li>确保最小1像素</li>
+	 * </ul>
+	 * </p>
 	 *
-	 * @param targetWidth 目标宽度（必须 > 0）
-	 * @return 等比缩放后的新尺寸对象
-	 * @throws IllegalArgumentException 当targetWidth ≤ 0时抛出
+	 * @param targetWidth 目标宽度，必须满足：
+	 *                   <ul>
+	 *                     <li>大于0</li>
+	 *                     <li>不超过Integer.MAX_VALUE</li>
+	 *                   </ul>
+	 * @return 缩放后的新尺寸对象
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scaleByWidth(final int targetWidth) {
@@ -61,17 +104,23 @@ public record ImageSize(int width, int height) {
 	}
 
 	/**
-	 * 根据目标高度等比缩放
-	 * <p>算法说明：</p>
-	 * <ol>
-	 *   <li>当原始宽>高时：保持宽高比，宽度按比例缩小</li>
-	 *   <li>当原始宽≤高时：保持宽高比，宽度按比例放大</li>
-	 *   <li>计算结果像素值不小于1</li>
-	 * </ol>
+	 * 基于目标高度的等比缩放
+	 * <p>
+	 * 保持原始宽高比，按目标高度计算新尺寸：
+	 * <ul>
+	 *   <li>当宽>高时：宽度按比例缩小</li>
+	 *   <li>当宽≤高时：宽度按比例放大</li>
+	 *   <li>确保最小1像素</li>
+	 * </ul>
+	 * </p>
 	 *
-	 * @param targetHeight 目标高度（必须 > 0）
-	 * @return 等比缩放后的新尺寸对象
-	 * @throws IllegalArgumentException 当targetHeight ≤ 0时抛出
+	 * @param targetHeight 目标高度，必须满足：
+	 *                    <ul>
+	 *                      <li>大于0</li>
+	 *                      <li>不超过Integer.MAX_VALUE</li>
+	 *                    </ul>
+	 * @return 缩放后的新尺寸对象
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scaleByHeight(final int targetHeight) {
@@ -87,18 +136,23 @@ public record ImageSize(int width, int height) {
 	}
 
 	/**
-	 * 双约束等比缩放
-	 * <p>算法说明：</p>
+	 * 双约束等比缩放（基于尺寸对象）
+	 * <p>
+	 * 在不超过目标尺寸的前提下保持宽高比：
 	 * <ol>
-	 *   <li>优先保持宽高比适配目标宽度</li>
-	 *   <li>若计算后的高度超过目标高度，则改为适配目标高度</li>
-	 *   <li>最终尺寸不超过任一目标维度</li>
-	 *   <li>计算结果像素值不小于1</li>
+	 *   <li>优先适配宽度计算</li>
+	 *   <li>若高度超出则改为适配高度</li>
+	 *   <li>确保最小1像素</li>
 	 * </ol>
+	 * </p>
 	 *
-	 * @param targetSize 最大允许尺寸（宽度必须 > 0，高度必须大于0）
-	 * @return 满足双约束的等比缩放尺寸
-	 * @throws IllegalArgumentException 当参数为null时抛出
+	 * @param targetSize 目标尺寸对象，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>宽高均为正数</li>
+	 *                  </ul>
+	 * @return 满足约束的缩放尺寸
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scale(final ImageSize targetSize) {
@@ -107,19 +161,28 @@ public record ImageSize(int width, int height) {
 	}
 
 	/**
-	 * 双约束等比缩放
-	 * <p>算法说明：</p>
+	 * 双约束等比缩放（基于宽高值）
+	 * <p>
+	 * 在不超过目标宽高的前提下保持宽高比：
 	 * <ol>
-	 *   <li>优先保持宽高比适配目标宽度</li>
-	 *   <li>若计算后的高度超过目标高度，则改为适配目标高度</li>
-	 *   <li>最终尺寸不超过任一目标维度</li>
-	 *   <li>计算结果像素值不小于1</li>
+	 *   <li>优先适配宽度计算</li>
+	 *   <li>若高度超出则改为适配高度</li>
+	 *   <li>确保最小1像素</li>
 	 * </ol>
+	 * </p>
 	 *
-	 * @param targetWidth  最大允许宽度（必须 > 0）
-	 * @param targetHeight 最大允许高度（必须 > 0）
-	 * @return 满足双约束的等比缩放尺寸
-	 * @throws IllegalArgumentException 当任一参数 ≤ 0时抛出
+	 * @param targetWidth 目标宽度，必须满足：
+	 *                   <ul>
+	 *                     <li>大于0</li>
+	 *                     <li>不超过Integer.MAX_VALUE</li>
+	 *                   </ul>
+	 * @param targetHeight 目标高度，必须满足：
+	 *                    <ul>
+	 *                      <li>大于0</li>
+	 *                      <li>不超过Integer.MAX_VALUE</li>
+	 *                    </ul>
+	 * @return 满足约束的缩放尺寸
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scale(final int targetWidth, final int targetHeight) {

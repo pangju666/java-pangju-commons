@@ -51,9 +51,32 @@ import java.util.Objects;
 
 /**
  * 图像处理工具类
- * <p>提供全面的图像处理能力，包括格式检测、尺寸获取、EXIF方向处理等，支持多种输入源（文件、路径、字节数组、流）</p>
- * <p>推荐以下方法：
+ * <p>
+ * 提供全面的图像处理功能，包括但不限于以下方面：
+ * <ul>
+ *   <li><b>图像元数据处理</b> - 读取EXIF信息、方向校正等</li>
+ *   <li><b>图像格式检测</b> - 支持JPEG、PNG、GIF等常见格式</li>
+ *   <li><b>图像尺寸处理</b> - 自动处理EXIF方向信息</li>
+ *   <li><b>MIME类型转换</b> - 图像格式与MIME类型互转</li>
+ * </ul>
+ * </p>
+ *
+ * <p><b>典型使用场景：</b></p>
  * <ol>
+ *   <li>图像上传时的格式验证和尺寸获取</li>
+ *   <li>图像处理前的EXIF方向校正</li>
+ *   <li>图像格式转换时的MIME类型检查</li>
+ * </ol>
+ *
+ * <p><b>注意事项：</b></p>
+ * <ul>
+ *   <li>所有方法均为静态方法，不可实例化</li>
+ *   <li>线程安全 - 无共享状态</li>
+ *   <li>大文件处理 - 对于超过100MB的文件建议关闭元数据读取</li>
+ * </ul>
+ *
+ * <p>推荐以下方法：
+ * <ul>
  *     <li>{@link ImageUtil#createCopy(BufferedImage)} 深拷贝图像</li>
  *     <li>{@link ImageUtil#toBuffered(BufferedImage, int)} 修改图像颜色类型</li>
  *     <li>{@link ImageUtil#createFlipped(Image, int)} 翻转图像</li>
@@ -66,19 +89,20 @@ import java.util.Objects;
  *     <li>{@link ImageUtil#sharpen(BufferedImage, float)} 使用卷积矩阵锐化图像</li>
  *     <li>{@link ImageUtil#blur(BufferedImage, float)} 创建给定图像的模糊版本</li>
  *     <li>{@link ImageUtil#createResampled(Image, int, int, int)} 缩放图像</li>
- * </ol>
+ * </ul>
  * </p>
  *
  * @author pangju666
  * @see ImageReader
  * @see ImageMetadataReader
+ * @see ImageConstants
  * @since 1.0.0
  */
 public class ImageUtils {
 	/**
 	 * EXIF正常方向标识值
-	 * <p>对应未旋转图像的默认方向值，当orientation标签不存在时默认使用该值</p>
 	 *
+	 * @see ExifDirectoryBase#TAG_ORIENTATION
 	 * @since 1.0.0
 	 */
 	protected static final int NORMAL_ORIENTATION = 1;
@@ -87,11 +111,25 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 检查MIME类型是否是ImageIO支持可读取的图像类型
+	 * 检查MIME类型是否支持读取
 	 *
-	 * @param imageMimeType 图像MIME类型，允许为空，空将返回false
-	 * @return 如果是支持读取的图像类型返回true，否则返回false
+	 * <p>
+	 * 支持的MIME类型包括但不限于：
+	 * <table border="1">
+	 *   <tr><th>MIME类型</th><th>描述</th></tr>
+	 *   <tr><td>image/jpeg</td><td>JPEG图像</td></tr>
+	 *   <tr><td>image/png</td><td>PNG图像</td></tr>
+	 *   <tr><td>image/gif</td><td>GIF图像</td></tr>
+	 *   <tr><td>image/bmp</td><td>BMP图像</td></tr>
+	 *   <tr><td>image/webp</td><td>WebP图像</td></tr>
+	 * </table>
+	 * 完整列表见{@link ImageConstants#getSupportReadImageTypes()}
+	 * </p>
+	 *
+	 * @param imageMimeType 待检查的MIME类型，允许为null或空
+	 * @return 如果支持读取返回true，否则返回false
 	 * @see ImageReaderSpi
+	 * @see ImageConstants#getSupportReadImageTypes()
 	 * @since 1.0.0
 	 */
 	public static boolean isSupportReadType(final String imageMimeType) {
@@ -102,11 +140,23 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 检查图像MIME类型是否是ImageIO支持可写入的图像类型
+	 * 检查MIME类型是否支持写入
+	 * <p>
+	 * 支持的MIME类型包括但不限于：
+	 * <table border="1">
+	 *   <tr><th>MIME类型</th><th>描述</th></tr>
+	 *   <tr><td>image/jpeg</td><td>JPEG图像</td></tr>
+	 *   <tr><td>image/png</td><td>PNG图像</td></tr>
+	 *   <tr><td>image/bmp</td><td>BMP图像</td></tr>
+	 *   <tr><td>image/webp</td><td>WebP图像</td></tr>
+	 * </table>
+	 * 完整列表见{@link ImageConstants#getSupportWriteImageTypes()}
+	 * </p>
 	 *
-	 * @param imageMimeType 图像MIME类型，允许为空，空将返回false
-	 * @return 如果是支持写入的图像类型返回true，否则返回false
+	 * @param imageMimeType 待检查的MIME类型，允许为null或空
+	 * @return 如果支持写入返回true，否则返回false
 	 * @see ImageWriterSpi
+	 * @see ImageConstants#getSupportWriteImageTypes()
 	 * @since 1.0.0
 	 */
 	public static boolean isSupportWriteType(final String imageMimeType) {
@@ -117,12 +167,24 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断两个MIME类型是否属于同一图像类型（有些图像具有多个MIME类型）
+	 * 判断两个MIME类型是否属于同一图像类型
+	 * <p>
+	 * 有些图像格式具有多个MIME类型（如JPEG可能有image/jpeg和image/jpg），
+	 * 此方法通过ImageIO SPI机制检查两个MIME类型是否属于同一种图像格式。
+	 * </p>
 	 *
-	 * @param mimeType1 第一个MIME类型，允许为空，空将返回false
-	 * @param mimeType2 第二个MIME类型，允许为空，空将返回false
+	 * <p><b>处理流程：</b></p>
+	 * <ol>
+	 *   <li>检查任一参数为空则返回false</li>
+	 *   <li>通过ImageIO获取第一个MIME类型对应的ImageReader</li>
+	 *   <li>获取该Reader支持的所有MIME类型</li>
+	 *   <li>检查第二个MIME类型是否在支持列表中</li>
+	 * </ol>
+	 *
+	 * @param mimeType1 第一个MIME类型，允许为空
+	 * @param mimeType2 第二个MIME类型，允许为空
 	 * @return 如果属于同一类型返回true，否则返回false
-	 * @see ImageReaderSpi
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final String mimeType1, final String mimeType2) {
@@ -146,13 +208,30 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断文件是否与指定MIME类型匹配（有些图像具有多个MIME类型）
+	 * 判断文件是否与指定MIME类型匹配
+	 * <p>
+	 * 有些图像格式具有多个MIME类型（如JPEG可能有image/jpeg和image/jpg），
+	 * 此方法通过解析文件实际MIME类型来判断是否匹配。
+	 * </p>
 	 *
-	 * @param file     要检查的文件对象，允许为null，null将返回false
-	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
+	 * <p><b>处理流程：</b></p>
+	 * <ol>
+	 *   <li>检查参数有效性</li>
+	 *   <li>创建图像输入流</li>
+	 *   <li>解析文件实际MIME类型</li>
+	 *   <li>检查是否包含指定类型</li>
+	 * </ol>
+	 *
+	 * @param file     要检查的文件对象，必须满足：
+	 *               <ul>
+	 *                 <li>非null</li>
+	 *                 <li>存在且可读</li>
+	 *               </ul>
+	 * @param mimeType 要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
 	 * @throws IOException 当文件不存在或读取失败时抛出
-	 * @see ImageReaderSpi
+	 * @throws IllegalArgumentException 当file为null时抛出
+	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final File file, final String mimeType) throws IOException {
@@ -167,13 +246,22 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断字节数组数据是否与指定MIME类型匹配（有些图像具有多个MIME类型）
+	 * 判断字节数组是否与指定MIME类型匹配
+	 * <p>
+	 * 通过解析字节数组实际MIME类型来判断是否匹配，
+	 * 适用于内存中图像数据的类型检查。
+	 * </p>
 	 *
-	 * @param bytes    要检查的字节数组，允许为空，空将返回false
-	 * @param mimeType 要匹配的MIME类型，允许为空，空将返回false
+	 * @param bytes    要检查的字节数组，必须满足：
+	 *               <ul>
+	 *                 <li>非null</li>
+	 *                 <li>非空</li>
+	 *               </ul>
+	 * @param mimeType 要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
 	 * @throws IOException 当读取数据失败时抛出
-	 * @see ImageReaderSpi
+	 * @throws IllegalArgumentException 当bytes为null或空时抛出
+	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final byte[] bytes, final String mimeType) throws IOException {
@@ -191,14 +279,22 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断输入流是否与指定MIME类型匹配（有些图像具有多个MIME类型）
+	 * 判断输入流是否与指定MIME类型匹配
+	 * <p>
+	 * 通过解析输入流实际MIME类型来判断是否匹配，
+	 * 会自动处理缓冲以提高性能。
+	 * </p>
 	 *
-	 * @param inputStream 要检查的输入流，不可为null
-	 * @param mimeType    要匹配的MIME类型，允许为空，空将返回false
+	 * @param inputStream 要检查的输入流，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>支持mark/reset操作</li>
+	 *                  </ul>
+	 * @param mimeType    要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
-	 * @throws IOException              当读取流失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @see ImageReaderSpi
+	 * @throws IOException 当读取流失败时抛出
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
+	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final InputStream inputStream, final String mimeType) throws IOException {
@@ -221,13 +317,21 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 判断图像输入流是否与指定MIME类型匹配（有些图像具有多个MIME类型）
+	 * 判断图像输入流是否与指定MIME类型匹配
+	 * <p>
+	 * 直接使用已解析的MIME类型进行匹配，
+	 * 适用于已经创建图像输入流的场景。
+	 * </p>
 	 *
-	 * @param imageInputStream 要检查的图像输入流，不可为null
-	 * @param mimeType         要匹配的MIME类型，允许为空，空将返回false
+	 * @param imageInputStream 要检查的图像输入流，必须满足：
+	 *                      <ul>
+	 *                        <li>非null</li>
+	 *                        <li>已定位到图像数据起始位置</li>
+	 *                      </ul>
+	 * @param mimeType        要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
-	 * @throws IllegalArgumentException 当图像输入流为null时抛出
-	 * @see ImageReaderSpi
+	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
+	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
 	 */
 	public static boolean isSameType(final ImageInputStream imageInputStream, final String mimeType) {
@@ -241,13 +345,27 @@ public class ImageUtils {
 
 	/**
 	 * 获取文件的MIME类型（使用ImageIO获取）
+	 * <p>
+	 * 通过ImageIO SPI机制检测文件的实际MIME类型，
+	 * 返回最匹配的MIME类型（按ImageReader优先级排序）。
+	 * </p>
 	 *
-	 * @param file 要检查的文件对象，允许为null，null将返回false
-	 * @return 文件的MIME类型，无法获取或ImageIO不支持时返回null
+	 * <p><b>性能考虑：</b></p>
+	 * <ul>
+	 *   <li>会创建临时ImageInputStream</li>
+	 *   <li>对于大文件，建议使用{@link FileUtils#getMimeType}</li>
+	 * </ul>
+	 *
+	 * @param file 要检查的文件对象，必须满足：
+	 *           <ul>
+	 *             <li>非null</li>
+	 *             <li>存在且可读</li>
+	 *           </ul>
+	 * @return 文件的MIME类型，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 * @see ImageReaderSpi
+	 * @apiNote 此方法专门用于获取图像文件的MIME类型
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final File file) throws IOException {
@@ -260,12 +378,22 @@ public class ImageUtils {
 
 	/**
 	 * 获取字节数组数据的MIME类型（使用ImageIO获取）
+	 * <p>
+	 * 通过ImageIO SPI机制检测字节数组的实际MIME类型，
+	 * 适用于内存中图像数据的类型检测。
+	 * </p>
+	 *
+	 * <p><b>注意事项：</b></p>
+	 * <ul>
+	 *   <li>会创建临时ByteArrayInputStream</li>
+	 *   <li>对于大字节数组(>10MB)，建议使用其他方法</li>
+	 * </ul>
 	 *
 	 * @param bytes 要检查的字节数组，允许为null
-	 * @return 数据的MIME类型，无法获取或ImageIO不支持时返回null
+	 * @return 数据的MIME类型，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 * @see ImageReaderSpi
+	 * @apiNote 此方法专门用于获取图像数据的MIME类型
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final byte[] bytes) throws IOException {
@@ -281,13 +409,28 @@ public class ImageUtils {
 
 	/**
 	 * 获取输入流的MIME类型（使用ImageIO获取）
+	 * <p>
+	 * 通过ImageIO SPI机制检测输入流的实际MIME类型，
+	 * 会自动处理缓冲以提高性能。
+	 * </p>
 	 *
-	 * @param inputStream 要检查的输入流，不可为null
-	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
-	 * @throws IOException              当读取流失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 * @see ImageReaderSpi
+	 * <p><b>流处理规则：</b></p>
+	 * <ul>
+	 *   <li>非BufferedInputStream会自动包装</li>
+	 *   <li>流不会被关闭（调用者负责）</li>
+	 *   <li>流位置会被重置</li>
+	 * </ul>
+	 *
+	 * @param inputStream 要检查的输入流，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>支持mark/reset操作</li>
+	 *                  </ul>
+	 * @return 流的MIME类型，无法获取时返回null
+	 * @throws IOException 当读取流失败时抛出
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
+	 * @apiNote 此方法专门用于获取图像流的MIME类型
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final InputStream inputStream) throws IOException {
@@ -307,12 +450,27 @@ public class ImageUtils {
 
 	/**
 	 * 获取图像输入流的MIME类型（使用ImageIO获取）
+	 * <p>
+	 * 直接使用已创建的ImageInputStream检测MIME类型，
+	 * 适用于已经创建图像输入流的场景。
+	 * </p>
 	 *
-	 * @param imageInputStream 要检查的图像输入流，不可为null
-	 * @return 流的MIME类型，无法获取或ImageIO不支持时返回null
-	 * @throws IllegalArgumentException 当图像输入流为null时抛出
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 * @see ImageReaderSpi
+	 * <p><b>实现细节：</b></p>
+	 * <ul>
+	 *   <li>使用ImageIO.getImageReaders()获取匹配的ImageReader</li>
+	 *   <li>返回第一个ImageReader支持的最高优先级MIME类型</li>
+	 *   <li>不会修改输入流状态</li>
+	 * </ul>
+	 *
+	 * @param imageInputStream 要检查的图像输入流，必须满足：
+	 *                      <ul>
+	 *                        <li>非null</li>
+	 *                        <li>已定位到图像数据起始位置</li>
+	 *                      </ul>
+	 * @return 流的MIME类型，无法获取时返回null
+	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
+	 * @apiNote 此方法专门用于获取图像流的MIME类型
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final ImageInputStream imageInputStream) {
@@ -322,13 +480,38 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 从元数据中获取MIME类型
+	 * 从图像元数据中提取MIME类型信息
+	 * <p>
+	 * 使用metadata-extractor库从图像文件的元数据中获取MIME类型，
+	 * 主要从{@link FileTypeDirectory}中读取{@link FileTypeDirectory#TAG_DETECTED_FILE_MIME_TYPE}标签值。
+	 * </p>
 	 *
-	 * @param metadata 图像元数据对象，不可为null
-	 * @return MIME类型，无法获取或metadata-extractor不支持时返回null
-	 * @throws IllegalArgumentException 当元数据为null时抛出
-	 * @apiNote 如果只是想获取图像MIME类型，建议使用{@link FileUtils#getMimeType}
-	 * @see ImageReaderSpi
+	 * <p><b>实现细节：</b></p>
+	 * <ul>
+	 *   <li>遍历所有{@link FileTypeDirectory}类型的元数据目录</li>
+	 *   <li>检查是否包含{@link FileTypeDirectory#TAG_DETECTED_FILE_MIME_TYPE}标签</li>
+	 *   <li>返回找到的第一个有效MIME类型</li>
+	 * </ul>
+	 *
+	 * <p><b>注意事项：</b></p>
+	 * <ul>
+	 *   <li>不是所有图像格式的元数据都包含MIME类型信息</li>
+	 *   <li>metadata-extractor支持的格式有限</li>
+	 *   <li>对于更可靠的MIME类型检测，建议使用{@link FileUtils#getMimeType}</li>
+	 * </ul>
+	 *
+	 * @param metadata 图像元数据对象，必须满足：
+	 *               <ul>
+	 *                 <li>非null</li>
+	 *                 <li>包含有效的图像元数据</li>
+	 *               </ul>
+	 * @return 检测到的MIME类型字符串，格式如"image/jpeg"，
+	 *         未找到时返回null
+	 * @throws IllegalArgumentException 当metadata为null时抛出
+	 * @apiNote 此方法依赖于metadata-extractor库的实现，
+	 *          对于不支持的格式将返回null
+	 * @see FileTypeDirectory#TAG_DETECTED_FILE_MIME_TYPE
+	 * @see FileUtils#getMimeType(File)
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final Metadata metadata) {
@@ -344,20 +527,31 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 获取文件的图像尺寸（自动处理EXIF方向）
+	 * 获取图像文件的尺寸信息（自动处理EXIF方向）
+	 * <p>
+	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
+	 * 对于大文件（>100MB），建议使用{@link #getSize(File, boolean)}并设置useMetadata为false。
+	 * </p>
 	 *
-	 * <p>注意事项：
+	 * <p><b>实现细节：</b></p>
 	 * <ul>
-	 *     <li>文件对象允许为null，null将返回null</li>
-	 *     <li>文件必须存在且为常规文件</li>
-	 * </ul></p>
+	 *   <li>默认优先使用元数据获取尺寸信息</li>
+	 *   <li>自动处理EXIF方向标签（1-8）</li>
+	 *   <li>对于方向值5-8会自动交换宽高</li>
+	 *   <li>元数据获取失败时回退到直接读取图像</li>
+	 * </ul>
 	 *
-	 * @param file 要检查的文件对象，允许为null
+	 * @param file 图像文件对象，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>存在且可读</li>
+	 *              <li>有效的图像文件</li>
+	 *            </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
-	 * @apiNote 超过100MB时，请参考{@link #getSize(File, boolean)}
-	 * @see MetadataReader
-	 * @see ImageReader
+	 * @throws IllegalArgumentException 当file为null时抛出
+	 * @see #getSize(File, boolean)
+	 * @see #getSize(Metadata)
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file) throws IOException {
@@ -365,14 +559,34 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 获取文件的图像尺寸（可选择是否优先使用元数据）
+	 * 获取图像文件的尺寸信息（可选择是否优先使用元数据）
+	 * <p>
+	 * 提供更灵活的方式获取图像尺寸，可选择是否优先使用元数据获取尺寸。
+	 * 当useMetadata为true时会自动处理EXIF方向信息。
+	 * </p>
 	 *
-	 * @param file        要检查的文件对象，允许为null
-	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
+	 * <p><b>性能考虑：</b></p>
+	 * <ul>
+	 *   <li>useMetadata=true：会尝试读取完整文件元数据</li>
+	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
+	 *   <li>对于大文件(>100MB)，建议设置useMetadata=false</li>
+	 * </ul>
+	 *
+	 * @param file 图像文件对象，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>存在且可读</li>
+	 *              <li>有效的图像文件</li>
+	 *            </ul>
+	 * @param useMetadata 是否优先使用元数据获取尺寸：
+	 *                  <ul>
+	 *                    <li>true：自动处理EXIF方向</li>
+	 *                    <li>false：直接读取图像尺寸</li>
+	 *                  </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
+	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
@@ -400,13 +614,24 @@ public class ImageUtils {
 
 	/**
 	 * 获取字节数组数据的图像尺寸（自动处理EXIF方向）
+	 * <p>
+	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
+	 * 对于大字节数组(>100MB)，建议使用{@link #getSize(byte[], boolean)}并设置useMetadata为false。
+	 * </p>
 	 *
-	 * @param bytes 要检查的字节数组，允许为空
+	 * <p><b>实现细节：</b></p>
+	 * <ul>
+	 *   <li>默认优先使用元数据获取尺寸信息</li>
+	 *   <li>自动处理EXIF方向标签（1-8）</li>
+	 *   <li>对于方向值5-8会自动交换宽高</li>
+	 *   <li>元数据获取失败时回退到直接读取图像</li>
+	 * </ul>
+	 *
+	 * @param bytes 要检查的字节数组，允许为null或空
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @apiNote 超过100MB时，请参考{@link #getSize(byte[], boolean)}
-	 * @see MetadataReader
-	 * @see ImageReader
+	 * @see #getSize(byte[], boolean)
+	 * @see #getSize(Metadata)
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes) throws IOException {
@@ -415,13 +640,32 @@ public class ImageUtils {
 
 	/**
 	 * 获取字节数组数据的图像尺寸（可选择是否优先使用元数据）
+	 * <p>
+	 * 提供更灵活的方式获取图像尺寸，可选择是否优先使用元数据获取尺寸。
+	 * 当useMetadata为true时会自动处理EXIF方向信息。
+	 * </p>
 	 *
-	 * @param bytes       要检查的字节数组，允许为空
-	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
+	 * <p><b>性能考虑：</b></p>
+	 * <ul>
+	 *   <li>useMetadata=true：会尝试读取完整元数据</li>
+	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
+	 *   <li>对于大字节数组(>100MB)，建议设置useMetadata=false</li>
+	 * </ul>
+	 *
+	 * @param bytes 要检查的字节数组，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>非空</li>
+	 *            </ul>
+	 * @param useMetadata 是否优先使用元数据获取尺寸：
+	 *                  <ul>
+	 *                    <li>true：自动处理EXIF方向</li>
+	 *                    <li>false：直接读取图像尺寸</li>
+	 *                  </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
 	 * @throws IOException 当读取数据失败时抛出
-	 * @throws IllegalArgumentException 字节数组为空时抛出
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
+	 * @throws IllegalArgumentException 当bytes为null或空时抛出
+	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
@@ -437,14 +681,29 @@ public class ImageUtils {
 
 	/**
 	 * 获取输入流的图像尺寸（自动处理EXIF方向）
+	 * <p>
+	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
+	 * 对于大流数据(>100MB)，建议使用{@link #getSize(InputStream, boolean)}并设置useMetadata为false。
+	 * </p>
 	 *
-	 * @param inputStream 要检查的输入流，不可为null
+	 * <p><b>实现细节：</b></p>
+	 * <ul>
+	 *   <li>默认优先使用元数据获取尺寸信息</li>
+	 *   <li>自动处理EXIF方向标签（1-8）</li>
+	 *   <li>对于方向值5-8会自动交换宽高</li>
+	 *   <li>元数据获取失败时回退到直接读取图像</li>
+	 * </ul>
+	 *
+	 * @param inputStream 输入流对象，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>支持mark/reset操作</li>
+	 *                  </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException              当读取流失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @apiNote 超过100MB时，请参考{@link #getSize(InputStream, boolean)}
-	 * @see MetadataReader
-	 * @see ImageReader
+	 * @throws IOException 当流读取失败时抛出
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
+	 * @see #getSize(InputStream, boolean)
+	 * @see #getSize(Metadata)
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final InputStream inputStream) throws IOException {
@@ -453,13 +712,32 @@ public class ImageUtils {
 
 	/**
 	 * 获取输入流的图像尺寸（可选择是否优先使用元数据）
+	 * <p>
+	 * 提供更灵活的方式获取图像尺寸，可选择是否优先使用元数据获取尺寸。
+	 * 当useMetadata为true时会自动处理EXIF方向信息。
+	 * </p>
 	 *
-	 * @param inputStream 要检查的输入流，不可为null
-	 * @param useMetadata 是否优先使用元数据获取尺寸（为true则会自动处理EXIF方向）
+	 * <p><b>性能考虑：</b></p>
+	 * <ul>
+	 *   <li>useMetadata=true：会尝试读取完整流数据</li>
+	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
+	 *   <li>对于大流数据(>100MB)，建议设置useMetadata=false</li>
+	 * </ul>
+	 *
+	 * @param inputStream 输入流对象，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>支持mark/reset操作</li>
+	 *                  </ul>
+	 * @param useMetadata 是否优先使用元数据获取尺寸：
+	 *                  <ul>
+	 *                    <li>true：自动处理EXIF方向</li>
+	 *                    <li>false：直接读取图像尺寸</li>
+	 *                  </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException              当读取流失败时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @apiNote 超过100MB且不考虑自动处理EXIF方向时，useMetadata建议为false
+	 * @throws IOException 当流读取失败时抛出
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
+	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
 	 * @see ImageReader
 	 * @since 1.0.0
@@ -499,6 +777,17 @@ public class ImageUtils {
 
 	/**
 	 * 获取图像输入流的图像尺寸（不处理图像EXIF方向）
+	 * <p>
+	 * 直接通过ImageReader获取图像尺寸，不处理EXIF方向信息，
+	 * 适用于已经确定不需要处理方向的场景。
+	 * </p>
+	 *
+	 * <p><b>注意事项：</b></p>
+	 * <ul>
+	 *   <li>不会自动处理EXIF方向信息</li>
+	 *   <li>调用者需确保输入流已正确定位</li>
+	 *   <li>使用后会自动释放ImageReader资源</li>
+	 * </ul>
 	 *
 	 * @param imageInputStream 要检查的图像输入流，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
@@ -523,12 +812,16 @@ public class ImageUtils {
 
 	/**
 	 * 从元数据中获取图像尺寸（自动处理EXIF方向）
+	 * <p>
+	 * 自动处理EXIF方向信息，当方向值为5-8时（需要90度旋转的情况），
+	 * 会自动交换宽高值以确保返回的尺寸与实际显示尺寸一致。
+	 * </p>
 	 *
-	 * <p>注意事项：
+	 * <p><b>EXIF处理规则：</b></p>
 	 * <ul>
-	 *     <li>元数据对象不可为null</li>
-	 *     <li>当方向值为5-8时（需要90度旋转的情况），自动交换宽高值</li>
-	 * </ul></p>
+	 *   <li>方向值1-4：保持原始宽高</li>
+	 *   <li>方向值5-8：交换宽高值</li>
+	 * </ul>
 	 *
 	 * @param metadata 图像元数据对象，不可为null
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
@@ -572,24 +865,31 @@ public class ImageUtils {
 
 	/**
 	 * 获取文件的EXIF方向信息
-	 * <p>完整方向说明：
-	 * <ul>
-	 *   <li>1: 正常方向</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转180度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 旋转90度+水平翻转</li>
-	 *   <li>6: 顺时针旋转90度</li>
-	 *   <li>7: 旋转270度+水平翻转</li>
-	 *   <li>8: 逆时针旋转90度</li>
-	 * </ul>
+	 * <p>
+	 * 标准EXIF方向值定义：
+	 * <table border="1">
+	 *   <tr><th>值</th><th>描述</th><th>旋转角度</th></tr>
+	 *   <tr><td>1</td><td>正常方向</td><td>0°</td></tr>
+	 *   <tr><td>2</td><td>水平翻转</td><td>镜像</td></tr>
+	 *   <tr><td>3</td><td>旋转180度</td><td>180°</td></tr>
+	 *   <tr><td>4</td><td>垂直翻转</td><td>镜像</td></tr>
+	 *   <tr><td>5</td><td>旋转90度+水平翻转</td><td>90°+镜像</td></tr>
+	 *   <tr><td>6</td><td>顺时针旋转90度</td><td>90°</td></tr>
+	 *   <tr><td>7</td><td>旋转270度+水平翻转</td><td>270°+镜像</td></tr>
+	 *   <tr><td>8</td><td>逆时针旋转90度</td><td>270°</td></tr>
+	 * </table>
+	 * </p>
 	 *
-	 * @param file 要检查的文件对象，允许为null，null将返回false
-	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
-	 * @throws IOException              当文件读取失败时抛出
-	 * @throws ImageProcessingException 当图像处理异常时抛出
+	 * @param file 图像文件，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>存在且可读</li>
+	 *              <li>包含EXIF信息</li>
+	 *            </ul>
+	 * @return EXIF方向值（1-8），无法获取时返回{@link #NORMAL_ORIENTATION}
+	 * @throws IOException 当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
-	 * @see MetadataReader
+	 * @see ExifDirectoryBase#TAG_ORIENTATION
 	 * @since 1.0.0
 	 */
 	public static Integer getExifOrientation(final File file) throws IOException, ImageProcessingException {
@@ -601,27 +901,37 @@ public class ImageUtils {
 
 	/**
 	 * 获取字节数组数据的EXIF方向信息
-	 * <p>完整方向说明：
-	 * <ul>
-	 *   <li>1: 正常方向</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转180度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 旋转90度+水平翻转</li>
-	 *   <li>6: 顺时针旋转90度</li>
-	 *   <li>7: 旋转270度+水平翻转</li>
-	 *   <li>8: 逆时针旋转90度</li>
-	 * </ul>
+	 * <p>
+	 * 自动检测并处理EXIF方向信息，返回标准化的方向值。
+	 * 完整方向说明：
+	 * <table border="1">
+	 *   <caption>EXIF方向值说明</caption>
+	 *   <tr><th>值</th><th>描述</th><th>旋转角度</th></tr>
+	 *   <tr><td>1</td><td>正常方向</td><td>0°</td></tr>
+	 *   <tr><td>2</td><td>水平翻转</td><td>镜像</td></tr>
+	 *   <tr><td>3</td><td>旋转180度</td><td>180°</td></tr>
+	 *   <tr><td>4</td><td>垂直翻转</td><td>镜像</td></tr>
+	 *   <tr><td>5</td><td>旋转90度+水平翻转</td><td>90°+镜像</td></tr>
+	 *   <tr><td>6</td><td>顺时针旋转90度</td><td>90°</td></tr>
+	 *   <tr><td>7</td><td>旋转270度+水平翻转</td><td>270°+镜像</td></tr>
+	 *   <tr><td>8</td><td>逆时针旋转90度</td><td>270°</td></tr>
+	 * </table>
+	 * </p>
 	 *
-	 * @param bytes 要检查的字节数组，允许为空，空将返回false
-	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
-	 * @throws IOException              当读取数据失败时抛出
+	 * @param bytes 图像字节数组，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>非空</li>
+	 *              <li>包含有效的EXIF信息</li>
+	 *            </ul>
+	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
+	 * @throws IOException 当读取数据失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @throws IllegalArgumentException 字节数组为空时抛出
-	 * @see MetadataReader
+	 * @throws IllegalArgumentException 当bytes为null或空时抛出
+	 * @see #getExifOrientation(Metadata)
 	 * @since 1.0.0
 	 */
-	public static Integer getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
+	public static int getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		Metadata metadata = ImageMetadataReader.readMetadata(IOUtils.toUnsynchronizedByteArrayInputStream(bytes));
@@ -630,27 +940,37 @@ public class ImageUtils {
 
 	/**
 	 * 获取输入流的EXIF方向信息
-	 * <p>完整方向说明：
-	 * <ul>
-	 *   <li>1: 正常方向</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转180度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 旋转90度+水平翻转</li>
-	 *   <li>6: 顺时针旋转90度</li>
-	 *   <li>7: 旋转270度+水平翻转</li>
-	 *   <li>8: 逆时针旋转90度</li>
-	 * </ul>
+	 * <p>
+	 * 自动检测并处理EXIF方向信息，返回标准化的方向值。
+	 * 完整方向说明：
+	 * <table border="1">
+	 *   <caption>EXIF方向值说明</caption>
+	 *   <tr><th>值</th><th>描述</th><th>旋转角度</th></tr>
+	 *   <tr><td>1</td><td>正常方向</td><td>0°</td></tr>
+	 *   <tr><td>2</td><td>水平翻转</td><td>镜像</td></tr>
+	 *   <tr><td>3</td><td>旋转180度</td><td>180°</td></tr>
+	 *   <tr><td>4</td><td>垂直翻转</td><td>镜像</td></tr>
+	 *   <tr><td>5</td><td>旋转90度+水平翻转</td><td>90°+镜像</td></tr>
+	 *   <tr><td>6</td><td>顺时针旋转90度</td><td>90°</td></tr>
+	 *   <tr><td>7</td><td>旋转270度+水平翻转</td><td>270°+镜像</td></tr>
+	 *   <tr><td>8</td><td>逆时针旋转90度</td><td>270°</td></tr>
+	 * </table>
+	 * </p>
 	 *
-	 * @param inputStream 要检查的输入流，不可为null
-	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
-	 * @throws IOException              当读取流失败时抛出
+	 * @param inputStream 图像输入流，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>支持mark/reset操作</li>
+	 *                    <li>包含有效的EXIF信息</li>
+	 *                  </ul>
+	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
+	 * @throws IOException 当流读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
-	 * @throws IllegalArgumentException 当输入流为null时抛出
-	 * @see MetadataReader
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
+	 * @see #getExifOrientation(Metadata)
 	 * @since 1.0.0
 	 */
-	public static Integer getExifOrientation(final InputStream inputStream) throws IOException, ImageProcessingException {
+	public static int getExifOrientation(final InputStream inputStream) throws IOException, ImageProcessingException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream);
@@ -659,22 +979,41 @@ public class ImageUtils {
 
 	/**
 	 * 从元数据中获取EXIF方向信息
-	 * <p>完整方向说明：
-	 * <ul>
-	 *   <li>1: 正常方向</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转180度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 旋转90度+水平翻转</li>
-	 *   <li>6: 顺时针旋转90度</li>
-	 *   <li>7: 旋转270度+水平翻转</li>
-	 *   <li>8: 逆时针旋转90度</li>
-	 * </ul>
+	 * <p>
+	 * 自动检测并处理EXIF方向标签，返回标准化的方向值。
+	 * 完整方向说明：
+	 * <table border="1">
+	 *   <caption>EXIF方向值说明</caption>
+	 *   <tr><th>值</th><th>描述</th><th>旋转角度</th></tr>
+	 *   <tr><td>1</td><td>正常方向</td><td>0°</td></tr>
+	 *   <tr><td>2</td><td>水平翻转</td><td>镜像</td></tr>
+	 *   <tr><td>3</td><td>旋转180度</td><td>180°</td></tr>
+	 *   <tr><td>4</td><td>垂直翻转</td><td>镜像</td></tr>
+	 *   <tr><td>5</td><td>旋转90度+水平翻转</td><td>90°+镜像</td></tr>
+	 *   <tr><td>6</td><td>顺时针旋转90度</td><td>90°</td></tr>
+	 *   <tr><td>7</td><td>旋转270度+水平翻转</td><td>270°+镜像</td></tr>
+	 *   <tr><td>8</td><td>逆时针旋转90度</td><td>270°</td></tr>
+	 * </table>
+	 * </p>
 	 *
-	 * @param metadata 图像元数据对象，不可为null
-	 * @return EXIF方向值，未找到时返回{@link #NORMAL_ORIENTATION}
+	 * <p><b>处理流程：</b></p>
+	 * <ol>
+	 *   <li>检查元数据是否为null</li>
+	 *   <li>遍历所有EXIF目录</li>
+	 *   <li>查找TAG_ORIENTATION标签</li>
+	 *   <li>返回找到的第一个有效方向值</li>
+	 * </ol>
+	 *
+	 * @param metadata 图像元数据对象，必须满足：
+	 *                <ul>
+	 *                  <li>非null</li>
+	 *                  <li>包含有效的EXIF信息</li>
+	 *                </ul>
+	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
 	 * @throws IllegalArgumentException 当元数据为null时抛出
-	 * @see MetadataReader
+	 * @see ExifIFD0Directory
+	 * @see ExifDirectoryBase#TAG_ORIENTATION
+	 * @see #NORMAL_ORIENTATION
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final Metadata metadata) {
@@ -691,12 +1030,29 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 从字节数组输入流解析图像尺寸
+	 * 通过输入流解析图像尺寸
+	 * <p>
+	 * 内部方法，用于处理入流形式的图像数据，
+	 * 支持通过元数据或直接读取两种方式获取尺寸。
+	 * </p>
 	 *
-	 * @param inputStream 字节数组输入流，不可为null
-	 * @param useMetadata 是否使用元数据获取尺寸
-	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当流读取失败时抛出
+	 * <p><b>性能考虑：</b></p>
+	 * <ul>
+	 *   <li>优先使用元数据时(useMetadata=true)，会尝试读取完整流</li>
+	 *   <li>对于大文件，建议设置useMetadata=false</li>
+	 *   <li>输入流必须支持mark/reset操作</li>
+	 * </ul>
+	 *
+	 * @param inputStream  输入流，必须满足：
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                    </ul>
+	 * @param useMetadata 是否优先使用元数据
+	 * @return 图像尺寸对象，解析失败返回null
+	 * @throws IOException 当I/O错误发生时抛出
+	 * @see #getSize(Metadata)
+	 * @see #getSize(ImageInputStream)
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final boolean useMetadata) throws IOException {
@@ -720,10 +1076,27 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 从图像输入流解析MIME类型
+	 * 解析图像输入流的MIME类型集合
+	 * <p>
+	 * 内部方法，通过ImageIO SPI机制获取图像输入流支持的所有MIME类型，
+	 * 返回结果按优先级排序（第一个为最匹配的类型）。
+	 * </p>
 	 *
-	 * @param imageInputStream 图像输入流，不可为null
-	 * @return MIME类型数组，无法获取时返回空数组
+	 * <p><b>实现细节：</b></p>
+	 * <ul>
+	 *   <li>使用ImageIO.getImageReaders()获取匹配的ImageReader</li>
+	 *   <li>通过ImageReaderSpi获取支持的所有MIME类型</li>
+	 *   <li>自动处理null值，确保返回非null数组</li>
+	 * </ul>
+	 *
+	 * @param imageInputStream 图像输入流，必须满足：
+	 *                       <ul>
+	 *                         <li>非null</li>
+	 *                         <li>已定位到图像数据起始位置</li>
+	 *                       </ul>
+	 * @return MIME类型数组，可能为空数组但不会为null
+	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
+	 * @see ImageReaderSpi#getMIMETypes()
 	 * @since 1.0.0
 	 */
 	protected static String[] parseMimeTypes(final ImageInputStream imageInputStream) {
@@ -739,6 +1112,4 @@ public class ImageUtils {
 		}
 		return mimeTypes;
 	}
-
-
 }

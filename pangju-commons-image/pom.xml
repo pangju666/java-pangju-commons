@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-image</artifactId>
-	<description>图片工具类库（基于metadata-extractor和twelvemonkeys）</description>
+	<description>图片工具类库（基于metadata-extractor、twelvemonkeys和javax Image IO）</description>
 
 	<licenses>
 		<license>
@@ -21,6 +21,7 @@
 		<dependency>
 			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-io</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -33,6 +34,7 @@
 		<dependency>
 			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-imageio</artifactId>
+			<version>${project.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
