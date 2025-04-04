@@ -20,7 +20,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.github.pangju666</groupId>
+			<artifactId>pangju-commons-lang</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.pangju666</groupId>
 			<artifactId>pangju-commons-io</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
