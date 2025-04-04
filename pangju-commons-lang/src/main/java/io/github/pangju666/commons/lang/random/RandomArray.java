@@ -41,7 +41,7 @@ public class RandomArray {
 
 	protected final RandomUtils randomUtils;
 
-	protected RandomArray(RandomUtils randomUtils) {
+	protected RandomArray(final RandomUtils randomUtils) {
 		this.randomUtils = randomUtils;
 	}
 

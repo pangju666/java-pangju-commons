@@ -41,15 +41,37 @@ import java.util.*;
  */
 public class JsonUtils {
 	/**
-	 * 默认Gson实例（带格式化输出）
+	 * 默认Gson实例
+	 * <p>
+	 * 该实例具有以下特性：
+	 * <ul>
+	 *   <li>序列化null值</li>
+	 *   <li>格式化输出JSON</li>
+	 *   <li>已注册常用类型的序列化/反序列化适配器</li>
+	 * </ul>
+	 * 通过{@link #createGsonBuilder()}方法创建并配置
+	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Gson DEFAULT_GSON = createGsonBuilder().create();
+	public static final Gson DEFAULT_GSON = createGsonBuilder().serializeNulls().setPrettyPrinting().create();
 
 	protected JsonUtils() {
 	}
 
+	/**
+	 * 创建预配置的GsonBuilder实例
+	 * <p>
+	 * 返回已注册以下类型适配器的GsonBuilder：
+	 * <ul>
+	 *   <li>Date/LocalDate/LocalDateTime的序列化和反序列化适配器</li>
+	 *   <li>BigInteger/BigDecimal的反序列化适配器</li>
+	 *   <li>Class类型的序列化和反序列化适配器</li>
+	 * </ul>
+	 *
+	 * @return 预配置的GsonBuilder实例
+	 * @since 1.0.0
+	 */
 	public static GsonBuilder createGsonBuilder() {
 		return new GsonBuilder()
 			.registerTypeAdapter(Date.class, new DateJsonSerializer())
@@ -61,9 +83,7 @@ public class JsonUtils {
 			.registerTypeAdapter(LocalDate.class, new LocalDateJsonDeserializer())
 			.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonDeserializer())
 			.registerTypeAdapter(Class.class, new ClassJsonDeserializer())
-			.registerTypeAdapter(Class.class, new ClassJsonSerializer())
-			.serializeNulls()
-			.setPrettyPrinting();
+			.registerTypeAdapter(Class.class, new ClassJsonSerializer());
 	}
 
 	/**

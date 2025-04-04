@@ -64,7 +64,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @param separator 拼音之间的分隔符（如："-"），用于连接多音字转换结果
 	 * @since 1.0.0
 	 */
-	public PinyinComparator(String separator) {
+	public PinyinComparator(final String separator) {
 		this.separator = separator;
 	}
 
@@ -74,7 +74,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @param list 要排序的字符串列表（允许为null，null列表不会抛出异常）
 	 * @since 1.0.0
 	 */
-	public static void order(List<String> list) {
+	public static void order(final List<String> list) {
 		if (Objects.nonNull(list) && !list.isEmpty()) {
 			list.sort(new PinyinComparator());
 		}
@@ -87,7 +87,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @param separator 自定义拼音分隔符
 	 * @since 1.0.0
 	 */
-	public static void order(List<String> list, String separator) {
+	public static void order(final List<String> list, final String separator) {
 		if (Objects.nonNull(list) && !list.isEmpty()) {
 			list.sort(new PinyinComparator(separator));
 		}
@@ -99,7 +99,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @param array 要排序的字符串数组（允许为null，null数组不会抛出异常）
 	 * @since 1.0.0
 	 */
-	public static void order(String[] array) {
+	public static void order(final String[] array) {
 		if (ArrayUtils.isNotEmpty(array)) {
 			Arrays.sort(array, new PinyinComparator());
 		}
@@ -112,7 +112,7 @@ public final class PinyinComparator implements Comparator<String> {
 	 * @param separator 自定义拼音分隔符
 	 * @since 1.0.0
 	 */
-	public static void order(String[] array, String separator) {
+	public static void order(final String[] array, final String separator) {
 		if (ArrayUtils.isNotEmpty(array)) {
 			Arrays.sort(array, new PinyinComparator(separator));
 		}

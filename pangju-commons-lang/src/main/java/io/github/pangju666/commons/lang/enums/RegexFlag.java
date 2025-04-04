@@ -114,7 +114,7 @@ public enum RegexFlag {
 
 	private final int value;
 
-	RegexFlag(int value) {
+	RegexFlag(final int value) {
 		this.value = value;
 	}
 

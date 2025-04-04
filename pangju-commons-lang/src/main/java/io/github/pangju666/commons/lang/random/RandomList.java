@@ -41,7 +41,7 @@ public class RandomList {
 
 	protected final RandomUtils randomUtils;
 
-	protected RandomList(RandomUtils randomUtils) {
+	protected RandomList(final RandomUtils randomUtils) {
 		this.randomUtils = randomUtils;
 	}
 

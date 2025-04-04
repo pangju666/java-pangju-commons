@@ -1,5 +1,7 @@
 package io.github.pangju666.commons.lang.id;
 
+import org.apache.commons.lang3.Validate;
+
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -53,8 +55,8 @@ public final class NanoId {
 	 * @param size ID长度
 	 * @return 伪随机的NanoId字符串
 	 */
-	public static String randomNanoId(int size) {
-		return randomNanoId(null, null, size);
+	public static String randomNanoId(final int size) {
+		return randomNanoId(DEFAULT_NUMBER_GENERATOR, DEFAULT_ALPHABET, size);
 	}
 
 	/**
@@ -65,22 +67,10 @@ public final class NanoId {
 	 * @param size     ID长度
 	 * @return 伪随机的NanoId字符串
 	 */
-	public static String randomNanoId(Random random, char[] alphabet, int size) {
-		if (random == null) {
-			random = DEFAULT_NUMBER_GENERATOR;
-		}
-
-		if (alphabet == null) {
-			alphabet = DEFAULT_ALPHABET;
-		}
-
-		if (alphabet.length == 0 || alphabet.length >= 256) {
-			throw new IllegalArgumentException("Alphabet must contain between 1 and 255 symbols.");
-		}
-
-		if (size <= 0) {
-			throw new IllegalArgumentException("Size must be greater than zero.");
-		}
+	public static String randomNanoId(final Random random, final char[] alphabet, final int size) {
+		Validate.notNull(random, "random 不可为空");
+		Validate.isTrue(size > 0, "size 必须大于0");
+		Validate.isTrue(alphabet.length >= 1 && alphabet.length <= 255, "alphabet必须包含 1 至 255 个符号。");
 
 		final int mask = (2 << (int) Math.floor(Math.log(alphabet.length - 1) / Math.log(2))) - 1;
 		final int step = (int) Math.ceil(1.6 * mask * size / alphabet.length);

@@ -53,7 +53,7 @@ public final class SnowflakeIdWorker {
 	 * @param workerId     机器ID (0~31)
 	 * @param datacenterId 数据中心ID (0~31)
 	 */
-	public SnowflakeIdWorker(long workerId, long datacenterId) {
+	public SnowflakeIdWorker(final long workerId, final long datacenterId) {
 		this.workerId = workerId;
 		this.datacenterId = datacenterId;
 	}
@@ -65,7 +65,7 @@ public final class SnowflakeIdWorker {
 	 * @param datacenterId 数据中心ID (0~31)
 	 * @param sequence     初始序列号
 	 */
-	public SnowflakeIdWorker(long workerId, long datacenterId, long sequence) {
+	public SnowflakeIdWorker(final long workerId, final long datacenterId, final long sequence) {
 		this.workerId = workerId;
 		this.datacenterId = datacenterId;
 		this.sequence = sequence;
@@ -79,7 +79,7 @@ public final class SnowflakeIdWorker {
 	 * @param sequence      初始序列号
 	 * @param initTimestamp 自定义起始时间戳
 	 */
-	public SnowflakeIdWorker(long workerId, long datacenterId, long sequence, long initTimestamp) {
+	public SnowflakeIdWorker(final long workerId, final long datacenterId, final long sequence, final long initTimestamp) {
 		// 校验workerId的合法性
 		if (workerId > MAX_WORKER_ID || workerId < 0) {
 			throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_WORKER_ID));

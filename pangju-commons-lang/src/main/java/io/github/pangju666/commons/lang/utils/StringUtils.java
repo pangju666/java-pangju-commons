@@ -100,6 +100,13 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			.toList();
 	}
 
+	/**
+	 * 获取数组中非空字符串元素列表
+	 *
+	 * @param strings 原始字符串数组
+	 * @return 过滤后的非空字符串列表（可能为空列表）
+	 * @since 1.0.0
+	 */
 	public static List<String> getNotBlankElements(final String... strings) {
 		if (Objects.isNull(strings) || strings.length == 0) {
 			return Collections.emptyList();
@@ -109,6 +116,13 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			.toList();
 	}
 
+	/**
+	 * 获取数组中唯一且非空字符串元素列表
+	 *
+	 * @param strings 原始字符串数组
+	 * @return 去重后的非空字符串列表（可能为空列表）
+	 * @since 1.0.0
+	 */
 	public static List<String> getUniqueNotBlankElements(final String... strings) {
 		if (Objects.isNull(strings) || strings.length == 0) {
 			return Collections.emptyList();
