@@ -20,57 +20,64 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * 文件类型枚举类，定义常见文件类型的分类标准
+ * 文件类型枚举类，提供常见文件类型的分类标准
  * <p>
- * 每个枚举实例包含以下属性：
- * <ul>
- *     <li>label - 文件类型中文标签</li>
- *     <li>types - 具体MIME类型集合（当typePrefix为null时用于精确匹配）</li>
- *     <li>typePrefix - MIME类型前缀（用于前缀匹配，如"image/"匹配所有图片类型）</li>
- * </ul>
- * <p>
- * 使用说明：
+ * 本枚举定义了基于MIME类型的文件分类系统，支持两种匹配方式：
  * <ol>
- *     <li>当typePrefix不为空时，通过MIME类型前缀匹配文件类型（如"image/png"会匹配IMAGE类型）</li>
- *     <li>当typePrefix为空时，需要严格匹配types集合中的具体MIME类型（如COMPRESS类型需要匹配具体的压缩格式类型）</li>
+ *     <li><b>前缀匹配</b> - 通过typePrefix匹配某一类文件（如"image/"匹配所有图片）</li>
+ *     <li><b>精确匹配</b> - 通过types集合匹配特定文件类型（如压缩包的各种具体格式）</li>
  * </ol>
+ * <p>
+ * <b>典型使用场景：</b>
+ * <ul>
+ *     <li>文件上传时的类型校验</li>
+ *     <li>文件分类管理</li>
+ *     <li>根据类型显示不同图标</li>
+ * </ul>
  *
  * @author pangju666
  * @since 1.0.0
  */
 public enum FileType {
 	/**
-	 * 图片类型（通过MIME类型前缀 image/ 匹配）
+	 * 图片类型，匹配所有MIME类型以"image/"开头的文件
+	 * <p>常见格式：JPEG、PNG、GIF、WEBP等</p>
 	 *
 	 * @since 1.0.0
 	 */
 	IMAGE("图片", Collections.emptySet(), "image/"),
 	/**
-	 * 文本类型（通过MIME类型前缀 text/ 匹配）
+	 * 文本类型，匹配所有MIME类型以"text/"开头的文件
+	 * <p>常见格式：TXT、CSV、HTML、XML等</p>
 	 *
 	 * @since 1.0.0
 	 */
 	TEXT("文本", Collections.emptySet(), "text/"),
 	/**
-	 * 音频类型（通过MIME类型前缀 audio/ 匹配）
+	 * 音频类型，匹配所有MIME类型以"audio/"开头的文件
+	 * <p>常见格式：MP3、WAV、AAC、OGG等</p>
 	 *
 	 * @since 1.0.0
 	 */
 	AUDIO("音频", Collections.emptySet(), "audio/"),
 	/**
-	 * 模型类型（通过MIME类型前缀 model/ 匹配）
+	 * 3D模型类型，匹配所有MIME类型以"model/"开头的文件
+	 * <p>常见格式：STL、OBJ、FBX等</p>
 	 *
 	 * @since 1.0.0
 	 */
 	MODEL("模型", Collections.emptySet(), "model/"),
 	/**
-	 * 视频类型（通过MIME类型前缀 video/ 匹配）
+	 * 视频类型，主要匹配MIME类型以"video/"开头的文件
+	 * <p>包含特殊格式：HLS流媒体(application/vnd.apple.mpegurl)</p>
+	 * <p>常见格式：MP4、AVI、MKV、MOV等</p>
 	 *
 	 * @since 1.0.0
 	 */
 	VIDEO("视频", Collections.singleton("application/vnd.apple.mpegurl"), "video/"),
 	/**
-	 * 压缩包类型（通过具体MIME类型匹配）
+	 * 压缩包类型，通过具体MIME类型精确匹配
+	 * <p>支持的压缩格式：TAR、GZIP、BZIP2、ZIP、RAR、7Z、CAB等</p>
 	 *
 	 * @since 1.0.0
 	 */
@@ -80,7 +87,8 @@ public enum FileType {
 		"application/x-ace-compressed", "application/x-7z-compressed", "application/vnd.ms-cab-compressed"
 	), null),
 	/**
-	 * 文档类型（通过具体MIME类型匹配）
+	 * 办公文档类型，通过具体MIME类型精确匹配
+	 * <p>支持的文档格式：PDF、Excel(XLS/XLSX)、Word(DOC/DOCX)、PPT(PPT/PPTX)</p>
 	 *
 	 * @since 1.0.0
 	 */
@@ -91,30 +99,35 @@ public enum FileType {
 	), null);
 
 	/**
-	 * 文件类型中文标签（如：图片、文本等）
+	 * 文件类型的中文显示名称
+	 * <p>用于用户界面展示，如"图片"、"文本"等友好名称</p>
 	 *
 	 * @since 1.0.0
 	 */
 	private final String label;
 	/**
-	 * 具体MIME类型集合（当typePrefix为null时用于精确匹配）
+	 * 该类型对应的具体MIME类型集合
+	 * <p>当typePrefix为null时，必须通过此集合中的值进行精确匹配</p>
 	 *
 	 * @since 1.0.0
 	 */
 	private final Set<String> types;
 	/**
-	 * MIME类型前缀（用于前缀匹配，如"image/"匹配所有图片类型）
+	 * MIME类型的前缀字符串
+	 * <p>当不为null时，表示可以通过此前缀匹配一类文件（如"image/"）</p>
+	 * <p>当为null时，必须使用types集合进行精确匹配</p>
 	 *
 	 * @since 1.0.0
 	 */
 	private final String typePrefix;
 
 	/**
-	 * 构造文件类型枚举
+	 * 构造文件类型枚举实例
 	 *
-	 * @param label      中文类型标签
-	 * @param types      具体MIME类型集合（当typePrefix为null时必须指定）
-	 * @param typePrefix MIME类型前缀（当types为空时必须指定）
+	 * @param label 类型中文名称，不可为空
+	 * @param types 具体MIME类型集合，当typePrefix为null时不可为空集合
+	 * @param typePrefix MIME类型前缀，当types为空集合时不可为null
+	 * @throws IllegalArgumentException 当label为空，或types和typePrefix同时为null时抛出
 	 * @since 1.0.0
 	 */
 	FileType(String label, Set<String> types, String typePrefix) {
@@ -124,9 +137,9 @@ public enum FileType {
 	}
 
 	/**
-	 * 获取文件类型中文标签
+	 * 获取文件类型的中文标签
 	 *
-	 * @return 如："图片"、"文本"等
+	 * @return 文件类型的友好显示名称，如"图片"、"文本"等
 	 * @since 1.0.0
 	 */
 	public String getLabel() {
@@ -134,9 +147,10 @@ public enum FileType {
 	}
 
 	/**
-	 * 获取具体MIME类型集合
+	 * 获取该类型对应的具体MIME类型集合
+	 * <p>返回的集合是不可修改的</p>
 	 *
-	 * @return 不可修改的MIME类型集合（当typePrefix为null时用于精确匹配）
+	 * @return 该类型支持的具体MIME类型集合
 	 * @since 1.0.0
 	 */
 	public Set<String> getTypes() {
@@ -144,9 +158,9 @@ public enum FileType {
 	}
 
 	/**
-	 * 获取MIME类型前缀
+	 * 获取MIME类型的前缀匹配字符串
 	 *
-	 * @return 类型前缀字符串（如"image/"，当types为空集合时用于前缀匹配）
+	 * @return 类型前缀字符串，如"image/"；可能为null表示需要精确匹配
 	 * @since 1.0.0
 	 */
 	public String getTypePrefix() {

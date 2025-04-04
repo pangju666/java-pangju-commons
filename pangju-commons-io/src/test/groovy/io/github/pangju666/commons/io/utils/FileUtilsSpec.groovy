@@ -236,4 +236,50 @@ class FileUtilsSpec extends Specification {
 		then: "抛出FileNotFoundException"
 		thrown(FileNotFoundException)
 	}
+
+	def "测试读取超大文件"() {
+		setup:
+		def start = System.currentTimeMillis()
+		def inputStream =
+			FileUtils.openMemoryMappedFileInputStream(
+				new File("E:\\安装包\\办公\\Office 2019\\ProPlus2019Retail.img"));
+		while (inputStream.read() != -1);
+		def end = System.currentTimeMillis()
+		println "分块耗时：${end - start} ms"
+
+		def start2 = System.currentTimeMillis()
+		def inputStream2 =
+			FileUtils.openInputStream(
+				new File("E:\\安装包\\办公\\Office 2019\\ProPlus2019Retail.img"))
+		while (inputStream2.read() != -1);
+		def end2 = System.currentTimeMillis()
+		println "耗时：${end2 - start2} ms"
+	}
+
+	def "测试读取文件速度"() {
+		setup:
+		def start = System.currentTimeMillis()
+		def inputStream =
+			FileUtils.openBufferedFileChannelInputStream(
+				new File("src/test/resources/mime.types"));
+		while (inputStream.read() != -1);
+		def end = System.currentTimeMillis()
+		println "缓冲文件通道输入流耗时：${end - start} ms"
+
+		def start2 = System.currentTimeMillis()
+		def inputStream2 =
+			FileUtils.openMemoryMappedFileInputStream(
+				new File("src/test/resources/mime.types"))
+		while (inputStream2.read() != -1);
+		def end2 = System.currentTimeMillis()
+		println "内存映射输入流耗时：${end2 - start2} ms"
+
+		def start3 = System.currentTimeMillis()
+		def inputStream3 =
+			FileUtils.openUnsynchronizedBufferedInputStream(
+				new File("src/test/resources/mime.types"))
+		while (inputStream3.read() != -1);
+		def end3 = System.currentTimeMillis()
+		println "线程不安全缓冲区输入流耗时：${end3 - start3} ms"
+	}
 }

@@ -16,11 +16,11 @@
 
 package io.github.pangju666.commons.io.utils;
 
-import io.github.pangju666.commons.io.lang.IOConstants;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
+import org.apache.commons.crypto.utils.AES;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
@@ -32,6 +32,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Objects;
 import java.util.Properties;
@@ -46,14 +47,7 @@ import java.util.Set;
  *     <li><strong>AES加解密体系</strong> - 支持CBC/CTR两种加密模式</li>
  *     <li><strong>密码规范管理</strong> - 强制校验密钥长度（128/192/256位）</li>
  *     <li><strong>流式处理优化</strong> - 内存友好的大文件处理能力</li>
- *     <li><strong>线程安全实现</strong> - 所有方法无状态设计</li>
- * </ul>
- *
- * <h3>安全规范：</h3>
- * <ul>
- *     <li>密钥派生：直接使用密码字节（建议结合PBKDF2使用）</li>
- *     <li>IV生成：默认基于密码派生（可通过参数自定义）</li>
- *     <li>加密模式：CBC模式强制使用PKCS5填充，CTR模式无填充</li>
+ *     <li><strong>非同步流支持</strong> - 提供非线程安全的缓冲流实现</li>
  * </ul>
  *
  * @author pangju666
@@ -71,34 +65,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	private static final Properties DEFAULT_PROPERTIES = new Properties();
-	/**
-	 * 合法的AES密钥长度集合（单位：字节）
-	 * <p>包含16(128位)、24(192位)、32(256位)三种标准长度</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CBC_NO_PADDING = "AES/CBC/NoPadding";
-	/**
-	 * AES/CBC模式PKCS5填充算法标识
-	 * <p>适用于通用加密场景，自动处理数据块填充</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
-	/**
-	 * AES/CTR模式无填充算法标识
-	 * <p>适用于流加密场景，不需要数据填充</p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String AES_CTR_NO_PADDING = "AES/CTR/NoPadding";
-	/**
-	 * AES对称加密算法名称
-	 *
-	 * @since 1.0.0
-	 */
-	private static final String AES_ALGORITHM = "AES";
+	protected static final Properties DEFAULT_PROPERTIES = new Properties();
 	/**
 	 * 合法的AES密钥长度集合（单位：字节）
 	 *
@@ -106,36 +73,92 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	private static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
+	protected static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
+
+	protected static final int KB_8 = 8 * 1024;
+	protected static final int KB_32 = 32 * 1024;
+	protected static final int KB_64 = 64 * 1024;
+	protected static final int KB_256 = 256 * 1024;
+	protected static final int KB_512 = 512 * 1024;
+	protected static final int MB_1 = 1024 * 1024;
+	protected static final int MB_10 = 10 * MB_1;
+	protected static final int MB_100 = 100 * MB_1;
+	protected static final int GB_1 = 1024 * MB_1;
 
 	protected IOUtils() {
 	}
 
 	/**
-	 * 创建非同步缓冲输入流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 * 根据总大小获取推荐的缓冲区大小
+	 * <p>缓冲区大小策略如下：</p>
+	 * <table border="1">
+	 *     <tr><th>文件大小范围</th><th>缓冲区大小</th></tr>
+	 *     <tr><td>小于1MB</td><td>8KB</td></tr>
+	 *     <tr><td>1MB - 10MB</td><td>32KB</td></tr>
+	 *     <tr><td>10MB - 100MB</td><td>64KB</td></tr>
+	 *     <tr><td>100MB - 1GB</td><td>256KB</td></tr>
+	 *     <tr><td>大于等于1GB</td><td>512KB</td></tr>
+	 * </table>
 	 *
-	 * @param inputStream 原始输入流（必须非null）
-	 * @return 包装后的缓冲输入流
-	 * @throws IOException          当流初始化失败时抛出
-	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @param totalSize 文件总大小（单位：字节）
+	 * @return 推荐的缓冲区大小（单位：字节）
+	 * @throws IllegalArgumentException 如果totalSize小于0时抛出
 	 * @since 1.0.0
 	 */
-	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream) throws IOException {
-		return unsynchronizedBuffer(inputStream, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
+	public static int getBufferSize(final long totalSize) {
+		Validate.isTrue(totalSize >= 0, "totalSize 必须大于等于0");
+
+		if (totalSize < MB_1) { // < 1MB
+			return KB_8;
+		} else if (totalSize < MB_10) { // < 10MB
+			return KB_32;
+		} else if (totalSize < MB_100) { // < 100MB
+			return KB_64;
+		} else if (totalSize < GB_1) { // < 1GB
+			return KB_256;
+		} else {
+			return KB_512;
+		}
 	}
 
 	/**
-	 * 创建非同步缓冲输入流（自定义缓冲区）
+	 * 创建非同步缓冲输入流（使用默认缓冲区大小）
+	 * <p>默认缓冲区大小为 {@link IOUtils#DEFAULT_BUFFER_SIZE}</p>
 	 *
 	 * @param inputStream 原始输入流（必须非null）
-	 * @param bufferSize  缓冲区大小（单位：字节）
 	 * @return 包装后的缓冲输入流
-	 * @throws IOException          当流初始化失败时抛出
+	 * @throws IOException 当流初始化失败时抛出
 	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @see #unsynchronizedBuffer(InputStream, int)
 	 * @since 1.0.0
 	 */
-	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream, final int bufferSize) throws IOException {
+	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream) throws IOException {
+		return unsynchronizedBuffer(inputStream, IOUtils.DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建非同步缓冲输入流（自定义缓冲区大小）
+	 * <p>特性说明：</p>
+	 * <ul>
+	 *     <li>非线程安全实现，适合单线程使用</li>
+	 *     <li>不进行同步操作，性能优于同步缓冲流</li>
+	 *     <li>缓冲区大小应根据数据量合理设置</li>
+	 * </ul>
+	 *
+	 * @param inputStream 原始输入流（必须非null）
+	 * @param bufferSize 缓冲区大小（单位：字节，必须大于0）
+	 * @return 包装后的缓冲输入流
+	 * @throws IOException 当流初始化失败时抛出
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
+	 * @see #getBufferSize(long)
+	 * @since 1.0.0
+	 */
+	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream,
+																		 final int bufferSize) throws IOException {
 		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
+
 		return new UnsynchronizedBufferedInputStream.Builder()
 			.setBufferSize(bufferSize)
 			.setInputStream(inputStream)
@@ -144,9 +167,16 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 
 	/**
 	 * 创建非同步字节数组输入流
+	 * <p>特性说明：</p>
+	 * <ul>
+	 *     <li>线程不安全，适合单线程使用</li>
+	 *     <li>支持空数组输入（自动转换为空流）</li>
+	 *     <li>可重复读取数据</li>
+	 * </ul>
 	 *
-	 * @param bytes 原始字节数组（允许空数组）
-	 * @return 可重复读取的输入流
+	 * @param bytes 原始字节数组（允许为null，将视为空数组）
+	 * @return 基于字节数组的输入流
+	 * @throws IOException 当流初始化失败时抛出
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedByteArrayInputStream toUnsynchronizedByteArrayInputStream(final byte[] bytes) throws IOException {
@@ -158,63 +188,83 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * 创建非同步字节数组输出流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 * 创建非同步字节数组输出流（指定初始缓冲区大小）
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>缓冲区大小必须大于0</li>
+	 *     <li>初始容量会影响性能，建议根据预期数据量设置</li>
+	 *     <li>非线程安全实现</li>
+	 * </ul>
 	 *
-	 * @param bytes 原始字节数组（允许空数组）
-	 * @return 包含原始数据的输出流
-	 * @throws IOException 当写入失败时抛出
+	 * @param bufferSize 初始缓冲区大小（单位：字节）
+	 * @return 新的字节数组输出流
+	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
+	 * @see #getBufferSize(long)
 	 * @since 1.0.0
 	 */
-	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes) throws IOException {
-		return toUnsynchronizedByteArrayOutputStream(bytes, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final int bufferSize) {
+		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
+
+		return UnsynchronizedByteArrayOutputStream.builder()
+			.setBufferSize(bufferSize)
+			.get();
 	}
 
 	/**
-	 * 创建非同步字节数组输出流（自定义缓冲区）
+	 * 创建非同步字节数组输出流并写入输入流数据（使用默认缓冲区大小）
+	 * <p>特性说明：</p>
+	 * <ul>
+	 *     <li>使用默认缓冲区大小 {@link IOUtils#DEFAULT_BUFFER_SIZE}</li>
+	 *     <li>自动读取输入流数据并写入输出流</li>
+	 *     <li>非线程安全实现，适合单线程使用</li>
+	 * </ul>
 	 *
-	 * @param bytes 原始字节数组（允许空数组）
-	 * @param bufferSize  缓冲区大小（单位：字节）
-	 * @return 包含原始数据的输出流
-	 * @throws IOException 当写入失败时抛出
+	 * @param inputStream 输入流（必须非null）
+	 * @return 包含输入流数据的字节数组输出流
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>流读取/写入失败</li>
+	 *                         <li>内存不足</li>
+	 *                     </ul>
+	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @see #toUnsynchronizedByteArrayOutputStream(InputStream, int)
 	 * @since 1.0.0
 	 */
-	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final byte[] bytes, final int bufferSize) throws IOException {
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
-			.setBufferSize(bufferSize)
-			.get();
-		outputStream.write(ArrayUtils.nullToEmpty(bytes));
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
+		Objects.requireNonNull(inputStream, "inputStream");
+
+		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE);
+		outputStream.write(inputStream);
 		return outputStream;
 	}
 
 	/**
-	 * 创建非同步字节数组输出流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 * 创建非同步字节数组输出流并写入输入流数据（自定义缓冲区大小）
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>缓冲区大小应根据预期数据量合理设置</li>
+	 *     <li>大文件处理建议使用 {@link #getBufferSize(long)} 计算合适大小</li>
+	 *     <li>非线程安全实现</li>
+	 * </ul>
 	 *
-	 * @param inputStream 输入流（必须可读且未关闭）
-	 * @return 包含输入流内容的输出流
-	 * @throws IOException 当读取失败时抛出
+	 * @param inputStream 输入流（必须非null）
+	 * @param bufferSize 初始缓冲区大小（单位：字节，必须大于0）
+	 * @return 包含输入流数据的字节数组输出流
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>流读取/写入失败</li>
+	 *                         <li>内存不足</li>
+	 *                     </ul>
 	 * @throws NullPointerException 当inputStream为null时抛出
-	 * @since 1.0.0
-	 */
-	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
-		return toUnsynchronizedByteArrayOutputStream(inputStream, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
-	}
-
-	/**
-	 * 创建非同步字节数组输出流（自定义缓冲区）
-	 *
-	 * @param inputStream 输入流（必须可读且未关闭）
-	 * @param bufferSize  初始缓冲区容量（单位：字节）
-	 * @return 包含输入流内容的输出流
 	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
-	 * @throws NullPointerException 当inputStream为null时抛出
-	 * @throws IOException             当读取失败时抛出
+	 * @see #getBufferSize(long)
 	 * @since 1.0.0
 	 */
-	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream, final int bufferSize) throws IOException {
+	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream,
+																							final int bufferSize) throws IOException {
 		Objects.requireNonNull(inputStream, "inputStream");
-		UnsynchronizedByteArrayOutputStream outputStream = UnsynchronizedByteArrayOutputStream.builder()
-			.setBufferSize(bufferSize)
-			.get();
+
+		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(bufferSize);
 		outputStream.write(inputStream);
 		return outputStream;
 	}
@@ -237,12 +287,15 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *                         <li>流读写异常</li>
 	 *                         <li>加密配置错误</li>
 	 *                     </ul>
+	 * @see #encrypt(InputStream, OutputStream, Key, AlgorithmParameterSpec, String)
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+	public static void encrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
-		encrypt(inputStream, outputStream, password, new IvParameterSpec(password),
-			AES_CBC_PKCS5_PADDING);
+
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES.ALGORITHM);
+		encrypt(inputStream, outputStream, secretKey, new IvParameterSpec(password),
+			AES.CBC_PKCS5_PADDING);
 	}
 
 	/**
@@ -256,176 +309,232 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @param inputStream  加密输入流
 	 * @param outputStream 解密输出流
-	 * @param password     解密密码
-	 * @throws IllegalArgumentException 当密码长度不符合要求时抛出
+	 * @param password     解密密码（长度必须为16字节）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>密码长度不符合规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>解密配置错误</li>
+	 *                     </ul>
+	 * @see #decrypt(InputStream, OutputStream, Key, AlgorithmParameterSpec, String)
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+	public static void decrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
-		decrypt(inputStream, outputStream, password, new IvParameterSpec(password),
-			AES_CBC_PKCS5_PADDING);
+
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES.ALGORITHM);
+		decrypt(inputStream, outputStream, secretKey, new IvParameterSpec(password),
+			AES.CBC_PKCS5_PADDING);
 	}
 
 	/**
-	 * AES/CBC模式流加密（使用指定IV）
-	 * <p>使用指定的初始化向量(IV)进行加密操作</p>
+	 * AES/CBC模式流加密（自定义IV）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>支持自定义16字节初始化向量</li>
+	 *     <li>自动处理PKCS5填充</li>
+	 *     <li>支持16/24/32字节密钥</li>
+	 * </ul>
 	 *
-	 * @param inputStream  输入数据流（必须可读）
-	 * @param outputStream 输出加密流（必须可写）
-	 * @param password     加密密钥（16/24/32字节）
+	 * @param inputStream  输入流（必须可读且未关闭）
+	 * @param outputStream 输出流（必须可写且未关闭）
+	 * @param password     加密密码（长度必须为16/24/32字节）
 	 * @param iv           16字节初始化向量
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 密钥或IV长度不符合规范
-	 *                     - 流操作异常
-	 *                     - 加密配置错误
+	 *                     <ul>
+	 *                         <li>密码或IV长度不符合规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>加密配置错误</li>
+	 *                     </ul>
+	 * @see #encrypt(InputStream, OutputStream, Key, AlgorithmParameterSpec, String)
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
+	public static void encrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] password,
+							   final byte[] iv) throws IOException {
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)), "password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
-		encrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
-			AES_CBC_PKCS5_PADDING);
+
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES.ALGORITHM);
+		encrypt(inputStream, outputStream, secretKey, new IvParameterSpec(iv),
+			AES.CBC_PKCS5_PADDING);
 	}
 
 	/**
-	 * AES/CBC模式流解密（使用指定IV）
-	 * <p>需确保使用与加密相同的密码和IV</p>
+	 * AES/CBC模式流解密（自定义IV）
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>必须使用与加密相同的密码和IV</li>
+	 *     <li>IV必须为16字节</li>
+	 *     <li>输入流必须为加密后的原始数据</li>
+	 * </ul>
 	 *
-	 * @param inputStream  加密数据流
+	 * @param inputStream  加密输入流
 	 * @param outputStream 解密输出流
-	 * @param password     解密密钥
+	 * @param password     解密密码（长度必须为16/24/32字节）
 	 * @param iv           16字节初始化向量
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 密钥或IV长度不符合规范
-	 *                     - 流操作异常
-	 *                     - 解密验证失败
+	 *                     <ul>
+	 *                         <li>密码或IV长度不符合规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>解密配置错误</li>
+	 *                     </ul>
+	 * @see #decrypt(InputStream, OutputStream, Key, AlgorithmParameterSpec, String)
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
+	public static void decrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] password,
+							   final byte[] iv) throws IOException {
+		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)), "password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
-		decrypt(inputStream, outputStream, password, new IvParameterSpec(iv),
-			AES_CBC_PKCS5_PADDING);
+
+		SecretKeySpec secretKey = new SecretKeySpec(password, AES.ALGORITHM);
+		decrypt(inputStream, outputStream, secretKey, new IvParameterSpec(iv),
+			AES.CBC_PKCS5_PADDING);
 	}
 
 	/**
-	 * AES通用加密接口（自定义算法参数）
-	 * <p>允许指定加密算法转换表达式和参数</p>
+	 * 通用加密方法（使用Key对象）
+	 * <p>核心特性：</p>
+	 * <ul>
+	 *     <li>支持任意类型的加密密钥（Key对象）</li>
+	 *     <li>可自定义算法参数和转换模式</li>
+	 *     <li>自动资源管理（使用try-with-resources）</li>
+	 * </ul>
 	 *
-	 * @param inputStream            输入流
-	 * @param outputStream           输出流
-	 * @param password               密钥材料（16/24/32字节）
-	 * @param algorithmParameterSpec 算法参数规范
-	 * @param transformation         加密算法转换表达式（如AES/CBC/PKCS5Padding）
+	 * @param inputStream 原始输入流（必须非null且未关闭）
+	 * @param outputStream 加密输出流（必须非null且未关闭）
+	 * @param key 加密密钥对象（必须非null）
+	 * @param algorithmParameterSpec 算法参数规范（如{@link IvParameterSpec}）
+	 * @param transformation 加密算法转换名称（如"AES/CBC/PKCS5Padding"）
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 参数校验失败
-	 *                     - 流操作异常
-	 *                     - 算法不可用
+	 *                     <ul>
+	 *                         <li>参数校验失败</li>
+	 *                         <li>流操作异常</li>
+	 *                         <li>加密配置错误</li>
+	 *                     </ul>
 	 * @since 1.0.0
 	 */
-	public static void encrypt(InputStream inputStream, OutputStream outputStream, byte[] password,
-							   AlgorithmParameterSpec algorithmParameterSpec, String transformation) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-		Validate.notNull(outputStream, "outputStream 不可为 null");
+	public static void encrypt(final InputStream inputStream, final OutputStream outputStream, final Key key,
+							   final AlgorithmParameterSpec algorithmParameterSpec, final String transformation) throws IOException {
+		validateArgs(inputStream, outputStream, key, algorithmParameterSpec, transformation);
 
-		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
-			"password长度必须为16,24,32");
-
-		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
-		Validate.notBlank(transformation, "transformation 不可为空");
-
-		SecretKeySpec secretKey = new SecretKeySpec(password, AES_ALGORITHM);
 		try (CryptoOutputStream cryptoOutputStream = new CryptoOutputStream(transformation, DEFAULT_PROPERTIES,
-			outputStream, secretKey, algorithmParameterSpec)) {
+			outputStream, key, algorithmParameterSpec)) {
 			inputStream.transferTo(cryptoOutputStream);
 		}
 	}
 
 	/**
-	 * AES通用解密接口（自定义算法参数）
-	 * <p>需确保参数与加密时完全一致</p>
+	 * 通用解密方法（使用Key对象）
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>必须使用与加密相同的密钥对象</li>
+	 *     <li>算法参数和转换模式需与加密时一致</li>
+	 *     <li>输入流必须为加密后的原始数据</li>
+	 * </ul>
 	 *
-	 * @param inputStream            输入加密流
-	 * @param outputStream           解密输出流
-	 * @param password               密钥材料
-	 * @param algorithmParameterSpec 算法参数规范
-	 * @param transformation         解密算法转换表达式
+	 * @param inputStream 加密输入流（必须非null且未关闭）
+	 * @param outputStream 解密输出流（必须非null且未关闭）
+	 * @param key 解密密钥对象（必须非null）
+	 * @param algorithmParameterSpec 算法参数规范（需与加密时一致）
+	 * @param transformation 解密算法转换名称（需与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 参数校验失败
-	 *                     - 流操作异常
-	 *                     - 解密验证失败
+	 *                     <ul>
+	 *                         <li>参数校验失败</li>
+	 *                         <li>流操作异常</li>
+	 *                         <li>解密配置错误</li>
+	 *                     </ul>
 	 * @since 1.0.0
 	 */
-	public static void decrypt(InputStream inputStream, OutputStream outputStream, byte[] password,
-							   AlgorithmParameterSpec algorithmParameterSpec, String transformation) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-		Validate.notNull(outputStream, "outputStream 不可为 null");
+	public static void decrypt(final InputStream inputStream, final OutputStream outputStream, final Key key,
+							   final AlgorithmParameterSpec algorithmParameterSpec, final String transformation) throws IOException {
+		validateArgs(inputStream, outputStream, key, algorithmParameterSpec, transformation);
 
-		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
-			"password长度必须为16,24,32");
-
-		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
-		Validate.notBlank(transformation, "transformation 不可为空");
-
-		SecretKeySpec secretKey = new SecretKeySpec(password, AES_ALGORITHM);
 		try (CryptoInputStream cryptoInputStream = new CryptoInputStream(transformation, DEFAULT_PROPERTIES,
-			inputStream, secretKey, algorithmParameterSpec)) {
+			inputStream, key, algorithmParameterSpec)) {
 			cryptoInputStream.transferTo(outputStream);
 		}
 	}
 
 	/**
 	 * CTR模式加密（默认IV）
-	 * <p>使用密码字节作为默认IV的快速加密方法</p>
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用密码字节作为初始化向量（IV）</li>
+	 *     <li>CTR模式无填充，支持任意长度数据</li>
+	 *     <li>高性能流式加密处理</li>
+	 * </ul>
 	 *
-	 * @param inputStream  输入流
-	 * @param outputStream 输出加密流
-	 * @param password     16字节密钥
+	 * @param inputStream  原始输入流（必须非null且未关闭）
+	 * @param outputStream 加密输出流（必须非null且未关闭）
+	 * @param password     16字节加密密钥
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 密钥长度不符合规范
-	 *                     - 流操作异常
+	 *                     <ul>
+	 *                         <li>密钥长度不符合16字节规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>加密配置错误</li>
+	 *                     </ul>
+	 * @see #encryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+	public static void encryptByCtr(final InputStream inputStream, final OutputStream outputStream, final byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+
 		encryptByCtr(inputStream, outputStream, password, password);
 	}
 
 	/**
 	 * CTR模式解密（默认IV）
-	 * <p>需使用与加密相同的密码和IV</p>
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>必须使用与加密相同的16字节密钥</li>
+	 *     <li>IV会自动使用密钥字节</li>
+	 *     <li>输入流必须为CTR模式加密的原始数据</li>
+	 * </ul>
 	 *
-	 * @param inputStream  加密数据流
-	 * @param outputStream 解密输出流
-	 * @param password     解密密钥
+	 * @param inputStream  CTR加密输入流（必须非null且未关闭）
+	 * @param outputStream 解密输出流（必须非null且未关闭）
+	 * @param password     16字节解密密钥（需与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 密钥长度不符合规范
-	 *                     - 流操作异常
+	 *                     <ul>
+	 *                         <li>密钥长度不符合16字节规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>解密配置错误</li>
+	 *                     </ul>
+	 * @see #decryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password) throws IOException {
+	public static void decryptByCtr(final InputStream inputStream, final OutputStream outputStream, final byte[] password) throws IOException {
 		Validate.isTrue(ArrayUtils.getLength(password) == 16, "password 必须为16字节");
+
 		decryptByCtr(inputStream, outputStream, password, password);
 	}
 
 	/**
 	 * CTR模式流加密（自定义IV）
-	 * <p>CTR模式无填充，支持任意长度数据</p>
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>支持16/24/32字节密钥（128/192/256位）</li>
+	 *     <li>必须提供16字节初始化向量（IV）</li>
+	 *     <li>CTR模式无填充，支持任意长度数据</li>
+	 *     <li>高性能流式加密处理</li>
+	 * </ul>
 	 *
-	 * @param inputStream  输入数据流
-	 * @param outputStream 输出加密流
-	 * @param password     16/24/32字节密钥
-	 * @param iv           16字节初始化向量
+	 * @param inputStream  原始输入流（必须非null且未关闭）
+	 * @param outputStream 加密输出流（必须非null且未关闭）
+	 * @param password     加密密钥（16/24/32字节）
+	 * @param iv           16字节初始化向量（必须非null）
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 参数校验失败
-	 *                     - 流操作异常
+	 *                     <ul>
+	 *                         <li>密钥或IV长度不符合规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>加密配置错误</li>
+	 *                     </ul>
+	 * @see #encryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-		Validate.notNull(outputStream, "outputStream 不可为 null");
-
-		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
-			"password长度必须为16,24,32");
-		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
+	public static void encryptByCtr(final InputStream inputStream, final OutputStream outputStream,
+									final byte[] password, final byte[] iv) throws IOException {
+		validateArgs(inputStream, outputStream, password, iv);
 
 		try (CtrCryptoOutputStream cryptoInputStream = new CtrCryptoOutputStream(DEFAULT_PROPERTIES, outputStream,
 			password, iv)) {
@@ -435,28 +544,89 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 
 	/**
 	 * CTR模式流解密（自定义IV）
-	 * <p>需确保IV与加密时完全一致</p>
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>必须使用与加密相同的密钥和IV</li>
+	 *     <li>IV必须为16字节</li>
+	 *     <li>输入流必须为CTR模式加密的原始数据</li>
+	 * </ul>
 	 *
-	 * @param inputStream  加密数据流
-	 * @param outputStream 解密输出流
-	 * @param password     解密密钥
-	 * @param iv           16字节初始化向量
+	 * @param inputStream  CTR加密输入流（必须非null且未关闭）
+	 * @param outputStream 解密输出流（必须非null且未关闭）
+	 * @param password     解密密钥（16/24/32字节，需与加密时一致）
+	 * @param iv           16字节初始化向量（需与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
-	 *                     - 参数校验失败
-	 *                     - 流操作异常
+	 *                     <ul>
+	 *                         <li>密钥或IV长度不符合规范</li>
+	 *                         <li>流读写异常</li>
+	 *                         <li>解密配置错误</li>
+	 *                     </ul>
+	 * @see #decryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptByCtr(InputStream inputStream, OutputStream outputStream, byte[] password, byte[] iv) throws IOException {
+	public static void decryptByCtr(final InputStream inputStream, final OutputStream outputStream,
+									final byte[] password, final byte[] iv) throws IOException {
+		validateArgs(inputStream, outputStream, password, iv);
+
+		try (CtrCryptoInputStream cryptoInputStream = new CtrCryptoInputStream(DEFAULT_PROPERTIES, inputStream,
+			password, iv)) {
+			cryptoInputStream.transferTo(outputStream);
+		}
+	}
+
+	/**
+	 * 校验AES加解密参数
+	 * <p>校验规则：</p>
+	 * <ul>
+	 *     <li>输入/输出流必须非null</li>
+	 *     <li>密码长度必须为16/24/32字节</li>
+	 *     <li>初始化向量必须为16字节</li>
+	 * </ul>
+	 *
+	 * @param inputStream  输入流（必须非null）
+	 * @param outputStream 输出流（必须非null）
+	 * @param password     加密密码字节数组（必须16/24/32字节）
+	 * @param iv           初始化向量字节数组（必须16字节）
+	 * @throws NullPointerException     当inputStream/outputStream为null时抛出
+	 * @throws IllegalArgumentException 当password或iv长度不符合要求时抛出
+	 * @since 1.0.0
+	 */
+	protected static void validateArgs(final InputStream inputStream, final OutputStream outputStream,
+									   final byte[] password, final byte[] iv) {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		Validate.isTrue(AES_KEY_LENGTHS.contains(ArrayUtils.getLength(password)),
 			"password长度必须为16,24,32");
 		Validate.isTrue(ArrayUtils.getLength(iv) == 16, "iv必须为16字节");
+	}
 
-		try (CtrCryptoInputStream cryptoInputStream = new CtrCryptoInputStream(DEFAULT_PROPERTIES, inputStream,
-			password, iv)) {
-			cryptoInputStream.transferTo(outputStream);
-		}
+	/**
+	 * 校验通用加解密参数（Key对象形式）
+	 * <p>校验规则：</p>
+	 * <ul>
+	 *     <li>输入/输出流必须非null</li>
+	 *     <li>密钥对象必须非null</li>
+	 *     <li>算法参数规范必须非null</li>
+	 *     <li>转换名称必须非空</li>
+	 * </ul>
+	 *
+	 * @param inputStream            输入流（必须非null）
+	 * @param outputStream           输出流（必须非null）
+	 * @param key                    加密密钥对象（必须非null）
+	 * @param algorithmParameterSpec 算法参数规范（必须非null）
+	 * @param transformation         算法转换名称（必须非空）
+	 * @throws NullPointerException     当任何非null参数为null时抛出
+	 * @throws IllegalArgumentException 当transformation为空时抛出
+	 * @since 1.0.0
+	 */
+	protected static void validateArgs(final InputStream inputStream, final OutputStream outputStream, final Key key,
+									   final AlgorithmParameterSpec algorithmParameterSpec, final String transformation) {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		Validate.notNull(key, "key 不可为 null");
+		Validate.notNull(algorithmParameterSpec, "algorithmParameterSpec 不可为 null");
+		Validate.notBlank(transformation, "transformation 不可为空");
 	}
 }

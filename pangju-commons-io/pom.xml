@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-commons-io</artifactId>
-	<description>IO工具类库（基于tika和commons-io）</description>
+	<description>IO工具类库（基于tika、commons-io和commons-crypto）</description>
 
 	<licenses>
 		<license>

@@ -21,14 +21,7 @@ import org.apache.tika.Tika;
 import java.util.Objects;
 
 /**
- * IO相关常量工具类
- * <p>提供以下类型常量的集中管理：</p>
- * <ul>
- *     <li><strong>MIME类型前缀</strong> - 常见文件类型的MIME前缀常量（image/, video/ 等）</li>
- *     <li><strong>缓冲区配置</strong> - 内存映射和文件通道的默认缓冲区尺寸</li>
- *     <li><strong>AES加密规范</strong> - 包含密钥长度、算法模式、填充方案等完整参数体系</li>
- *     <li><strong>文件检测工具</strong> - 集成Tika内容类型检测的线程安全实现</li>
- * </ul>
+ * IO相关常量
  *
  * @author pangju666
  * @since 1.0.0

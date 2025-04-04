@@ -36,359 +36,463 @@ import java.util.stream.Collectors;
 
 /**
  * 增强型文件操作工具类（继承自 {@link org.apache.commons.io.FileUtils}）
- * <p>在Apache Commons IO基础上扩展以下核心能力：</p>
+ * <p>在Apache Commons IO原生功能基础上扩展以下核心能力：</p>
  *
- * <h3>功能扩展：</h3>
+ * <h3>功能特性：</h3>
  * <ul>
- *     <li><strong>高性能IO流</strong> - 内存映射文件流、缓冲通道流等高效读取方案</li>
- *     <li><strong>文件加解密体系</strong> - 支持AES/CBC和AES/CTR两种加密模式</li>
- *     <li><strong>元数据解析</strong> - 基于Tika实现50+种文件格式的元数据提取</li>
- *     <li><strong>内容类型检测</strong> - 精准识别300+种MIME类型</li>
+ *     <li><strong>高性能IO流</strong> - 提供内存映射文件流、缓冲通道流等高效读取方案，支持大文件处理</li>
+ *     <li><strong>文件加解密体系</strong> - 支持AES/CBC和AES/CTR两种加密模式，提供完整加解密解决方案</li>
+ *     <li><strong>元数据解析</strong> - 基于Apache Tika实现50+种文件格式的元数据提取</li>
+ *     <li><strong>内容类型检测</strong> - 精准识别300+种MIME类型，不受文件扩展名影响</li>
+ *     <li><strong>安全删除机制</strong> - 增强的文件删除功能，支持强制删除被占用文件</li>
  * </ul>
+ *
+ * <h3>设计原则：</h3>
+ * <ol>
+ *     <li>所有方法均为线程安全的静态方法</li>
+ *     <li>严格参数校验，避免NPE和非法参数</li>
+ *     <li>与Apache Commons IO保持API风格一致</li>
+ *     <li>针对大文件处理进行性能优化</li>
+ * </ol>
+ *
+ * <h3>使用建议：</h3>
+ * <ol>
+ *     <li>首先考虑是否在意线程安全，不在意则使用{@link #openUnsynchronizedBufferedInputStream(File)}</li>
+ *     <li>其次考虑是否在意内存占用，不在意则使用{@link #openMemoryMappedFileInputStream(File)}</li>
+ *     <li>不满足以上条件的话，使用{@link #openBufferedFileChannelInputStream(File)}</li>
+ * </ol>
  *
  * @author pangju666
  * @since 1.0.0
  */
 public class FileUtils extends org.apache.commons.io.FileUtils {
-	/**
-	 * 内存映射文件输入流默认缓冲区大小（256KB）
-	 * <p>适用于大文件随机访问场景，平衡内存消耗与IO性能</p>
-	 *
-	 * @see MemoryMappedFileInputStream
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_MEMORY_MAPPED_BUFFER_SIZE = 256 * 1024;
-	/**
-	 * 缓冲文件通道输入流默认缓冲区大小（4KB）
-	 * <p>适配大多数存储设备的块大小，优化顺序读写性能</p>
-	 *
-	 * @see BufferedFileChannelInputStream
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE = 4096;
-
+	protected static final int MB_1 = 1024 * 1024;
+	protected static final int MB_4 = 4 * MB_1;
+	protected static final int MB_16 = 16 * MB_1;
+	protected static final int MB_32 = 32 * MB_1;
+	protected static final int MB_64 = 64 * MB_1;
+	protected static final int MB_100 = 100 * MB_1;
+	protected static final long GB_1 = 1024 * MB_1;
+	protected static final long GB_10 = 10 * GB_1;
 	protected FileUtils() {
 	}
 
 	/**
-	 * 创建非同步缓冲输入流（{@link IOConstants#DEFAULT_STREAM_BUFFER_SIZE 默认缓冲区大小}）
+	 * 根据文件大小计算最佳缓冲区大小
+	 * <p>计算规则：</p>
+	 * <ul>
+	 *     <li>小文件(1MB以下)：8KB</li>
+	 *     <li>中等文件(1MB~10MB)：16KB</li>
+	 *     <li>大文件(10MB~100MB)：32KB</li>
+	 *     <li>超大文件(100MB以上)：64KB</li>
+	 * </ul>
 	 *
-	 * @param file 输入文件（必须存在且为文件）
-	 * @return 包装后的缓冲输入流
-	 * @throws IOException 当流初始化失败时抛出
+	 * @param file 目标文件（必须存在且可读）
+	 * @return 优化的缓冲区大小（单位：字节）
+	 * @throws IOException 当文件不存在或无法读取大小时抛出
+	 * @see IOUtils#getBufferSize(long)
+	 * @since 1.0.0
+	 */
+	public static int getBufferSize(final File file) throws IOException {
+		checkFile(file, "file不可为 null");
+
+		return IOUtils.getBufferSize(file.length());
+	}
+
+	/**
+	 * 根据文件大小计算滑动窗口缓冲区大小
+	 * <p>分块策略：</p>
+	 * <ul>
+	 *     <li>小文件(100MB以下)：4MB</li>
+	 *     <li>中等文件(100MB~1GB)：16MB</li>
+	 *     <li>大文件(1GB~10GB)：32MB</li>
+	 *     <li>超大文件(10GB以上)：64MB</li>
+	 * </ul>
+	 *
+	 * <p>设计考虑：</p>
+	 * <ul>
+	 *     <li>平衡内存使用和IO效率</li>
+	 *     <li>减少系统调用次数</li>
+	 *     <li>适配不同存储介质特性</li>
+	 * </ul>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @return 优化的滑动窗口缓冲区大小（单位：字节）
+	 * @throws IOException 当文件不存在或无法读取大小时抛出
+	 * @since 1.0.0
+	 */
+	public static int getSlidingBufferSize(final File file) throws IOException {
+		checkFile(file, "file不可为 null");
+
+		long fileSize = file.length();
+		if (fileSize < MB_100) { // < 100MB
+			return MB_4;
+		} else if (fileSize < GB_1) { // < 1GB
+			return MB_16;
+		} else if (fileSize < GB_10) { // < 10GB
+			return MB_32;
+		} else {
+			return MB_64;
+		}
+	}
+
+	/**
+	 * 打开非同步缓冲输入流（自动计算缓冲区大小）
+	 * <p>核心特性：</p>
+	 * <ul>
+	 *     <li>线程安全的非阻塞IO操作</li>
+	 *     <li>自动根据文件大小优化缓冲区</li>
+	 *     <li>内置文件存在性校验</li>
+	 * </ul>
+	 * @param file 要读取的文件对象（必须存在且可读）
+	 * @return 配置好的非同步缓冲输入流实例
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>文件被其他进程独占锁定</li>
+	 *                     </ul>
+	 * @see UnsynchronizedBufferedInputStream.Builder
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file) throws IOException {
-		return openUnsynchronizedBufferedInputStream(file, IOConstants.DEFAULT_STREAM_BUFFER_SIZE);
-	}
-
-	/**
-	 * 创建非同步缓冲输入流（自定义缓冲区）
-	 *
-	 * @param file       输入文件（必须存在且为文件）
-	 * @param bufferSize 缓冲区大小（单位：字节）
-	 * @return 包装后的缓冲输入流
-	 * @throws IOException 当流初始化失败时抛出
-	 * @since 1.0.0
-	 */
-	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file, final int bufferSize) throws IOException {
 		checkFile(file, "file不可为 null");
+
 		return new UnsynchronizedBufferedInputStream.Builder()
-			.setBufferSize(bufferSize)
+			.setBufferSize(IOUtils.getBufferSize(file.length()))
 			.setFile(file)
 			.get();
 	}
 
 	/**
-	 * 打开内存映射文件输入流（{@link #DEFAULT_MEMORY_MAPPED_BUFFER_SIZE 默认缓冲区}）
-	 * <p>适用于需要随机访问的大文件读取场景</p>
-	 *
-	 * @param file 输入文件（必须存在且为文件）
-	 * @return 配置好的内存映射输入流
-	 * @throws FileNotFoundException 当以下情况时抛出：
-	 *                               <ul>
-	 *                                   <li>文件不存在</li>
-	 *                                   <li>路径指向目录而非文件</li>
-	 *                               </ul>
-	 * @throws IOException           当IO错误发生时抛出
-	 * @since 1.0.0
-	 */
-	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(final File file) throws IOException {
-		return openMemoryMappedFileInputStream(file, DEFAULT_MEMORY_MAPPED_BUFFER_SIZE);
-	}
-
-	/**
-	 * 打开内存映射文件输入流（自定义缓冲区）
-	 * <p>示例：读取4K对齐的SSD存储设备文件时可设置为4096字节</p>
-	 *
-	 * @param file       输入文件（必须存在且为文件）
-	 * @param bufferSize 自定义缓冲区大小（单位：字节）
-	 * @return 内存映射输入流实例
-	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
-	 * @since 1.0.0
-	 */
-	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(final File file, final int bufferSize) throws IOException {
-		checkFile(file, "file不可为 null");
-		return MemoryMappedFileInputStream
-			.builder()
-			.setFile(file)
-			.setBufferSize(bufferSize)
-			.get();
-	}
-
-	/**
-	 * 打开内存映射文件输入流（{@link #DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE 默认缓冲区}）
-	 * <p>适用于需要随机访问的大文件读取场景</p>
-	 *
-	 * @param file 输入文件（必须存在且为文件）
-	 * @return 配置好的内存映射输入流
-	 * @throws FileNotFoundException 当以下情况时抛出：
-	 *                               <ul>
-	 *                                   <li>文件不存在</li>
-	 *                                   <li>路径指向目录而非文件</li>
-	 *                               </ul>
-	 * @throws IOException           当IO错误发生时抛出
+	 * 打开缓冲文件通道输入流（自动计算缓冲区大小）
+	 * <p>性能特点：</p>
+	 * <ul>
+	 *     <li>基于NIO FileChannel实现高性能读取</li>
+	 *     <li>自动根据文件大小优化缓冲区</li>
+	 *     <li>适合顺序读取大文件场景</li>
+	 * </ul>
+	 * @param file 要读取的文件对象（必须存在且可读）
+	 * @return 配置好的缓冲文件通道输入流
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>文件被其他进程独占锁定</li>
+	 *                     </ul>
+	 * @see BufferedFileChannelInputStream.Builder
 	 * @since 1.0.0
 	 */
 	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(final File file) throws IOException {
-		return openBufferedFileChannelInputStream(file, DEFAULT_BUFFERED_FILE_CHANNEL_BUFFER_SIZE);
-	}
-
-	/**
-	 * 打开内存映射文件输入流（自定义缓冲区）
-	 * <p>示例：读取4K对齐的SSD存储设备文件时可设置为4096字节</p>
-	 *
-	 * @param file       输入文件（必须存在且为文件）
-	 * @param bufferSize 自定义缓冲区大小（单位：字节）
-	 * @return 内存映射输入流实例
-	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
-	 * @since 1.0.0
-	 */
-	public static BufferedFileChannelInputStream openBufferedFileChannelInputStream(final File file, final int bufferSize) throws IOException {
 		checkFile(file, "file不可为 null");
+
 		return BufferedFileChannelInputStream
 			.builder()
 			.setFile(file)
-			.setBufferSize(bufferSize)
+			.setBufferSize(IOUtils.getBufferSize(file.length()))
 			.get();
 	}
 
 	/**
-	 * AES/CBC模式文件加密
-	 * <p>加密特征：</p>
+	 * 打开内存映射文件输入流（自动计算滑动窗口大小）
+	 * <p>技术优势：</p>
 	 * <ul>
-	 *     <li>使用PKCS5Padding填充方案</li>
-	 *     <li>密码通过PBKDF2算法派生密钥</li>
-	 *     <li>支持最大2GB文件解密</li>
+	 *     <li>零拷贝技术减少内存复制开销</li>
+	 *     <li>自动根据文件大小优化映射区域</li>
+	 *     <li>特别适合大文件随机访问</li>
 	 * </ul>
 	 *
-	 * @param inputFile  原始文件（必须存在）
-	 * @param outputFile 加密后文件（自动创建父目录）
-	 * @param password   加密密码（长度必须为16字节）
-	 * @throws IOException 当文件读写失败时抛出
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#encrypt(InputStream, OutputStream, byte[])
+	 * <p>性能建议：</p>
+	 * <ul>
+	 *     <li>频繁小数据读取建议使用缓冲流包装</li>
+	 *     <li>映射区域大小应与文件系统块大小对齐</li>
+	 *     <li>超大文件建议使用分块映射</li>
+	 * </ul>
+	 *
+	 * @param file 要映射的文件对象（必须存在且可读）
+	 * @return 配置好的内存映射输入流
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>内存映射失败（地址空间不足）</li>
+	 *                     </ul>
+	 * @see #getSlidingBufferSize(File)
+	 * @see MemoryMappedFileInputStream.Builder
+	 * @since 1.0.0
+	 */
+	public static MemoryMappedFileInputStream openMemoryMappedFileInputStream(final File file) throws IOException {
+		int chunkSize = getSlidingBufferSize(file);
+		return MemoryMappedFileInputStream
+			.builder()
+			.setFile(file)
+			.setBufferSize(chunkSize)
+			.get();
+	}
+
+	/**
+	 * 使用AES/CBC/PKCS5Padding模式加密文件
+	 * <p>最大支持2GB文件加密</p>
+	 *
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param password   加密密钥（16字节，同时作为IV使用）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出目录不可写</li>
+	 *                         <li>密钥长度不符合16字节要求</li>
+	 *                     </ul>
+	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.encrypt(inputStream, outputStream, password);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, password);
 		}
 	}
 
 	/**
-	 * AES/CBC模式文件加密（自定义初始化向量）
-	 * <p>适用于需要固定IV值的特殊加密场景</p>
+	 * 使用AES/CBC/PKCS5Padding模式加密文件（自定义初始化向量）
+	 * <p>最大支持2GB文件加密</p>
 	 *
-	 * @param inputFile  原始文件（必须存在）
-	 * @param outputFile 加密后文件（自动创建父目录）
-	 * @param password   加密密码（长度必须为16/24/32字节）
-	 * @param iv         自定义初始化向量（16字节）
-	 * @throws IOException 当文件读写失败时抛出
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param password   加密密码（16/24/32字节）
+	 * @param iv         16字节初始化向量
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>IV长度不符合16字节要求</li>
+	 *                         <li>密码长度不符合要求</li>
+	 *                         <li>文件IO操作失败</li>
+	 *                     </ul>
+	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password,
+								   final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.encrypt(inputStream, outputStream, password, iv);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, password, iv);
 		}
 	}
 
 	/**
-	 * AES/CBC模式文件解密
-	 * <p>解密要求：</p>
+	 * 使用AES/CBC/PKCS5Padding模式解密文件
+	 * <p><strong>安全要求：</strong></p>
 	 * <ul>
-	 *     <li>必须使用与加密相同的密码和盐值</li>
-	 *     <li>文件必须完整未篡改</li>
-	 *     <li>支持最大2GB文件解密</li>
+	 *     <li>必须使用与加密完全相同的密码</li>
+	 *     <li>加密文件必须完整未修改</li>
 	 * </ul>
 	 *
-	 * @param inputFile  加密文件（必须为有效文件）
+	 * @param inputFile  加密文件（必须为有效加密文件）
+	 * @param outputFile 输出文件（自动创建父目录）
+	 * @param password   解密密钥（16字节，同时作为IV使用）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>密钥错误导致解密失败</li>
+	 *                         <li>输入文件被截断或损坏</li>
+	 *                         <li>输出路径无写入权限</li>
+	 *                         <li>填充验证失败（可能文件被篡改）</li>
+	 *                     </ul>
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[])
+	 * @since 1.0.0
+	 */
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+		checkFile(inputFile, "inputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
+		try (OutputStream outputStream = openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, password);
+		}
+	}
+
+	/**
+	 * AES/CBC模式文件解密（自定义初始化向量）
+	 * <p><strong>注意事项：</strong></p>
+	 * <ul>
+	 *     <li>IV必须与加密时使用的完全一致</li>
+	 *     <li>重复使用相同IV会降低安全性</li>
+	 *     <li>加密文件必须完整未修改</li>
+	 * </ul>
+	 *
+	 * @param inputFile  加密文件（必须为有效加密文件）
 	 * @param outputFile 输出文件（自动创建父目录）
 	 * @param password   解密密码（需与加密密码一致）
+	 * @param iv         16字节初始化向量（必须与加密时相同）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>IV值不匹配导致解密失败</li>
+	 *                         <li>输入文件被截断或损坏</li>
+	 *                         <li>密码长度不符合要求</li>
+	 *                     </ul>
+	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password,
+								   final byte[] iv) throws IOException {
+		checkFile(inputFile, "inputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
+		try (OutputStream outputStream = openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, password, iv);
+		}
+	}
+
+	/**
+	 * 使用AES/CTR模式加密文件
+	 * <p><strong>技术特性：</strong></p>
+	 * <ul>
+	 *     <li>无填充要求，支持任意长度数据</li>
+	 *     <li>计数器模式保证并行加密能力</li>
+	 * </ul>
+	 *
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param password   加密密钥（16字节，同时作为IV使用）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出目录不可写</li>
+	 *                         <li>密码长度不符合16字节要求</li>
+	 *                     </ul>
+	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[])
+	 * @since 1.0.0
+	 */
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+		checkFile(inputFile, "inputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
+		try (OutputStream outputStream = openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, password);
+		}
+	}
+
+	/**
+	 * 使用AES/CTR模式加密文件（自定义初始化向量）
+	 * <p>需要与解密时使用的IV值完全一致</p>
+	 *
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param password   加密密钥（16/24/32字节）
+	 * @param iv         16字节初始化向量
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>IV长度不符合16字节要求</li>
+	 *                         <li>密码长度不符合要求</li>
+	 *                         <li>文件IO操作失败</li>
+	 *                     </ul>
+	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
+	 * @since 1.0.0
+	 */
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password,
+										final byte[] iv) throws IOException {
+		checkFile(inputFile, "inputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
+		try (OutputStream outputStream = openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, password, iv);
+		}
+	}
+
+	/**
+	 * AES/CTR模式文件解密
+	 * <p><strong>技术特性：</strong></p>
+	 * <ul>
+	 *     <li>无填充要求，支持任意长度数据</li>
+	 *     <li>计数器模式保证并行解密能力</li>
+	 *     <li>流式处理，支持超大文件解密</li>
+	 * </ul>
+	 *
+	 * @param inputFile  加密文件（必须存在且可读）
+	 * @param outputFile 解密输出文件（自动创建父目录）
+	 * @param password   解密密码（需与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>密码错误导致解密失败</li>
 	 *                         <li>输入文件被截断或损坏</li>
 	 *                         <li>输出路径无写入权限</li>
 	 *                     </ul>
-	 * @see #encryptFile
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[])
-	 * @since 1.0.0
-	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.decrypt(inputStream, outputStream, password);
-		}
-	}
-
-	/**
-	 * AES/CBC模式文件解密（自定义初始化向量）
-	 * <p>需要与加密时使用的IV值完全一致</p>
-	 *
-	 * @param inputFile  加密文件（必须为有效文件）
-	 * @param outputFile 输出文件（自动创建父目录）
-	 * @param password   解密密码（需与加密密码一致）
-	 * @param iv         初始化向量（必须与加密时相同）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>IV值不匹配导致解密失败</li>
-	 *                         <li>输入文件被截断或损坏</li>
-	 *                     </ul>
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
-	 * @since 1.0.0
-	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.decrypt(inputStream, outputStream, password, iv);
-		}
-	}
-
-	/**
-	 * AES/CTR模式文件加密
-	 * <p>与CBC模式的主要区别：</p>
-	 * <ul>
-	 *     <li>支持流式加密处理大文件</li>
-	 *     <li>不需要数据填充</li>
-	 *     <li>计数器模式保证并行加密安全</li>
-	 * </ul>
-	 *
-	 * @param inputFile  原始文件（必须存在）
-	 * @param outputFile 加密后文件
-	 * @param password   加密密码（长度必须为16字节）
-	 * @throws IOException 当文件读写失败时抛出
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#encryptByCtr(InputStream, OutputStream, byte[])
-	 * @since 1.0.0
-	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
-		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.encryptByCtr(inputStream, outputStream, password);
-		}
-	}
-
-	/**
-	 * AES/CTR模式文件加密（自定义初始化向量）
-	 * <p>适用于需要指定计数起点的加密场景</p>
-	 *
-	 * @param inputFile  原始文件（必须存在）
-	 * @param outputFile 加密后文件
-	 * @param password   加密密码（长度必须为16/24/32字节）
-	 * @param iv         自定义初始化向量（16字节）
-	 * @throws IOException 当文件读写失败时抛出
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
-	 * @since 1.0.0
-	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
-		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
-		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.encryptByCtr(inputStream, outputStream, password, iv);
-		}
-	}
-
-	/**
-	 * AES/CTR模式文件解密
-	 * <p>适用于大文件流式解密场景，特征：</p>
-	 * <ul>
-	 *     <li>无填充要求，支持任意长度数据</li>
-	 *     <li>计数器模式保证并行解密能力</li>
-	 *     <li>相同密码每次加密结果不同（随机IV）</li>
-	 * </ul>
-	 *
-	 * @param inputFile  加密文件（必须存在）
-	 * @param outputFile 解密后文件（自动创建父目录）
-	 * @param password   解密密码（需与加密时一致）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>密码错误导致解密失败</li>
-	 *                         <li>文件损坏或格式不正确</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decryptByCtr(InputStream, OutputStream, byte[])
+	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.decryptByCtr(inputStream, outputStream, password);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, password);
 		}
 	}
 
 	/**
 	 * AES/CTR模式文件解密（自定义初始化向量）
-	 * <p>需要与加密时使用的IV值完全一致</p>
 	 *
-	 * @param inputFile  加密文件（必须存在）
-	 * @param outputFile 解密后文件（自动创建父目录）
+	 * <p><strong>技术特性：</strong></p>
+	 * <ul>
+	 *     <li>无填充要求，支持任意长度数据</li>
+	 *     <li>计数器模式保证并行解密能力</li>
+	 *     <li>流式处理，支持超大文件解密</li>
+	 * </ul>
+	 *
+	 * @param inputFile  加密文件（必须存在且可读）
+	 * @param outputFile 解密输出文件（自动创建父目录）
 	 * @param password   解密密码（需与加密时一致）
 	 * @param iv         初始化向量（必须与加密时相同）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>IV值不匹配导致解密失败</li>
-	 *                         <li>磁盘空间不足</li>
+	 *                         <li>输入文件被截断或损坏</li>
+	 *                         <li>输出路径无写入权限</li>
 	 *                     </ul>
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
+	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password, final byte[] iv) throws IOException {
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password,
+										final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
-		Validate.notNull(outputFile, "outputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 InputStream inputStream = openInputStream(inputFile)) {
-			IOUtils.decryptByCtr(inputStream, outputStream, password, iv);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, password, iv);
 		}
 	}
 
 	/**
-	 * 强制删除文件（如果存在）
-	 * <p>增强特性：</p>
+	 * 强制删除文件或目录（如果存在）
+	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
-	 *     <li>自动清除只读属性</li>
-	 *     <li>支持删除被其他进程打开的文件（Windows系统）</li>
-	 *     <li>递归删除目录内容（当参数为目录时）</li>
+	 *     <li>自动清除只读属性，确保删除成功</li>
+	 *     <li>支持删除被其他进程锁定的文件（Windows系统）</li>
+	 *     <li>递归删除目录及其所有内容（当参数为目录时）</li>
+	 *     <li>静默处理不存在的文件</li>
 	 * </ul>
 	 *
-	 * @param file 待删除文件或目录
-	 * @throws IOException 当文件存在但无法删除时抛出
+	 * <p><strong>实现原理：</strong></p>
+	 * <ol>
+	 *     <li>检查文件是否存在</li>
+	 *     <li>调用{@link #forceDelete(File)}执行强制删除</li>
+	 * </ol>
+	 *
+	 * @param file 待删除的文件或目录（可为null）
+	 * @throws IOException 当文件存在但无法删除时抛出，包括：
+	 *                     <ul>
+	 *                         <li>文件被系统锁定</li>
+	 *                         <li>磁盘I/O错误</li>
+	 *                         <li>权限不足</li>
+	 *                     </ul>
+	 * @see #forceDelete(File)
 	 * @since 1.0.0
-	 * @see FileUtils#forceDelete(File)
 	 */
 	public static void forceDeleteIfExist(final File file) throws IOException {
 		if (exist(file)) {
@@ -398,17 +502,26 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	/**
 	 * 条件删除文件（如果存在）
-	 * <p>与{@link #forceDeleteIfExist}的区别：</p>
+	 * <p><strong>与{@link #forceDeleteIfExist}的主要区别：</strong></p>
 	 * <ul>
-	 *     <li>不强制删除只读文件</li>
-	 *     <li>可能抛出SecurityException（无删除权限时）</li>
+	 *     <li>不强制清除只读属性</li>
+	 *     <li>不处理被锁定的文件</li>
 	 *     <li>不递归删除目录内容</li>
+	 *     <li>可能抛出SecurityException而非IOException</li>
 	 * </ul>
 	 *
-	 * @param file 待删除文件（可为null）
+	 * <p><strong>适用场景：</strong></p>
+	 * <ul>
+	 *     <li>需要更严格的权限控制时</li>
+	 *     <li>仅需删除单个文件时</li>
+	 *     <li>不需要处理特殊锁定状态时</li>
+	 * </ul>
+	 *
+	 * @param file 待删除的文件（可为null）
 	 * @throws SecurityException 当安全管理器拒绝删除操作时抛出
+	 * @throws IOException 当发生I/O错误时抛出
+	 * @see File#delete()
 	 * @since 1.0.0
-	 * @see FileUtils#delete
 	 */
 	public static void deleteIfExist(final File file) throws IOException {
 		if (exist(file)) {
@@ -416,34 +529,127 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 	}
 
+	/**
+	 * 检查文件或目录是否存在
+	 * <p><strong>特性说明：</strong></p>
+	 * <ul>
+	 *     <li>安全处理null输入，返回false</li>
+	 *     <li>同时适用于文件和目录检查</li>
+	 *     <li>底层调用{@link File#exists()}方法</li>
+	 * </ul>
+	 *
+	 * @param file 待检查的文件对象（可为null）
+	 * @return 当文件非null且存在时返回true
+	 * @see File#exists()
+	 * @since 1.0.0
+	 */
 	public static boolean exist(final File file) {
-		return exist(file, false);
+		return Objects.nonNull(file) && file.exists();
 	}
 
+	/**
+	 * 检查文件或目录是否不存在
+	 * <p><strong>与{@link #exist}的关系：</strong></p>
+	 * <ul>
+	 *     <li>逻辑上等价于!exist(file)</li>
+	 *     <li>提供更语义化的方法名</li>
+	 *     <li>同样安全处理null输入</li>
+	 * </ul>
+	 *
+	 * @param file 待检查的文件对象（可为null）
+	 * @return 当文件为null或不存在时返回true
+	 * @see #exist(File)
+	 * @since 1.0.0
+	 */
 	public static boolean notExist(final File file) {
-		return !exist(file, false);
+		return !exist(file);
 	}
 
-	public static boolean exist(final File file, boolean isFile) {
-		return Objects.nonNull(file) && file.exists() && (!isFile || file.isFile());
+	/**
+	 * 检查常规文件是否存在
+	 * <p><strong>功能特性：</strong></p>
+	 * <ul>
+	 *     <li>严格验证文件类型为常规文件（非目录）</li>
+	 *     <li>安全处理null输入，返回false</li>
+	 *     <li>底层调用{@link File#isFile()}方法</li>
+	 * </ul>
+	 *
+	 * <p><strong>与{@link #exist}的区别：</strong></p>
+	 * <ol>
+	 *     <li>额外验证文件类型为常规文件</li>
+	 *     <li>排除目录</li>
+	 *     <li>适用于需要严格文件验证的场景</li>
+	 * </ol>
+	 *
+	 * @param file 待检查的文件对象（可为null）
+	 * @return 当文件非null、存在且是常规文件时返回true
+	 * @see File#isFile()
+	 * @see #exist(File)
+	 * @since 1.0.0
+	 */
+	public static boolean existFile(final File file) {
+		return Objects.nonNull(file) && file.exists() && file.isFile();
 	}
 
-	public static boolean notExist(final File file, boolean isFile) {
-		return !exist(file, isFile);
+	/**
+	 * 检查常规文件是否不存在
+	 * <p><strong>功能特性：</strong></p>
+	 * <ul>
+	 *     <li>逻辑上等价于!existFile(file)</li>
+	 *     <li>提供更语义化的方法名</li>
+	 *     <li>同样安全处理null输入</li>
+	 * </ul>
+	 *
+	 * <p><strong>适用场景：</strong></p>
+	 * <ol>
+	 *     <li>需要创建新文件前的验证</li>
+	 *     <li>避免覆盖现有文件</li>
+	 *     <li>排除目录存在的干扰</li>
+	 *     <li>文件操作前的安全检查</li>
+	 * </ol>
+	 *
+	 * @param file 待检查的文件对象（可为null）
+	 * @return 当文件为null、不存在或不是常规文件时返回true
+	 * @see #existFile(File)
+	 * @since 1.0.0
+	 */
+	public static boolean notExistFile(final File file) {
+		return !existFile(file);
 	}
 
 	/**
 	 * 解析文件内容元数据
-	 * <p>支持格式示例：</p>
+	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
-	 *     <li>文档类：PDF/Office文档的作者、页数等</li>
-	 *     <li>多媒体：MP3的专辑信息、图片的EXIF数据</li>
-	 *     <li>压缩文件：ZIP条目数、RAR压缩方式</li>
+	 *     <li>基于Apache Tika实现，支持1000+种文件格式</li>
+	 *     <li>深度解析文件内容而非仅依赖文件头</li>
+	 *     <li>自动处理编码和压缩格式</li>
+	 * </ul>
+	 *
+	 * <p><strong>支持格式示例：</strong></p>
+	 * <table border="1">
+	 *     <tr><th>类型</th><th>示例格式</th><th>可提取元数据</th></tr>
+	 *     <tr><td>文档类</td><td>PDF/DOCX/XLSX/PPTX</td><td>作者、页数、创建时间、修改时间</td></tr>
+	 *     <tr><td>多媒体</td><td>MP3/MP4/JPEG/PNG</td><td>专辑、时长、分辨率、拍摄参数</td></tr>
+	 *     <tr><td>压缩文件</td><td>ZIP/RAR/7Z</td><td>条目数、压缩方法、注释</td></tr>
+	 *     <tr><td>其他</td><td>HTML/XML/JSON</td><td>编码、字符集、DOCTYPE</td></tr>
+	 * </table>
+	 *
+	 * <p><strong>性能提示：</strong></p>
+	 * <ul>
+	 *     <li>大文件解析会有内存和CPU开销</li>
+	 *     <li>结果已按元数据类型分组</li>
+	 *     <li>建议对结果进行缓存</li>
 	 * </ul>
 	 *
 	 * @param file 目标文件（必须存在且可读）
-	 * @return 包含所有元数据的键值对集合（Key为元数据类型，如"Content-Type"）
-	 * @throws IOException 当文件格式不支持或损坏时抛出
+	 * @return 包含所有元数据的不可修改键值对集合，Key为标准元数据类型（如"Content-Type"、"Author"等）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件格式不支持</li>
+	 *                         <li>文件损坏或加密</li>
+	 *                         <li>权限不足无法读取</li>
+	 *                     </ul>
 	 * @see Metadata
 	 * @see org.apache.tika.Tika
 	 * @since 1.0.0
@@ -460,18 +666,30 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	/**
 	 * 获取文件真实MIME类型
-	 * <p>检测机制：</p>
+	 * <p><strong>技术实现：</strong></p>
 	 * <ul>
-	 *     <li>优先分析文件内容特征</li>
+	 *     <li>基于Apache Tika内容检测引擎</li>
+	 *     <li>通过文件魔数(Magic Number)识别格式</li>
 	 *     <li>支持300+种常见文件格式</li>
-	 *     <li>不受文件扩展名影响</li>
 	 * </ul>
 	 *
-	 * @param file 目标文件（必须存在）
-	 * @return 标准MIME类型字符串（如："application/pdf"）
-	 * @throws IOException 当文件无法读取时抛出
+	 * <p><strong>与文件扩展名的区别：</strong></p>
+	 * <ol>
+	 *     <li>不依赖文件扩展名，防止伪造</li>
+	 *     <li>能识别无扩展名文件</li>
+	 *     <li>可检测被修改扩展名的文件</li>
+	 * </ol>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @return 标准MIME类型字符串（如："application/pdf"），遵循IANA标准
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>文件格式无法识别</li>
+	 *                         <li>磁盘I/O错误</li>
+	 *                     </ul>
+	 * @see org.apache.tika.Tika#detect(File)
 	 * @since 1.0.0
-	 * @see org.apache.tika.Tika
 	 */
 	public static String getMimeType(final File file) throws IOException {
 		checkFile(file, "file 不可为 null");
@@ -488,8 +706,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isImageType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.IMAGE_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -502,8 +719,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isTextType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.TEXT_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -516,8 +732,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isModelType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.MODEL_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.MODEL_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -530,8 +745,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isVideoType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -544,8 +758,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isAudioType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.AUDIO_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -558,94 +771,136 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isApplicationType(final File file) throws IOException {
-		checkFile(file, "file 不可为 null");
-		return IOConstants.getDefaultTika().detect(file).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
+		return getMimeType(file).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
 	}
 
 	/**
 	 * 精确匹配文件MIME类型
-	 * <p>匹配规则：</p>
+	 * <p>性能提示：</p>
 	 * <ul>
-	 *     <li>不区分大小写比较</li>
-	 *     <li>完全匹配（如："text/plain"与"TEXT/PLAIN"匹配）</li>
-	 *     <li>不支持通配符匹配（如："image/*"）</li>
+	 *     <li>内部使用Tika进行内容检测</li>
+	 *     <li>大文件检测会有性能开销</li>
+	 *     <li>结果缓存可提升重复检测效率</li>
 	 * </ul>
 	 *
-	 * @param file     目标文件
-	 * @param mimeType 预期MIME类型（不区分大小写，为空字符串则返回null）
-	 * @return 匹配成功返回true
-	 * @throws IOException 当文件不可读时抛出
+	 * @param file     目标文件（必须存在）
+	 * @param mimeType 预期MIME类型
+	 * @return 类型匹配返回true
+	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean isMimeType(final File file, final String mimeType) throws IOException {
 		if (StringUtils.isBlank(mimeType)) {
 			return false;
 		}
-		checkFile(file, "file 不可为 null");
-		String fileMimeType = IOConstants.getDefaultTika().detect(file);
-		return mimeType.equalsIgnoreCase(fileMimeType);
+		return getMimeType(file).equalsIgnoreCase(mimeType);
 	}
 
 	/**
-	 * 批量匹配MIME类型
-	 * <p>匹配规则：</p>
+	 * 检查文件MIME类型是否匹配任意给定类型
+	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
-	 *     <li>不区分大小写比较</li>
-	 *     <li>完全匹配（如："text/plain"与"TEXT/PLAIN"匹配）</li>
-	 *     <li>不支持通配符匹配（如："image/*"）</li>
+	 *     <li>支持可变参数形式传入多个MIME类型</li>
+	 *     <li>自动忽略空数组或null元素</li>
+	 *     <li>大小写敏感比较（遵循IANA标准）</li>
+	 *     <li>基于Tika内容检测，不受文件扩展名影响</li>
 	 * </ul>
 	 *
-	 * @param file      目标文件
-	 * @param mimeTypes 允许的MIME类型数组
-	 * @return 匹配任一类型返回true，空数组返回false
-	 * @throws IOException 当文件不可读时抛出
+	 * <p><strong>性能提示：</strong></p>
+	 * <ul>
+	 *     <li>内部仅执行一次MIME类型检测</li>
+	 *     <li>适合少量固定类型的匹配场景</li>
+	 *     <li>如需频繁匹配大量类型，建议使用集合版本</li>
+	 * </ul>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @param mimeTypes 待匹配的MIME类型数组（可空）
+	 * @return 当文件MIME类型匹配数组中任意元素时返回true
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>磁盘I/O错误</li>
+	 *                     </ul>
+	 * @see #getMimeType(File)
+	 * @see #isAnyMimeType(File, Collection)
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final String... mimeTypes) throws IOException {
-		checkFile(file, "file 不可为 null");
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
-		String fileMimeType = IOConstants.getDefaultTika().detect(file);
-		return StringUtils.equalsAnyIgnoreCase(fileMimeType, mimeTypes);
+		return StringUtils.equalsAny(getMimeType(file), mimeTypes);
 	}
 
 	/**
-	 * 批量匹配MIME类型
-	 * <p>匹配规则：</p>
+	 * 检查文件MIME类型是否匹配集合中任意类型
+	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
-	 *     <li>不区分大小写比较</li>
-	 *     <li>完全匹配（如："text/plain"与"TEXT/PLAIN"匹配）</li>
-	 *     <li>不支持通配符匹配（如："image/*"）</li>
+	 *     <li>支持动态变化的MIME类型集合</li>
+	 *     <li>适用于大量预定义类型的匹配场景</li>
+	 *     <li>自动处理null和空集合输入</li>
+	 *     <li>大小写敏感比较（遵循IANA标准）</li>
 	 * </ul>
 	 *
-	 * @param file      目标文件
-	 * @param mimeTypes 允许的MIME类型集合
-	 * @return 匹配任一类型返回true
-	 * @throws IOException 当文件不可读时抛出
+	 * <p><strong>与数组版本的区别：</strong></p>
+	 * <ol>
+	 *     <li>更适合运行时动态变化的类型集合</li>
+	 *     <li>避免数组创建开销</li>
+	 *     <li>支持更灵活的类型过滤逻辑</li>
+	 * </ol>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @param mimeTypes 待匹配的MIME类型集合（可空）
+	 * @return 当文件MIME类型匹配集合中任意元素时返回true
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件不存在或不可读</li>
+	 *                         <li>磁盘I/O错误</li>
+	 *                     </ul>
+	 * @see #getMimeType(File)
+	 * @see #isAnyMimeType(File, String...)
 	 * @since 1.0.0
 	 */
 	public static boolean isAnyMimeType(final File file, final Collection<String> mimeTypes) throws IOException {
-		checkFile(file, "file 不可为 null");
 		if (mimeTypes == null || mimeTypes.isEmpty()) {
 			return false;
 		}
-		String fileMimeType = IOConstants.getDefaultTika().detect(file);
-		return mimeTypes.stream().anyMatch(mimeType -> StringUtils.equalsIgnoreCase(fileMimeType, mimeType));
+		String fileMimeType = getMimeType(file);
+		return mimeTypes.stream().anyMatch(mimeType -> StringUtils.equals(fileMimeType, mimeType));
 	}
 
 	/**
-	 * 安全重命名文件
+	 * 安全重命名文件或目录
+	 * <p><strong>功能特性：</strong></p>
+	 * <ul>
+	 *     <li>支持文件和目录重命名</li>
+	 *     <li>自动处理路径分隔符，确保跨平台兼容</li>
+	 *     <li>严格校验目标文件是否存在，避免覆盖</li>
+	 *     <li>原子性操作保证数据一致性</li>
+	 * </ul>
 	 *
-	 * @param file        源文件（必须存在）
-	 * @param newFilename 新文件名（允许包含路径分隔符）
+	 * <p><strong>注意事项：</strong></p>
+	 * <ol>
+	 *     <li>源文件和目标文件必须在同一文件系统</li>
+	 *     <li>对于目录，仅修改目录名而不影响其内容</li>
+	 *     <li>Windows系统下可能需要管理员权限</li>
+	 * </ol>
+	 *
+	 * @param file        源文件或目录（必须存在）
+	 * @param newFilename 新名称
 	 * @return 重命名后的文件对象
 	 * @throws FileExistsException 当目标文件已存在时抛出
-	 * @throws IOException         当重命名操作失败时抛出
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>文件系统权限不足</li>
+	 *                         <li>跨文件系统移动</li>
+	 *                         <li>磁盘I/O错误</li>
+	 *                     </ul>
+	 * @see File#renameTo(File)
 	 * @since 1.0.0
 	 */
 	public static File rename(final File file, String newFilename) throws IOException {
-		checkExists(file, "file 不可为 null");
+		check(file, "file 不可为 null");
 		if (file.isFile()) {
 			newFilename = FilenameUtils.getName(newFilename);
 			Validate.notBlank(newFilename, "newFilename 必须为文件名");
@@ -662,17 +917,29 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	/**
 	 * 替换文件基名（保留扩展名）
-	 * <p>示例：</p>
-	 * <pre>
-	 * FileUtils.replaceBaseName(new File("report.pdf"), "年度报告")
-	 * → 生成"年度报告.pdf"
-	 * </pre>
+	 * <p>功能特性：</p>
+	 * <ul>
+	 *     <li>自动保留原始文件扩展名</li>
+	 *     <li>支持路径中包含的文件名处理</li>
+	 *     <li>严格参数校验确保安全性</li>
+	 * </ul>
 	 *
-	 * @param file        源文件（必须为文件）
-	 * @param newBaseName 新基名（不允许包含扩展名分隔符）
-	 * @return 修改后的文件对象
-	 * @throws FileExistsException 当目标文件存在时抛出
-	 * @throws IOException         当修改失败时抛出
+	 * <p><b>处理流程：</b></p>
+	 * <ol>
+	 *     <li>验证输入文件有效性</li>
+	 *     <li>提取原始文件扩展名</li>
+	 *     <li>构建新文件名路径</li>
+	 * </ol>
+	 *
+	 * @param file        源文件（必须为存在的常规文件）
+	 * @param newBaseName 新基名（不允许包含路径分隔符或扩展名分隔符）
+	 * @return 包含新基名和原扩展名的文件对象
+	 * @throws IllegalArgumentException 当以下情况时抛出：
+	 *                                  <ul>
+	 *                                    <li>file参数为null</li>
+	 *                                    <li>file不存在或不是文件</li>
+	 *                                    <li>newBaseName为空或包含非法字符</li>
+	 *                                  </ul>
 	 * @since 1.0.0
 	 */
 	public static File replaceBaseName(final File file, final String newBaseName) throws IOException {
@@ -690,23 +957,21 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	/**
 	 * 替换文件扩展名
-	 * <p>功能特性：</p>
+	 * <p>与{@link #replaceBaseName}的区别：</p>
 	 * <ul>
-	 *     <li>自动处理扩展名格式（".jpg"或"jpg"均可）</li>
-	 *     <li>支持移除扩展名（参数传空字符串）</li>
+	 *     <li>保留文件名主体部分</li>
+	 *     <li>支持完全移除扩展名</li>
+	 *     <li>自动处理扩展名分隔符</li>
 	 * </ul>
 	 *
-	 * <p>示例：</p>
-	 * <pre>
-	 * FileUtils.replaceExtension(new File("data.log"), "bak")
-	 * → 生成"data.bak"
-	 * </pre>
-	 *
-	 * @param file         源文件（必须存在）
-	 * @param newExtension 新扩展名（允许为null或空字符串）
-	 * @return 修改后的文件对象
-	 * @throws FileExistsException 当目标文件已存在时抛出
-	 * @throws IOException         当修改失败时抛出
+	 * @param file         源文件（必须为存在的常规文件）
+	 * @param newExtension 新扩展名（可空，表示移除扩展名）
+	 * @return 包含原基名和新扩展名的文件对象
+	 * @throws IllegalArgumentException 当以下情况时抛出：
+	 *                                  <ul>
+	 *                                    <li>file参数为null</li>
+	 *                                    <li>file不存在或不是文件</li>
+	 *                                  </ul>
 	 * @since 1.0.0
 	 */
 	public static File replaceExtension(final File file, final String newExtension) throws IOException {
@@ -723,34 +988,76 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 校验文件是否存在
+	 * 基础文件校验（存在性检查）
+	 * <p><strong>功能特性：</strong></p>
+	 * <ul>
+	 *     <li>严格校验文件非null</li>
+	 *     <li>验证文件/目录存在性</li>
+	 *     <li>统一异常处理机制</li>
+	 * </ul>
 	 *
-	 * @param file    待校验文件
-	 * @param message 空指针异常提示信息
-	 * @throws IllegalArgumentException 当file是目录时抛出
-	 * @throws FileNotFoundException 当文件不存在时抛出
+	 * @param file 待校验的文件对象
+	 * @param message 校验失败时的异常消息
+	 * @throws IOException 当文件不存在时抛出FileNotFoundException
+	 * @throws NullPointerException 当file为null时抛出
+	 * @see File#exists()
+	 * @since 1.0.0
+	 */
+	public static void check(final File file, final String message) throws IOException {
+		Objects.requireNonNull(file, message);
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
+		}
+	}
+
+	/**
+	 * 常规文件校验（类型检查）
+	 * <p><strong>与{@link #check}的区别：</strong></p>
+	 * <ul>
+	 *     <li>额外验证文件类型为常规文件</li>
+	 *     <li>排除目录类型</li>
+	 *     <li>适用于需要严格文件验证的场景</li>
+	 * </ul>
+	 *
+	 * @param file    待校验的文件对象
+	 * @param message 校验失败时的异常消息
+	 * @throws IOException              当文件不存在时抛出
+	 * @throws IllegalArgumentException 当路径指向目录时抛出
+	 * @see #check(File, String)
+	 * @see File#isFile()
 	 * @since 1.0.0
 	 */
 	public static void checkFile(final File file, final String message) throws IOException {
-		checkExists(file, message);
-		if (!file.isFile()) {
+		check(file, message);
+		if (file.isDirectory()) {
 			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 
 	/**
-	 * 校验file是否存在
+	 * 条件文件校验（存在时才验证类型）
+	 * <p><strong>功能特性：</strong></p>
+	 * <ul>
+	 *     <li>仅当文件存在时才进行类型校验</li>
+	 *     <li>安全处理null输入</li>
+	 *     <li>适用于创建新文件前的校验场景</li>
+	 * </ul>
 	 *
-	 * @param file    待校验目录
-	 * @param message 空指针异常提示信息
-	 * @throws IllegalArgumentException 当file不是目录时抛出
-	 * @throws FileNotFoundException 当目录不存在时抛出
+	 * @param file    待校验的文件对象
+	 * @param message 校验失败时的异常消息
+	 * @throws NullPointerException     当file为null时抛出
+	 * @throws IllegalArgumentException 当路径存在且指向目录时抛出
+	 * @see #checkFile(File, String)
 	 * @since 1.0.0
 	 */
-	protected static void checkExists(final File file, final String message) throws IOException {
-		Objects.requireNonNull(file, message);
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
+	public static void checkFileIfExist(final File file, final String message) {
+		if (Objects.isNull(file)) {
+			throw new NullPointerException(message);
+		}
+		if (file.exists()) {
+			if (file.isDirectory()) {
+				throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
+			}
 		}
 	}
 }

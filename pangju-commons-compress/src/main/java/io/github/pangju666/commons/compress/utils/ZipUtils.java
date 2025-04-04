@@ -521,12 +521,13 @@ public class ZipUtils {
 
 		inputFiles = Objects.isNull(inputFiles) ? Collections.emptyList() : inputFiles;
 		for (File file : inputFiles) {
-			if (FileUtils.exist(file)) {
-				if (file.isDirectory()) {
-					addDir(file, zipArchiveOutputStream, null);
-				} else {
-					addFile(file, zipArchiveOutputStream, null);
-				}
+			if (FileUtils.notExist(file)) {
+				throw new FileNotFoundException(file.getAbsolutePath());
+			}
+			if (file.isDirectory()) {
+				addDir(file, zipArchiveOutputStream, null);
+			} else {
+				addFile(file, zipArchiveOutputStream, null);
 			}
 		}
 		zipArchiveOutputStream.finish();
