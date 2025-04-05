@@ -24,10 +24,10 @@ import java.util.Objects;
 
 /**
  * 使用静态实用程序进行序列化和反序列化
- <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/" target="_blank"> Java 对象序列化</a>。
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/"
  * target="_blank">Java对象序列化</a>。
  *
- <p><strong>WARNING</strong>: 应谨慎使用这些实用程序。请参见
+ <p><strong>WARNING</strong>: 应谨慎使用这些实用程序。请参阅
  * <a href="https://www.oracle.com/java/technologies/javase/seccodeguide.html#8"
  * target="_blank">Java编程语言安全编码指南</a>。
  * 以了解详细信息。
@@ -36,6 +36,9 @@ import java.util.Objects;
  *     代码来源于：org.springframework.util.SerializationUtils
  * </p>
  *
+ * @author Dave Syer
+ * @author Loïc Ledoyen
+ * @author Sam Brannen
  * @since 1.0.0
  */
 public class SerializationUtils {
