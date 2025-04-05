@@ -60,7 +60,7 @@ mvn -pl pangju-commons-lang clean install
 
 ## 模块说明
 
-### ⚙️ pangju-commons-lang (常用工具类模块)
+### 🛠️ pangju-commons-lang (常用工具类模块)
 
 常用工具模块，提供基础的工具类集合。
 
@@ -1211,7 +1211,7 @@ IO模块，提供了对于文件名、文件、io流、文件类型判断等各�
         - 高性能 - 基于高效图像处理算法实现
         - 自动格式处理 - 根据输出格式自动选择最佳图像类型
 
-### 🧩 pangju-commons-imageio (JAI插件模块)
+### 🖼️🧩 pangju-commons-imageio (JAI插件模块)
 
 JAI插件模块，提供了各种图像类型的Javax Image IO插件
 
@@ -1294,7 +1294,7 @@ JAI插件模块，提供了各种图像类型的Javax Image IO插件
         - 大文件优化 - 采用缓冲通道流提升大文件处理性能
         - 资源管理 - 自动管理文件资源，防止资源泄漏
 
-### 📝 pangju-commons-compress (POI模块)
+### 📑 pangju-commons-compress (POI模块)
 
 POI模块，提供了对excel、word文件各种操作
 
@@ -1420,7 +1420,7 @@ POI模块，提供了对excel、word文件各种操作
     - **注意事项**：
         - 所有方法均为静态方法
 
-### 📄 pangju-commons-compress (PDF模块)
+### 📚 pangju-commons-compress (PDF模块)
 
 PDF模块，提供了对PDF文件各种操作
 
