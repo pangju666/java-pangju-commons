@@ -83,7 +83,8 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String MOBILE_PHONE_STRONG = "1(?:(?:3[\\d])|(?:4[5-79])|(?:5[0-35-9])|(?:6[5-7])|(?:7[0-8])|(?:8[\\d])|(?:9[13589]))\\d{8}";
+	public static final String MOBILE_PHONE_STRONG = "1(?:(?:3[\\d])|(?:4[5-79])|(?:5[0-35-9])|(?:6[5-7])|(?:7[0-8])|(?:8[\\d])|(?:9[189]))\\d{8}";
+	;
 	/**
 	 * 电话号码（弱）
 	 *
@@ -256,7 +257,7 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String DATE = "(([0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]{1}|[0-9]{1}[1-9][0-9]{2}|[1-9][0-9]{3})-(((0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01]))|((0[469]|11)-(0[1-9]|[12][0-9]|30))|(02-(0[1-9]|[1][0-9]|2[0-8]))))|((([0-9]{2})(0[48]|[2468][048]|[13579][26])|((0[48]|[2468][048]|[3579][26])00))-02-29)";
+	public static final String DATE = "(?:(?!0000)[0-9]{4}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29)";
 	/**
 	 * 十二小时制时间
 	 *
@@ -274,7 +275,7 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String VEHICLE_PLATE_NUMBER = "[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-HJ-NP-Z][A-HJ-NP-Z0-9]{4,5}[A-HJ-NP-Z0-9挂学警港澳]";
+	public static final String VEHICLE_PLATE_NUMBER = "[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-HJ-NP-Z][A-HJ-NP-Z0-9]{4,5}[A-HJ-NP-Z0-9挂学警港澳]|[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-HJ-NP-Z](?:((\\d{5}[DF])|([DF]([A-HJ-NP-Z0-9])[0-9]{4})))";
 	/**
 	 * 统一社会信用代码
 	 *
@@ -335,7 +336,7 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String CHINESE_NAME = "[\u2E80-\u9FFF·]{2,60}";
+	public static final String CHINESE_NAME = "[\u4e00-\u9fa5·]{2,30}";
 	/**
 	 * 手机IMEI码
 	 *
@@ -395,7 +396,7 @@ public class RegExPool {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String DOMAIN = "([0-9a-zA-Z-]{1,}\\.)+([a-zA-Z]{2,})";
+	public static final String DOMAIN = "(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}";
 
 	protected RegExPool() {
 	}
