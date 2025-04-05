@@ -63,12 +63,6 @@ public class IOConstants {
 	 * @since 1.0.0
 	 */
 	public static final String APPLICATION_MIME_TYPE_PREFIX = "application/";
-	/**
-	 * 流缓冲区默认大小（单位：字节）
-	 *
-	 * @since 1.0.0
-	 */
-	public static final int DEFAULT_STREAM_BUFFER_SIZE = 8192;
 
 	/**
 	 * 默认Tika实例（双重校验锁实现线程安全单例）

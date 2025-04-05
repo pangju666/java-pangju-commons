@@ -24,7 +24,7 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 
 /**
  * 加密模块中需要用到的数字工具类(内部使用)
- * <p>来源于：{@link org.jasypt.encryption.pbe.NumberUtils}</p>
+ * <p>来源于：org.jasypt.encryption.pbe.NumberUtils</p>
  *
  * @since 1.0.0
  */
