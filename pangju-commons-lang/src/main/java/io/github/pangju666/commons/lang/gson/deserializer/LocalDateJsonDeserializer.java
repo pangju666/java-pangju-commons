@@ -21,54 +21,69 @@ import io.github.pangju666.commons.lang.utils.DateUtils;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
- * LocalDate 类型的 Gson 自定义反序列化器
+ * LocalDateTime 类型的 Gson 自定义反序列化器
  * <p>
- * 该反序列化器用于将 JSON 数值元素（表示时间戳）转换为 LocalDate 对象。
- * 仅支持从数值类型的时间戳进行转换，时间戳应为自 1970 年 1 月 1 日 00:00:00 GMT 以来的毫秒数。
+ * 该反序列化器支持以下两种格式的日期时间反序列化：
+ * <ul>
+ *     <li>时间戳：将JSON数值元素（毫秒时间戳）转换为LocalDateTime对象</li>
+ *     <li>日期时间字符串：将符合yyyy-MM-dd HH:mm:ss格式的字符串转换为LocalDateTime对象</li>
+ * </ul>
  * 转换时会根据系统默认时区进行处理。
  * </p>
  * <p>
  * 使用示例：
  * <pre>{@code
  * GsonBuilder gsonBuilder = new GsonBuilder();
- * gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateJsonDeserializer());
+ * gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonDeserializer());
  * Gson gson = gsonBuilder.create();
  *
- * // 反序列化示例
- * LocalDate date = gson.fromJson("1640995200000", LocalDate.class); // 2022-01-01
+ * // 时间戳反序列化示例
+ * LocalDateTime dateTime1 = gson.fromJson("1640995200000", LocalDateTime.class); // 2022-01-01 00:00:00
+ * // 日期时间字符串反序列化示例
+ * LocalDateTime dateTime2 = gson.fromJson("\"2022-01-01 00:00:00\"", LocalDateTime.class); // 2022-01-01 00:00:00
  * }</pre>
  * </p>
  *
  * @author pangju666
  * @see JsonDeserializer
- * @see LocalDate
- * @see DateUtils#toLocalDate(Long)
+ * @see LocalDateTime
+ * @see DateUtils#toLocalDateTime(Long)
+ * @see DateUtils#toLocalDateTime(Date)
  * @since 1.0.0
  */
 public class LocalDateJsonDeserializer implements JsonDeserializer<LocalDate> {
 	/**
-	 * 将 JSON 元素反序列化为 LocalDate 对象
+	 * 将 JSON 元素反序列化为 LocalDateTime 对象
 	 * <p>
 	 * 反序列化逻辑：
 	 * <ol>
-	 *     <li>检查 JSON 元素是否为数值类型的基本类型（{@link JsonPrimitive}），如果不是则返回 null</li>
-	 *     <li>使用 {@link DateUtils#toLocalDate(Long)} 将时间戳转换为 {@link LocalDate} 对象</li>
+	 *     <li>检查 JSON 元素是否为基本类型（{@link JsonPrimitive}），如果不是则返回 null</li>
+	 *     <li>如果是数值类型，使用 {@link DateUtils#toLocalDateTime(Long)} 将时间戳转换为 {@link LocalDateTime} 对象</li>
+	 *     <li>如果是字符串类型，先使用 {@link DateUtils#parseDate(String)} 解析为Date，再通过 {@link DateUtils#toLocalDateTime(Date)} 转换为LocalDateTime对象</li>
 	 * </ol>
 	 * </p>
 	 *
-	 * @param json    要反序列化的 JSON 元素，应该是表示时间戳的数值
+	 * @param json    要反序列化的 JSON 元素，可以是时间戳数值或日期时间格式字符串
 	 * @param typeOfT 目标类型，在此实现中未使用
 	 * @param context 反序列化上下文，在此实现中未使用
-	 * @return 转换后的 LocalDate 对象，如果输入不是数值类型则返回 null
+	 * @return 转换后的 LocalDateTime 对象，如果输入格式不支持则返回 null
 	 * @throws JsonParseException 如果在解析过程中发生错误
 	 */
 	@Override
     public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
+		if (!json.isJsonPrimitive()) {
             return null;
         }
-        return DateUtils.toLocalDate(json.getAsLong());
+		if (json.getAsJsonPrimitive().isNumber()) {
+			return DateUtils.toLocalDate(json.getAsLong());
+		}
+		if (json.getAsJsonPrimitive().isString()) {
+			return DateUtils.toLocalDate(DateUtils.parseDate(json.getAsString()));
+		}
+		return null;
     }
 }

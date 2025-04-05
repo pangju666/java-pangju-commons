@@ -69,6 +69,12 @@ public class LocalDateTimeJsonDeserializer implements JsonDeserializer<LocalDate
         if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
             return null;
         }
-        return DateUtils.toLocalDateTime(json.getAsLong());
+		if (json.getAsJsonPrimitive().isNumber()) {
+			return DateUtils.toLocalDateTime(json.getAsLong());
+		}
+		if (json.getAsJsonPrimitive().isString()) {
+			return DateUtils.toLocalDateTime(DateUtils.parseDate(json.getAsString()));
+		}
+		return null;
     }
 }
