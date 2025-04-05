@@ -31,7 +31,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 文件名格式校验注解
  * <p>验证字符串是否符合合法文件名规范：
  * <ul>
- *     <li>禁止包含 \ / : * ? " < > | 等特殊字符</li>
+ *     <li>禁止包含 \ / : * ? " &lt; &gt; | 等特殊字符</li>
  *     <li>支持文件扩展名校验（根据extension参数）</li>
  * </ul></p>
  *
