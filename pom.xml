@@ -27,6 +27,7 @@
 		<module>pangju-commons-poi</module>
 		<module>pangju-commons-validation</module>
 		<module>pangju-commons-bom</module>
+		<module>pangju-commons-all</module>
 	</modules>
 
 	<properties>
