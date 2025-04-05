@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-jpeg2000</artifactId>
-			<scope>true</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.spockframework</groupId>
