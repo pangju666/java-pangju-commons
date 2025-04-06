@@ -16,7 +16,6 @@
 
 package io.github.pangju666.commons.validation.utils;
 
-import io.github.pangju666.commons.lang.utils.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -57,7 +56,7 @@ public class ConstraintValidatorUtils {
 		if (value.isBlank()) {
 			return value.isEmpty() ? !notEmpty : !notBlank;
 		}
-		return RegExUtils.matches(pattern, value);
+		return pattern.matcher(value).matches();
 	}
 
 	/**
@@ -99,9 +98,9 @@ public class ConstraintValidatorUtils {
 			return !notEmpty;
 		}
 		if (allMatch) {
-			return values.stream().allMatch(value -> StringUtils.isNotBlank(value) && RegExUtils.matches(pattern, value));
+			return values.stream().allMatch(value -> StringUtils.isNotBlank(value) && pattern.matcher(value).matches());
 		} else {
-			return values.stream().anyMatch(value -> StringUtils.isNotBlank(value) && RegExUtils.matches(pattern, value));
+			return values.stream().anyMatch(value -> StringUtils.isNotBlank(value) && pattern.matcher(value).matches());
 		}
 	}
 
