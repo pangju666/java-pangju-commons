@@ -854,6 +854,7 @@ mvn -pl pangju-commons-lang clean install
         - `@Identifier`: 通用标识符校验（字母数字下划线）
         - `@Base64`: Base64编码格式验证
         - `@Md5`: MD5哈希值格式校验
+      - `@Xss`: Xss防护校验
     - **业务校验**：
         - `@HttpMethod`: HTTP请求方法校验（GET/POST等）
         - `@MimeType`: 媒体类型格式校验（符合IANA标准）

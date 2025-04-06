@@ -877,6 +877,7 @@ Verification module, implemented based on jakarta.validation.
         - `@Identifier`: Universal identifier verification (alphanumeric underscore)
         - `@Base64`: Base64 encoding format verification
         - `@Md5`: MD5 hash format verification
+      - `@Xss`: Xss protection verification
     - **Business Verification**:
         - `@HttpMethod`: HTTP request method verification (GET/POST, etc.)
         - `@MimeType`: Media type format verification (compliant with IANA standards)

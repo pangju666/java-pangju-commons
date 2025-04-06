@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * XSS防护校验注解
- * <p>验证字符串是否为HTML字符串</p>
+ * <p>验证字符串是否包含HTML内容</p>
  *
  * @author pangju666
  * @since 1.0.0

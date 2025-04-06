@@ -229,12 +229,6 @@ public class RegExPool {
 	 */
 	public static final String FILENAME_WITHOUT_EXTENSION = "[^\\\\<>:\"/|?*.]+";
 	/**
-	 * HTML
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String HTML_PATTERN = "<(\\/?)([a-zA-Z0-9]+)([^>]*)(\\/?)>|<!--.*?-->|&[a-zA-Z0-9#]+;";
-	/**
 	 * UUID
 	 *
 	 * @since 1.0.0
