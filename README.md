@@ -583,6 +583,14 @@ mvn -pl pangju-commons-lang clean install
         - **toTree(Collection, rootNodeKey)**: 基础树形结构构建方法
         - **toTree(Collection, rootNodeKey, convertFunc)**: 支持节点转换的树形结构构建方法
 
+
+- **MoneyUtils**: 金额工具类
+    - **功能**：
+        - 金额格式化（支持千位分隔符，保留2位小数）
+        - 金额转中文大写（支持到亿级别，包含负数处理）
+        - 支持 Double 和 BigDecimal 类型的金额处理
+        - 支持金额的标准化展示和大写转换
+
 ### 🔒 pangju-commons-crypto (安全加密模块)
 
 加密工具模块，基于jasypt实现数据加密。

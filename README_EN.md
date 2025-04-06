@@ -602,8 +602,16 @@ Common tool modules, providing basic tool class collections.
         - **Generic Support**: Applicable to any node type that implements the TreeNode interface
     - **Main Method**:
         - **toTree(Collection, rootNodeKey)**: Basic tree structure construction method
-        - **toTree(Collection, rootNodeKey, convertFunc)**: A tree structure construction method that supports node
-          conversion
+      - **toTree(Collection, rootNodeKey, convertFunc)**: A tree structure construction method that supports node
+        conversion
+
+
+- **MoneyUtils**: money utilities class
+    - **Functions**:
+        - Amount formatting (support for thousands of separators, retain 2 decimal places)
+        - Amount to Chinese uppercase (support to billion level, including negative number processing)
+        - Support Double and BigDecimal type of amount processing.
+        - Support for standardized display and upper case conversion of amounts
 
 ### 🔒 pangju-commons-crypto (secure encryption module)
 
