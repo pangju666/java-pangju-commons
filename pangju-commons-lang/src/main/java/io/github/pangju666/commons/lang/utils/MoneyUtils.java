@@ -7,6 +7,7 @@ import java.util.Objects;
 /**
  * 金额工具类，提供金额格式化和中文大写转换功能
  * <p>支持金额的格式化展示和转换为中文大写金额</p>
+ * <p>创意来自ruoyi</p>
  *
  * @author pangju666
  * @since 1.0.0

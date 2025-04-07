@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * ID生成工具类
  * <p>提供多种分布式ID生成方案，包括：UUID、MongoDB ObjectId、NanoId、雪花算法ID等</p>
+ * <p>创意来自ruoyi</p>
  *
  * @author pangju666
  * @see java.util.UUID
