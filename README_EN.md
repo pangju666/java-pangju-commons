@@ -482,11 +482,11 @@ Common tool modules, providing basic tool class collections.
         - Supports the conversion of collection types and JsonArray
     - **Core Features**:
         - **Preconfigured Gson instance**: Provides default configuration Gson instances, supporting null value
-          serialization and formatting output
+          serialization
         - **Type Adapter**: Built-in serialization/deserialization support for Date, LocalDate, LocalDateTime,
           BigDecimal and other types
         - **Generic support**: Completely support serialization and deserialization of generic types
-        - **Null value safety**: All methods safely handle null values ​​to avoid NullPointerException
+        - **Null value safety**: All methods safely handle null values to avoid NullPointerException
         - **Custom Gson**: Supports operation using custom Gson instances
     - **Main Method Classification**:
         - **String operation**: fromString/toString series methods, handle the conversion of JSON strings and Java

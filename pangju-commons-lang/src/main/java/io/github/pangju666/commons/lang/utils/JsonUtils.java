@@ -46,7 +46,6 @@ public class JsonUtils {
 	 * 该实例具有以下特性：
 	 * <ul>
 	 *   <li>序列化null值</li>
-	 *   <li>格式化输出JSON</li>
 	 *   <li>已注册常用类型的序列化/反序列化适配器</li>
 	 * </ul>
 	 * 通过{@link #createGsonBuilder()}方法创建并配置
@@ -54,7 +53,7 @@ public class JsonUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Gson DEFAULT_GSON = createGsonBuilder().serializeNulls().setPrettyPrinting().create();
+	public static final Gson DEFAULT_GSON = createGsonBuilder().serializeNulls().create();
 
 	protected JsonUtils() {
 	}

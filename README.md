@@ -466,7 +466,7 @@ mvn -pl pangju-commons-lang clean install
         - 提供Java对象与JSON字符串、JsonElement的双向转换
         - 支持集合类型与JsonArray的互相转换
     - **核心特性**：
-        - **预配置Gson实例**: 提供默认配置的Gson实例，支持null值序列化和格式化输出
+        - **预配置Gson实例**: 提供默认配置的Gson实例，支持null值序列化
         - **类型适配器**: 内置Date、LocalDate、LocalDateTime、BigDecimal等类型的序列化/反序列化支持
         - **泛型支持**: 完整支持泛型类型的序列化与反序列化
         - **空值安全**: 所有方法对null值进行安全处理，避免NullPointerException
