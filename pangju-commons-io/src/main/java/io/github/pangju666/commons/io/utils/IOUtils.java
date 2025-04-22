@@ -142,6 +142,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * <ul>
 	 *     <li>非线程安全实现，适合单线程使用</li>
 	 *     <li>不进行同步操作，性能优于同步缓冲流</li>
+	 *     <li>如果输入流已经是非同步缓冲流则直接返回</li>
 	 *     <li>缓冲区大小应根据数据量合理设置</li>
 	 * </ul>
 	 *
@@ -159,6 +160,9 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Objects.requireNonNull(inputStream, "inputStream");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
+		if (inputStream instanceof UnsynchronizedBufferedInputStream unsynchronizedBufferedInputStream) {
+			return unsynchronizedBufferedInputStream;
+		}
 		return new UnsynchronizedBufferedInputStream.Builder()
 			.setBufferSize(bufferSize)
 			.setInputStream(inputStream)
