@@ -19,14 +19,32 @@
 [[_TOC_]]
 
 ## 项目简介
-
 基于 Apache Commons、jasypt、tika、twelvemonkeys、poi-tl、hanlp、gson、reflections等知名第三方库扩展的 Java 工具库集合，提供开发中常用的工具类。
 项目采用模块化设计，每个模块都专注于特定的功能领域。
 
+## 项目结构
+
+框架由以下核心模块组成：
+
+- **pangju-framework-all**：聚合所有模块的统一引入点
+- **pangju-framework-bom**：依赖版本管理模块
+- **pangju-framework-compress**：文件压缩模块，基于`Apache Commons Compress`提供了zip、7z格式压缩包文件解压缩和压缩操作
+- **pangju-framework-crypto**：加密算法模块，基于`jasypt`实现`RSA`数据加密、签名、密钥管理、填充算法接口和实现等方法
+- **pangju-framework-geo**：地理信息模块，封装了坐标系转换、解析、判断等方法
+- **pangju-framework-image**：图像处理模块，基于`twelvemonkeys`提供了图像类型检测、类型获取、宽高读取、exif方向读取、缩略图生成，应用滤镜等各种操作
+- **pangju-framework-imageio**：JAI插件模块，提供了各种图像类型的`Javax Image IO`插件
+- **pangju-framework-io**：IO模块，基于`Apache Commons IO`提供了对于文件名、文件、io流、文件类型判断等各种操作
+- **pangju-framework-lang**：常用工具模块，基于`Apache Commons Lang3`、`Google Gson`、`reflections`、`MongoDB Bson`、
+  `hankcs hanlp`提供各种工具类
+- **pangju-framework-pdf**：PDF模块，基于`Apache Pdfbox`提供了对PDF文件各种操作
+- **pangju-framework-poi**：POI模块，基于`Apache Poi`提供了对excel、word文件各种操作
+- **pangju-framework-validation**：校验模块，基于`jakarta-validation`、`hibernate-validator`实现，提供了大量校验注解
+
 ## 快速开始
 
-依赖管理
+### 引入依赖
 
+在您的 Maven 项目中添加以下依赖管理配置：
 ```xml
 <!-- BOM 依赖管理 -->
 <dependencyManagement>
@@ -40,28 +58,67 @@
         </dependency>
     </dependencies>
 </dependencyManagement>
-
-        <!-- 使用单个模块 -->
-<dependency>
-<groupId>io.github.pangju666</groupId>
-<artifactId>pangju-commons-lang</artifactId>
-</dependency>
 ```
 
-## 构建说明
+### 添加所需模块
 
-```bash
-# 构建整个项目
-mvn clean install
+根据您的需求添加相应的模块依赖：
 
-# 构建单个模块
-mvn -pl pangju-commons-lang clean install
- ```
+``` xml
+<dependencies>
+    <!-- 引入全部模块 -->
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-all</artifactId>
+        <version>最新版本</version>
+    </dependency>
+    
+    <!-- 或者按需引入特定模块 -->
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-compress</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-crypto</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-geo</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-image</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-imageio</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-io</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-lang</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-pdf</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-poi</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-validation</artifactId>
+    </dependency>
+</dependencies>
+```
 
 ## 模块说明
-
 ### 🛠️ pangju-commons-lang (常用工具类模块)
-
 常用工具模块，提供基础的工具类集合。
 
 ````xml
@@ -592,7 +649,6 @@ mvn -pl pangju-commons-lang clean install
         - 支持金额的标准化展示和大写转换
 
 ### 🔒 pangju-commons-crypto (安全加密模块)
-
 加密工具模块，基于jasypt实现数据加密。
 
 ````xml
@@ -837,7 +893,6 @@ mvn -pl pangju-commons-lang clean install
         - 需要精确恢复的数值加密
 
 ### ✔️ pangju-commons-validation (校验模块)
-
 校验模块，基于jakarta.validation实现。
 
 ````xml
@@ -1499,6 +1554,18 @@ PDF模块，提供了对PDF文件各种操作
         - 调用方负责关闭返回的PDDocument对象
         - 大文件处理时注意磁盘空间和内存使用
 
-## 开源协议
+## 许可证
 
-本项目采用 Apache License 2.0 开源协议。
+本项目采用 Apache License 2.0 许可证 - 详情请参阅 [LICENSE](LICENSE) 文件。
+
+## 常见问题
+
+### 模块之间的依赖关系是怎样的？
+
+- 依赖所有其他模块 `pangju-common-all`
+- 其他模块可以单独使用，也可以组合使用
+- 仅提供依赖版本管理，不包含实际代码 `pangju-common-bom`
+
+## 致谢
+
+感谢所有为项目做出贡献的开发者，以及项目所使用的开源框架和工具。

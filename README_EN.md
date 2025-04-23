@@ -14,6 +14,8 @@
 </a>
 </p>
 
+##### The document is translated by Google. If there is any error, please contact me to modify it.
+
 # Pangju Commons Tool Library
 
 [[_TOC_]]
@@ -24,10 +26,36 @@ A collection of Java tool library extensions based on Apache Commons, jasypt, ti
 reflections and other well-known third-party libraries, providing commonly used tool classes in development.
 The project is designed in a modular manner, with each module focusing on a specific functional area.
 
+## Project structure
+
+The framework consists of the following core modules:
+
+- **pangju-framework-all**: A unified introduction point for aggregating all modules
+- **pangju-framework-bom**: Depend on version management module
+- **pangju-framework-compress**: file compression module, based on`Apache Commons Compress`Provides decompression and
+  compression operations for zip and 7z format compression package files
+- **pangju-framework-crypto**: Encryption algorithm module, based on`jasypt`accomplish`RSA`Methods such as data
+  encryption, signature, key management, filling algorithm interface and implementation
+- **pangju-framework-geo**: Geographic information module, encapsulating coordinate system conversion, analysis,
+  judgment and other methods
+- **pangju-framework-image**: Image processing module, based on`twelvemonkeys`Provides various operations such as image
+  type detection, type acquisition, width and height reading, exif direction reading, thumbnail generation, application
+  filters, etc.
+- **pangju-framework-imageio**: JAI plug-in module, providing various image types`Javax Image IO`Plugin
+- **pangju-framework-io**: IO module, based on`Apache Commons IO`Provides various operations such as file name, file, io
+  stream, file type judgment, etc.
+- **pangju-framework-lang**: Common tool module, based on`Apache Commons Lang3`、`Google Gson`、`reflections`、
+  `MongoDB Bson`、`hankcs hanlp`Provide various tools
+- **pangju-framework-pdf**: PDF module, based on`Apache Pdfbox`Provides various operations on PDF files
+- **pangju-framework-poi**: POI module, based on`Apache Poi`Provides various operations on excel and word files
+- **pangju-framework-validation**: Verification module, based on`jakarta-validation`、`hibernate-validator`Implemented,
+  providing a large number of verification annotations
+
 ## Start quickly
 
-Dependency management
+### Introduce dependencies
 
+Add the following dependency management configuration to your Maven project:
 ```xml
 <!-- BOM Dependency Management -->
 <dependencyManagement>
@@ -41,28 +69,67 @@ Dependency management
         </dependency>
     </dependencies>
 </dependencyManagement>
-
-        <!-- using individual modules -->
-<dependency>
-<groupId>io.github.pangju666</groupId>
-<artifactId>pangju-commons-lang</artifactId>
-</dependency>
 ```
 
-## Build Instructions
+### Add required modules
 
-```bash
-# build the whole project
-mvn clean install
+Add corresponding module dependencies according to your needs:
 
-# building individual modules
-mvn -pl pangju-commons-lang clean install
- ```
+``` xml
+<dependencies>
+    <!-- Introduce all modules -->
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-all</artifactId>
+        <version>最新版本</version>
+    </dependency>
+    
+    <!-- Or introduce specific modules as needed -->
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-compress</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-crypto</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-geo</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-image</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-imageio</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-io</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-lang</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-pdf</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-poi</artifactId>
+    </dependency>
+     <dependency>
+        <groupId>io.github.pangju666</groupId>
+        <artifactId>pangju-common-validation</artifactId>
+    </dependency>
+</dependencies>
+```
 
 ## Module Description
-
 ### 🛠️ pangju-commons-lang (common tool module)
-
 Common tool modules, providing basic tool class collections.
 
 ````xml
@@ -110,7 +177,7 @@ Common tool modules, providing basic tool class collections.
         - 100 million calls: 162.0% increase
         - 10 million calls: 40.0% increase
         - 1 million calls: 5.0% increase
-    - **How ​​to use**:
+  - **How to use**:
         - Directly call the static method SystemClock.now() to get the current time stamp
 
 
@@ -207,8 +274,8 @@ Common tool modules, providing basic tool class collections.
         - Provides thread-safe ID acquisition mechanism
     - **ID Structure**:
         - **Symbol bit (1 bit)**: Always 0, not used
-        - **Timestamp (41 bits)**: It can be used for about 69 years relative to the number of milliseconds of the start
-          time
+      - **Timestamp (41 bits)**: It can be used for about 69 years relative to the number of milliseconds of the start
+        time
         - **Data Center ID (5 bits)**: Supports 32 data centers
         - **Machine ID (5 bits)**: Each data center supports 32 machines
         - **Serial number (12 bits)**: 4096 IDs can be generated per millisecond
@@ -287,7 +354,7 @@ Common tool modules, providing basic tool class collections.
             - Method prefix (get/set)
             - CGLIB agent related identification
         - **XML related constants**:
-            - XML special character escape (, & etc.)
+            - XML special character escape (&nbsp;, &amp;...)
 
 
 - **RegExPool**: Regex Constant Pool
@@ -349,8 +416,8 @@ Common tool modules, providing basic tool class collections.
     - **Core Features**:
         - **Segmentation function**: Supports dividing arrays of various types into subarray lists of specified sizes
         - **Full types support**: Override boolean, byte, char, double, float, int, long, short and generic arrays
-        - **Border processing**: Automatically handles the situation where the last subarray may be smaller than the
-          specified size
+      - **Border processing**: Automatically handles the situation where the last subarray may be smaller than the
+        specified size
         - **Null value security**: Provides safe handling of empty arrays and illegal parameters
     - **Main Method**:
         - **partition(boolean[], int)**: Split boolean array
@@ -395,10 +462,10 @@ Common tool modules, providing basic tool class collections.
         - **Date parsing**: Supports parsing strings into Date objects in multiple formats
         - **Type conversion**: Supports Date, LocalDate, LocalDateTime, timestamp and other types of conversion
         - **Default value mechanism**: All methods support null value safe processing and default values
-        - **Time difference calculation**: Provides time difference calculation for various particle sizes such as
-          milliseconds, seconds, minutes, hours, and days.
-        - **Truncated calculation**: Supports truncated difference calculation for fields such as year, month, day,
-          hour, minute, and seconds.
+      - **Time difference calculation**: Provides time difference calculation for various particle sizes such as
+        milliseconds, seconds, minutes, hours, and days.
+      - **Truncated calculation**: Supports truncated difference calculation for fields such as year, month, day, hour,
+        minute, and seconds.
     - **Main Method Classification**:
         - **Analysis method**: parseDate, parseDateOrDefault, etc.
         - **Conversion method**: toDate, toLocalDate, toLocalDateTime, getTime, etc.
@@ -415,14 +482,14 @@ Common tool modules, providing basic tool class collections.
     - **Core Features**:
         - **Dissile ID number**: ID card, officer certificate, passport and other ID number desensitization
         - **Contact information desensitization**: Desensitization of mobile phone number, landline phone, email address
-        - **Personal information desensitization**: Desensitization of personal information such as name, address,
-          nickname, etc.
-        - **Vehicle information desensitization**: Vehicle information desensitization such as license plate number,
-          engine number, frame number, etc.
-        - **Financial information desensitization**: Bank card number, password and other financial information
-          desensitization
-        - **Medical Insurance Social Security Desensitization**: Social Security Card Number, Medical Insurance Card
-          Number and other information desensitization
+      - **Personal information desensitization**: Desensitization of personal information such as name, address,
+        nickname, etc.
+      - **Vehicle information desensitization**: Vehicle information desensitization such as license plate number,
+        engine number, frame number, etc.
+      - **Financial information desensitization**: Bank card number, password and other financial information
+        desensitization
+      - **Medical Insurance Social Security Desensitization**: Social Security Card Number, Medical Insurance Card
+        Number and other information desensitization
     - **Desensitization strategy**:
         - **Left reserve***: Reserve the number of digits on the left side of the string, and fill it with an asterisk
           on the right side.
@@ -486,7 +553,7 @@ Common tool modules, providing basic tool class collections.
         - **Type Adapter**: Built-in serialization/deserialization support for Date, LocalDate, LocalDateTime,
           BigDecimal and other types
         - **Generic support**: Completely support serialization and deserialization of generic types
-        - **Null value safety**: All methods safely handle null values to avoid NullPointerException
+        - **Null value safety**: All methods safely handle null values ​​to avoid NullPointerException
         - **Custom Gson**: Supports operation using custom Gson instances
     - **Main Method Classification**:
         - **String operation**: fromString/toString series methods, handle the conversion of JSON strings and Java
@@ -501,8 +568,7 @@ Common tool modules, providing basic tool class collections.
 - **ReflectionUtils**: Reflection operation tool class
     - **Function**:
         - Inherit and extend the functionality of org.reflections.ReflectionUtils
-        - Provide reflection-related operations such as field access, method processing, and class information
-          acquisition
+      - Provide reflection-related operations such as field access, method processing, and class information acquisition
         - Supports secure access to private fields and methods
     - **Core Features**:
         - **Field operation**: Get/set object field values, support private field access
@@ -606,15 +672,14 @@ Common tool modules, providing basic tool class collections.
         conversion
 
 
-- **MoneyUtils**: money utilities class
-    - **Functions**:
-        - Amount formatting (support for thousands of separators, retain 2 decimal places)
-        - Amount to Chinese uppercase (support to billion level, including negative number processing)
-        - Support Double and BigDecimal type of amount processing.
-        - Support for standardized display and upper case conversion of amounts
+- **MoneyUtils**: Amount tool class
+    - **Function**:
+        - Amount formatting (supports thousands separators, retaining 2 decimal places)
+        - Amount to Chinese capitalization (supported to 100 million levels, including negative number processing)
+        - Supports Double and BigDecimal types of amount processing
+        - Supports standardized display and capital conversion of amounts
 
 ### 🔒 pangju-commons-crypto (secure encryption module)
-
 Encryption tool module, implements data encryption based on jasypt.
 
 ````xml
@@ -860,7 +925,6 @@ Encryption tool module, implements data encryption based on jasypt.
         - Numerical encryption that requires precise recovery
 
 ### ✔️ pangju-commons-validation (check module)
-
 Verification module, implemented based on jakarta.validation.
 
 ````xml
@@ -948,8 +1012,8 @@ The geographic information module encapsulates coordinate conversion, analysis, 
             - CHINA_MIN_LATITUDE: The latitude of Zeng Mu's dark sand in the southernmost part of China (0.8293°)
             - CHINA_MAX_LATITUDE: The latitude of Mohe, the northernmost part of China (55.8271°)
             - CHINA_MIN_LONGITUDE: Longitude of the Pamir Plateau in the westernmost part of China (72.004°)
-            - CHINA_MAX_LONGITUDE: Longitude at the intersection of Heilongjiang and Ussuri River at the easternmost end
-              of China (137.8347°)
+          - CHINA_MAX_LONGITUDE: Longitude at the intersection of Heilongjiang and Ussuri River at the easternmost end
+            of China (137.8347°)
 
 
 - **Coordinate**: Geographic coordinate model class
@@ -1013,8 +1077,8 @@ IO module provides various operations such as file name, file, io stream, file t
         - File classification system based on MIME type
         - Supports two matching modes:
             - Prefix matching: match a certain type of file through typePrefix (such as "image/" to match all images)
-            - Exact match: match specific file types through type collections (such as various specific formats of
-              compressed packages)
+          - Exact match: match specific file types through type collections (such as various specific formats of
+            compressed packages)
         - Predefined 7 common file types:
             - IMAGE: Image type (JPEG, PNG, GIF, WEBP, etc.)
             - TEXT: Text type (TXT, CSV, HTML, XML, etc.)
@@ -1052,8 +1116,7 @@ IO module provides various operations such as file name, file, io stream, file t
         - Supports multiple file types to judge (picture/text/video/audio/application, etc.)
         - Exactly distinguish directory paths from file paths
         - Supports multi-MIME type set matching verification
-        - Provide file name reconstruction function (full name replacement, base name replacement, extension
-          replacement)
+      - Provide file name reconstruction function (full name replacement, base name replacement, extension replacement)
     - **Core Method**:
         - **MIME type detection**:
             - getMimeType(): Get the MIME type of the file
@@ -1532,6 +1595,19 @@ PDF module, providing various operations on PDF files
         - The caller is responsible for closing the returned PDDocument object
         - Pay attention to disk space and memory usage when processing large files
 
-## Open Source Protocol
+## license
 
-This project adopts the Apache License 2.0 open source protocol.
+This project is licensed under the Apache License 2.0 - please see[LICENSE](LICENSE)document.
+
+## Frequently Asked Questions
+
+### What are the dependencies between modules?
+
+- Rely on all other modules`pangju-common-all`
+- Other modules can be used individually or in combination
+- Only provide dependency version management, does not include actual code`pangju-common-bom`
+
+## Acknowledgements
+
+Thanks to all the developers who contributed to the project, as well as the open source frameworks and tools used by the
+project.
