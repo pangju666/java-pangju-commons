@@ -90,50 +90,6 @@ public class Constants {
 	 */
 	public static final String UNDERLINE = "_";
 
-	// 网络相关常量
-	/**
-	 * http协议前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String HTTP_PREFIX = "http://";
-	/**
-	 * https协议前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String HTTPS_PREFIX = "https://";
-	/**
-	 * http 200 状态码
-	 *
-	 * @since 1.0.0
-	 */
-	public static final Integer HTTP_SUCCESS_STATUS = 200;
-	/**
-	 * http路径分隔符
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String HTTP_PATH_SEPARATOR = "/";
-	/**
-	 * Token前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String TOKEN_PREFIX = "Bearer ";
-	/**
-	 * 本地Ipv4地址
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String LOCALHOST_IPV4_ADDRESS = "127.0.0.1";
-	/**
-	 * 本地Ipv6地址
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String LOCALHOST_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
-
 	// json 相关常量
 	/**
 	 * 空json对象
@@ -147,40 +103,6 @@ public class Constants {
 	 * @since 1.0.0
 	 */
 	public static final String EMPTY_JSON_ARRAY_STR = "[]";
-
-	// 文件相关常量
-	/**
-	 * 任意文件类型
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String ANY_MIME_TYPE = "*/*";
-
-	// 反射相关常量
-	/**
-	 * set方法前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String SETTER_PREFIX = "set";
-	/**
-	 * get方法前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String GETTER_PREFIX = "get";
-	/**
-	 * cglib代理类前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String CGLIB_CLASS_SEPARATOR = "$$";
-	/**
-	 * cglib代理类方法前缀
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
 
 	// XML相关常量
 	/**

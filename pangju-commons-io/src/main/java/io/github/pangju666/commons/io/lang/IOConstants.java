@@ -28,6 +28,12 @@ import java.util.Objects;
  */
 public class IOConstants {
 	/**
+	 * 任意文件类型
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String ANY_MIME_TYPE = "*/*";
+	/**
 	 * 图片类型MIME前缀（如："image/png"）
 	 *
 	 * @since 1.0.0
