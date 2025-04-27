@@ -1,17 +1,17 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ *   Copyright 2025 pangju666
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package io.github.pangju666.commons.lang.model;
@@ -20,7 +20,6 @@ import io.github.pangju666.commons.lang.enums.DataUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -186,7 +185,7 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 	 * @param defaultUnit the default {@code DataUnit} to use
 	 * @return the parsed {@code DataSize}
 	 */
-	public static DataSize parse(CharSequence text, @Nullable DataUnit defaultUnit) {
+	public static DataSize parse(CharSequence text, DataUnit defaultUnit) {
 		Validate.notNull(text, "text不可为null");
 		try {
 			CharSequence trimmedText = text.toString().trim();
@@ -266,7 +265,7 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
 		}
@@ -295,7 +294,7 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 		 */
 		private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
 
-		private static DataUnit determineDataUnit(String suffix, @Nullable DataUnit defaultUnit) {
+		private static DataUnit determineDataUnit(String suffix, DataUnit defaultUnit) {
 			DataUnit defaultUnitToUse = (defaultUnit != null ? defaultUnit : DataUnit.BYTES);
 			return (StringUtils.isNotEmpty(suffix) ? DataUnit.fromSuffix(suffix) : defaultUnitToUse);
 		}

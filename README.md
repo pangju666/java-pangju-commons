@@ -535,25 +535,6 @@
         - **GsonBuilder**: 提供createGsonBuilder方法创建预配置的GsonBuilder
 
 
-- **ReflectionUtils**: 反射操作工具类
-    - **功能**：
-        - 继承并扩展了org.reflections.ReflectionUtils的功能
-        - 提供字段访问、方法处理、类信息获取等反射相关操作
-        - 支持对私有字段和方法的安全访问
-    - **核心特性**：
-        - **字段操作**: 获取/设置对象字段值，支持私有字段访问
-        - **类型信息**: 获取类名、泛型类型参数等类型信息
-        - **代理处理**: 识别和处理CGLIB代理类
-        - **方法识别**: 判断常见方法类型(equals/hashCode/toString等)
-        - **访问控制**: 提供字段和方法的访问权限控制
-    - **主要方法分类**：
-        - **字段访问**: getFieldValue/setFieldValue系列方法
-        - **类型信息**: getClassName/getClassGenericType系列方法
-        - **代理处理**: getUserClass/isCglibRenamedMethod等方法
-        - **方法判断**: isEqualsMethod/isHashCodeMethod/isToStringMethod等
-        - **访问控制**: isAccessible/makeAccessible系列方法
-
-
 - **RegExUtils**: 正则表达式工具类
     - **功能**：
         - 继承并扩展了Apache Commons Lang的RegExUtils功能
