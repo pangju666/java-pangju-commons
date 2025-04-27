@@ -34,7 +34,7 @@ public class IOConstants {
 	 */
 	public static final String ANY_MIME_TYPE = "*/*";
 	/**
-	 * 图片类型MIME前缀（如："image/png"）
+	 * 图像类型MIME前缀（如："image/png"）
 	 *
 	 * @since 1.0.0
 	 */
@@ -52,7 +52,7 @@ public class IOConstants {
 	 */
 	public static final String AUDIO_MIME_TYPE_PREFIX = "audio/";
 	/**
-	 * 文本类型MIME前缀（如："mode/obj"）
+	 * 模型类型MIME前缀（如："mode/obj"）
 	 *
 	 * @since 1.0.0
 	 */
