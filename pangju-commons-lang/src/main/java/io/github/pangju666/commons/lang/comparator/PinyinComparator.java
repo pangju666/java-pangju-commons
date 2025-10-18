@@ -41,6 +41,10 @@ import java.util.Objects;
  * 排序后：[null, "", " ", "天气如何"]
  * </pre>
  *
+ * <p>
+ *   也可以使用 {@code Collator.getInstance(Locale.CHINA)} 代替
+ * </p>
+ *
  * @author pangju666
  * @see com.hankcs.hanlp.HanLP#convertToPinyinString
  * @since 1.0.0
