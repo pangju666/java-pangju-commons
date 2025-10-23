@@ -1693,9 +1693,9 @@ public class ThumbnailUtils {
 	protected static BufferedImage resample(final BufferedImage inputImage, final ImageSize outputImageSize,
 											final String outputFormat, final int filterType) {
 		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat.toLowerCase())) {
-			BufferedImage outputImage = new BufferedImage(outputImageSize.width(), outputImageSize.height(),
+			BufferedImage outputImage = new BufferedImage(outputImageSize.getWidth(), outputImageSize.getHeight(),
 				BufferedImage.TYPE_INT_RGB);
-			ResampleOp resampleOp = new ResampleOp(outputImageSize.width(), outputImageSize.height(), filterType);
+			ResampleOp resampleOp = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), filterType);
 			resampleOp.filter(inputImage, outputImage);
 			return outputImage;
 		} else {
@@ -1727,7 +1727,7 @@ public class ThumbnailUtils {
 	 */
 	protected static BufferedImage resample(final BufferedImage inputImage, final ImageSize outputImageSize,
 											final int filterType) {
-		ResampleOp resampleOp = new ResampleOp(outputImageSize.width(), outputImageSize.height(), filterType);
+		ResampleOp resampleOp = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), filterType);
 		return resampleOp.filter(inputImage, null);
 	}
 }

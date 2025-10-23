@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * 树形结构构建工具类，提供将扁平数据转换为树形结构的能力
@@ -52,7 +53,7 @@ public class TreeUtils {
 		}
 		List<T> treeNodes = collection.stream()
 			.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
-			.toList();
+			.collect(Collectors.toList());
 		setChildNodes(collection, treeNodes, null);
 		return treeNodes;
 	}
@@ -76,7 +77,7 @@ public class TreeUtils {
 		}
 		List<T> treeNodes = collection.stream()
 			.filter(node -> Objects.equals(node.getParentNodeKey(), rootNodeKey))
-			.toList();
+			.collect(Collectors.toList());
 		setChildNodes(collection, treeNodes, convertFunc);
 		return treeNodes;
 	}
@@ -98,7 +99,7 @@ public class TreeUtils {
 			parentNodes.forEach(parentNode -> {
 				List<T> childNodes = collection.stream()
 					.filter(node -> Objects.equals(node.getParentNodeKey(), parentNode.getNodeKey()))
-					.toList();
+					.collect(Collectors.toList());
 				parentNode.setChildNodes(childNodes);
 				if (Objects.nonNull(convertFunc)) {
 					convertFunc.accept(parentNode);

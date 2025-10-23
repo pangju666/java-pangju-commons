@@ -304,12 +304,9 @@ public class ImageUtils {
 		}
 
 		Validate.notBlank(mimeType, "mimeType 不可为空");
-		if (inputStream instanceof BufferedInputStream bufferedInputStream) {
-			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
-				return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
-			}
-		} else if (inputStream instanceof UnsynchronizedBufferedInputStream bufferedInputStream) {
-			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+		if (inputStream instanceof BufferedInputStream ||
+			inputStream instanceof UnsynchronizedBufferedInputStream) {
+			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 				return ArrayUtils.contains(parseMimeTypes(imageInputStream), mimeType);
 			}
 		} else {
@@ -439,12 +436,9 @@ public class ImageUtils {
 	public static String getMimeType(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "imageInputStream 不可为 null");
 
-		if (inputStream instanceof BufferedInputStream bufferedInputStream) {
-			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
-				return getMimeType(imageInputStream);
-			}
-		} else if (inputStream instanceof UnsynchronizedBufferedInputStream bufferedInputStream) {
-			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bufferedInputStream)) {
+		if (inputStream instanceof BufferedInputStream ||
+			inputStream instanceof UnsynchronizedBufferedInputStream) {
+			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 				return getMimeType(imageInputStream);
 			}
 		} else {
@@ -842,8 +836,9 @@ public class ImageUtils {
 		Integer imageWidth = null;
 		Integer imageHeight = null;
 		int imageOrientation = NORMAL_ORIENTATION;
-		for (ExifDirectoryBase exifDirectory : exifDirectories) {
-			if (exifDirectory instanceof ExifIFD0Directory exifIFD0Directory) {
+		for (ExifDirectoryBase exifDirectoryBase : exifDirectories) {
+			if (exifDirectoryBase instanceof ExifIFD0Directory) {
+				ExifIFD0Directory exifIFD0Directory = (ExifIFD0Directory) exifDirectoryBase;
 				if (exifIFD0Directory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH)) {
 					Integer width = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
 					if (Objects.nonNull(width)) {
@@ -857,7 +852,7 @@ public class ImageUtils {
 					}
 				}
 			}
-			Integer orientation = exifDirectory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
+			Integer orientation = exifDirectoryBase.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
 			if (Objects.nonNull(orientation)) {
 				imageOrientation = orientation;
 			}

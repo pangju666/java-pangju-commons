@@ -296,17 +296,23 @@ public final class RSAByteDigester implements ByteDigester {
 	public synchronized void initialize() {
 		if (!initialized) {
 			try {
-				if (Objects.nonNull(key.publicKey())) {
-					PublicKey publicKey = key.publicKey();
+				if (Objects.nonNull(key.getPublicKey())) {
+					PublicKey publicKey = key.getPublicKey();
 					this.verifySignature = Signature.getInstance(this.algorithm);
 					this.verifySignature.initVerify(publicKey);
+					if (Objects.nonNull(key.getPrivateKey())) {
+						PrivateKey privateKey = key.getPrivateKey();
+						this.signature = Signature.getInstance(this.algorithm);
+						this.signature.initSign(privateKey);
+					}
+				} else {
+					if (Objects.nonNull(key.getPrivateKey())) {
+						PrivateKey privateKey = key.getPrivateKey();
+						this.signature = Signature.getInstance(this.algorithm);
+						this.signature.initSign(privateKey);
+					}
 				}
 
-				if (Objects.nonNull(key.privateKey())) {
-					PrivateKey privateKey = key.privateKey();
-					this.signature = Signature.getInstance(this.algorithm);
-					this.signature.initSign(privateKey);
-				}
 			} catch (NoSuchAlgorithmException | InvalidKeyException e) {
 				throw new EncryptionInitializationException(e);
 			}
@@ -343,7 +349,7 @@ public final class RSAByteDigester implements ByteDigester {
 		if (ArrayUtils.isEmpty(message)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(key.privateKey())) {
+		if (Objects.isNull(key.getPrivateKey())) {
 			throw new EncryptionInitializationException("未设置私钥");
 		}
 		if (!initialized) {
@@ -390,7 +396,7 @@ public final class RSAByteDigester implements ByteDigester {
 			return false;
 		}
 
-		if (Objects.isNull(key.publicKey())) {
+		if (Objects.isNull(key.getPublicKey())) {
 			throw new EncryptionInitializationException("未设置公钥");
 		}
 		if (!initialized) {

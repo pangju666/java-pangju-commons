@@ -30,7 +30,9 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
@@ -43,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * PDF文档高级操作工具类
@@ -198,7 +201,7 @@ public class PDDocumentUtils {
 	 *
 	 * @param file 待验证的文件对象，不可为null
 	 * @return 如果是有效的PDF文档返回true，否则返回false
-	 * @throws IOException 当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file参数为null时抛出
 	 * @see PdfConstants#PDF_MIME_TYPE
 	 * @see FileUtils#isMimeType(File, String)
@@ -236,7 +239,7 @@ public class PDDocumentUtils {
 	 *
 	 * @param inputStream 待验证的输入流，不可为null
 	 * @return 如果是有效的PDF文档返回true，否则返回false
-	 * @throws IOException 当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当inputStream参数为null时抛出
 	 * @see PdfConstants#PDF_MIME_TYPE
 	 * @see IOConstants#getDefaultTika()
@@ -293,9 +296,9 @@ public class PDDocumentUtils {
 	 *
 	 * @param file 要加载的PDF文件，不可为null
 	 * @return 加载成功的PDDocument实例，不会返回null
-	 * @throws FileNotFoundException 当文件不存在或不可读时抛出
+	 * @throws FileNotFoundException    当文件不存在或不可读时抛出
 	 * @throws IllegalArgumentException 当文件不是有效的PDF文档时抛出
-	 * @throws IOException 当文件读取失败或PDF解析错误时抛出
+	 * @throws IOException              当文件读取失败或PDF解析错误时抛出
 	 * @see #computeMemoryUsageSetting(long)
 	 * @see Loader#loadPDF(File)
 	 * @since 1.0.0
@@ -322,12 +325,12 @@ public class PDDocumentUtils {
 	 * 注意：调用方负责关闭返回的PDDocument对象。
 	 * </p>
 	 *
-	 * @param file 要加载的加密PDF文件，不可为null
+	 * @param file     要加载的加密PDF文件，不可为null
 	 * @param password 文档解密密码，不可为null或空字符串
 	 * @return 解密并加载成功的PDDocument实例，不会返回null
-	 * @throws FileNotFoundException 当文件不存在或不可读时抛出
+	 * @throws FileNotFoundException    当文件不存在或不可读时抛出
 	 * @throws IllegalArgumentException 当文件不是有效的PDF文档或密码无效时抛出
-	 * @throws IOException 当文件读取失败、PDF解析错误或密码错误时抛出
+	 * @throws IOException              当文件读取失败、PDF解析错误或密码错误时抛出
 	 * @see #computeMemoryUsageSetting(long)
 	 * @see Loader#loadPDF(File, String)
 	 * @since 1.0.0
@@ -354,8 +357,8 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document 目标PDF文档对象，不可为null
-	 * @param bytes 图像字节数组，不可为null或空
-	 * @throws IOException 当图像处理失败或格式不支持时抛出
+	 * @param bytes    图像字节数组，不可为null或空
+	 * @throws IOException              当图像处理失败或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document为null或bytes为空时抛出
 	 * @see #addImage(PDDocument, byte[], int)
 	 * @since 1.0.0
@@ -379,12 +382,12 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document 目标PDF文档对象，不可为null
-	 * @param bytes 图像字节数组，不可为null或空
-	 * @param x 图像左下角x坐标(点)
-	 * @param y 图像左下角y坐标(点)
-	 * @param width 绘制宽度(点)
-	 * @param height 绘制高度(点)
-	 * @throws IOException 当图像处理失败或格式不支持时抛出
+	 * @param bytes    图像字节数组，不可为null或空
+	 * @param x        图像左下角x坐标(点)
+	 * @param y        图像左下角y坐标(点)
+	 * @param width    绘制宽度(点)
+	 * @param height   绘制高度(点)
+	 * @throws IOException              当图像处理失败或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document为null或bytes为空时抛出
 	 * @see #addImage(PDDocument, byte[], int, int, int, int, int)
 	 * @since 1.0.0
@@ -410,9 +413,9 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document 目标PDF文档对象，不可为null
-	 * @param bytes 图像字节数组，不可为null或空
-	 * @param page 目标页码(从1开始)
-	 * @throws IOException 当图像处理失败或格式不支持时抛出
+	 * @param bytes    图像字节数组，不可为null或空
+	 * @param page     目标页码(从1开始)
+	 * @throws IOException              当图像处理失败或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document为null、bytes为空或页码无效时抛出
 	 * @see #addImageToDocument(PDDocument, PDImageXObject, int, int, int, int, int)
 	 * @since 1.0.0
@@ -443,13 +446,13 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document 目标PDF文档对象，不可为null
-	 * @param bytes 图像字节数组，不可为null或空
-	 * @param page 目标页码(从1开始)
-	 * @param x 图像左下角x坐标(点)
-	 * @param y 图像左下角y坐标(点)
-	 * @param width 绘制宽度(点)
-	 * @param height 绘制高度(点)
-	 * @throws IOException 当图像处理失败或格式不支持时抛出
+	 * @param bytes    图像字节数组，不可为null或空
+	 * @param page     目标页码(从1开始)
+	 * @param x        图像左下角x坐标(点)
+	 * @param y        图像左下角y坐标(点)
+	 * @param width    绘制宽度(点)
+	 * @param height   绘制高度(点)
+	 * @throws IOException              当图像处理失败或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document为null、bytes为空或页码无效时抛出
 	 * @see #addImageToDocument(PDDocument, PDImageXObject, int, int, int, int, int)
 	 * @since 1.0.0
@@ -475,9 +478,9 @@ public class PDDocumentUtils {
 	 * 支持常见图像格式：JPEG, PNG, BMP, GIF等。
 	 * </p>
 	 *
-	 * @param document 目标PDF文档对象，不可为null
+	 * @param document  目标PDF文档对象，不可为null
 	 * @param imageFile 图像文件对象，不可为null且必须存在
-	 * @throws IOException 当图像处理失败、文件不存在或格式不支持时抛出
+	 * @throws IOException              当图像处理失败、文件不存在或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document或imageFile为null时抛出
 	 * @see #addImage(PDDocument, File, int)
 	 * @since 1.0.0
@@ -500,13 +503,13 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document 目标PDF文档对象，不可为null
+	 * @param document  目标PDF文档对象，不可为null
 	 * @param imageFile 图像文件对象，不可为null且必须存在
-	 * @param x 图像左下角x坐标(点)
-	 * @param y 图像左下角y坐标(点)
-	 * @param width 绘制宽度(点)
-	 * @param height 绘制高度(点)
-	 * @throws IOException 当图像处理失败、文件不存在或格式不支持时抛出
+	 * @param x         图像左下角x坐标(点)
+	 * @param y         图像左下角y坐标(点)
+	 * @param width     绘制宽度(点)
+	 * @param height    绘制高度(点)
+	 * @throws IOException              当图像处理失败、文件不存在或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document或imageFile为null时抛出
 	 * @see #addImage(PDDocument, File, int, int, int, int, int)
 	 * @since 1.0.0
@@ -531,10 +534,10 @@ public class PDDocumentUtils {
 	 * 支持常见图像格式：JPEG, PNG, BMP, GIF等。
 	 * </p>
 	 *
-	 * @param document 目标PDF文档对象，不可为null
+	 * @param document  目标PDF文档对象，不可为null
 	 * @param imageFile 图像文件对象，不可为null且必须存在
-	 * @param page 目标页码(从1开始)
-	 * @throws IOException 当图像处理失败、文件不存在或格式不支持时抛出
+	 * @param page      目标页码(从1开始)
+	 * @throws IOException              当图像处理失败、文件不存在或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document或imageFile为null，或页码无效时抛出
 	 * @see #addImageToDocument(PDDocument, PDImageXObject, int, int, int, int, int)
 	 * @since 1.0.0
@@ -564,14 +567,14 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document 目标PDF文档对象，不可为null
+	 * @param document  目标PDF文档对象，不可为null
 	 * @param imageFile 图像文件对象，不可为null且必须存在
-	 * @param page 目标页码(从1开始)
-	 * @param x 图像左下角x坐标(点)
-	 * @param y 图像左下角y坐标(点)
-	 * @param width 绘制宽度(点)
-	 * @param height 绘制高度(点)
-	 * @throws IOException 当图像处理失败、文件不存在或格式不支持时抛出
+	 * @param page      目标页码(从1开始)
+	 * @param x         图像左下角x坐标(点)
+	 * @param y         图像左下角y坐标(点)
+	 * @param width     绘制宽度(点)
+	 * @param height    绘制高度(点)
+	 * @throws IOException              当图像处理失败、文件不存在或格式不支持时抛出
 	 * @throws IllegalArgumentException 当document或imageFile为null，或页码无效时抛出
 	 * @see #addImageToDocument(PDDocument, PDImageXObject, int, int, int, int, int)
 	 * @since 1.0.0
@@ -597,7 +600,7 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param pages 要获取的页码集合(从1开始)
+	 * @param pages    要获取的页码集合(从1开始)
 	 * @return 包含指定页面图像的列表，不会返回null
 	 * @throws IOException 当页面渲染失败时抛出
 	 * @see #getPagesAsImage(PDDocument, int, Collection)
@@ -626,16 +629,16 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param scale 图像缩放比例，必须大于0
-	 * @param pages 要获取的页码集合(从1开始)，允许为null或空，则返回空列表
+	 * @param scale    图像缩放比例，必须大于0
+	 * @param pages    要获取的页码集合(从1开始)，允许为null或空，则返回空列表
 	 * @return 包含指定页面图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当scale小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument, Collection)
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale,
-													final Collection<Integer> pages) throws IOException {
+													  final Collection<Integer> pages) throws IOException {
 		Validate.isTrue(scale > 0, "dpi 不可为小于等于0");
 		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
 			return Collections.emptyList();
@@ -670,17 +673,17 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param dpi 图像DPI值，必须大于0
-	 * @param pages 要获取的页码集合(从1开始)，允许为null或空，则返回空列表
+	 * @param dpi      图像DPI值，必须大于0
+	 * @param pages    要获取的页码集合(从1开始)，允许为null或空，则返回空列表
 	 * @return 包含指定页面图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当dpi小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument, Collection)
 	 * @see #getPagesAsImage(PDDocument, int, Collection)
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
-													final Collection<Integer> pages) throws IOException {
+															 final Collection<Integer> pages) throws IOException {
 		Validate.isTrue(dpi > 0, "dpi 不可为小于等于0");
 		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
 			return Collections.emptyList();
@@ -708,11 +711,11 @@ public class PDDocumentUtils {
 	 * 注意：页码从1开始，结束页码必须大于等于起始页码。
 	 * </p>
 	 *
-	 * @param document PDF文档对象，允许为null，null则返回空列表
+	 * @param document  PDF文档对象，允许为null，null则返回空列表
 	 * @param startPage 起始页码(从1开始)
-	 * @param endPage 结束页码(从1开始)
+	 * @param endPage   结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当页码无效时抛出
 	 * @see #getPagesAsImage(PDDocument, int, int, int)
 	 * @since 1.0.0
@@ -738,12 +741,12 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param scale 图像缩放比例，必须大于0
+	 * @param document  PDF文档对象，允许为null，null则返回空列表
+	 * @param scale     图像缩放比例，必须大于0
 	 * @param startPage 起始页码(从1开始)
-	 * @param endPage 结束页码(从1开始)
+	 * @param endPage   结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当scale小于等于0或页码无效时抛出
 	 * @see #getPagesAsImage(PDDocument, int, int)
 	 * @since 1.0.0
@@ -789,19 +792,19 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param dpi 图像DPI值，必须大于0
+	 * @param document  PDF文档对象，允许为null，null则返回空列表
+	 * @param dpi       图像DPI值，必须大于0
 	 * @param startPage 起始页码(从1开始)
-	 * @param endPage 结束页码(从1开始)
+	 * @param endPage   结束页码(从1开始)
 	 * @return 包含指定页面范围图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当dpi小于等于0或页码无效时抛出
 	 * @see #getPagesAsImageWithDPI(PDDocument, float, Collection)
 	 * @see #getPagesAsImage(PDDocument, int, int)
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
-													final int startPage, final int endPage) throws IOException {
+															 final int startPage, final int endPage) throws IOException {
 		if (Objects.isNull(document)) {
 			return Collections.emptyList();
 		}
@@ -859,9 +862,9 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param scale 图像缩放比例，必须大于0
+	 * @param scale    图像缩放比例，必须大于0
 	 * @return 包含所有页面图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当scale小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument)
 	 * @since 1.0.0
@@ -899,9 +902,9 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，允许为null，null则返回空列表
-	 * @param dpi 图像DPI值，必须大于0
+	 * @param dpi      图像DPI值，必须大于0
 	 * @return 包含所有页面图像的列表，不会返回null
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当dpi小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument)
 	 * @see #getPagesAsImage(PDDocument, int)
@@ -934,9 +937,9 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，不允许为null
-	 * @param page 页码(从1开始)，必须大于0
+	 * @param page     页码(从1开始)，必须大于0
 	 * @return 指定页面的图像
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当document为null或页码无效时抛出
 	 * @see #getPageAsImage(PDDocument, int, int)
 	 * @since 1.0.0
@@ -966,10 +969,10 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，不允许为null
-	 * @param page 页码(从1开始)，必须大于0
-	 * @param scale 图像缩放比例，必须大于0
+	 * @param page     页码(从1开始)，必须大于0
+	 * @param scale    图像缩放比例，必须大于0
 	 * @return 指定页面的图像
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当document为null或页码无效或scale小于等于0时抛出
 	 * @see #getPageAsImage(PDDocument, int)
 	 * @since 1.0.0
@@ -1005,10 +1008,10 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，不允许为null
-	 * @param page 页码(从1开始)，必须大于0
-	 * @param dpi 图像DPI值，必须大于0
+	 * @param page     页码(从1开始)，必须大于0
+	 * @param dpi      图像DPI值，必须大于0
 	 * @return 指定页面的图像
-	 * @throws IOException 当页面渲染失败时抛出
+	 * @throws IOException              当页面渲染失败时抛出
 	 * @throws IllegalArgumentException 当document为null或页码无效或dpi小于等于0时抛出
 	 * @see #getPageAsImage(PDDocument, int)
 	 * @see #getPageAsImage(PDDocument, int, int)
@@ -1040,10 +1043,10 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param documents 要合并的PDF文档集合，不允许为null或空
+	 * @param documents          要合并的PDF文档集合，不允许为null或空
 	 * @param memoryUsageSetting 内存使用策略，不允许为null
 	 * @return 合并后的PDDocument对象
-	 * @throws IOException 当合并操作失败时抛出
+	 * @throws IOException              当合并操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为null或documents为空时抛出
 	 * @see MemoryUsageSetting
 	 * @since 1.0.0
@@ -1077,10 +1080,10 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document 要拆分的PDF文档，允许为null，null则返回空列表
+	 * @param document  要拆分的PDF文档，允许为null，null则返回空列表
 	 * @param splitPage 每n页拆分一次，必须大于0
 	 * @return 拆分后的文档列表，不会返回null
-	 * @throws IOException 当拆分操作失败时抛出
+	 * @throws IOException              当拆分操作失败时抛出
 	 * @throws IllegalArgumentException 当splitPage小于等于0时抛出
 	 * @see #copy(PDDocument, int, int)
 	 * @since 1.0.0
@@ -1114,7 +1117,7 @@ public class PDDocumentUtils {
 	 *
 	 * @param document 源PDF文档对象，不允许为null
 	 * @return 包含所有页面的新文档对象
-	 * @throws IOException 当复制操作失败时抛出
+	 * @throws IOException              当复制操作失败时抛出
 	 * @throws IllegalArgumentException 当document为null时抛出
 	 * @see #copy(PDDocument, int, int)
 	 * @since 1.0.0
@@ -1143,11 +1146,11 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document 源PDF文档对象，不允许为null
+	 * @param document  源PDF文档对象，不允许为null
 	 * @param startPage 起始页码(从1开始)，必须大于0
-	 * @param endPage 结束页码(从1开始)，必须大于等于起始页码
+	 * @param endPage   结束页码(从1开始)，必须大于等于起始页码
 	 * @return 包含指定页面范围的新文档对象
-	 * @throws IOException 当复制操作失败时抛出
+	 * @throws IOException              当复制操作失败时抛出
 	 * @throws IllegalArgumentException 当document为null或页码无效时抛出
 	 * @see #copy(PDDocument)
 	 * @see #copy(PDDocument, Collection)
@@ -1185,9 +1188,9 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document 源PDF文档对象，不允许为null
-	 * @param pages 要复制的页码集合(从1开始)，允许为null或空，null/空则返回空文档
+	 * @param pages    要复制的页码集合(从1开始)，允许为null或空，null/空则返回空文档
 	 * @return 包含指定页面的新文档对象
-	 * @throws IOException 当复制操作失败时抛出
+	 * @throws IOException              当复制操作失败时抛出
 	 * @throws IllegalArgumentException 当document为null时抛出
 	 * @see #copy(PDDocument)
 	 * @see #copy(PDDocument, int, int)
@@ -1264,10 +1267,10 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param parentId 父书签节点ID，顶层书签时为null
-	 * @param node 当前要解析的大纲节点，不允许为null
+	 * @param parentId  父书签节点ID，顶层书签时为null
+	 * @param node      当前要解析的大纲节点，不允许为null
 	 * @param bookmarks 要填充的书签集合，不允许为null
-	 * @throws IOException 当解析大纲结构失败时抛出
+	 * @throws IOException              当解析大纲结构失败时抛出
 	 * @throws IllegalArgumentException 当node或bookmarks为null时抛出
 	 * @see Bookmark
 	 * @see #getPageIndex(PDOutlineItem)
@@ -1310,11 +1313,16 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	protected static int getPageIndex(final PDOutlineItem item) throws IOException {
-		if (item.getDestination() instanceof PDPageDestination destination) {
-			return destination.retrievePageNumber();
-		} else if (item.getAction() instanceof PDActionGoTo action) {
-			if (action.getDestination() instanceof PDPageDestination destination) {
-				return destination.retrievePageNumber();
+		PDDestination destination = item.getDestination();
+		if (destination instanceof PDPageDestination) {
+			return ((PDPageDestination) destination).retrievePageNumber();
+		}
+
+		PDAction action = item.getAction();
+		if (action instanceof PDActionGoTo) {
+			destination = ((PDActionGoTo) action).getDestination();
+			if (destination instanceof PDPageDestination) {
+				return ((PDPageDestination) destination).retrievePageNumber();
 			}
 		}
 		return -1;
@@ -1337,14 +1345,14 @@ public class PDDocumentUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param document 目标PDF文档对象，不允许为null
+	 * @param document     目标PDF文档对象，不允许为null
 	 * @param imageXObject 要添加的图像对象，不允许为null
-	 * @param page 要插入的1-based页码，必须大于0
-	 * @param x 图像左下角的x坐标，必须大于0
-	 * @param y 图像左下角的y坐标，必须大于0
-	 * @param width 图像宽度，必须大于0
-	 * @param height 图像高度，必须大于0
-	 * @throws IOException 当图像处理失败时抛出
+	 * @param page         要插入的1-based页码，必须大于0
+	 * @param x            图像左下角的x坐标，必须大于0
+	 * @param y            图像左下角的y坐标，必须大于0
+	 * @param width        图像宽度，必须大于0
+	 * @param height       图像高度，必须大于0
+	 * @throws IOException              当图像处理失败时抛出
 	 * @throws IllegalArgumentException 当任何参数无效时抛出
 	 * @see PDImageXObject
 	 * @since 1.0.0
@@ -1379,7 +1387,7 @@ public class PDDocumentUtils {
 	 * </p>
 	 *
 	 * @param document PDF文档对象，不允许为null
-	 * @param pages 要检查的页码集合，允许为null
+	 * @param pages    要检查的页码集合，允许为null
 	 * @return 有效的页码列表(已排序)，不会返回null
 	 * @throws IllegalArgumentException 当document为null时抛出
 	 * @since 1.0.0
@@ -1390,7 +1398,7 @@ public class PDDocumentUtils {
 			.distinct()
 			.filter(pageNumber -> Objects.nonNull(pageNumber) && pageNumber >= 1 && pageNumber <= maxPageNumber)
 			.sorted(Integer::compareTo)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**

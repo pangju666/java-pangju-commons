@@ -39,20 +39,23 @@ import org.apache.commons.lang3.Validate;
  *   <li>图片裁剪预处理</li>
  * </ul>
  *
- * @param width 图像宽度（像素），必须满足：
- *             <ul>
- *               <li>大于0</li>
- *               <li>不超过Integer.MAX_VALUE</li>
- *             </ul>
- * @param height 图像高度（像素），必须满足：
- *              <ul>
- *                <li>大于0</li>
- *                <li>不超过Integer.MAX_VALUE</li>
- *              </ul>
  * @author pangju666
  * @since 1.0.0
  */
-public record ImageSize(int width, int height) {
+public class ImageSize {
+	/**
+	 * 图像宽度（像素）
+	 *
+	 * @since 1.0.0
+	 */
+	private int width;
+	/**
+	 * 图像高度（像素）
+	 *
+	 * @since 1.0.0
+	 */
+	private int height;
+
 	/**
 	 * 规范构造方法
 	 * <p>
@@ -63,12 +66,30 @@ public record ImageSize(int width, int height) {
 	 * </ul>
 	 * </p>
 	 *
+	 * @param width 图像宽度（像素），必须满足：
+	 *             <ul>
+	 *               <li>大于0</li>
+	 *               <li>不超过Integer.MAX_VALUE</li>
+	 *             </ul>
+	 * @param height 图像高度（像素），必须满足：
+	 *              <ul>
+	 *                <li>大于0</li>
+	 *                <li>不超过Integer.MAX_VALUE</li>
+	 *              </ul>
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	public ImageSize {
+	public ImageSize(int width, int height) {
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.isTrue(height > 0, "height 必须大于0");
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
 	}
 
 	/**
@@ -83,10 +104,10 @@ public record ImageSize(int width, int height) {
 	 * </p>
 	 *
 	 * @param targetWidth 目标宽度，必须满足：
-	 *                   <ul>
-	 *                     <li>大于0</li>
-	 *                     <li>不超过Integer.MAX_VALUE</li>
-	 *                   </ul>
+	 *                    <ul>
+	 *                      <li>大于0</li>
+	 *                      <li>不超过Integer.MAX_VALUE</li>
+	 *                    </ul>
 	 * @return 缩放后的新尺寸对象
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
@@ -115,10 +136,10 @@ public record ImageSize(int width, int height) {
 	 * </p>
 	 *
 	 * @param targetHeight 目标高度，必须满足：
-	 *                    <ul>
-	 *                      <li>大于0</li>
-	 *                      <li>不超过Integer.MAX_VALUE</li>
-	 *                    </ul>
+	 *                     <ul>
+	 *                       <li>大于0</li>
+	 *                       <li>不超过Integer.MAX_VALUE</li>
+	 *                     </ul>
 	 * @return 缩放后的新尺寸对象
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
@@ -147,17 +168,17 @@ public record ImageSize(int width, int height) {
 	 * </p>
 	 *
 	 * @param targetSize 目标尺寸对象，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>宽高均为正数</li>
-	 *                  </ul>
+	 *                   <ul>
+	 *                     <li>非null</li>
+	 *                     <li>宽高均为正数</li>
+	 *                   </ul>
 	 * @return 满足约束的缩放尺寸
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	public ImageSize scale(final ImageSize targetSize) {
 		Validate.notNull(targetSize, "targetSize 不可为 null");
-		return scale(targetSize.width(), targetSize.height());
+		return scale(targetSize.getWidth(), targetSize.getHeight());
 	}
 
 	/**
@@ -171,16 +192,16 @@ public record ImageSize(int width, int height) {
 	 * </ol>
 	 * </p>
 	 *
-	 * @param targetWidth 目标宽度，必须满足：
-	 *                   <ul>
-	 *                     <li>大于0</li>
-	 *                     <li>不超过Integer.MAX_VALUE</li>
-	 *                   </ul>
+	 * @param targetWidth  目标宽度，必须满足：
+	 *                     <ul>
+	 *                       <li>大于0</li>
+	 *                       <li>不超过Integer.MAX_VALUE</li>
+	 *                     </ul>
 	 * @param targetHeight 目标高度，必须满足：
-	 *                    <ul>
-	 *                      <li>大于0</li>
-	 *                      <li>不超过Integer.MAX_VALUE</li>
-	 *                    </ul>
+	 *                     <ul>
+	 *                       <li>大于0</li>
+	 *                       <li>不超过Integer.MAX_VALUE</li>
+	 *                     </ul>
 	 * @return 满足约束的缩放尺寸
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0

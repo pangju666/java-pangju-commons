@@ -33,6 +33,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -328,8 +329,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	public synchronized void initialize() {
 		if (!initialized) {
 			try {
-				if (Objects.nonNull(key.publicKey())) {
-					PublicKey publicKey = key.publicKey();
+				if (Objects.nonNull(key.getPublicKey())) {
+					PublicKey publicKey = key.getPublicKey();
 					RSAPublicKeySpec publicKeySpec = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
 						.getKeySpec(publicKey, RSAPublicKeySpec.class);
 					this.encryptBlockSize = this.transformation.getEncryptBlockSize(publicKeySpec);
@@ -337,8 +338,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 					this.encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 				}
 
-				if (Objects.nonNull(key.privateKey())) {
-					PrivateKey privateKey = key.privateKey();
+				if (Objects.nonNull(key.getPrivateKey())) {
+					PrivateKey privateKey = key.getPrivateKey();
 					RSAPrivateKeySpec privateKeySpec = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
 						.getKeySpec(privateKey, RSAPrivateKeySpec.class);
 					this.decryptBlockSize = this.transformation.getDecryptBlockSize(privateKeySpec);
@@ -380,7 +381,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		if (ArrayUtils.isEmpty(binary)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(key.publicKey())) {
+		if (Objects.isNull(key.getPublicKey())) {
 			throw new EncryptionOperationNotPossibleException("未设置公钥");
 		}
 		if (!initialized) {
@@ -420,7 +421,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		if (ArrayUtils.isEmpty(encryptedBinary)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(key.privateKey())) {
+		if (Objects.isNull(key.getPrivateKey())) {
 			throw new EncryptionOperationNotPossibleException("未设置私钥");
 		}
 		if (!initialized) {
@@ -465,7 +466,10 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			} else {
 				bytes = cipher.doFinal(input, offsetLength, inputLength - offsetLength);
 			}
-			outputStream.writeBytes(bytes);
+			try {
+				outputStream.write(bytes);
+			} catch (IOException ignored) {
+			}
 			++i;
 			offsetLength = size * i;
 		}

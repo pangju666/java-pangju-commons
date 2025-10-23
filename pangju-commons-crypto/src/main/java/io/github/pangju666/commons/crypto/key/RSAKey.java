@@ -50,15 +50,44 @@ import java.security.spec.InvalidKeySpecException;
  *   <li>密钥交换协议</li>
  * </ol>
  *
- * @param publicKey  RSA公钥对象，符合X.509标准，可能为null（仅解密场景）
- * @param privateKey RSA私钥对象，符合PKCS#8标准，可能为null（仅加密场景）
  * @author pangju666
  * @since 1.0.0
  * @see java.security.PublicKey
  * @see java.security.PrivateKey
  * @see java.security.KeyPair
  */
-public record RSAKey(PublicKey publicKey, PrivateKey privateKey) {
+public class RSAKey {
+	/**
+	 * RSA公钥对象，符合X.509标准，可能为null（仅解密场景）
+	 *
+	 * @since 1.0.0
+	 */
+	private final PublicKey publicKey;
+	/**
+	 * RSA私钥对象，符合PKCS#8标准，可能为null（仅加密场景）
+	 *
+	 * @since 1.0.0
+	 */
+	private final PrivateKey privateKey;
+
+	/**
+	 * 构造方法
+	 *
+	 * @since 1.0.0
+	 */
+	public RSAKey(PublicKey publicKey, PrivateKey privateKey) {
+		this.publicKey = publicKey;
+		this.privateKey = privateKey;
+	}
+
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+
+	public PrivateKey getPrivateKey() {
+		return privateKey;
+	}
+
 	/**
 	 * 生成默认长度(2048位)的随机RSA密钥对
 	 * <p>

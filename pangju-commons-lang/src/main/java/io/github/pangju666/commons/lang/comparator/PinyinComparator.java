@@ -158,10 +158,10 @@ public final class PinyinComparator implements Comparator<String> {
 		}
 
 		// 判断是否为空白字符串
-		if (o1.isBlank()) {
+		if (StringUtils.isBlank(o1)) {
 			return -1;
 		}
-		if (o2.isBlank()) {
+		if (StringUtils.isBlank(o2)) {
 			return 1;
 		}
 

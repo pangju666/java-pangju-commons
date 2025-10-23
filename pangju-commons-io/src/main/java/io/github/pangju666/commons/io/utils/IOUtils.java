@@ -160,8 +160,8 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		Objects.requireNonNull(inputStream, "inputStream");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
-		if (inputStream instanceof UnsynchronizedBufferedInputStream unsynchronizedBufferedInputStream) {
-			return unsynchronizedBufferedInputStream;
+		if (inputStream instanceof UnsynchronizedBufferedInputStream) {
+			return (UnsynchronizedBufferedInputStream) inputStream;
 		}
 		return new UnsynchronizedBufferedInputStream.Builder()
 			.setBufferSize(bufferSize)

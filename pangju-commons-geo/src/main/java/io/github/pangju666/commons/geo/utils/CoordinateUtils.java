@@ -239,8 +239,8 @@ public class CoordinateUtils {
 			return coordinate;
 		} else {
 			Coordinate deltaCoordinate = computeGcj02Delta(coordinate);
-			return new Coordinate(coordinate.longitude().subtract(deltaCoordinate.longitude()),
-				coordinate.latitude().subtract(deltaCoordinate.latitude()));
+			return new Coordinate(coordinate.getLongitude().subtract(deltaCoordinate.getLongitude()),
+				coordinate.getLatitude().subtract(deltaCoordinate.getLatitude()));
 		}
 	}
 
@@ -277,8 +277,8 @@ public class CoordinateUtils {
 			return coordinate;
 		} else {
 			Coordinate deltaCoordinate = computeGcj02Delta(coordinate);
-			return new Coordinate(coordinate.longitude().add(deltaCoordinate.longitude()),
-				coordinate.latitude().add(deltaCoordinate.latitude()));
+			return new Coordinate(coordinate.getLongitude().add(deltaCoordinate.getLongitude()),
+				coordinate.getLatitude().add(deltaCoordinate.getLatitude()));
 		}
 	}
 
@@ -308,7 +308,7 @@ public class CoordinateUtils {
 	 */
 	protected static Coordinate computeGcj02Delta(final Coordinate coordinate) {
 		// latitude / 180.0 * PI
-		BigDecimal radiusLatitude = coordinate.latitude().divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32)
+		BigDecimal radiusLatitude = coordinate.getLatitude().divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32)
 			.multiply(PI);
 		// 1 - EE * (sin(radiusLatitude))²
 		BigDecimal magic = BigDecimal.ONE.subtract(EE.multiply(BigDecimalMath.sin(
@@ -317,15 +317,15 @@ public class CoordinateUtils {
 		BigDecimal sqrtMagic = magic.sqrt(MathContext.DECIMAL32);
 
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI)
-		BigDecimal deltaLatitude = transformLatitude(coordinate.longitude().subtract(ONE_HUNDRED_AND_FIVE),
-			coordinate.latitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
+		BigDecimal deltaLatitude = transformLatitude(coordinate.getLongitude().subtract(ONE_HUNDRED_AND_FIVE),
+			coordinate.getLatitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
 			.divide(A.multiply(BigDecimal.ONE.subtract(EE))
 				.divide(magic.multiply(sqrtMagic), MathContext.DECIMAL32)
 				.multiply(PI), MathContext.DECIMAL32);
 
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI)
-		BigDecimal deltaLongitude = transformLongitude(coordinate.longitude().subtract(ONE_HUNDRED_AND_FIVE),
-			coordinate.latitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
+		BigDecimal deltaLongitude = transformLongitude(coordinate.getLongitude().subtract(ONE_HUNDRED_AND_FIVE),
+			coordinate.getLatitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
 			.divide(A.divide(sqrtMagic, MathContext.DECIMAL32)
 				.multiply(BigDecimalMath.cos(radiusLatitude, MathContext.DECIMAL32))
 				.multiply(PI), MathContext.DECIMAL32);

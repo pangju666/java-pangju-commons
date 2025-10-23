@@ -16,6 +16,8 @@
 
 package io.github.pangju666.commons.crypto.lang;
 
+import org.apache.commons.collections4.SetUtils;
+
 import java.util.Set;
 
 /**
@@ -63,19 +65,19 @@ public class CryptoConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Set<Integer> RSA_KEY_SIZE_SET = Set.of(1024, 2048, 4096);
+	public static final Set<Integer> RSA_KEY_SIZE_SET = SetUtils.unmodifiableSet(1024, 2048, 4096);
 	/**
 	 * 允许的 Diffie-Hellman 密钥长度集合（单位：bit）
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Set<Integer> DIFFIE_HELLMAN_KEY_SIZE_SET = Set.of(1024, 2048, 4096);
+	public static final Set<Integer> DIFFIE_HELLMAN_KEY_SIZE_SET = SetUtils.unmodifiableSet(1024, 2048, 4096);
 	/**
 	 * 允许的 DSA 密钥长度集合（单位：bit）
 	 *
 	 * @since 1.0.0
 	 */
-	public static final Set<Integer> DSA_KEY_SIZE_SET = Set.of(1024, 2048);
+	public static final Set<Integer> DSA_KEY_SIZE_SET = SetUtils.unmodifiableSet(1024, 2048);
 
 	protected CryptoConstants() {
 	}

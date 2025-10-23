@@ -105,10 +105,10 @@ public enum CoordinateType {
 	 * @since 1.0.0
 	 */
 	public Coordinate toGCJ02(final Coordinate coordinate) {
-		return switch (this) {
-			case GCJ_02 -> coordinate;
-			case WGS_84 -> CoordinateUtils.WGS84ToGCJ02(coordinate);
-		};
+		if (this == CoordinateType.WGS_84) {
+			return CoordinateUtils.WGS84ToGCJ02(coordinate);
+		}
+		return coordinate;
 	}
 
 	/**
@@ -131,9 +131,9 @@ public enum CoordinateType {
 	 * @since 1.0.0
 	 */
 	public Coordinate toWGS84(final Coordinate coordinate) {
-		return switch (this) {
-			case GCJ_02 -> CoordinateUtils.GCJ02ToWGS84(coordinate);
-			case WGS_84 -> coordinate;
-		};
+		if (this == CoordinateType.GCJ_02) {
+			return CoordinateUtils.GCJ02ToWGS84(coordinate);
+		}
+		return coordinate;
 	}
 }

@@ -31,6 +31,7 @@
 	</modules>
 
 	<properties>
+		<java.version>11</java.version>
 		<skipTests>true</skipTests>
 	</properties>
 

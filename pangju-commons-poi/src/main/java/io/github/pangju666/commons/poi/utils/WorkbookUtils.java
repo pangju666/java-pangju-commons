@@ -45,6 +45,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -215,7 +216,7 @@ public class WorkbookUtils {
 	 *
 	 * @param file Excel文件
 	 * @return 加载的工作簿对象
-	 * @throws IOException 当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是Excel格式时抛出
 	 * @since 1.0.0
 	 */
@@ -231,10 +232,10 @@ public class WorkbookUtils {
 	/**
 	 * 从文件加载指定MIME类型的Excel工作簿
 	 *
-	 * @param file Excel文件
+	 * @param file     Excel文件
 	 * @param mimeType 指定的MIME类型
 	 * @return 加载的工作簿对象
-	 * @throws IOException 当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是指定MIME类型时抛出
 	 * @since 1.0.0
 	 */
@@ -251,9 +252,9 @@ public class WorkbookUtils {
 	 * 从输入流加载指定MIME类型的Excel工作簿
 	 *
 	 * @param inputStream 输入流
-	 * @param mimeType 指定的MIME类型
+	 * @param mimeType    指定的MIME类型
 	 * @return 加载的工作簿对象
-	 * @throws IOException 当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流内容不是指定MIME类型时抛出
 	 * @since 1.0.0
 	 */
@@ -264,11 +265,14 @@ public class WorkbookUtils {
 		if (!PoiConstants.XLSX_MIME_TYPE.equals(mimeType) && !PoiConstants.XLS_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException("不是xlsx或xls文件");
 		}
-		return switch (mimeType) {
-			case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
-			case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);
-			default -> null;
-		};
+		switch (mimeType) {
+			case PoiConstants.XLS_MIME_TYPE:
+				return new HSSFWorkbook(inputStream);
+			case PoiConstants.XLSX_MIME_TYPE:
+				return new XSSFWorkbook(inputStream);
+			default:
+				return null;
+		}
 	}
 
 	/**
@@ -276,7 +280,7 @@ public class WorkbookUtils {
 	 *
 	 * @param bytes Excel文件字节数组
 	 * @return 加载的工作簿对象
-	 * @throws IOException 当字节数组解析失败时抛出
+	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是Excel格式时抛出
 	 * @since 1.0.0
 	 */
@@ -291,10 +295,10 @@ public class WorkbookUtils {
 	/**
 	 * 从字节数组加载指定MIME类型的Excel工作簿
 	 *
-	 * @param bytes Excel文件字节数组
+	 * @param bytes    Excel文件字节数组
 	 * @param mimeType 指定的MIME类型
 	 * @return 加载的工作簿对象
-	 * @throws IOException 当字节数组解析失败时抛出
+	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是指定MIME类型时抛出
 	 * @since 1.0.0
 	 */
@@ -339,7 +343,7 @@ public class WorkbookUtils {
 		}
 		return sheetStream(workbook)
 			.flatMap(WorkbookUtils::rowStream)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -365,7 +369,7 @@ public class WorkbookUtils {
 	 * 返回工作表中从startRowNum开始到最后一行的不可修改列表，如果工作表为null则返回空列表
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，可以为null
+	 * @param sheet       Excel工作表对象，可以为null
 	 * @param startRowNum 起始行号(从0开始)
 	 * @return 行列表，不会返回null。如果工作表为null或没有行，返回空列表
 	 * @since 1.0.0
@@ -388,9 +392,9 @@ public class WorkbookUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，可以为null
+	 * @param sheet       Excel工作表对象，可以为null
 	 * @param startRowNum 起始行号(从0开始)，必须大于等于0
-	 * @param endRowNum 结束行号(包含在内)，必须大于等于startRowNum
+	 * @param endRowNum   结束行号(包含在内)，必须大于等于startRowNum
 	 * @return 行列表，不会返回null。如果工作表为null或没有行，返回空列表
 	 * @throws IllegalArgumentException 如果startRowNum小于0或startRowNum大于endRowNum
 	 * @since 1.0.0
@@ -437,7 +441,7 @@ public class WorkbookUtils {
 					Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
 			})
 			.flatMap(List::stream)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -448,7 +452,7 @@ public class WorkbookUtils {
 	 * </p>
 	 *
 	 * @param workbook Excel工作簿对象，可以为null
-	 * @param policy 缺失单元格处理策略，不可为null
+	 * @param policy   缺失单元格处理策略，不可为null
 	 * @return 单元格列表，不会返回null。如果工作簿为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果policy为null
 	 * @since 1.0.0
@@ -469,7 +473,7 @@ public class WorkbookUtils {
 				return getCells(row, row.getFirstCellNum(), row.getLastCellNum(), policy);
 			})
 			.flatMap(List::stream)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -479,7 +483,7 @@ public class WorkbookUtils {
 	 * 如果工作表为null则返回空列表。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，可以为null
+	 * @param sheet  Excel工作表对象，可以为null
 	 * @param policy 缺失单元格处理策略，不可为null
 	 * @return 单元格列表，不会返回null。如果工作表为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果policy为null
@@ -499,7 +503,7 @@ public class WorkbookUtils {
 				return getCells(row, row.getFirstCellNum(), row.getLastCellNum(), policy);
 			})
 			.flatMap(List::stream)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -526,7 +530,7 @@ public class WorkbookUtils {
 					Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
 			})
 			.flatMap(List::stream)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -555,7 +559,7 @@ public class WorkbookUtils {
 	 * 如果行为null则返回空列表。
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row    Excel行对象，可以为null
 	 * @param policy 缺失单元格处理策略，不可为null
 	 * @return 单元格列表，不会返回null。如果行为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果policy为null
@@ -575,7 +579,7 @@ public class WorkbookUtils {
 	 * 如果行为null则返回空列表。
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row          Excel行对象，可以为null
 	 * @param startCellNum 起始列号(从0开始)
 	 * @return 单元格列表，不会返回null。如果行为null或没有单元格，返回空列表
 	 * @since 1.0.0
@@ -595,9 +599,9 @@ public class WorkbookUtils {
 	 * 如果行为null则返回空列表。
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row          Excel行对象，可以为null
 	 * @param startCellNum 起始列号(从0开始)
-	 * @param policy 缺失单元格处理策略，不可为null
+	 * @param policy       缺失单元格处理策略，不可为null
 	 * @return 单元格列表，不会返回null。如果行为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果policy为null
 	 * @since 1.0.0
@@ -616,9 +620,9 @@ public class WorkbookUtils {
 	 * 如果行为null则返回空列表。
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row          Excel行对象，可以为null
 	 * @param startCellNum 起始列号(从0开始)
-	 * @param endCellNum 结束列号(包含在内)
+	 * @param endCellNum   结束列号(包含在内)
 	 * @return 单元格列表，不会返回null。如果行为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果startCellNum大于endCellNum
 	 * @since 1.0.0
@@ -638,10 +642,10 @@ public class WorkbookUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row          Excel行对象，可以为null
 	 * @param startCellNum 起始列号(从0开始)，必须大于等于0
-	 * @param endCellNum 结束列号(包含在内)，必须大于等于startCellNum
-	 * @param policy 缺失单元格处理策略，不可为null
+	 * @param endCellNum   结束列号(包含在内)，必须大于等于startCellNum
+	 * @param policy       缺失单元格处理策略，不可为null
 	 * @return 单元格列表，不会返回null。如果行为null或没有单元格，返回空列表
 	 * @throws IllegalArgumentException 如果policy为null、startCellNum小于0或startCellNum大于endCellNum
 	 * @since 1.0.0
@@ -716,7 +720,7 @@ public class WorkbookUtils {
 	 * 返回工作表中所有行的流，可以指定是否并行处理，如果工作表为null则返回空流。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，可以为null
+	 * @param sheet    Excel工作表对象，可以为null
 	 * @param parallel 是否并行处理
 	 * @return 行流，不会返回null。如果工作表为null，返回空流
 	 * @since 1.0.0
@@ -748,7 +752,7 @@ public class WorkbookUtils {
 	 * 返回行中所有单元格的流，可以指定是否并行处理，如果行为null则返回空流。
 	 * </p>
 	 *
-	 * @param row Excel行对象，可以为null
+	 * @param row      Excel行对象，可以为null
 	 * @param parallel 是否并行处理
 	 * @return 单元格流，不会返回null。如果行为null，返回空流
 	 * @since 1.0.0
@@ -767,8 +771,8 @@ public class WorkbookUtils {
 	 * 否则返回null。如果指定的单元格不在任何合并区域内，则返回null。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param row 行号(从0开始)
+	 * @param sheet  Excel工作表对象，不可为null
+	 * @param row    行号(从0开始)
 	 * @param column 列号(从0开始)
 	 * @return 合并区域左上角的单元格，如果未找到合并区域或单元格不在合并区域内则返回null
 	 * @throws IllegalArgumentException 如果sheet为null或row小于0或column小于0
@@ -857,7 +861,7 @@ public class WorkbookUtils {
 	 * 其他类型返回默认值
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell         Excel单元格对象，可以为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 单元格的字符串值，不会返回null。如果单元格为空，返回默认值
 	 * @since 1.0.0
@@ -866,12 +870,16 @@ public class WorkbookUtils {
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
-		return switch (cell.getCellType()) {
-			case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-			case STRING -> Objects.toString(cell.getStringCellValue(), defaultValue);
-			case BOOLEAN -> BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
-			default -> defaultValue;
-		};
+		switch (cell.getCellType()) {
+			case NUMERIC:
+				return String.valueOf(cell.getNumericCellValue());
+			case STRING:
+				return Objects.toString(cell.getStringCellValue(), defaultValue);
+			case BOOLEAN:
+				return BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
+			default:
+				return defaultValue;
+		}
 	}
 
 	/**
@@ -881,7 +889,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的字符串值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell     Excel单元格对象，可以为null
 	 * @param workbook Excel工作簿对象，不可为null
 	 * @return 公式单元格的字符串值，不会返回null。如果单元格为空，返回空字符串
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -904,8 +912,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的字符串值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param workbook Excel工作簿对象，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param workbook     Excel工作簿对象，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的字符串值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -928,7 +936,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的字符串值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell      Excel单元格对象，可以为null
 	 * @param evaluator 公式计算器，不可为null
 	 * @return 公式单元格的字符串值，不会返回null。如果单元格为空，返回空字符串
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -945,8 +953,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的字符串值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param evaluator 公式计算器，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param evaluator    公式计算器，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的字符串值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -965,12 +973,16 @@ public class WorkbookUtils {
 		if (Objects.isNull(cellValue)) {
 			return defaultValue;
 		}
-		return switch (cellValue.getCellType()) {
-			case NUMERIC -> String.valueOf(cellValue.getNumberValue());
-			case STRING -> Objects.toString(cellValue.getStringValue(), defaultValue);
-			case BOOLEAN -> BooleanUtils.toStringTrueFalse(cellValue.getBooleanValue());
-			default -> defaultValue;
-		};
+		switch (cellValue.getCellType()) {
+			case NUMERIC:
+				return String.valueOf(cellValue.getNumberValue());
+			case STRING:
+				return Objects.toString(cellValue.getStringValue(), defaultValue);
+			case BOOLEAN:
+				return BooleanUtils.toStringTrueFalse(cellValue.getBooleanValue());
+			default:
+				return defaultValue;
+		}
 	}
 
 	/**
@@ -1007,7 +1019,7 @@ public class WorkbookUtils {
 	 * 其他类型返回默认值
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell         Excel单元格对象，可以为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 单元格的数值型值，不会返回null。如果单元格为空，返回默认值
 	 * @since 1.0.0
@@ -1017,12 +1029,16 @@ public class WorkbookUtils {
 			return defaultValue;
 		}
 		try {
-			return switch (cell.getCellType()) {
-				case NUMERIC -> cell.getNumericCellValue();
-				case STRING -> NumberUtils.toDouble(cell.getStringCellValue(), defaultValue);
-				case BOOLEAN -> BooleanUtils.toIntegerObject(cell.getBooleanCellValue()).doubleValue();
-				default -> defaultValue;
-			};
+			switch (cell.getCellType()) {
+				case NUMERIC:
+					return cell.getNumericCellValue();
+				case STRING:
+					return NumberUtils.toDouble(cell.getStringCellValue(), defaultValue);
+				case BOOLEAN:
+					return BooleanUtils.toIntegerObject(cell.getBooleanCellValue()).doubleValue();
+				default:
+					return defaultValue;
+			}
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
@@ -1035,7 +1051,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的数值型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell     Excel单元格对象，可以为null
 	 * @param workbook Excel工作簿对象，不可为null
 	 * @return 公式单元格的数值型值，可能返回null。如果单元格为空，返回null
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -1055,8 +1071,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的数值型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param workbook Excel工作簿对象，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param workbook     Excel工作簿对象，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的数值型值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -1076,7 +1092,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的数值型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell      Excel单元格对象，可以为null
 	 * @param evaluator 公式计算器，不可为null
 	 * @return 公式单元格的数值型值，可能返回null。如果单元格为空，返回null
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -1093,8 +1109,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的数值型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param evaluator 公式计算器，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param evaluator    公式计算器，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的数值型值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -1114,12 +1130,16 @@ public class WorkbookUtils {
 			return defaultValue;
 		}
 		try {
-			return switch (cellValue.getCellType()) {
-				case NUMERIC -> cellValue.getNumberValue();
-				case STRING -> NumberUtils.toDouble(cellValue.getStringValue(), defaultValue);
-				case BOOLEAN -> BooleanUtils.toIntegerObject(cellValue.getBooleanValue()).doubleValue();
-				default -> defaultValue;
-			};
+			switch (cellValue.getCellType()) {
+				case NUMERIC:
+					return cellValue.getNumberValue();
+				case STRING:
+					return NumberUtils.toDouble(cellValue.getStringValue(), defaultValue);
+				case BOOLEAN:
+					return BooleanUtils.toIntegerObject(cellValue.getBooleanValue()).doubleValue();
+				default:
+					return defaultValue;
+			}
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
@@ -1159,7 +1179,7 @@ public class WorkbookUtils {
 	 * 其他类型返回默认值
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell         Excel单元格对象，可以为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 单元格的布尔型值，不会返回null。如果单元格为空，返回默认值
 	 * @since 1.0.0
@@ -1168,12 +1188,16 @@ public class WorkbookUtils {
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
-		return switch (cell.getCellType()) {
-			case NUMERIC -> cell.getNumericCellValue() > 0;
-			case STRING -> BooleanUtils.toBoolean(cell.getStringCellValue());
-			case BOOLEAN -> cell.getBooleanCellValue();
-			default -> defaultValue;
-		};
+		switch (cell.getCellType()) {
+			case NUMERIC:
+				return cell.getNumericCellValue() > 0;
+			case STRING:
+				return BooleanUtils.toBoolean(cell.getStringCellValue());
+			case BOOLEAN:
+				return cell.getBooleanCellValue();
+			default:
+				return defaultValue;
+		}
 	}
 
 	/**
@@ -1183,7 +1207,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的布尔型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell     Excel单元格对象，可以为null
 	 * @param workbook Excel工作簿对象，不可为null
 	 * @return 公式单元格的布尔型值，可能返回null。如果单元格为空，返回null
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -1203,8 +1227,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的布尔型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param workbook Excel工作簿对象，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param workbook     Excel工作簿对象，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的布尔型值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果workbook为null
@@ -1224,7 +1248,7 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的布尔型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell      Excel单元格对象，可以为null
 	 * @param evaluator 公式计算器，不可为null
 	 * @return 公式单元格的布尔型值，可能返回null。如果单元格为空，返回null
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -1241,8 +1265,8 @@ public class WorkbookUtils {
 	 * 如果单元格不是公式类型，则直接返回单元格的布尔型值。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param evaluator 公式计算器，不可为null
+	 * @param cell         Excel单元格对象，可以为null
+	 * @param evaluator    公式计算器，不可为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 公式单元格的布尔型值，不会返回null。如果单元格为空，返回默认值
 	 * @throws IllegalArgumentException 如果evaluator为null
@@ -1261,12 +1285,16 @@ public class WorkbookUtils {
 		if (Objects.isNull(cellValue)) {
 			return defaultValue;
 		}
-		return switch (cell.getCellType()) {
-			case NUMERIC -> cell.getNumericCellValue() > 0;
-			case STRING -> BooleanUtils.toBoolean(cell.getStringCellValue());
-			case BOOLEAN -> cell.getBooleanCellValue();
-			default -> defaultValue;
-		};
+		switch (cell.getCellType()) {
+			case NUMERIC:
+				return cell.getNumericCellValue() > 0;
+			case STRING:
+				return BooleanUtils.toBoolean(cell.getStringCellValue());
+			case BOOLEAN:
+				return cell.getBooleanCellValue();
+			default:
+				return defaultValue;
+		}
 	}
 
 	/**
@@ -1308,7 +1336,7 @@ public class WorkbookUtils {
 	 * </ol>
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell         Excel单元格对象，可以为null
 	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
 	 * @return 单元格的日期值，不会返回null。如果单元格为空，返回默认值
 	 * @since 1.0.0
@@ -1325,7 +1353,7 @@ public class WorkbookUtils {
 	 * 使用指定的日期格式模式进行解析。
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
+	 * @param cell          Excel单元格对象，可以为null
 	 * @param parsePatterns 日期格式模式数组，用于解析字符串类型的单元格值
 	 * @return 单元格的日期值，可能返回null。如果单元格为空，返回null
 	 * @since 1.0.0
@@ -1346,8 +1374,8 @@ public class WorkbookUtils {
 	 * 其他类型返回默认值
 	 * </p>
 	 *
-	 * @param cell Excel单元格对象，可以为null
-	 * @param defaultValue 默认值，当单元格为空或转换失败时返回
+	 * @param cell          Excel单元格对象，可以为null
+	 * @param defaultValue  默认值，当单元格为空或转换失败时返回
 	 * @param parsePatterns 日期格式模式数组，用于解析字符串类型的单元格值
 	 * @return 单元格的日期值，不会返回null。如果单元格为空，返回默认值
 	 * @since 1.0.0
@@ -1357,11 +1385,14 @@ public class WorkbookUtils {
 			return defaultValue;
 		}
 		try {
-			return switch (cell.getCellType()) {
-				case NUMERIC -> cell.getDateCellValue();
-				case STRING -> DateUtils.parseDateOrDefault(cell.getStringCellValue(), defaultValue, parsePatterns);
-				default -> defaultValue;
-			};
+			switch (cell.getCellType()) {
+				case NUMERIC:
+					return cell.getDateCellValue();
+				case STRING:
+					return DateUtils.parseDateOrDefault(cell.getStringCellValue(), defaultValue, parsePatterns);
+				default:
+					return defaultValue;
+			}
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
@@ -1417,7 +1448,7 @@ public class WorkbookUtils {
 	 * 如果指定行已存在则返回该行，否则创建新行并返回。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param rowNum 行索引，必须大于等于0
 	 * @return 指定行对象，不会返回null
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
@@ -1436,7 +1467,7 @@ public class WorkbookUtils {
 	 * 如果指定单元格已存在则返回该单元格，否则创建新单元格并返回。
 	 * </p>
 	 *
-	 * @param row Excel行对象，不可为null
+	 * @param row     Excel行对象，不可为null
 	 * @param cellNum 单元格索引，必须大于等于0
 	 * @return 指定单元格对象，不会返回null
 	 * @throws IllegalArgumentException 如果row为null或cellNum小于0
@@ -1455,7 +1486,7 @@ public class WorkbookUtils {
 	 * 在工作表的第一行(索引0)创建标题行，使用默认样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param titles 标题文本数组
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null
@@ -1471,9 +1502,9 @@ public class WorkbookUtils {
 	 * 在工作表的第一行(索引0)创建标题行，使用指定样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet    Excel工作表对象，不可为null
 	 * @param rowStyle 行样式，可以为null
-	 * @param titles 标题文本数组
+	 * @param titles   标题文本数组
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
@@ -1488,7 +1519,7 @@ public class WorkbookUtils {
 	 * 在指定行创建标题行，使用默认样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param rowNum 行索引，必须大于等于0
 	 * @param titles 标题文本数组
 	 * @return 标题文本与列索引的映射关系
@@ -1505,10 +1536,10 @@ public class WorkbookUtils {
 	 * 在指定行创建标题行，使用指定样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param sheet    Excel工作表对象，不可为null
+	 * @param rowNum   行索引，必须大于等于0
 	 * @param rowStyle 行样式，可以为null
-	 * @param titles 标题文本数组
+	 * @param titles   标题文本数组
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
@@ -1537,7 +1568,7 @@ public class WorkbookUtils {
 	 * 在工作表的第一行(索引0)创建标题行，使用默认样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param titles 标题文本列表
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null
@@ -1553,8 +1584,8 @@ public class WorkbookUtils {
 	 * 在工作表的第一行(索引0)创建标题行，使用指定样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param titles 标题文本列表
+	 * @param sheet    Excel工作表对象，不可为null
+	 * @param titles   标题文本列表
 	 * @param rowStyle 行样式，可以为null
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null
@@ -1570,7 +1601,7 @@ public class WorkbookUtils {
 	 * 在指定行创建标题行，使用默认样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param titles 标题文本列表
 	 * @param rowNum 行索引，必须大于等于0
 	 * @return 标题文本与列索引的映射关系
@@ -1587,9 +1618,9 @@ public class WorkbookUtils {
 	 * 在指定行创建标题行，使用指定样式。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param titles 标题文本列表
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param sheet    Excel工作表对象，不可为null
+	 * @param titles   标题文本列表
+	 * @param rowNum   行索引，必须大于等于0
 	 * @param rowStyle 行样式，可以为null
 	 * @return 标题文本与列索引的映射关系
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
@@ -1640,7 +1671,7 @@ public class WorkbookUtils {
 	 * 调整的宽度计算公式为：当前宽度 × 1.7
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet       Excel工作表对象，不可为null
 	 * @param columnCount 要调整的列数量，必须大于等于0
 	 * @throws IllegalArgumentException 如果sheet为null或columnCount小于0
 	 * @since 1.0.0
@@ -1661,7 +1692,7 @@ public class WorkbookUtils {
 	 * 在工作表的最后一行之后创建新行，并将该行传递给消费者进行处理。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet    Excel工作表对象，不可为null
 	 * @param consumer 行消费者，用于处理新创建的行，不可为null
 	 * @throws IllegalArgumentException 如果sheet或consumer为null
 	 * @since 1.0.0
@@ -1681,9 +1712,9 @@ public class WorkbookUtils {
 	 * 如果该位置已有行，则会被新行替换。
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet    Excel工作表对象，不可为null
 	 * @param consumer 行消费者，用于处理新创建的行，不可为null
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param rowNum   行索引，必须大于等于0
 	 * @throws IllegalArgumentException 如果sheet或consumer为null，或rowNum小于0
 	 * @since 1.0.0
 	 */
@@ -1715,7 +1746,7 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param values 单元格值数组，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
@@ -1746,7 +1777,7 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param rowNum 行索引，必须大于等于0
 	 * @param values 单元格值数组，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
@@ -1775,9 +1806,9 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet     Excel工作表对象，不可为null
 	 * @param cellStyle 单元格样式，可以为null
-	 * @param values 单元格值数组，可以为空
+	 * @param values    单元格值数组，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
 	 */
@@ -1806,10 +1837,10 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param sheet     Excel工作表对象，不可为null
+	 * @param rowNum    行索引，必须大于等于0
 	 * @param cellStyle 单元格样式，可以为null
-	 * @param values 单元格值数组，可以为空
+	 * @param values    单元格值数组，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
 	 */
@@ -1846,7 +1877,7 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param values 单元格值列表，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
@@ -1877,7 +1908,7 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet  Excel工作表对象，不可为null
 	 * @param values 单元格值列表，可以为空
 	 * @param rowNum 行索引，必须大于等于0
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
@@ -1906,8 +1937,8 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param values 单元格值列表，可以为空
+	 * @param sheet     Excel工作表对象，不可为null
+	 * @param values    单元格值列表，可以为空
 	 * @param cellStyle 单元格样式，可以为null
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
@@ -1937,9 +1968,9 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
-	 * @param values 单元格值列表，可以为空
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param sheet     Excel工作表对象，不可为null
+	 * @param values    单元格值列表，可以为空
+	 * @param rowNum    行索引，必须大于等于0
 	 * @param cellStyle 单元格样式，可以为null
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
@@ -1977,7 +2008,7 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet           Excel工作表对象，不可为null
 	 * @param valueIndexPairs 单元格值-索引对集合，可以为空
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
@@ -2008,9 +2039,9 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet           Excel工作表对象，不可为null
 	 * @param valueIndexPairs 单元格值-索引对集合，可以为空
-	 * @param rowNum 行索引，必须大于等于0
+	 * @param rowNum          行索引，必须大于等于0
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
 	 */
@@ -2038,9 +2069,9 @@ public class WorkbookUtils {
 	 *   <li>其他类型: 转换为JSON字符串</li>
 	 * </ul>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet           Excel工作表对象，不可为null
 	 * @param valueIndexPairs 单元格值-索引对集合，可以为空
-	 * @param cellStyle 单元格样式，可以为null
+	 * @param cellStyle       单元格样式，可以为null
 	 * @throws IllegalArgumentException 如果sheet为null
 	 * @since 1.0.0
 	 */
@@ -2071,10 +2102,10 @@ public class WorkbookUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param sheet Excel工作表对象，不可为null
+	 * @param sheet           Excel工作表对象，不可为null
 	 * @param valueIndexPairs 单元格值-索引对集合，可以为空
-	 * @param rowNum 行索引，必须大于等于0
-	 * @param cellStyle 单元格样式，可以为null
+	 * @param rowNum          行索引，必须大于等于0
+	 * @param cellStyle       单元格样式，可以为null
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
 	 */
@@ -2132,25 +2163,26 @@ public class WorkbookUtils {
 		Cell cell = getCell(row, i);
 		if (Objects.isNull(value)) {
 			cell.setBlank();
-		} else if (value instanceof Number numberValue) {
-			cell.setCellValue(numberValue.doubleValue());
-		} else if (value instanceof Boolean booleanValue) {
-			cell.setCellValue(booleanValue);
-		} else if (value instanceof String str) {
-			cell.setCellValue(str);
-		} else if (value instanceof Date dateValue) {
-			cell.setCellValue(dateValue);
-		} else if (value instanceof LocalDate localDate) {
-			cell.setCellValue(localDate);
-		} else if (value instanceof LocalDateTime localDateTime) {
-			cell.setCellValue(localDateTime);
-		} else if (value instanceof Calendar calendar) {
-			cell.setCellValue(calendar);
-		} else if (value instanceof RichTextString richTextString) {
-			cell.setCellValue(richTextString);
-		} else if (value instanceof Hyperlink hyperlink) {
-			cell.setHyperlink(hyperlink);
-		} else if (value instanceof URI uri) {
+		} else if (value instanceof Number) {
+			cell.setCellValue(((Number) value).doubleValue());
+		} else if (value instanceof Boolean) {
+			cell.setCellValue((Boolean) value);
+		} else if (value instanceof String) {
+			cell.setCellValue((String) value);
+		} else if (value instanceof Date) {
+			cell.setCellValue((Date) value);
+		} else if (value instanceof LocalDate) {
+			cell.setCellValue((LocalDate) value);
+		} else if (value instanceof LocalDateTime) {
+			cell.setCellValue((LocalDateTime) value);
+		} else if (value instanceof Calendar) {
+			cell.setCellValue((Calendar) value);
+		} else if (value instanceof RichTextString) {
+			cell.setCellValue((RichTextString) value);
+		} else if (value instanceof Hyperlink) {
+			cell.setHyperlink((Hyperlink) value);
+		} else if (value instanceof URI) {
+			URI uri = (URI) value;
 			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
 			Hyperlink hyperlink;
 			if (StringUtils.equals(uri.getScheme(), "file")) {
@@ -2166,7 +2198,8 @@ public class WorkbookUtils {
 			}
 			hyperlink.setLabel(uri.toString());
 			cell.setHyperlink(hyperlink);
-		} else if (value instanceof URL url) {
+		} else if (value instanceof URL) {
+			URL url = (URL) value;
 			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
 			Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
 			hyperlink.setLabel(url.toString());

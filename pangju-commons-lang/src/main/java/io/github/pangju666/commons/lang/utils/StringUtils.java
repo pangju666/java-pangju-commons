@@ -20,6 +20,7 @@ import org.apache.commons.lang3.Validate;
 
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 字符串工具类，继承并扩展{@link org.apache.commons.lang3.StringUtils}功能
@@ -80,7 +81,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 		}
 		return collection.stream()
 			.filter(StringUtils::isNotBlank)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -97,7 +98,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 		return collection.stream()
 			.filter(StringUtils::isNotBlank)
 			.distinct()
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -113,7 +114,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 		}
 		return Arrays.stream(strings)
 			.filter(StringUtils::isNotBlank)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -130,6 +131,6 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 		return Arrays.stream(strings)
 			.filter(StringUtils::isNotBlank)
 			.distinct()
-			.toList();
+			.collect(Collectors.toList());
 	}
 }

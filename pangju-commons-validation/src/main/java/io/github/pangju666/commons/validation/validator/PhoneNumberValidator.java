@@ -52,25 +52,24 @@ public class PhoneNumberValidator implements ConstraintValidator<PhoneNumber, St
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, val ->
+		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, val -> {
 			switch (type) {
-				case TEL -> RegExUtils.matches(TEL_PHONE_PATTERN, val);
-				case MOBILE -> {
+				case TEL:
+					return RegExUtils.matches(TEL_PHONE_PATTERN, val);
+				case MOBILE:
 					if (strongStrength) {
-						yield RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
+						return RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
 					}
-					yield RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
-				}
-				default -> {
+					return RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
+				default:
 					if (RegExUtils.matches(TEL_PHONE_PATTERN, val)) {
-						yield true;
+						return true;
 					}
 					if (strongStrength) {
-						yield RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
+						return RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
 					}
-					yield RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
+					return RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
 				}
-			}
-		);
+		});
 	}
 }

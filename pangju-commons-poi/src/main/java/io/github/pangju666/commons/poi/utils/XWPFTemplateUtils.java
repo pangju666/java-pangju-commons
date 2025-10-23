@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * DOCX模板工具类
@@ -133,7 +134,7 @@ public class XWPFTemplateUtils {
 			.stream()
 			.filter(metaTemplate -> metaTemplate instanceof ElementTemplate)
 			.map(metaTemplate -> ((ElementTemplate) metaTemplate).getTagName())
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**

@@ -51,7 +51,20 @@ import java.math.BigDecimal;
  * @see GeoConstants
  * @see CoordinateUtils
  */
-public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
+public class Coordinate {
+	/**
+	 * 经度
+	 *
+	 * @since 1.0.0
+	 */
+	private BigDecimal longitude;
+	/**
+	 * 纬度
+	 *
+	 * @since 1.0.0
+	 */
+	private BigDecimal latitude;
+
 	/**
 	 * 主构造方法
 	 * <p>
@@ -76,7 +89,7 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	public Coordinate {
+	public Coordinate(BigDecimal longitude, BigDecimal latitude) {
 		Validate.notNull(longitude, "longitude 不可为null");
 		Validate.notNull(latitude, "latitude 不可为null");
 		Validate.inclusiveBetween(GeoConstants.MIN_LONGITUDE, GeoConstants.MAX_LONGITUDE, longitude.doubleValue());
@@ -114,6 +127,14 @@ public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	 */
 	public Coordinate(String longitude, String latitude) {
 		this(CoordinateUtils.fromDMS(longitude), CoordinateUtils.fromDMS(latitude));
+	}
+
+	public BigDecimal getLongitude() {
+		return longitude;
+	}
+
+	public BigDecimal getLatitude() {
+		return latitude;
 	}
 
 	/**
