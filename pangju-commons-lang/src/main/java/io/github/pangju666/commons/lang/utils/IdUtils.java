@@ -25,14 +25,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * ID生成工具类
- * <p>提供多种分布式ID生成方案，包括：UUID、MongoDB ObjectId、NanoId、雪花算法ID等</p>
+ * <p>提供多种分布式ID生成方案，包括：UUID、MongoDB ObjectId、NanoId</p>
  * <p>创意来自ruoyi</p>
  *
  * @author pangju666
  * @see java.util.UUID
  * @see org.bson.types.ObjectId
  * @see io.github.pangju666.commons.lang.id.NanoId
- * @see io.github.pangju666.commons.lang.id.SnowflakeIdWorker
+ * @see io.github.pangju666.commons.lang.utils.UUIDUtils
  * @since 1.0.0
  */
 public class IdUtils {
@@ -60,40 +60,25 @@ public class IdUtils {
 	}
 
 	/**
-	 * 生成符合RFC 4122标准的版本4 UUID
+	 * 生成高性能标准格式UUID
 	 *
 	 * @param random 用于生成密码学安全随机数的Random实例，提供UUID生成所需的熵源
 	 * @return 由随机数生成的版本4 UUID对象，符合IETF变体规范
 	 * @since 1.0.0
 	 */
-	public static UUID fastUUID(final Random random) {
-		// 生成16字节的随机数据作为UUID基础
-		byte[] randomBytes = new byte[16];
-		random.nextBytes(randomBytes);
+	public static String fastUUID(final Random random) {
+		return UUIDUtils.fastUUID(random).toString();
+	}
 
-		/* 版本字段设置（第6字节高四位）：
-		 * 1. 清除第6字节的高4位（0x0F掩码）
-		 * 2. 设置版本号为4（0x40掩码） */
-		randomBytes[6] &= 0x0f;  /* clear version        */
-		randomBytes[6] |= 0x40;  /* set to version 4     */
-
-		/* 变体字段设置（第8字节高两位）：
-		 * 1. 清除第8字节的高2位（0x3F掩码）
-		 * 2. 设置标准IETF变体（最高位为1，次高位为0） */
-		randomBytes[8] &= 0x3f;  /* clear variant        */
-		randomBytes[8] |= (byte) 0x80;  /* set to IETF variant  */
-
-		// 将前8字节转换为高位long（MSB）
-		long msb = 0;
-		for (int i = 0; i < 8; i++)
-			msb = (msb << 8) | (randomBytes[i] & 0xff);
-
-		// 将后8字节转换为低位long（LSB）
-		long lsb = 0;
-		for (int i = 8; i < 16; i++)
-			lsb = (lsb << 8) | (randomBytes[i] & 0xff);
-
-		return new UUID(msb, lsb);
+	/**
+	 * 生成高性能简写格式UUID
+	 *
+	 * @param random 用于生成密码学安全随机数的Random实例，提供UUID生成所需的熵源
+	 * @return 由随机数生成的版本4 UUID对象，符合IETF变体规范
+	 * @since 1.0.0
+	 */
+	public static String simpleFastUUID(final Random random) {
+		return UUIDUtils.fastUUID(random).toString().replace("-", "");
 	}
 
 	/**
@@ -103,7 +88,7 @@ public class IdUtils {
 	 * @since 1.0.0
 	 */
 	public static String fastUUID() {
-		return fastUUID(ThreadLocalRandom.current()).toString();
+		return UUIDUtils.fastUUID(ThreadLocalRandom.current()).toString();
 	}
 
 	/**
@@ -113,29 +98,7 @@ public class IdUtils {
 	 * @since 1.0.0
 	 */
 	public static String simpleFastUUID() {
-		return fastUUID(ThreadLocalRandom.current()).toString().replace("-", "");
-	}
-
-	/**
-	 * 转换UUID对象为标准字符串
-	 *
-	 * @param uuid UUID对象
-	 * @return 带连字符的标准格式字符串
-	 * @since 1.0.0
-	 */
-	public static String uuid(final UUID uuid) {
-		return uuid.toString();
-	}
-
-	/**
-	 * 转换UUID对象为简写字符串
-	 *
-	 * @param uuid UUID对象
-	 * @return 无连字符的紧凑格式字符串
-	 * @since 1.0.0
-	 */
-	public static String simpleUUID(final UUID uuid) {
-		return uuid.toString().replace("-", "");
+		return UUIDUtils.fastUUID(ThreadLocalRandom.current()).toString();
 	}
 
 	/**

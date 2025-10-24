@@ -46,7 +46,7 @@ public final class NanoId {
 	 * @return 伪随机的NanoId字符串
 	 */
 	public static String randomNanoId() {
-		return randomNanoId(DEFAULT_SIZE);
+		return randomNanoId(DEFAULT_NUMBER_GENERATOR, DEFAULT_ALPHABET, DEFAULT_SIZE);
 	}
 
 	/**

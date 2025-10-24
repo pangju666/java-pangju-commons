@@ -1,9 +1,11 @@
 package io.github.pangju666.commons.lang.comparator
 
 
-import io.github.pangju666.commons.lang.id.SnowflakeIdWorker
-import io.github.pangju666.commons.lang.utils.DateUtils
+import io.github.pangju666.commons.lang.utils.IdUtils
 import spock.lang.Specification
+
+import java.security.SecureRandom
+import java.util.concurrent.ThreadLocalRandom
 
 class PinyinComparatorSpec extends Specification {
 	def "Compare"() {
@@ -24,14 +26,11 @@ class PinyinComparatorSpec extends Specification {
 
 	def "test"() {
 		setup:
-		// 根据机器ID(0-31)和数据中心ID(0-31)构建示例
-		SnowflakeIdWorker idWorker1 = new SnowflakeIdWorker(0, 0);
-		println idWorker1.nextId(); // 1981821050584825856
+		// 使用自定义随机数生成器生成高性能标准格式UUID
+		println IdUtils.simpleFastUUID(new SecureRandom()); // dd2796ab-6bf6-4ebf-a3bf-06cb947d9096
 
-
-		// 根据机器ID(0-31)、数据中心ID(0-31)和初始时间戳构建示例
-		SnowflakeIdWorker idWorker3 = new SnowflakeIdWorker(0, 0, DateUtils.addHours(new Date(), -1).getTime());
-		println idWorker3.nextId(); // OHZZDEy2sqw75QlxWEiLL
+// 使用自定义随机数生成器生成高性能标准格式UUID
+		println IdUtils.simpleFastUUID(ThreadLocalRandom.current()); // dd2796ab-6bf6-4ebf-a3bf-06cb947d9096
 	}
 
 
