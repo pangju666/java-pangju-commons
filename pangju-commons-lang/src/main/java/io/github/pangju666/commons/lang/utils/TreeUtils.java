@@ -40,6 +40,19 @@ public class TreeUtils {
 	/**
 	 * 构建树形结构（基础版本）
 	 *
+	 * @param collection 扁平节点集合
+	 * @param <K>        节点键类型
+	 * @param <T>        树节点类型
+	 * @return 树形结构节点列表
+	 * @since 1.0.0
+	 */
+	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection) {
+		return toTree(collection, null, null);
+	}
+
+	/**
+	 * 构建树形结构（基础版本）
+	 *
 	 * @param collection  扁平节点集合
 	 * @param rootNodeKey 根节点标识键值（通常为null或特定值）
 	 * @param <K>         节点键类型
@@ -56,6 +69,20 @@ public class TreeUtils {
 			.collect(Collectors.toList());
 		setChildNodes(collection, treeNodes, null);
 		return treeNodes;
+	}
+
+	/**
+	 * 构建树形结构（支持节点转换处理）
+	 *
+	 * @param collection  扁平节点集合
+	 * @param convertFunc 节点转换函数
+	 * @param <K>         节点键类型
+	 * @param <T>         树节点类型
+	 * @return 树形结构节点列表
+	 * @since 1.0.0
+	 */
+	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection, final Consumer<T> convertFunc) {
+		return toTree(collection, null, convertFunc);
 	}
 
 	/**
