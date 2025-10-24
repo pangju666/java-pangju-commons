@@ -181,6 +181,63 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	}
 
 	/**
+	 * 将Date对象转换为LocalTime
+	 *
+	 * @param date 日期对象
+	 * @return 转换后的LocalTime，输入为null时返回null
+	 * @since 1.0.0
+	 */
+	public static LocalTime toLocalTime(final Date date) {
+		return toLocalTime(date, null);
+	}
+
+	/**
+	 * 将Date对象转换为LocalTime，支持默认值
+	 *
+	 * @param date         日期对象
+	 * @param defaultValue 默认返回值
+	 * @return 转换后的LocalTime，输入为null时返回defaultValue
+	 * @since 1.0.0
+	 */
+	public static LocalTime toLocalTime(final Date date, final LocalTime defaultValue) {
+		if (Objects.isNull(date)) {
+			return defaultValue;
+		}
+		return date.toInstant()
+			.atZone(ZoneId.systemDefault())
+			.toLocalTime();
+	}
+
+	/**
+	 * 将时间戳转换为LocalTime
+	 *
+	 * @param timestamp 毫秒级时间戳
+	 * @return 转换后的LocalTime，输入为null时返回null
+	 * @since 1.0.0
+	 */
+	public static LocalTime toLocalTime(final Long timestamp) {
+		return toLocalTime(timestamp, null);
+	}
+
+	/**
+	 * 将时间戳转换为LocalTime，支持默认值
+	 *
+	 * @param timestamp    毫秒级时间戳
+	 * @param defaultValue 默认返回值
+	 * @return 转换后的LocalTime，输入为null时返回defaultValue
+	 * @since 1.0.0
+	 */
+	public static LocalTime toLocalTime(final Long timestamp, final LocalTime defaultValue) {
+		if (Objects.isNull(timestamp)) {
+			return defaultValue;
+		}
+		return new Date(timestamp)
+			.toInstant()
+			.atZone(ZoneId.systemDefault())
+			.toLocalTime();
+	}
+
+	/**
 	 * 将Date对象转换为LocalDateTime
 	 *
 	 * @param date 日期对象
