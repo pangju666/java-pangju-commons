@@ -2,143 +2,214 @@ package io.github.pangju666.commons.lang.id;
 
 import io.github.pangju666.commons.lang.concurrent.SystemClock;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
+ * <h1>SnowflakeIdWorker</h1>
  * <p>
- * 雪花算法用于生成全局唯一的 64 位长整型 ID，具有高效性和分布式可用性。
- * ID 结构如下（每部分占用的位数）：
+ * 基于 Twitter Snowflake 算法的高性能、分布式全局唯一 ID 生成器。<br>
+ * 生成的 ID 为 64 位 long 型整数，按时间递增且在全局范围内唯一。
+ * </p>
+ *
+ * <h2>ID 组成结构（共 64 位）</h2>
  * <pre>
  *  0 | 时间戳（41 位） | 数据中心 ID（5 位） | 机器 ID（5 位） | 序列号（12 位）
  * </pre>
  * <ul>
- *     <li>最高位（1 位）：始终为 0，符号位不使用</li>
- *     <li>时间戳（41 位）：相对于设定起始时间的毫秒数，可使用约 69 年</li>
- *     <li>数据中心 ID（5 位）：支持 32 个数据中心</li>
- *     <li>机器 ID（5 位）：支持每个数据中心 32 台机器</li>
- *     <li>序列号（12 位）：支持每毫秒生成 4096 个 ID</li>
+ *   <li>最高位（1 位）：固定为 0，保留符号位</li>
+ *   <li>时间戳（41 位）：相对于设定起始时间 {@link #epoch} 的毫秒数，可支持约 69 年</li>
+ *   <li>数据中心 ID（5 位）：支持最多 32 个数据中心</li>
+ *   <li>机器 ID（5 位）：支持每个数据中心最多 32 台机器</li>
+ *   <li>序列号（12 位）：支持每毫秒生成 4096 个 ID</li>
  * </ul>
- * 由于时间戳部分是 41 位，因此 ID 生成不会溢出，适用于分布式系统的唯一 ID 生成。
  *
- * @apiNote Chat Gpt 生成的算法实现
+ * <h2>特性</h2>
+ * <ul>
+ *   <li>线程安全，无锁设计（基于 CAS）</li>
+ *   <li>每毫秒最多可生成 4096 个唯一 ID</li>
+ *   <li>可容忍 ≤5ms 的系统时钟小幅回拨</li>
+ *   <li>支持自定义起始时间戳（epoch）</li>
+ * </ul>
+ *
+ * <h2>示例</h2>
+ * <pre>{@code
+ * SnowflakeIdWorker worker = new SnowflakeIdWorker(1, 1);
+ * long id = worker.nextId();
+ * System.out.println(id);
+ * }</pre>
+ *
+ * @author Chat Gpt
  * @since 1.0.0
  */
 public final class SnowflakeIdWorker {
-	// 12位序列号
-	private static final long SEQUENCE_BITS = 12L;
-	// 5位的机器标识位
-	private static final long WORKER_ID_BITS = 5L;
-	// 5位的数据中心标识位
-	private static final long DATACENTER_ID_BITS = 5L;
-	// 每部分的最大值
-	private static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
-	private static final long MAX_DATACENTER_ID = ~(-1L << DATACENTER_ID_BITS);
-	// 每部分向左的位移
-	private static final long WORKER_ID_SHIFT = SEQUENCE_BITS;
-	private static final long DATACENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
-	private static final long TIMESTAMP_LEFT_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATACENTER_ID_BITS;
-	private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
-	// 记录上一次生成ID的时间戳
-	private static long LAST_TIMESTAMP = -1L;
-	// 机器ID（0~31）
+	/**
+	 * 序列号部分占用的位数（12 位）
+	 */
+	private static final int BIT_SEQUENCE = 12;
+	/**
+	 * 机器 ID 部分占用的位数（5 位）
+	 */
+	private static final int BIT_WORKER_ID = 5;
+	/**
+	 * 数据中心 ID 部分占用的位数（5 位）
+	 */
+	private static final int BIT_DATACENTER_ID = 5;
+
+	/**
+	 * 最大机器 ID 值（31）
+	 */
+	private static final long MAX_WORKER_ID = ~(-1L << BIT_WORKER_ID);
+	/**
+	 * 最大数据中心 ID 值（31）
+	 */
+	private static final long MAX_DATACENTER_ID = ~(-1L << BIT_DATACENTER_ID);
+	/**
+	 * 序列号最大值（4095）
+	 */
+	private static final long SEQUENCE_MASK = ~(-1L << BIT_SEQUENCE);
+
+	/**
+	 * 各部分的位移量
+	 */
+	private static final int SHIFT_WORKER_ID = BIT_SEQUENCE;
+	private static final int SHIFT_DATACENTER_ID = BIT_SEQUENCE + BIT_WORKER_ID;
+	private static final int SHIFT_TIMESTAMP = BIT_SEQUENCE + BIT_WORKER_ID + BIT_DATACENTER_ID;
+
+	/**
+	 * 默认起始时间戳（Twitter 的 Snowflake 初始值：2010-11-04）
+	 */
+	private static final long DEFAULT_EPOCH = 1288834974657L;
+
+	/**
+	 * 当前机器 ID（0 ~ 31）
+	 */
 	private final long workerId;
-	// 数据中心ID（0~31）
+
+	/** 当前数据中心 ID（0 ~ 31） */
 	private final long datacenterId;
-	// 12位的序列号
-	private long sequence = 0L;
-	// 初始时间戳（用于计算相对时间）
-	private long initTimestamp = 1288834974657L;
 
 	/**
-	 * 构造雪花ID生成器实例
-	 *
-	 * @param workerId     机器ID (0~31)
-	 * @param datacenterId 数据中心ID (0~31)
+	 * 起始时间戳（epoch），用于计算相对时间
 	 */
-	public SnowflakeIdWorker(final long workerId, final long datacenterId) {
-		this.workerId = workerId;
-		this.datacenterId = datacenterId;
+	private final long epoch;
+
+	/**
+	 * 上一次生成 ID 的时间戳（毫秒）
+	 */
+	private final AtomicLong lastTimestamp = new AtomicLong(-1L);
+
+	/** 当前毫秒内的序列号（0 ~ 4095） */
+	private final AtomicLong sequence = new AtomicLong(0L);
+
+	/**
+	 * 使用默认起始时间戳（{@link #DEFAULT_EPOCH}）构造一个新的 Snowflake ID 生成器。
+	 *
+	 * @param workerId     机器 ID（取值范围：0~31）
+	 * @param datacenterId 数据中心 ID（取值范围：0~31）
+	 * @throws IllegalArgumentException 当 workerId 或 datacenterId 超出取值范围时抛出
+	 * @since 1.0.0
+	 */
+	public SnowflakeIdWorker(long workerId, long datacenterId) {
+		this(workerId, datacenterId, DEFAULT_EPOCH);
 	}
 
 	/**
-	 * 构造雪花ID生成器实例
+	 * 使用自定义起始时间戳构造 Snowflake ID 生成器。
 	 *
-	 * @param workerId     机器ID (0~31)
-	 * @param datacenterId 数据中心ID (0~31)
-	 * @param sequence     初始序列号
+	 * @param workerId     机器 ID（取值范围：0~31）
+	 * @param datacenterId 数据中心 ID（取值范围：0~31）
+	 * @param epoch        起始时间戳（毫秒），应早于系统当前时间
+	 * @throws IllegalArgumentException 当参数非法时抛出
+	 * @since 1.0.0
 	 */
-	public SnowflakeIdWorker(final long workerId, final long datacenterId, final long sequence) {
-		this.workerId = workerId;
-		this.datacenterId = datacenterId;
-		this.sequence = sequence;
-	}
-
-	/**
-	 * 构造雪花ID生成器实例
-	 *
-	 * @param workerId      机器ID (0~31)
-	 * @param datacenterId  数据中心ID (0~31)
-	 * @param sequence      初始序列号
-	 * @param initTimestamp 自定义起始时间戳
-	 */
-	public SnowflakeIdWorker(final long workerId, final long datacenterId, final long sequence, final long initTimestamp) {
-		// 校验workerId的合法性
+	public SnowflakeIdWorker(long workerId, long datacenterId, long epoch) {
 		if (workerId > MAX_WORKER_ID || workerId < 0) {
-			throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_WORKER_ID));
+			throw new IllegalArgumentException("workerId 必须介于 0 和 " + MAX_WORKER_ID);
 		}
 		if (datacenterId > MAX_DATACENTER_ID || datacenterId < 0) {
-			throw new IllegalArgumentException(String.format("datacenter Id can't be greater than %d or less than 0", MAX_DATACENTER_ID));
+			throw new IllegalArgumentException("datacenterId 必须介于 0 和 " + MAX_DATACENTER_ID);
 		}
-
 		this.workerId = workerId;
 		this.datacenterId = datacenterId;
-		this.sequence = sequence;
-		this.initTimestamp = initTimestamp;
+		this.epoch = epoch;
 	}
 
 	/**
-	 * 生成下一个唯一ID（线程安全）
+	 * 生成下一个全局唯一的 64 位 ID（线程安全）。
+	 * <p>采用无锁的 CAS 机制确保高并发场景下的唯一性与性能。</p>
 	 *
-	 * @return 唯一ID
+	 * @return 唯一 ID（long 类型，按时间递增）
+	 * @throws RuntimeException 当检测到系统时钟严重回拨（超过 5ms）时抛出
+	 * @since 1.0.0
 	 */
-	public synchronized long nextId() {
-		long timestamp = SystemClock.now();
+	public long nextId() {
+		while (true) {
+			long current = SystemClock.now();
+			long last = lastTimestamp.get();
 
-		// 如果当前时间小于上一次生成ID的时间，说明发生了时钟回拨，拒绝生成ID
-		if (timestamp < LAST_TIMESTAMP) {
-			throw new RuntimeException(String.format("Clock moved backwards. Refusing to generate id for %d milliseconds", LAST_TIMESTAMP - timestamp));
-		}
-
-		// 如果是同一毫秒内，则增加序列号
-		if (LAST_TIMESTAMP == timestamp) {
-			sequence = (sequence + 1) & SEQUENCE_MASK;
-			// 序列号溢出，等待下一毫秒
-			if (sequence == 0) {
-				timestamp = tilNextMillis(LAST_TIMESTAMP);
+			if (current < last) {
+				long offset = last - current;
+				if (offset <= 5) {
+					// 小幅回拨，等待恢复
+					try {
+						Thread.sleep(offset);
+						continue;
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				} else {
+					throw new RuntimeException(
+						String.format("时钟向后移动。拒绝为 %dms 生成 ID", offset));
+				}
 			}
-		} else {
-			// 时间戳变化，序列号重置
-			sequence = 0L;
+
+			if (current == last) {
+				long seq = (sequence.incrementAndGet()) & SEQUENCE_MASK;
+				if (seq == 0) {
+					// 当前毫秒内序列溢出 -> 等待下一毫秒
+					current = waitNextMillis(last);
+					sequence.set(0);
+				}
+				if (lastTimestamp.compareAndSet(last, current)) {
+					return buildId(current, seq);
+				}
+			} else {
+				// 新毫秒重置序列号
+				if (lastTimestamp.compareAndSet(last, current)) {
+					sequence.set(0);
+					return buildId(current, 0);
+				}
+			}
 		}
-
-		LAST_TIMESTAMP = timestamp;
-
-		// 生成ID：时间戳偏移 | 数据中心ID | 机器ID | 序列号
-		return ((timestamp - initTimestamp) << TIMESTAMP_LEFT_SHIFT) |
-			(datacenterId << DATACENTER_ID_SHIFT) |
-			(workerId << WORKER_ID_SHIFT) |
-			sequence;
 	}
 
 	/**
-	 * 等待直到下一毫秒，以保证时间戳单调递增
+	 * 将各部分数据拼装为 64 位 ID。
 	 *
-	 * @param lastTimestamp 上次生成ID的时间戳
-	 * @return 当前毫秒级时间戳
+	 * @param timestamp 当前时间戳（毫秒）
+	 * @param seq       序列号
+	 * @return 拼装后的唯一 ID
+	 * @since 1.0.0
 	 */
-	private long tilNextMillis(long lastTimestamp) {
-		long timestamp = SystemClock.now();
-		while (timestamp <= lastTimestamp) {
+	private long buildId(long timestamp, long seq) {
+		return ((timestamp - epoch) << SHIFT_TIMESTAMP)
+			| (datacenterId << SHIFT_DATACENTER_ID)
+			| (workerId << SHIFT_WORKER_ID)
+			| seq;
+	}
+
+	/**
+	 * 等待直到下一毫秒，以保证生成的时间戳单调递增。
+	 *
+	 * @param lastTimestamp 上次生成 ID 的时间戳
+	 * @return 当前毫秒级时间戳（必定大于 lastTimestamp）
+	 * @since 1.0.0
+	 */
+	private long waitNextMillis(long lastTimestamp) {
+		long timestamp;
+		do {
 			timestamp = SystemClock.now();
-		}
+		} while (timestamp <= lastTimestamp);
 		return timestamp;
 	}
 }
