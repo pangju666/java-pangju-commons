@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  * Gson gson = gsonBuilder.create();
  *
  * // 反序列化示例
- * LocalDateTime dateTime = gson.fromJson("1640995200000", LocalDateTime.class); // 2022-01-01 00:00:00
+ * LocalDateTime dateTime = gson.fromJson("1640995200000", LocalDateTime.class); // 2022-01-01 08:00:00
  * }</pre>
  * </p>
  *

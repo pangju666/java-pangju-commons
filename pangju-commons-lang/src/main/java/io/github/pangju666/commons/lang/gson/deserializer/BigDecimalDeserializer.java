@@ -72,7 +72,7 @@ public class BigDecimalDeserializer implements JsonDeserializer<BigDecimal> {
 		}
 		JsonPrimitive primitive = json.getAsJsonPrimitive();
 		if (primitive.isNumber()) {
-			return BigDecimal.valueOf(primitive.getAsLong());
+			return BigDecimal.valueOf(primitive.getAsDouble());
 		} else if (json.getAsJsonPrimitive().isString()) {
 			try {
 				return new BigDecimal(primitive.getAsString());

@@ -17,6 +17,7 @@
 package io.github.pangju666.commons.lang.gson.deserializer;
 
 import com.google.gson.*;
+import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.DateUtils;
 
 import java.lang.reflect.Type;
@@ -28,7 +29,7 @@ import java.util.Date;
  * 该反序列化器支持以下两种格式的日期反序列化：
  * <ul>
  *     <li>时间戳：将JSON数值元素（毫秒时间戳）转换为Date对象</li>
- *     <li>日期字符串：将符合yyyy-MM-dd HH:mm:ss格式的字符串转换为Date对象</li>
+ *     <li>日期字符串：将符合{@link Constants#DATE_FORMAT}, {@link Constants#DATETIME_FORMAT}, "yyyy-MM-dd HH:mm"格式的字符串转换为Date对象</li>
  * </ul>
  * </p>
  * <p>
@@ -39,7 +40,7 @@ import java.util.Date;
  * Gson gson = gsonBuilder.create();
  *
  * // 时间戳反序列化示例
- * Date date1 = gson.fromJson("1640995200000", Date.class); // 2022-01-01 00:00:00
+ * Date date1 = gson.fromJson("1640995200000", Date.class); // 2022-01-01 08:00:00
  * // 日期字符串反序列化示例
  * Date date2 = gson.fromJson("\"2022-01-01 00:00:00\"", Date.class); // 2022-01-01 00:00:00
  * }</pre>
