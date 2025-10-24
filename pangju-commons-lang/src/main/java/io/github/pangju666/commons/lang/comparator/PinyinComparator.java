@@ -32,7 +32,7 @@ import java.util.Objects;
  *   <li>null值具有最高优先级</li>
  *   <li>空字符串""次之</li>
  *   <li>空白字符串" "再次之</li>
- *   <li>其他字符串按拼音顺序排序</li>
+ *   <li>其他字符串按拼音顺序</li>
  * </ol>
  *
  * <p>示例：
