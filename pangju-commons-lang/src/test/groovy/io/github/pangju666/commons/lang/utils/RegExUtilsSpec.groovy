@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.lang.utils
 
-import io.github.pangju666.commons.lang.enums.RegexFlag
+import io.github.pangju666.commons.lang.enums.RegExFlag
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -10,13 +10,13 @@ class RegExUtilsSpec extends Specification {
 	@Unroll
 	def "测试正则标志位计算 - 输入: #flags 预期值: #expected"() {
 		expect:
-		RegExUtils.computeFlags(flags as RegexFlag[]) == expected
+		RegExUtils.computeFlags(flags as RegExFlag[]) == expected
 
 		where:
 		flags                                   || expected
 		[]                                      || 0
-		[RegexFlag.CASE_INSENSITIVE]            || Pattern.CASE_INSENSITIVE
-		[RegexFlag.MULTILINE, RegexFlag.DOTALL] || computeFlag(Pattern.MULTILINE, Pattern.DOTALL)
+		[RegExFlag.CASE_INSENSITIVE]            || Pattern.CASE_INSENSITIVE
+		[RegExFlag.MULTILINE, RegExFlag.DOTALL] || computeFlag(Pattern.MULTILINE, Pattern.DOTALL)
 	}
 
 	@Unroll

@@ -16,7 +16,7 @@
 
 package io.github.pangju666.commons.lang.utils;
 
-import io.github.pangju666.commons.lang.enums.RegexFlag;
+import io.github.pangju666.commons.lang.enums.RegExFlag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -47,9 +47,9 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @return 组合后的标志位整数值
 	 * @since 1.0.0
 	 */
-	public static int computeFlags(final RegexFlag... regexFlags) {
+	public static int computeFlags(final RegExFlag... regexFlags) {
 		int flags = 0;
-		for (RegexFlag regexFlag : regexFlags) {
+		for (RegExFlag regexFlag : regexFlags) {
 			if (flags == 0) {
 				flags = regexFlag.getValue();
 			} else {

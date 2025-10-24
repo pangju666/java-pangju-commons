@@ -16,7 +16,7 @@
 
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.lang.enums.RegexFlag;
+import io.github.pangju666.commons.lang.enums.RegExFlag;
 import io.github.pangju666.commons.validation.validator.RegexValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -54,11 +54,11 @@ public @interface Regex {
 
 	/**
 	 * 正则匹配标志位（默认无）
-	 * @see io.github.pangju666.commons.lang.enums.RegexFlag
+	 * @see RegExFlag
 	 *
 	 * @since 1.0.0
 	 */
-	RegexFlag[] flags() default {};
+	RegExFlag[] flags() default {};
 
 	/**
 	 * 是否强制从字符串开头匹配（默认true）

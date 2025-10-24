@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @see java.util.regex.Pattern
  * @since 1.0.0
  */
-public enum RegexFlag {
+public enum RegExFlag {
 	/**
 	 * 启用 Unix 行模式。
 	 *
@@ -114,7 +114,7 @@ public enum RegexFlag {
 
 	private final int value;
 
-	RegexFlag(final int value) {
+	RegExFlag(final int value) {
 		this.value = value;
 	}
 
