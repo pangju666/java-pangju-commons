@@ -17,7 +17,6 @@
 package io.github.pangju666.commons.lang.utils;
 
 import io.github.pangju666.commons.lang.id.NanoId;
-import io.github.pangju666.commons.lang.id.SnowflakeIdWorker;
 import org.bson.types.ObjectId;
 
 import java.util.Random;
@@ -168,17 +167,5 @@ public class IdUtils {
 	 */
 	public static String nanoId(final int size) {
 		return NanoId.randomNanoId(size);
-	}
-
-	/**
-	 * 通过雪花算法生成分布式ID
-	 *
-	 * @param worker 预配置的雪花算法工作器
-	 * @return 64位长整型ID
-	 * @throws NullPointerException 当worker为null时抛出
-	 * @since 1.0.0
-	 */
-	public static Long snowflakeId(final SnowflakeIdWorker worker) {
-		return worker.nextId();
 	}
 }

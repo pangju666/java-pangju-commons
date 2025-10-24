@@ -1,10 +1,9 @@
 package io.github.pangju666.commons.lang.comparator
 
 
-import io.github.pangju666.commons.lang.utils.RegExUtils
+import io.github.pangju666.commons.lang.id.SnowflakeIdWorker
+import io.github.pangju666.commons.lang.utils.DateUtils
 import spock.lang.Specification
-
-import java.util.regex.Pattern
 
 class PinyinComparatorSpec extends Specification {
 	def "Compare"() {
@@ -25,17 +24,14 @@ class PinyinComparatorSpec extends Specification {
 
 	def "test"() {
 		setup:
-		println RegExUtils.find(Pattern.compile("1\\d{10}"), "12345678911"); // true
-		println RegExUtils.find(Pattern.compile("1\\d{10}"), "22345678911"); // false
+		// 根据机器ID(0-31)和数据中心ID(0-31)构建示例
+		SnowflakeIdWorker idWorker1 = new SnowflakeIdWorker(0, 0);
+		println idWorker1.nextId(); // 1981821050584825856
 
-		println RegExUtils.find("1\\d{10}", "12345678911"); // true
-		println RegExUtils.find("1\\d{10}", "22345678911"); // false
 
-		println RegExUtils.matches(Pattern.compile("^1\\d{10}\$"), "12345678911"); // true
-		println RegExUtils.matches(Pattern.compile("^1\\d{10}\$"), "22345678911"); // false
-
-		println RegExUtils.matches("^1\\d{10}\$", "12345678911"); // true
-		println RegExUtils.matches("^1\\d{10}\$", "22345678911"); // false
+		// 根据机器ID(0-31)、数据中心ID(0-31)和初始时间戳构建示例
+		SnowflakeIdWorker idWorker3 = new SnowflakeIdWorker(0, 0, DateUtils.addHours(new Date(), -1).getTime());
+		println idWorker3.nextId(); // OHZZDEy2sqw75QlxWEiLL
 	}
 
 

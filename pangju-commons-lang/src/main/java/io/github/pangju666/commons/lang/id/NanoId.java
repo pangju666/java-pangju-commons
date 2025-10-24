@@ -30,7 +30,7 @@ public final class NanoId {
 	private static final SecureRandom DEFAULT_NUMBER_GENERATOR = new SecureRandom();
 
 	/**
-	 * 默认随机字母表，使用URL安全的Base64字符
+	 * 默认随机字符表，使用URL安全的Base64字符
 	 */
 	private static final char[] DEFAULT_ALPHABET =
 		"_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
@@ -63,7 +63,7 @@ public final class NanoId {
 	 * 生成伪随机的NanoId字符串
 	 *
 	 * @param random   随机数生成器
-	 * @param alphabet 随机字母表
+	 * @param alphabet 随机字符表
 	 * @param size     ID长度
 	 * @return 伪随机的NanoId字符串
 	 */
