@@ -69,7 +69,7 @@ public class SerializationUtils {
 	 * 使用 Java Object Serialization 克隆给定对象。
 	 * @param object 克隆对象
 	 * @param <T> 要克隆对象的类型
-	 * @return 给定对象的克隆（深度复制
+	 * @return 给定对象的克隆（深度复制）
 	 *
 	 * @since 1.0.0
 	 */
