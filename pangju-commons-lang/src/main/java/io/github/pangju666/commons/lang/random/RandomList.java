@@ -109,7 +109,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围随机整数列表
+	 * 生成全范围内的随机整数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 包含随机整数的列表
@@ -121,7 +121,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围唯一随机整数列表
+	 * 生成全范围内的随机不重复整数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 元素唯一的随机整数列表
@@ -133,7 +133,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围随机整数列表
+	 * 生成指定范围内的随机整数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -148,7 +148,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围唯一随机整数列表
+	 * 生成指定范围内的随机不重复整数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -156,14 +156,16 @@ public class RandomList {
 	 * @return 元素唯一的随机整数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
+	 * @throws IllegalArgumentException 如果 {@code endExclusive - startInclusive < length}
 	 * @since 1.0.0
 	 */
 	public List<Integer> randomUniqueIntegerList(final int startInclusive, final int endExclusive, final int length) {
+		Validate.isTrue(endExclusive - startInclusive >= length, "最大值和最小数的差必须大于等于长度");
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomInt);
 	}
 
 	/**
-	 * 生成全范围随机单精度浮点数列表
+	 * 生成全范围内的随机单精度浮点数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 包含随机单精度浮点数的列表
@@ -175,7 +177,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围唯一随机单精度浮点数列表
+	 * 生成全范围内的随机不重复单精度浮点数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 元素唯一的随机单精度浮点数列表
@@ -187,7 +189,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围随机单精度浮点数列表
+	 * 生成指定范围内的随机单精度浮点数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -202,7 +204,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围唯一随机单精度浮点数列表
+	 * 生成指定范围内的随机不重复单精度浮点数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -217,7 +219,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围随机长整数列表
+	 * 生成全范围内的随机长整数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 包含随机长整数的列表
@@ -229,7 +231,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围唯一随机长整数列表
+	 * 生成全范围内的随机不重复长整数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 元素唯一的随机单长整数列表
@@ -241,7 +243,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围随机长整数列表
+	 * 生成指定范围内的随机长整数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -256,7 +258,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围唯一随机长整数列表
+	 * 生成指定范围内的随机不重复长整数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -264,14 +266,16 @@ public class RandomList {
 	 * @return 元素唯一的随机长整数列表
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
+	 * @throws IllegalArgumentException 如果 {@code endExclusive - startInclusive < length}
 	 * @since 1.0.0
 	 */
 	public List<Long> randomUniqueLongList(final long startInclusive, final long endExclusive, final int length) {
+		Validate.isTrue(endExclusive - startInclusive >= length, "最大值和最小数的差必须大于等于长度");
 		return randomList(startInclusive, endExclusive, length, true, randomUtils::randomLong);
 	}
 
 	/**
-	 * 生成指定范围唯一随机双精度浮点数列表
+	 * 生成指定范围内的随机双精度浮点数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -286,7 +290,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成指定范围唯一随机双精度浮点数列表
+	 * 生成指定范围内的随机不重复双精度浮点数列表
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -301,7 +305,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围随机双精度浮点数列表
+	 * 生成全范围内的随机双精度浮点数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 包含随机双精度浮点数的列表
@@ -313,7 +317,7 @@ public class RandomList {
 	}
 
 	/**
-	 * 生成全范围唯一随机双精度浮点数列表
+	 * 生成全范围内的随机不重复双精度浮点数列表
 	 *
 	 * @param length 列表长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数列表

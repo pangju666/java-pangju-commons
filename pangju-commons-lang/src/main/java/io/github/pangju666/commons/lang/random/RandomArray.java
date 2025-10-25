@@ -113,7 +113,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围随机整数数组
+	 * 生成全范围内的随机整数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机整数值的数组
@@ -131,7 +131,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机整数数组
+	 * 生成指定范围内的的随机整数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -152,7 +152,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围随机长整数数组
+	 * 生成全范围内的随机长整数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机长整数值的数组
@@ -170,7 +170,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机长整数数组
+	 * 生成指定范围内的的随机长整数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -191,7 +191,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围随机单精度浮点数数组
+	 * 生成全范围内的随机单精度浮点数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机单精度浮点数值的数组
@@ -209,7 +209,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机单精度浮点数数组
+	 * 生成指定范围内的随机单精度浮点数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -230,7 +230,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围随机双精度浮点数数组
+	 * 生成全范围内的随机双精度浮点数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 包含随机双精度浮点数值的数组
@@ -248,7 +248,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机双精度浮点数数组
+	 * 生成指定范围内的随机双精度浮点数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -269,7 +269,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围唯一随机整数数组
+	 * 生成全范围内的随机不重复整数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机整数值的数组
@@ -284,7 +284,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机整数数组
+	 * 生成指定范围内的随机不重复整数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -292,9 +292,11 @@ public class RandomArray {
 	 * @return 元素唯一的随机整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
+	 * @throws IllegalArgumentException 如果 {@code endExclusive - startInclusive < length}
 	 * @since 1.0.0
 	 */
 	public int[] randomUniqueIntArray(final int startInclusive, final int endExclusive, final int length) {
+		Validate.isTrue(endExclusive - startInclusive >= length, "最大值和最小数的差必须大于等于长度");
 		return randomSet(startInclusive, endExclusive, length, randomUtils::randomInt)
 			.stream()
 			.mapToInt(Integer::intValue)
@@ -302,7 +304,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围唯一随机长整数数组
+	 * 生成全范围内的随机不重复长整数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机长整数值的数组
@@ -317,7 +319,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机长整数数组
+	 * 生成指定范围内的的随机不重复长整数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
@@ -325,9 +327,11 @@ public class RandomArray {
 	 * @return 元素唯一的随机长整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
+	 * @throws IllegalArgumentException 如果 {@code endExclusive - startInclusive < length}
 	 * @since 1.0.0
 	 */
 	public long[] randomUniqueLongArray(final long startInclusive, final long endExclusive, final int length) {
+		Validate.isTrue(endExclusive - startInclusive >= length, "最大值和最小数的差必须大于等于长度");
 		return randomSet(startInclusive, endExclusive, length, randomUtils::randomLong)
 			.stream()
 			.mapToLong(Long::longValue)
@@ -335,7 +339,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成全范围唯一随机双精度浮点数数组
+	 * 生成全范围内的随机不重复双精度浮点数数组
 	 *
 	 * @param length 数组长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数值的数组
@@ -350,7 +354,7 @@ public class RandomArray {
 	}
 
 	/**
-	 * 生成指定范围内的唯一随机双精度浮点数数组
+	 * 生成指定范围内的的随机不重复双精度浮点数数组
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
