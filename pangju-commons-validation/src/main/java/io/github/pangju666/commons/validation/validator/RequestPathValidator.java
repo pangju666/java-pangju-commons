@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * @since 1.0.0
  */
 public class RequestPathValidator implements ConstraintValidator<RequestPath, String> {
-	private static final Pattern PATTERN = RegExUtils.compile("^\\/[\\w/-]+$", true, true);
+	private static final Pattern PATTERN = Pattern.compile("^/[\\w/-]+$");
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
