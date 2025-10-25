@@ -262,6 +262,10 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		this.transformation = transformation;
 	}
 
+	public RSAKey getKey() {
+		return key;
+	}
+
 	/**
 	 * 设置加密方案（初始化前有效）
 	 * <p>在实例初始化前设置新的加密方案，用于替换默认方案。</p>

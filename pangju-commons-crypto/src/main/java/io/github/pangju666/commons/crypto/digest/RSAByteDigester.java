@@ -229,6 +229,10 @@ public final class RSAByteDigester implements ByteDigester {
 		this.algorithm = algorithm;
 	}
 
+	public RSAKey getKey() {
+		return key;
+	}
+
 	/**
 	 * 设置 RSA 密钥对（初始化前有效）
 	 * <p>在实例初始化前设置新的RSA密钥对，用于替换默认生成的密钥。</p>

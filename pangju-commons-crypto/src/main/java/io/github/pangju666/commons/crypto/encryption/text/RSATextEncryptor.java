@@ -274,6 +274,10 @@ public final class RSATextEncryptor implements TextEncryptor {
 		this.binaryEncryptor = binaryEncryptor;
 	}
 
+	public RSAKey getKey() {
+		return binaryEncryptor.getKey();
+	}
+
 	/**
 	 * 配置加密算法方案
 	 * <p>

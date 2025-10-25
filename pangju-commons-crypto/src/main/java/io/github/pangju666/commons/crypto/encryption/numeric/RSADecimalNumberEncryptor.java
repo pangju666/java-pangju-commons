@@ -255,6 +255,10 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 		this.binaryEncryptor = binaryEncryptor;
 	}
 
+	public RSAKey getKey() {
+		return binaryEncryptor.getKey();
+	}
+
 	/**
 	 * 配置RSA加密方案
 	 * <p>

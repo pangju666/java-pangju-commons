@@ -27,7 +27,6 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -140,7 +139,7 @@ public class KeyPairUtils {
 	 * </ul>
 	 *
 	 * @param algorithm 加密算法名称（如"RSA"、"DSA"等），不能为null或空
-	 * @return 新生成的密钥对，可能返回null（当生成器初始化失败时）
+	 * @return 新生成的密钥对
 	 * @throws NoSuchAlgorithmException 当指定的算法不可用时抛出
 	 * @throws IllegalArgumentException 当algorithm为null或空时抛出
 	 * @since 1.0.0
@@ -153,9 +152,6 @@ public class KeyPairUtils {
 		} else {
 			generator = KeyPairGenerator.getInstance(algorithm);
 			KEY_PAIR_GENERATOR_MAP.put(algorithm, generator);
-		}
-		if (Objects.isNull(generator)) {
-			return null;
 		}
 		return generator.generateKeyPair();
 	}
@@ -176,7 +172,7 @@ public class KeyPairUtils {
 	 *
 	 * @param algorithm 加密算法名称（如"RSA"、"DSA"等），不能为null或空
 	 * @param keySize 密钥长度（单位：bit），必须符合算法要求的最小长度
-	 * @return 新生成的密钥对，可能返回null（当生成器初始化失败时）
+	 * @return 新生成的密钥对
 	 * @throws NoSuchAlgorithmException 当指定的算法不可用时抛出
 	 * @throws IllegalArgumentException 当algorithm为null或空，或keySize不合法时抛出
 	 * @since 1.0.0
@@ -191,9 +187,6 @@ public class KeyPairUtils {
 			generator = KeyPairGenerator.getInstance(algorithm);
 			generator.initialize(keySize);
 			KEY_PAIR_GENERATOR_MAP.put(mapKey, generator);
-		}
-		if (Objects.isNull(generator)) {
-			return null;
 		}
 		return generator.generateKeyPair();
 	}
@@ -221,17 +214,8 @@ public class KeyPairUtils {
 	 */
 	public static KeyPair generateKeyPair(final String algorithm, final int keySize, final SecureRandom secureRandom) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
-		KeyPairGenerator generator;
-		if (KEY_PAIR_GENERATOR_MAP.containsKey(algorithm)) {
-			generator = KEY_PAIR_GENERATOR_MAP.get(algorithm);
-		} else {
-			generator = KeyPairGenerator.getInstance(algorithm);
-			generator.initialize(keySize, secureRandom);
-			KEY_PAIR_GENERATOR_MAP.put(algorithm, generator);
-		}
-		if (Objects.isNull(generator)) {
-			return null;
-		}
+		KeyPairGenerator generator = KeyPairGenerator.getInstance(algorithm);
+		generator.initialize(keySize, secureRandom);
 		return generator.generateKeyPair();
 	}
 

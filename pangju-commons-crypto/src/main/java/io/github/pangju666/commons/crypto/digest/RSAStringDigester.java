@@ -84,6 +84,84 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
+	 * 构造方法（自定义算法，默认密钥长度）
+	 * <p>使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和指定算法创建实例</p>
+	 *
+	 * @param algorithm 签名算法名称，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>JCA标准算法名称(如SHA256withRSA)</li>
+	 *                  </ul>
+	 * @throws NullPointerException 当algorithm为null时抛出
+	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
+	 * @since 1.0.0
+	 */
+	public RSAStringDigester(final String algorithm) {
+		this.byteDigester = new RSAByteDigester(algorithm);
+	}
+
+	/**
+	 * 构造方法（自定义密钥长度，默认算法）
+	 * <p>使用指定密钥长度和默认算法("SHA256withRSA")创建实例</p>
+	 *
+	 * @param keySize RSA密钥位长度，推荐值：
+	 *                <ul>
+	 *                  <li>2048(商业应用最低要求)</li>
+	 *                  <li>4096(高安全需求)</li>
+	 *                </ul>
+	 * @throws IllegalArgumentException 当keySize小于1024时抛出
+	 * @since 1.0.0
+	 */
+	public RSAStringDigester(final int keySize) {
+		this.byteDigester = new RSAByteDigester(keySize);
+	}
+
+	/**
+	 * 构造方法（完全自定义配置）
+	 * <p>使用指定密钥长度和算法创建实例</p>
+	 *
+	 * @param keySize   密钥位长度，最小1024
+	 * @param algorithm 签名算法名称，非null
+	 * @throws NullPointerException     当algorithm为null时抛出
+	 * @throws IllegalArgumentException 当keySize小于1024时抛出
+	 * @since 1.0.0
+	 */
+	public RSAStringDigester(final int keySize, final String algorithm) {
+		this.byteDigester = new RSAByteDigester(keySize, algorithm);
+	}
+
+	/**
+	 * 构造方法（使用现有密钥，默认算法）
+	 * <p>使用预生成的RSA密钥对和默认算法("SHA256withRSA")创建实例</p>
+	 *
+	 * @param key RSA密钥对，必须满足：
+	 *            <ul>
+	 *              <li>非null</li>
+	 *              <li>至少包含公钥或私钥</li>
+	 *            </ul>
+	 * @throws NullPointerException     当key为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
+	 * @since 1.0.0
+	 */
+	public RSAStringDigester(final RSAKey key) {
+		this.byteDigester = new RSAByteDigester(key);
+	}
+
+	/**
+	 * 构造方法（完全自定义密钥和算法）
+	 * <p>使用预生成的RSA密钥对和指定算法创建实例</p>
+	 *
+	 * @param key       RSA密钥对，必须包含至少一个密钥
+	 * @param algorithm 签名算法名称，非null
+	 * @throws NullPointerException     当key或algorithm为null时抛出
+	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
+	 * @since 1.0.0
+	 */
+	public RSAStringDigester(final RSAKey key, final String algorithm) {
+		this.byteDigester = new RSAByteDigester(key, algorithm);
+	}
+
+	/**
 	 * 构造方法（自定义底层处理器）
 	 * <p>使用指定的字节数组签名处理器创建实例</p>
 	 *
@@ -98,6 +176,10 @@ public final class RSAStringDigester implements StringDigester {
 	 */
 	public RSAStringDigester(final RSAByteDigester byteDigester) {
 		this.byteDigester = byteDigester;
+	}
+
+	public RSAKey getKey() {
+		return byteDigester.getKey();
 	}
 
 	/**
