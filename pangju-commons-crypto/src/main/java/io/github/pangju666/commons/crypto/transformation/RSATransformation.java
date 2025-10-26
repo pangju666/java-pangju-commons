@@ -39,7 +39,6 @@ import java.security.spec.RSAPublicKeySpec;
  * <ol>
  *   <li>PKCS#1 v1.5填充方案</li>
  *   <li>OAEP填充方案（推荐）</li>
- *   <li>无填充方案（仅限测试）</li>
  * </ol>
  *
  * @author pangju666
