@@ -492,7 +492,7 @@ public class CoordinateUtils {
 
 		// 判断方向
 		char direction = isNegative ? (latitude ? GeoConstants.SOUTH_CHAR : GeoConstants.WEST_CHAR) :
-			(latitude ? GeoConstants.North_DIRECTION : GeoConstants.EAST_CHAR);
+			(latitude ? GeoConstants.NORTH_DIRECTION : GeoConstants.EAST_CHAR);
 
 		// 格式化输出
 		return String.format(DMS_FORMAT, degrees.toPlainString(), minutes.toPlainString(), seconds.doubleValue(), direction);

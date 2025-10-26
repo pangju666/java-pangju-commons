@@ -53,7 +53,7 @@ public class GeoConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final char North_DIRECTION = 'N';
+	public static final char NORTH_DIRECTION = 'N';
 	/**
 	 * 南方标识符(S)
 	 * <p>用于表示南纬或向南方向</p>

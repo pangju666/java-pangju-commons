@@ -94,6 +94,9 @@ public class Coordinate {
 		Validate.notNull(latitude, "latitude 不可为null");
 		Validate.inclusiveBetween(GeoConstants.MIN_LONGITUDE, GeoConstants.MAX_LONGITUDE, longitude.doubleValue());
 		Validate.inclusiveBetween(GeoConstants.MIN_LATITUDE, GeoConstants.MAX_LATITUDE, latitude.doubleValue());
+
+		this.longitude = longitude;
+		this.latitude = latitude;
 	}
 
 	/**
@@ -138,7 +141,7 @@ public class Coordinate {
 	}
 
 	/**
-	 * 中国境内判断
+	 * 判断坐标是否在中国境内
 	 * <p>
 	 * 根据中国地理边界判断坐标是否在境外，
 	 * 边界值参考GeoConstants中的定义。

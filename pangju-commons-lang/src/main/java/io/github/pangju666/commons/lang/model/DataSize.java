@@ -77,14 +77,11 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 	 */
 	private static final long BYTES_PER_TB = BYTES_PER_GB * 1024;
 
-
 	private final long bytes;
-
 
 	private DataSize(long bytes) {
 		this.bytes = bytes;
 	}
-
 
 	/**
 	 * Obtain a {@link DataSize} representing the specified number of bytes.
@@ -263,7 +260,6 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 		return String.format("%dB", this.bytes);
 	}
 
-
 	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
@@ -280,7 +276,6 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 	public int hashCode() {
 		return Long.hashCode(this.bytes);
 	}
-
 
 	/**
 	 * Static nested class to support lazy loading of the {@link #PATTERN}.
@@ -299,5 +294,4 @@ public final class DataSize implements Comparable<DataSize>, Serializable {
 			return (StringUtils.isNotEmpty(suffix) ? DataUnit.fromSuffix(suffix) : defaultUnitToUse);
 		}
 	}
-
 }
