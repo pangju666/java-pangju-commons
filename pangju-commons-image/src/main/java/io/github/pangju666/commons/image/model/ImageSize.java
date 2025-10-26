@@ -48,13 +48,13 @@ public class ImageSize {
 	 *
 	 * @since 1.0.0
 	 */
-	private int width;
+	private final int width;
 	/**
 	 * 图像高度（像素）
 	 *
 	 * @since 1.0.0
 	 */
-	private int height;
+	private final int height;
 
 	/**
 	 * 规范构造方法
@@ -82,6 +82,9 @@ public class ImageSize {
 	public ImageSize(int width, int height) {
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.isTrue(height > 0, "height 必须大于0");
+
+		this.width = width;
+		this.height = height;
 	}
 
 	public int getWidth() {
