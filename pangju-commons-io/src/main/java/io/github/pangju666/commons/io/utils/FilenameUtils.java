@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.io.utils;
 
+import io.github.pangju666.commons.io.enums.FileType;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import jakarta.activation.MimetypesFileTypeMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -243,8 +244,8 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 		if (StringUtils.isBlank(filename)) {
 			return false;
 		}
-		return MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase())
-			.startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
+		String mimeType = MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase());
+		return FileType.VIDEO.getTypes().contains(mimeType) || mimeType.startsWith(IOConstants.VIDEO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -282,41 +283,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	}
 
 	/**
-	 * 判断是否为应用类型
-	 * <p>
-	 * 通过检测文件扩展名对应的MIME类型前缀是否为"application/"来判断是否为应用文件。
-	 * </p>
-	 *
-	 * <p><b>支持的应用格式：</b></p>
-	 * <ul>
-	 *     <li>可执行文件：EXE、APP、JAR</li>
-	 *     <li>文档格式：PDF、DOC、XLS</li>
-	 *     <li>压缩格式：ZIP、RAR、7Z</li>
-	 * </ul>
-	 *
-	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："app.exe"）</li>
-	 *                 <li>完整路径（如："D:/downloads/archive.zip"）</li>
-	 *               </ul>
-	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"application/"开头</li>
-	 *         </ul>
-	 * @see #getMimeType(String)
-	 * @since 1.0.0
-	 */
-	public static boolean isApplicationType(final String filename) {
-		if (StringUtils.isBlank(filename)) {
-			return false;
-		}
-		return MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase())
-			.startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
-	}
-
-	/**
-	 * 精确匹配MIME类型
+	 * 判断是否为指定类型
 	 * <p>
 	 * 严格匹配文件扩展名对应的MIME类型与指定类型是否一致（不区分大小写）。
 	 * </p>
@@ -354,7 +321,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	}
 
 	/**
-	 * 批量匹配MIME类型
+	 * 判断是否为任一类型
 	 * <p>
 	 * 检查文件扩展名对应的MIME类型是否匹配给定的任意一个MIME类型（不区分大小写）。
 	 * </p>
@@ -393,7 +360,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	}
 
 	/**
-	 * 批量匹配MIME类型（集合版本）
+	 * 判断是否为任一类型（集合版本）
 	 * <p>
 	 * 检查文件扩展名对应的MIME类型是否匹配集合中的任意一个MIME类型（不区分大小写）。
 	 * </p>

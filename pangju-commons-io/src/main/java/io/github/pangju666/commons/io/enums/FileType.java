@@ -16,6 +16,8 @@
 
 package io.github.pangju666.commons.io.enums;
 
+import io.github.pangju666.commons.io.lang.IOConstants;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -45,28 +47,28 @@ public enum FileType {
 	 *
 	 * @since 1.0.0
 	 */
-	IMAGE("图片", Collections.emptySet(), "image/"),
+	IMAGE("图片", Collections.emptySet(), IOConstants.IMAGE_MIME_TYPE_PREFIX),
 	/**
 	 * 文本类型，匹配所有MIME类型以"text/"开头的文件
 	 * <p>常见格式：TXT、CSV、HTML、XML等</p>
 	 *
 	 * @since 1.0.0
 	 */
-	TEXT("文本", Collections.emptySet(), "text/"),
+	TEXT("文本", Collections.emptySet(), IOConstants.TEXT_MIME_TYPE_PREFIX),
 	/**
 	 * 音频类型，匹配所有MIME类型以"audio/"开头的文件
 	 * <p>常见格式：MP3、WAV、AAC、OGG等</p>
 	 *
 	 * @since 1.0.0
 	 */
-	AUDIO("音频", Collections.emptySet(), "audio/"),
+	AUDIO("音频", Collections.emptySet(), IOConstants.AUDIO_MIME_TYPE_PREFIX),
 	/**
 	 * 3D模型类型，匹配所有MIME类型以"model/"开头的文件
 	 * <p>常见格式：STL、OBJ、FBX等</p>
 	 *
 	 * @since 1.0.0
 	 */
-	MODEL("模型", Collections.emptySet(), "model/"),
+	MODEL("模型", Collections.emptySet(), IOConstants.MODEL_MIME_TYPE_PREFIX),
 	/**
 	 * 视频类型，主要匹配MIME类型以"video/"开头的文件
 	 * <p>包含特殊格式：HLS流媒体(application/vnd.apple.mpegurl)</p>
@@ -74,7 +76,7 @@ public enum FileType {
 	 *
 	 * @since 1.0.0
 	 */
-	VIDEO("视频", Collections.singleton("application/vnd.apple.mpegurl"), "video/"),
+	VIDEO("视频", Collections.singleton("application/vnd.apple.mpegurl"), IOConstants.VIDEO_MIME_TYPE_PREFIX),
 	/**
 	 * 压缩包类型，通过具体MIME类型精确匹配
 	 * <p>支持的压缩格式：TAR、GZIP、BZIP2、ZIP、RAR、7Z、CAB等</p>

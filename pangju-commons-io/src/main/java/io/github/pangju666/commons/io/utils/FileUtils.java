@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
  * <h3>使用建议：</h3>
  * <ol>
  *     <li>首先考虑是否在意线程安全，不在意则使用{@link #openUnsynchronizedBufferedInputStream(File)}</li>
+ *      <li>其次考虑是否为超大文件，不是则使用{@link #openInputStream(File)}</li>
  *     <li>其次考虑是否在意内存占用，不在意则使用{@link #openMemoryMappedFileInputStream(File)}</li>
  *     <li>不满足以上条件的话，使用{@link #openBufferedFileChannelInputStream(File)}</li>
  * </ol>
@@ -762,20 +763,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 检测是否为应用程序类型
-	 * <p>包含格式：EXE/DMG/APK/JAR等可执行文件格式</p>
-	 *
-	 * @param file 待检测文件
-	 * @return 当文件内容被识别为应用类型时返回true
-	 * @throws IOException 当文件不可读时抛出
-	 * @since 1.0.0
-	 */
-	public static boolean isApplicationType(final File file) throws IOException {
-		return getMimeType(file).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX);
-	}
-
-	/**
-	 * 精确匹配文件MIME类型
+	 * 判断文件是否为指定类型
 	 * <p>性能提示：</p>
 	 * <ul>
 	 *     <li>内部使用Tika进行内容检测</li>
@@ -797,7 +785,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 检查文件MIME类型是否匹配任意给定类型
+	 * 判断文件是否为任一类型
 	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
 	 *     <li>支持可变参数形式传入多个MIME类型</li>
@@ -833,7 +821,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 检查文件MIME类型是否匹配集合中任意类型
+	 * 判断文件是否为任一类型
 	 * <p><strong>功能特性：</strong></p>
 	 * <ul>
 	 *     <li>支持动态变化的MIME类型集合</li>
