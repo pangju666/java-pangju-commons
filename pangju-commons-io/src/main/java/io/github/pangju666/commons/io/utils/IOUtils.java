@@ -75,11 +75,12 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	protected static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
 
+	protected static final int KB_4 = 4 * 1024;
 	protected static final int KB_8 = 8 * 1024;
 	protected static final int KB_32 = 32 * 1024;
 	protected static final int KB_64 = 64 * 1024;
+	protected static final int KB_128 = 128 * 1024;
 	protected static final int KB_256 = 256 * 1024;
-	protected static final int KB_512 = 512 * 1024;
 	protected static final int MB_1 = 1024 * 1024;
 	protected static final int MB_10 = 10 * MB_1;
 	protected static final int MB_100 = 100 * MB_1;
@@ -93,11 +94,12 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * <p>缓冲区大小策略如下：</p>
 	 * <table border="1">
 	 *     <tr><th>文件大小范围</th><th>缓冲区大小</th></tr>
-	 *     <tr><td>小于1MB</td><td>8KB</td></tr>
-	 *     <tr><td>1MB - 10MB</td><td>32KB</td></tr>
-	 *     <tr><td>10MB - 100MB</td><td>64KB</td></tr>
-	 *     <tr><td>100MB - 1GB</td><td>256KB</td></tr>
-	 *     <tr><td>大于等于1GB</td><td>512KB</td></tr>
+	 *      <tr><td>&lt;256KB</td><td>4KB</td></tr>
+	 *     <tr><td>256KB~1MB</td><td>8KB</td></tr>
+	 *     <tr><td>1MB~10MB</td><td>32KB</td></tr>
+	 *     <tr><td>10MB~100MB</td><td>64KB</td></tr>
+	 *     <tr><td>100MB~1GB</td><td>128KB</td></tr>
+	 *     <tr><td>&ge;1GB</td><td>256KB</td></tr>
 	 * </table>
 	 *
 	 * @param totalSize 文件总大小（单位：字节）
@@ -108,16 +110,18 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	public static int getBufferSize(final long totalSize) {
 		Validate.isTrue(totalSize >= 0, "totalSize 必须大于等于0");
 
-		if (totalSize < MB_1) { // < 1MB
+		if (totalSize < KB_256) { // < 256KB
+			return KB_4;
+		} else if (totalSize < MB_1) { // 256KB-1MB
 			return KB_8;
-		} else if (totalSize < MB_10) { // < 10MB
+		} else if (totalSize < MB_10) { // 1MB~10MB
 			return KB_32;
-		} else if (totalSize < MB_100) { // < 100MB
+		} else if (totalSize < MB_100) { // 10MB~100MB
 			return KB_64;
-		} else if (totalSize < GB_1) { // < 1GB
-			return KB_256;
+		} else if (totalSize < GB_1) { // 100MB~1GB
+			return KB_128;
 		} else {
-			return KB_512;
+			return KB_256;
 		}
 	}
 
@@ -274,7 +278,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * AES/CBC模式流加密（默认IV）
+	 * AES/CBC/PKCS5Padding模式流加密（默认IV）
 	 * <p>实现特性：</p>
 	 * <ul>
 	 *     <li>使用密码字节作为初始化向量（IV）</li>
@@ -303,7 +307,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * AES/CBC模式流解密（默认IV）
+	 * AES/CBC/PKCS5Padding模式流解密（默认IV）
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>必须使用与加密相同的密码和IV</li>
@@ -332,7 +336,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * AES/CBC模式流加密（自定义IV）
+	 * AES/CBC/PKCS5Padding模式流加密（自定义IV）
 	 * <p>实现特性：</p>
 	 * <ul>
 	 *     <li>支持自定义16字节初始化向量</li>
@@ -364,7 +368,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * AES/CBC模式流解密（自定义IV）
+	 * AES/CBC/PKCS5Padding模式流解密（自定义IV）
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>必须使用与加密相同的密码和IV</li>
@@ -460,7 +464,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * CTR模式加密（默认IV）
+	 * 使用AES/CTR模式加密（默认IV）
 	 * <p>实现特性：</p>
 	 * <ul>
 	 *     <li>使用密码字节作为初始化向量（IV）</li>
@@ -487,7 +491,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
-	 * CTR模式解密（默认IV）
+	 * 使用AES/CTR模式解密（默认IV）
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>必须使用与加密相同的16字节密钥</li>

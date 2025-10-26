@@ -75,18 +75,22 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	protected static final int MB_100 = 100 * MB_1;
 	protected static final long GB_1 = 1024 * MB_1;
 	protected static final long GB_10 = 10 * GB_1;
+
 	protected FileUtils() {
 	}
 
 	/**
 	 * 根据文件大小计算最佳缓冲区大小
-	 * <p>计算规则：</p>
-	 * <ul>
-	 *     <li>小文件(1MB以下)：8KB</li>
-	 *     <li>中等文件(1MB~10MB)：16KB</li>
-	 *     <li>大文件(10MB~100MB)：32KB</li>
-	 *     <li>超大文件(100MB以上)：64KB</li>
-	 * </ul>
+	 * <p>缓冲区大小策略如下：</p>
+	 * <table border="1">
+	 *     <tr><th>文件大小范围</th><th>缓冲区大小</th></tr>
+	 *      <tr><td>&lt;256KB</td><td>4KB</td></tr>
+	 *     <tr><td>256KB~1MB</td><td>8KB</td></tr>
+	 *     <tr><td>1MB~10MB</td><td>32KB</td></tr>
+	 *     <tr><td>10MB~100MB</td><td>64KB</td></tr>
+	 *     <tr><td>100MB~1GB</td><td>128KB</td></tr>
+	 *     <tr><td>&ge;1GB</td><td>256KB</td></tr>
+	 * </table>
 	 *
 	 * @param file 目标文件（必须存在且可读）
 	 * @return 优化的缓冲区大小（单位：字节）
