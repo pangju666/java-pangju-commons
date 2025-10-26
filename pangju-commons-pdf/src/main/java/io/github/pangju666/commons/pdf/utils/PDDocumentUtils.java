@@ -588,7 +588,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面的图像列表(使用默认缩放比例1)
+	 * 将PDF文档指定页面渲染为图像并返回(使用默认缩放比例1)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -611,7 +611,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面的图像列表(使用指定缩放比例)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定缩放比例)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -655,7 +655,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面的图像列表(使用指定DPI)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定DPI)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -700,7 +700,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面范围的图像列表(使用默认缩放比例1)
+	 * 将PDF文档指定页面渲染为图像并返回(使用默认缩放比例1)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -725,7 +725,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面范围的图像列表(使用指定缩放比例)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定缩放比例)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -770,7 +770,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 获取PDF文档指定页面范围的图像列表(使用指定DPI)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定DPI)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -823,7 +823,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档中的所有图像(使用默认缩放比例1)
+	 * 将PDF文档所有页面渲染为图像并返回(使用默认缩放比例1)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -845,7 +845,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档中的所有图像(使用指定缩放比例)
+	 * 将PDF文档所有页面渲染为图像并返回(使用指定缩放比例)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -885,7 +885,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档中的所有图像(使用指定DPI)
+	 * 将PDF文档所有页面渲染为图像并返回(使用指定DPI)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -926,7 +926,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档的指定页面为图像(使用默认缩放比例1)
+	 * 将PDF文档指定页面渲染为图像并返回(使用默认缩放比例1)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -953,7 +953,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档的指定页面为图像(使用指定缩放比例)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定缩放比例)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
@@ -987,7 +987,7 @@ public class PDDocumentUtils {
 	}
 
 	/**
-	 * 提取PDF文档的指定页面为图像(使用指定DPI)
+	 * 将PDF文档指定页面渲染为图像并返回(使用指定DPI)
 	 * <p>
 	 * 此方法会：
 	 * <ul>
