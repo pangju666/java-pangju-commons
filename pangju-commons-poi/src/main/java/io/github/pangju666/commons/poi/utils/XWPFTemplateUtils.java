@@ -150,7 +150,7 @@ public class XWPFTemplateUtils {
 	 * @throws IllegalArgumentException 当template参数为null时抛出
 	 * @since 1.0.0
 	 */
-	public static Map<String, RenderData> getDataModel(final XWPFTemplate template, final List<RenderData> renderDataList) {
+	public static Map<String, RenderData> buildDataModel(final XWPFTemplate template, final List<RenderData> renderDataList) {
 		Validate.notNull(template, "template 不可为 null");
 
 		if (CollectionUtils.isEmpty(renderDataList)) {

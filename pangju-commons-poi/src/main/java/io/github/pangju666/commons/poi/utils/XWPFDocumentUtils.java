@@ -23,7 +23,6 @@ import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import java.io.File;
@@ -106,7 +105,7 @@ public class XWPFDocumentUtils {
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static Document getDocument(final File file) throws IOException {
+	public static XWPFDocument getDocument(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		String mimeType = IOConstants.getDefaultTika().detect(file);
@@ -127,7 +126,7 @@ public class XWPFDocumentUtils {
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static Document getDocument(final byte[] bytes) throws IOException {
+	public static XWPFDocument getDocument(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);

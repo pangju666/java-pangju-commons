@@ -23,8 +23,7 @@ import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.poi.xwpf.usermodel.Document;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.hwpf.HWPFDocument;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +105,7 @@ public class HWPFDocumentUtils {
 	 * @throws IllegalArgumentException 当文件不是DOC格式时抛出
 	 * @since 1.0.0
 	 */
-	public static Document getDocument(final File file) throws IOException {
+	public static HWPFDocument getDocument(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		String mimeType = IOConstants.getDefaultTika().detect(file);
@@ -114,7 +113,7 @@ public class HWPFDocumentUtils {
 			throw new IllegalArgumentException("不是doc文件");
 		}
 		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
-			return new XWPFDocument(inputStream);
+			return new HWPFDocument(inputStream);
 		}
 	}
 
@@ -127,7 +126,7 @@ public class HWPFDocumentUtils {
 	 * @throws IllegalArgumentException 当字节数组不是DOC格式时抛出
 	 * @since 1.0.0
 	 */
-	public static Document getDocument(final byte[] bytes) throws IOException {
+	public static HWPFDocument getDocument(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
@@ -135,6 +134,6 @@ public class HWPFDocumentUtils {
 			throw new IllegalArgumentException("不是doc文件");
 		}
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-		return new XWPFDocument(inputStream);
+		return new HWPFDocument(inputStream);
 	}
 }

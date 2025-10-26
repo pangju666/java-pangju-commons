@@ -1454,7 +1454,7 @@ public class WorkbookUtils {
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
 	 */
-	public static Row getRow(final Sheet sheet, final int rowNum) {
+	public static Row createRowIfAbsent(final Sheet sheet, final int rowNum) {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
@@ -1473,7 +1473,7 @@ public class WorkbookUtils {
 	 * @throws IllegalArgumentException 如果row为null或cellNum小于0
 	 * @since 1.0.0
 	 */
-	public static Cell getCell(final Row row, final int cellNum) {
+	public static Cell createCellIfAbsent(final Row row, final int cellNum) {
 		Validate.notNull(row, "row 不可为 null");
 		Validate.isTrue(cellNum >= 0, "cellNum 必须大于等于0");
 
@@ -1550,12 +1550,12 @@ public class WorkbookUtils {
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
 		Map<String, Integer> titleIndexMap = new HashMap<>(titles.length);
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		if (Objects.nonNull(rowStyle)) {
 			row.setRowStyle(rowStyle);
 		}
 		for (int i = 0; i < titles.length; i++) {
-			Cell cell = getCell(row, i);
+			Cell cell = createCellIfAbsent(row, i);
 			cell.setCellValue(titles[i]);
 			titleIndexMap.put(titles[i], i);
 		}
@@ -1632,12 +1632,12 @@ public class WorkbookUtils {
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
 		Map<String, Integer> titleIndexMap = new HashMap<>(titles.size());
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		if (Objects.nonNull(rowStyle)) {
 			row.setRowStyle(rowStyle);
 		}
 		for (int i = 0; i < titles.size(); i++) {
-			Cell cell = getCell(row, i);
+			Cell cell = createCellIfAbsent(row, i);
 			cell.setCellValue(titles.get(i));
 			titleIndexMap.put(titles.get(i), i);
 		}
@@ -1722,7 +1722,7 @@ public class WorkbookUtils {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.notNull(consumer, "consumer 不可为 null");
 
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		consumer.accept(row);
 	}
 
@@ -1848,7 +1848,7 @@ public class WorkbookUtils {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		if (ArrayUtils.isEmpty(values)) {
 			return;
 		}
@@ -1979,7 +1979,7 @@ public class WorkbookUtils {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		if (CollectionUtils.isEmpty(values)) {
 			return;
 		}
@@ -2114,7 +2114,7 @@ public class WorkbookUtils {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.isTrue(rowNum >= 0, "rowNum 必须大于等于0");
 
-		Row row = getRow(sheet, rowNum);
+		Row row = createRowIfAbsent(sheet, rowNum);
 		if (CollectionUtils.isEmpty(valueIndexPairs)) {
 			return;
 		}
@@ -2160,7 +2160,7 @@ public class WorkbookUtils {
 	public static void createCell(final Row row, final int i, final Object value, final CellStyle style) {
 		Validate.notNull(row, "row 不可为 null");
 
-		Cell cell = getCell(row, i);
+		Cell cell = createCellIfAbsent(row, i);
 		if (Objects.isNull(value)) {
 			cell.setBlank();
 		} else if (value instanceof Number) {
