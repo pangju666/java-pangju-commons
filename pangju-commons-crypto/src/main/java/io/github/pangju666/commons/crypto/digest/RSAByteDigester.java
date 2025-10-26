@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.crypto.digest;
 
+import io.github.pangju666.commons.crypto.enums.RsaSignatureAlgorithm;
 import io.github.pangju666.commons.crypto.key.RSAKey;
 import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import org.apache.commons.lang3.ArrayUtils;
@@ -63,7 +64,7 @@ import java.util.Objects;
  * @author pangju666
  * @see ByteDigester
  * @see RSAKey
- * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature">JCA 签名算法标准名称</a>
+ * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html">JCA 签名算法标准名称</a>
  * @since 1.0.0
  */
 public final class RSAByteDigester implements ByteDigester {
@@ -125,17 +126,10 @@ public final class RSAByteDigester implements ByteDigester {
 
 	/**
 	 * 签名算法名称
-	 * <p>遵循JCA标准的签名算法名称，具有以下特性：</p>
-	 * <ul>
-	 *   <li>默认值："SHA256withRSA"</li>
-	 *   <li>初始化后不可更改</li>
-	 *   <li>必须支持{@link Signature}实现</li>
-	 * </ul>
 	 *
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature">JCA标准算法名称</a>
 	 * @since 1.0.0
 	 */
-	private String algorithm = "SHA256withRSA";
+	private RsaSignatureAlgorithm algorithm = RsaSignatureAlgorithm.SHA256_WITH_RSA;
 
 	/**
 	 * 构造方法（使用默认密钥长度和算法）
@@ -152,16 +146,13 @@ public final class RSAByteDigester implements ByteDigester {
 	 * 构造方法（自定义算法，默认密钥长度）
 	 * <p>使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和指定算法创建实例</p>
 	 *
-	 * @param algorithm 签名算法名称，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>JCA标准算法名称(如SHA256withRSA)</li>
-	 *                  </ul>
+	 * @param algorithm 签名算法
 	 * @throws NullPointerException 当algorithm为null时抛出
 	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(final String algorithm) {
+	public RSAByteDigester(final RsaSignatureAlgorithm algorithm) {
+		Validate.notNull(algorithm, "algorithm 不可为 null");
 		this.key = RSAKey.random(CryptoConstants.RSA_DEFAULT_KEY_SIZE);
 		this.algorithm = algorithm;
 	}
@@ -192,7 +183,8 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @throws IllegalArgumentException 当keySize小于1024时抛出
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(final int keySize, final String algorithm) {
+	public RSAByteDigester(final int keySize, final RsaSignatureAlgorithm algorithm) {
+		Validate.notNull(algorithm, "algorithm 不可为 null");
 		this.key = RSAKey.random(keySize);
 		this.algorithm = algorithm;
 	}
@@ -224,7 +216,8 @@ public final class RSAByteDigester implements ByteDigester {
 	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
 	 * @since 1.0.0
 	 */
-	public RSAByteDigester(final RSAKey key, final String algorithm) {
+	public RSAByteDigester(final RSAKey key, final RsaSignatureAlgorithm algorithm) {
+		Validate.notNull(algorithm, "algorithm 不可为 null");
 		this.key = key;
 		this.algorithm = algorithm;
 	}
@@ -260,17 +253,13 @@ public final class RSAByteDigester implements ByteDigester {
 	 * 设置签名算法（初始化前有效）
 	 * <p>在实例初始化前设置新的签名算法，用于替换默认算法(SHA256withRSA)。</p>
 	 *
-	 * @param algorithm 新的算法名称，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>JCA标准算法名称</li>
-	 *                  </ul>
+	 * @param algorithm 新的算法
 	 * @throws NullPointerException 当algorithm为null时抛出
 	 * @throws AlreadyInitializedException 已初始化后调用时抛出
 	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature">JCA 签名算法标准名称</a>
 	 * @since 1.0.0
 	 */
-	public synchronized void setAlgorithm(final String algorithm) {
+	public synchronized void setAlgorithm(final RsaSignatureAlgorithm algorithm) {
 		Validate.notNull(algorithm, "algorithm 不可为 null");
 		if (initialized) {
 			throw new AlreadyInitializedException();
@@ -302,17 +291,17 @@ public final class RSAByteDigester implements ByteDigester {
 			try {
 				if (Objects.nonNull(key.getPublicKey())) {
 					PublicKey publicKey = key.getPublicKey();
-					this.verifySignature = Signature.getInstance(this.algorithm);
+					this.verifySignature = Signature.getInstance(this.algorithm.getAlgorithm());
 					this.verifySignature.initVerify(publicKey);
 					if (Objects.nonNull(key.getPrivateKey())) {
 						PrivateKey privateKey = key.getPrivateKey();
-						this.signature = Signature.getInstance(this.algorithm);
+						this.signature = Signature.getInstance(this.algorithm.getAlgorithm());
 						this.signature.initSign(privateKey);
 					}
 				} else {
 					if (Objects.nonNull(key.getPrivateKey())) {
 						PrivateKey privateKey = key.getPrivateKey();
-						this.signature = Signature.getInstance(this.algorithm);
+						this.signature = Signature.getInstance(this.algorithm.getAlgorithm());
 						this.signature.initSign(privateKey);
 					}
 				}

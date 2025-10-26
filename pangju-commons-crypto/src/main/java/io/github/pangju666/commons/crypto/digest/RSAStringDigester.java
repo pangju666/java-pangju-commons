@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.crypto.digest;
 
+import io.github.pangju666.commons.crypto.enums.RsaSignatureAlgorithm;
 import io.github.pangju666.commons.crypto.key.RSAKey;
 import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import org.apache.commons.codec.DecoderException;
@@ -87,16 +88,12 @@ public final class RSAStringDigester implements StringDigester {
 	 * 构造方法（自定义算法，默认密钥长度）
 	 * <p>使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和指定算法创建实例</p>
 	 *
-	 * @param algorithm 签名算法名称，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>JCA标准算法名称(如SHA256withRSA)</li>
-	 *                  </ul>
+	 * @param algorithm 签名算法
 	 * @throws NullPointerException 当algorithm为null时抛出
 	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
 	 * @since 1.0.0
 	 */
-	public RSAStringDigester(final String algorithm) {
+	public RSAStringDigester(final RsaSignatureAlgorithm algorithm) {
 		this.byteDigester = new RSAByteDigester(algorithm);
 	}
 
@@ -121,12 +118,12 @@ public final class RSAStringDigester implements StringDigester {
 	 * <p>使用指定密钥长度和算法创建实例</p>
 	 *
 	 * @param keySize   密钥位长度，最小1024
-	 * @param algorithm 签名算法名称，非null
+	 * @param algorithm 签名算法，非null
 	 * @throws NullPointerException     当algorithm为null时抛出
 	 * @throws IllegalArgumentException 当keySize小于1024时抛出
 	 * @since 1.0.0
 	 */
-	public RSAStringDigester(final int keySize, final String algorithm) {
+	public RSAStringDigester(final int keySize, final RsaSignatureAlgorithm algorithm) {
 		this.byteDigester = new RSAByteDigester(keySize, algorithm);
 	}
 
@@ -152,12 +149,12 @@ public final class RSAStringDigester implements StringDigester {
 	 * <p>使用预生成的RSA密钥对和指定算法创建实例</p>
 	 *
 	 * @param key       RSA密钥对，必须包含至少一个密钥
-	 * @param algorithm 签名算法名称，非null
+	 * @param algorithm 签名算法，非null
 	 * @throws NullPointerException     当key或algorithm为null时抛出
 	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
 	 * @since 1.0.0
 	 */
-	public RSAStringDigester(final RSAKey key, final String algorithm) {
+	public RSAStringDigester(final RSAKey key, final RsaSignatureAlgorithm algorithm) {
 		this.byteDigester = new RSAByteDigester(key, algorithm);
 	}
 
@@ -204,16 +201,11 @@ public final class RSAStringDigester implements StringDigester {
 	 * 设置签名算法
 	 * <p>更新签名处理器使用的算法</p>
 	 *
-	 * @param algorithm 新的算法名称，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>JCA标准算法名称</li>
-	 *                  </ul>
+	 * @param algorithm 新的算法
 	 * @throws NullPointerException 当algorithm为null时抛出
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Signature">JCA标准算法名称</a>
 	 * @since 1.0.0
 	 */
-	public void setAlgorithm(final String algorithm) {
+	public void setAlgorithm(final RsaSignatureAlgorithm algorithm) {
 		byteDigester.setAlgorithm(algorithm);
 	}
 
