@@ -1713,12 +1713,12 @@ public class WorkbookUtils {
 	 * </p>
 	 *
 	 * @param sheet    Excel工作表对象，不可为null
-	 * @param consumer 行消费者，用于处理新创建的行，不可为null
 	 * @param rowNum   行索引，必须大于等于0
+	 * @param consumer 行消费者，用于处理新创建的行，不可为null
 	 * @throws IllegalArgumentException 如果sheet或consumer为null，或rowNum小于0
 	 * @since 1.0.0
 	 */
-	public static void insertRow(final Sheet sheet, final Consumer<Row> consumer, final int rowNum) {
+	public static void insertRow(final Sheet sheet, final int rowNum, final Consumer<Row> consumer) {
 		Validate.notNull(sheet, "sheet 不可为 null");
 		Validate.notNull(consumer, "consumer 不可为 null");
 
