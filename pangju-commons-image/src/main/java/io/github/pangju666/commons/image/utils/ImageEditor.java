@@ -249,7 +249,7 @@ public class ImageEditor {
 	private int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
-	 * 构造缩略图生成器（指定输出格式）
+	 * 构造图像编辑器（指定输出格式）
 	 *
 	 * @param inputImage     原始图像，不可为null
 	 * @param inputImageSize 原始图像尺寸，不可为null
@@ -269,10 +269,10 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从URL创建缩略图生成器
+	 * 从URL创建图像编辑器
 	 *
 	 * @param url 图像URL，不可为null
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
@@ -284,14 +284,14 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从文件创建缩略图生成器
+	 * 从文件创建图像编辑器
 	 * <p>
 	 * 自动从文件扩展名推断输出格式，并默认启用EXIF方向自动校正。
 	 * 这是{@link #of(File, boolean)}方法的便捷重载，自动校正参数设为true。
 	 * </p>
 	 *
 	 * @param file 图像文件，不可为null
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @see #of(File, boolean)
@@ -302,7 +302,7 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从文件创建缩略图生成器
+	 * 从文件创建图像编辑器
 	 * <p>
 	 * 自动从文件扩展名推断输出格式。可选择是否根据EXIF信息自动校正图像方向。
 	 * </p>
@@ -319,7 +319,7 @@ public class ImageEditor {
 	 *
 	 * @param file 图像文件，不可为null
 	 * @param autoCorrectOrientation 是否自动校正图像方向（根据EXIF信息）
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @since 1.0.0
@@ -338,14 +338,14 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从输入流创建缩略图生成器
+	 * 从输入流创建图像编辑器
 	 * <p>
 	 * 默认启用EXIF方向自动校正。这是{@link #of(InputStream, boolean)}方法的便捷重载，
 	 * 自动校正参数设为true。
 	 * </p>
 	 *
 	 * @param inputStream 输入流，不可为null
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @see #of(InputStream, boolean)
@@ -412,10 +412,10 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从图像输入流创建缩略图生成器
+	 * 从图像输入流创建图像编辑器
 	 *
 	 * @param imageInputStream 图像输入流，不可为null
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
@@ -427,10 +427,10 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从BufferedImage创建缩略图生成器
+	 * 从BufferedImage创建图像编辑器
 	 *
 	 * @param bufferedImage BufferedImage对象，不可为null
-	 * @return 缩略图生成器实例
+	 * @return 图像编辑器实例
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final BufferedImage bufferedImage) {
@@ -465,7 +465,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleFilterType(final int filterType) {
-		if (filterType > 15) {
+		if (filterType < 0 || filterType > 15) {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		} else {
 			this.resampleFilterType = filterType;
@@ -548,13 +548,13 @@ public class ImageEditor {
 
 		switch (orientation) {
 			case 2:
-				flip(ImageUtil.FLIP_VERTICAL);
+				flip(ImageUtil.FLIP_HORIZONTAL);
 				break;
 			case 3:
 				rotate(ImageUtil.ROTATE_180);
 				break;
 			case 4:
-				flip(ImageUtil.FLIP_HORIZONTAL);
+				flip(ImageUtil.FLIP_VERTICAL);
 				break;
 			case 5:
 				rotate(ImageUtil.ROTATE_90_CW);
@@ -643,13 +643,13 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 对图像应用锐化效果，使用默认锐化参数。
+	 * 对图像应用锐化效果，使用默认锐化强度0.3。
 	 *
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor sharpen() {
-		this.outputImage = ImageUtil.sharpen(this.outputImage);
+		this.outputImage = ImageUtil.sharpen(this.outputImage, 0.3f);
 		return this;
 	}
 
@@ -811,12 +811,12 @@ public class ImageEditor {
 
 	/**
 	 * 将图像缩放到指定的最大宽度和高度范围内，保持原始宽高比。
-	 * 缩放后的图像尺寸不会超过指定的宽度和高度。
 	 *
 	 * @param width 最大宽度（像素）
 	 * @param height 最大高度（像素）
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
+	 * @see ImageSize#scale(int, int) 
 	 */
 	public ImageEditor scale(final int width, final int height) {
 		this.outputImageSize = this.outputImageSize.scale(width, height);
