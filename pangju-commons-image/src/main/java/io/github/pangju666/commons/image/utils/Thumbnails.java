@@ -16,22 +16,28 @@
 
 package io.github.pangju666.commons.image.utils;
 
+import com.drew.imaging.ImageProcessingException;
+import com.twelvemonkeys.image.BrightnessContrastFilter;
+import com.twelvemonkeys.image.GrayFilter;
+import com.twelvemonkeys.image.ImageUtil;
 import com.twelvemonkeys.image.ResampleOp;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 缩略图生成器（链式调用风格）
@@ -84,7 +90,7 @@ import java.net.URL;
  *
  * <p><b>注意事项：</b></p>
  * <ul>
- *   <li>默认使用{@link ResampleOp#FILTER_TRIANGLE 三角形滤波器}</li>
+ *   <li>默认使用{@link ResampleOp#FILTER_LANCZOS Lanczos 插值（高质量）滤波器}</li>
  *   <li>默认输出格式根据输入图像是否有透明通道自动选择（PNG或JPEG）</li>
  *   <li>必须在输出前调用{@link #forceScale()}或{@link #scale()}</li>
  *   <li>不支持透明的格式（如JPEG）会自动转换为RGB模式</li>
@@ -117,12 +123,18 @@ public class Thumbnails {
 	 * @since 1.0.0
 	 */
 	protected static final String DEFAULT_OUTPUT_FORMAT = "jpg";
+	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
+	protected static final Map<Float, BrightnessContrastFilter> BRIGHTNESS_FILTERS_MAP = new ConcurrentHashMap<>(10);
+	protected static final Map<Float, BrightnessContrastFilter> CONTRAST_FILTERS_MAP = new ConcurrentHashMap<>(10);
+
+	static {
+		CONTRAST_FILTERS_MAP.put(0.3f, new BrightnessContrastFilter(0f, 0.3f));
+	}
 
 	/**
 	 * 原始输入图像
 	 * <p>
 	 * 存储从各种来源（文件、URL、流等）加载的原始图像数据。
-	 * 该属性为final，在对象创建后不可更改。
 	 * </p>
 	 *
 	 * @since 1.0.0
@@ -133,48 +145,14 @@ public class Thumbnails {
 	 * 原始图像尺寸
 	 * <p>
 	 * 存储输入图像的原始宽度和高度信息。
-	 * 该属性为final，在对象创建后不可更改。
 	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
 	private final ImageSize inputImageSize;
 
-	/**
-	 * 处理后的输出图像
-	 * <p>
-	 * 存储经过缩放处理后的图像数据，初始值为输入图像。
-	 * 在调用{@link #scale()}或{@link #forceScale()}方法后被更新。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
 	private BufferedImage outputImage;
-
-	/**
-	 * 等比缩放后的输出尺寸
-	 * <p>
-	 * 存储保持原始宽高比的情况下计算出的输出尺寸。
-	 * 在调用{@link #width(int)}、{@link #height(int)}或{@link #imageSize(ImageSize)}方法后被更新。
-	 * 用于{@link #scale()}方法中的等比缩放。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
 	private ImageSize outputImageSize;
-
-	/**
-	 * 目标图像尺寸
-	 * <p>
-	 * 存储用户指定的目标尺寸，可能不保持原始宽高比。
-	 * 在调用{@link #width(int)}、{@link #height(int)}或{@link #imageSize(ImageSize)}方法后被更新。
-	 * 用于{@link #forceScale()}方法中的强制缩放。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	private ImageSize targetImageSize;
-
 	/**
 	 * 输出图像格式
 	 * <p>
@@ -191,55 +169,32 @@ public class Thumbnails {
 	 * 重采样滤波器类型
 	 * <p>
 	 * 指定图像缩放时使用的重采样算法。
-	 * 默认使用{@link ResampleOp#FILTER_TRIANGLE 三角形滤波器}。
-	 * 可通过{@link #filterType(int)}方法修改。
+	 * 默认使用{@link ResampleOp#FILTER_LANCZOS Lanczos 插值（高质量）滤波器}。
+	 * 可通过{@link #scaleFilterType(int)}或{@link #scaleHints(int)}方法修改。
 	 * </p>
-	 * @see ResampleOp 支持的滤波器类型常量
 	 *
 	 * @since 1.0.0
 	 */
-	private int filterType = ResampleOp.FILTER_TRIANGLE;
-
-	/**
-	 * 构造缩略图生成器（自动选择输出格式）
-	 * <p>
-	 * 根据输入图像是否包含Alpha通道自动选择输出格式：
-	 * <ul>
-	 *   <li>有透明通道 → PNG格式</li>
-	 *   <li>无透明通道 → JPEG格式</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param inputImage     原始图像
-	 * @param inputImageSize 原始图像尺寸
-	 * @since 1.0.0
-	 */
-	protected Thumbnails(BufferedImage inputImage, ImageSize inputImageSize) {
-		this(inputImage, inputImageSize, inputImage.getColorModel().hasAlpha() ?
-			DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT);
-	}
+	private int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
 	 * 构造缩略图生成器（指定输出格式）
 	 *
 	 * @param inputImage     原始图像，不可为null
 	 * @param inputImageSize 原始图像尺寸，不可为null
-	 * @param outputFormat   输出图片格式，必须是支持的格式
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @since 1.0.0
 	 */
-	protected Thumbnails(BufferedImage inputImage, ImageSize inputImageSize, String outputFormat) {
+	protected Thumbnails(final BufferedImage inputImage, final ImageSize inputImageSize) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");
-		Validate.isTrue(ImageConstants.getSupportWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
 
 		this.inputImage = inputImage;
 		this.inputImageSize = inputImageSize;
 
-		this.targetImageSize = inputImageSize;
-		this.outputImageSize = inputImageSize;
 		this.outputImage = inputImage;
-		this.outputFormat = StringUtils.isBlank(outputFormat) ? "jpeg" : outputFormat.toLowerCase();
+		this.outputImageSize = inputImageSize;
+		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
 	}
 
 	/**
@@ -250,7 +205,7 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(URL url) throws IOException {
+	public static Thumbnails of(final URL url) throws IOException {
 		BufferedImage bufferedImage = ImageIO.read(url);
 		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
@@ -266,10 +221,30 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(File file) throws IOException {
+	public static Thumbnails of(final File file) throws IOException, ImageProcessingException {
+		return of(file, true);
+	}
+
+	/**
+	 * 从文件创建缩略图生成器
+	 * <p>
+	 * 自动从文件扩展名推断输出格式。
+	 * </p>
+	 *
+	 * @param file 图像文件，不可为null
+	 * @return 缩略图生成器实例
+	 * @throws IOException 当读取图像失败时抛出
+	 * @since 1.0.0
+	 */
+	public static Thumbnails of(final File file, final boolean autoCorrectOrientation) throws IOException, ImageProcessingException {
 		BufferedImage bufferedImage = ImageIO.read(file);
-		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(),
-			bufferedImage.getHeight()), FilenameUtils.getExtension(file.getName()));
+		Thumbnails thumbnails = new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(),
+			bufferedImage.getHeight()));
+		thumbnails.outputFormat(FilenameUtils.getExtension(file.getName()));
+		if (autoCorrectOrientation) {
+			thumbnails.correctOrientation(ImageUtils.getExifOrientation(file));
+		}
+		return thumbnails;
 	}
 
 	/**
@@ -280,7 +255,7 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(InputStream inputStream) throws IOException {
+	public static Thumbnails of(final InputStream inputStream) throws IOException {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
@@ -293,7 +268,7 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(ImageInputStream imageInputStream) throws IOException {
+	public static Thumbnails of(final ImageInputStream imageInputStream) throws IOException {
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
 		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
@@ -305,95 +280,8 @@ public class Thumbnails {
 	 * @return 缩略图生成器实例
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(BufferedImage bufferedImage) {
+	public static Thumbnails of(final BufferedImage bufferedImage) {
 		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
-	}
-
-	/**
-	 * 图像重采样方法（内部使用）
-	 * <p>
-	 * 根据输出格式自动处理透明通道：
-	 * <ul>
-	 *   <li>不支持透明的格式 → 转换为RGB模式</li>
-	 *   <li>支持透明的格式 → 保留Alpha通道</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param bufferedImage 原始图像
-	 * @param imageSize     目标尺寸
-	 * @param outputFormat  输出格式
-	 * @param filterType    滤波器类型
-	 * @return 重采样后的图像
-	 * @since 1.0.0
-	 */
-	protected static BufferedImage resample(BufferedImage bufferedImage, ImageSize imageSize, String outputFormat, int filterType) {
-		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat)) {
-			BufferedImage outputImage = new BufferedImage(imageSize.getWidth(), imageSize.getHeight(),
-				BufferedImage.TYPE_INT_RGB);
-			ResampleOp resampleOp = new ResampleOp(imageSize.getWidth(), imageSize.getHeight(), filterType);
-			resampleOp.filter(bufferedImage, outputImage);
-			return outputImage;
-		} else {
-			ResampleOp resampleOp = new ResampleOp(imageSize.getWidth(), imageSize.getHeight(), filterType);
-			return resampleOp.filter(bufferedImage, null);
-		}
-	}
-
-	/**
-	 * 设置目标宽度（保持高度不变）
-	 * <p>
-	 * 调用此方法后，实际输出尺寸将根据宽度等比缩放计算。
-	 * 仅在调用{@link #scale()}时生效。
-	 * </p>
-	 *
-	 * @param width 目标宽度，必须大于0
-	 * @return 当前实例，支持链式调用
-	 * @throws IllegalArgumentException 当宽度不大于0时抛出
-	 * @since 1.0.0
-	 */
-	public Thumbnails width(int width) {
-		Validate.isTrue(width > 0, "width 必须大于0");
-		this.targetImageSize = new ImageSize(width, this.targetImageSize.getHeight());
-		this.outputImageSize = this.inputImageSize.scaleByWidth(width);
-		return this;
-	}
-
-	/**
-	 * 设置目标高度（保持宽度不变）
-	 * <p>
-	 * 调用此方法后，实际输出尺寸将根据高度等比缩放计算。
-	 * 仅在调用{@link #scale()}时生效。
-	 * </p>
-	 *
-	 * @param height 目标高度，必须大于0
-	 * @return 当前实例，支持链式调用
-	 * @throws IllegalArgumentException 当高度不大于0时抛出
-	 * @since 1.0.0
-	 */
-	public Thumbnails height(int height) {
-		Validate.isTrue(height > 0, "height 必须大于0");
-		this.targetImageSize = new ImageSize(this.targetImageSize.getWidth(), height);
-		this.outputImageSize = this.inputImageSize.scaleByHeight(height);
-		return this;
-	}
-
-	/**
-	 * 设置目标尺寸
-	 * <p>
-	 * 调用此方法后，实际输出尺寸将根据目标尺寸等比缩放计算。
-	 * 仅在调用{@link #scale()}时生效。
-	 * </p>
-	 *
-	 * @param imageSize 目标尺寸，不可为null
-	 * @return 当前实例，支持链式调用
-	 * @throws IllegalArgumentException 当imageSize为null时抛出
-	 * @since 1.0.0
-	 */
-	public Thumbnails imageSize(ImageSize imageSize) {
-		Validate.notNull(imageSize, "imageSize 不可为 null");
-		this.targetImageSize = imageSize;
-		this.outputImageSize = this.inputImageSize.scale(imageSize);
-		return this;
 	}
 
 	/**
@@ -421,8 +309,31 @@ public class Thumbnails {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.0.0
 	 */
-	public Thumbnails filterType(int filterType) {
-		this.filterType = filterType;
+	public Thumbnails scaleFilterType(final int filterType) {
+		if (filterType > 15) {
+			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
+		} else {
+			this.resampleFilterType = filterType;
+		}
+		return this;
+	}
+
+	public Thumbnails scaleHints(final int hints) {
+		switch (hints) {
+			case Image.SCALE_FAST:
+			case Image.SCALE_REPLICATE:
+				this.resampleFilterType = ResampleOp.FILTER_POINT;
+				break;
+			case Image.SCALE_AREA_AVERAGING:
+				this.resampleFilterType = ResampleOp.FILTER_BOX;
+				break;
+			case Image.SCALE_SMOOTH:
+				this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
+				break;
+			default:
+				this.resampleFilterType = ResampleOp.FILTER_QUADRATIC;
+				break;
+		}
 		return this;
 	}
 
@@ -434,53 +345,170 @@ public class Thumbnails {
 	 * @throws IllegalArgumentException 当格式不支持时抛出
 	 * @since 1.0.0
 	 */
-	public Thumbnails outputFormat(String outputFormat) {
+	public Thumbnails outputFormat(final String outputFormat) {
 		Validate.isTrue(ImageConstants.getSupportWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
 		this.outputFormat = outputFormat;
 		return this;
 	}
 
-	/**
-	 * 执行强制缩放（不保持宽高比）
-	 * <p>
-	 * 将图像强制缩放到{@link #targetImageSize}指定的尺寸，
-	 * 不考虑原始宽高比，可能导致图像变形。
-	 * </p>
-	 *
-	 * <p><b>使用场景：</b></p>
-	 * <ul>
-	 *   <li>需要精确的输出尺寸</li>
-	 *   <li>不关心图像比例失真</li>
-	 *   <li>填充固定尺寸的容器</li>
-	 * </ul>
-	 *
-	 * @return 当前实例，支持链式调用
-	 * @since 1.0.0
-	 */
-	public Thumbnails forceScale() {
-		this.outputImage = resample(this.inputImage, this.targetImageSize, this.outputFormat, this.filterType);
+	public Thumbnails correctOrientation(int orientation) {
+		if (orientation < 1 || orientation > 8) {
+			return this;
+		}
+
+		switch (orientation) {
+			case 2:
+				flip(ImageUtil.FLIP_VERTICAL);
+				break;
+			case 3:
+				rotate(ImageUtil.ROTATE_180);
+				break;
+			case 4:
+				flip(ImageUtil.FLIP_HORIZONTAL);
+				break;
+			case 5:
+				rotate(ImageUtil.ROTATE_90_CW);
+				flip(ImageUtil.FLIP_HORIZONTAL);
+				break;
+			case 6:
+				rotate(ImageUtil.ROTATE_90_CW);
+				break;
+			case 7:
+				rotate(ImageUtil.ROTATE_90_CCW);
+				flip(ImageUtil.FLIP_HORIZONTAL);
+				break;
+			case 8:
+				rotate(ImageUtil.ROTATE_90_CCW);
+				break;
+			default:
+				break;
+		}
+		if (orientation >= 5) {
+			this.outputImageSize = new ImageSize(this.outputImageSize.getHeight(), this.outputImageSize.getWidth());
+		}
 		return this;
 	}
 
-	/**
-	 * 执行等比缩放（保持宽高比）
-	 * <p>
-	 * 将图像等比缩放到{@link #outputImageSize}指定的尺寸，
-	 * 保持原始宽高比，不会导致图像变形。
-	 * </p>
-	 *
-	 * <p><b>使用场景：</b></p>
-	 * <ul>
-	 *   <li>需要保持图像原始比例</li>
-	 *   <li>避免图像失真</li>
-	 *   <li>自适应缩放</li>
-	 * </ul>
-	 *
-	 * @return 当前实例，支持链式调用
-	 * @since 1.0.0
-	 */
-	public Thumbnails scale() {
-		this.outputImage = resample(this.inputImage, this.outputImageSize, this.outputFormat, this.filterType);
+	public Thumbnails rotate(final int direction) {
+		if (direction == ImageUtil.ROTATE_90_CW || direction == ImageUtil.ROTATE_90_CCW || direction == ImageUtil.ROTATE_180) {
+			this.outputImage = ImageUtil.createRotated(this.outputImage, direction);
+		}
+		return this;
+	}
+
+	public Thumbnails rotate(final double angle) {
+		this.outputImage = ImageUtil.createRotated(this.outputImage, angle);
+		return this;
+	}
+
+	public Thumbnails blur() {
+		this.outputImage = ImageUtil.blur(this.outputImage, 1.5f);
+		return this;
+	}
+
+	public Thumbnails blur(final float radius) {
+		this.outputImage = ImageUtil.blur(this.outputImage, radius);
+		return this;
+	}
+
+	public Thumbnails flip(final int axis) {
+		if (axis == ImageUtil.FLIP_HORIZONTAL || axis == ImageUtil.FLIP_VERTICAL) {
+			this.outputImage = ImageUtil.createFlipped(this.outputImage, axis);
+		}
+		return this;
+	}
+
+	public Thumbnails sharpen() {
+		this.outputImage = ImageUtil.sharpen(this.outputImage);
+		return this;
+	}
+
+	public Thumbnails sharpen(final float amount) {
+		this.outputImage = ImageUtil.sharpen(this.outputImage, amount);
+		return this;
+	}
+
+	public Thumbnails grayscale() {
+		Image image = ImageUtil.filter(this.outputImage, GRAY_FILTER);
+		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		return this;
+	}
+
+	public Thumbnails contrast() {
+		return contrast(0.3f);
+	}
+
+	public Thumbnails contrast(final float amount) {
+		if (amount == 0f || amount > 1.0 || amount < -1.0) {
+			return this;
+		}
+
+		BrightnessContrastFilter filter;
+		if (CONTRAST_FILTERS_MAP.containsKey(amount)) {
+			filter = BRIGHTNESS_FILTERS_MAP.get(amount);
+		} else {
+			filter = new BrightnessContrastFilter(0f, amount);
+			BRIGHTNESS_FILTERS_MAP.put(amount, filter);
+		}
+
+		Image image = ImageUtil.filter(this.outputImage, filter);
+		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		return this;
+	}
+
+	public Thumbnails brightness(final float amount) {
+		if (amount == 0f || amount > 2.0 || amount < -2.0) {
+			return this;
+		}
+
+		BrightnessContrastFilter filter;
+		if (BRIGHTNESS_FILTERS_MAP.containsKey(amount)) {
+			filter = BRIGHTNESS_FILTERS_MAP.get(amount);
+		} else {
+			filter = new BrightnessContrastFilter(amount, 0f);
+			BRIGHTNESS_FILTERS_MAP.put(amount, filter);
+		}
+
+		Image image = ImageUtil.filter(this.outputImage, filter);
+		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		return this;
+	}
+
+	public Thumbnails forceScale(final int width, final int height) {
+		this.outputImageSize = new ImageSize(width, height);
+		this.outputImage = resample();
+		return this;
+	}
+
+	public Thumbnails forceScale(final ImageSize imageSize) {
+		this.outputImageSize = imageSize;
+		this.outputImage = resample();
+		return this;
+	}
+
+	public Thumbnails scaleByWidth(final int width) {
+		this.outputImageSize = this.outputImageSize.scaleByWidth(width);
+		this.outputImage = resample();
+		return this;
+	}
+
+	public Thumbnails scaleByHeight(final int height) {
+		this.outputImageSize = this.outputImageSize.scaleByHeight(height);
+		this.outputImage = resample();
+		return this;
+	}
+
+	public Thumbnails scale(final int width, final int height) {
+		this.outputImageSize = this.outputImageSize.scale(width, height);
+		this.outputImage = resample();
+		return this;
+	}
+
+	public Thumbnails restore() {
+		this.outputImage = this.inputImage;
+		this.outputImageSize = this.inputImageSize;
+		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		return this;
 	}
 
@@ -492,7 +520,7 @@ public class Thumbnails {
 	 * @throws IOException 当写入失败时抛出
 	 * @since 1.0.0
 	 */
-	public boolean toFile(File outputFile) throws IOException {
+	public boolean toFile(final File outputFile) throws IOException {
 		return ImageIO.write(this.outputImage, this.outputFormat, outputFile);
 	}
 
@@ -504,7 +532,7 @@ public class Thumbnails {
 	 * @throws IOException 当写入失败时抛出
 	 * @since 1.0.0
 	 */
-	public boolean toOutputStream(OutputStream outputStream) throws IOException {
+	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
 		return ImageIO.write(this.outputImage, this.outputFormat, outputStream);
 	}
 
@@ -516,7 +544,7 @@ public class Thumbnails {
 	 * @throws IOException 当写入失败时抛出
 	 * @since 1.0.0
 	 */
-	public boolean toImageOutputStream(ImageOutputStream imageOutputStream) throws IOException {
+	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
 		return ImageIO.write(this.outputImage, this.outputFormat, imageOutputStream);
 	}
 
@@ -530,6 +558,40 @@ public class Thumbnails {
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
-		return outputImage;
+		return ImageUtil.createCopy(this.outputImage);
+	}
+
+	/**
+	 * 图像重采样方法（内部使用）
+	 * <p>
+	 * 根据输出格式自动处理透明通道：
+	 * <ul>
+	 *   <li>不支持透明的格式 → 转换为RGB模式</li>
+	 *   <li>支持透明的格式 → 保留Alpha通道</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @return 重采样后的图像
+	 * @since 1.0.0
+	 */
+	protected BufferedImage resample() {
+		if (outputImage.getColorModel().hasAlpha() && ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat)) {
+			int imageType;
+			switch (outputImage.getType()) {
+				case BufferedImage.TYPE_4BYTE_ABGR:
+				case BufferedImage.TYPE_4BYTE_ABGR_PRE:
+					imageType = BufferedImage.TYPE_3BYTE_BGR;
+					break;
+				default:
+					imageType = BufferedImage.TYPE_INT_RGB;
+					break;
+			}
+			BufferedImage noAlphaOutputImage = new BufferedImage(outputImageSize.getWidth(), outputImageSize.getHeight(), imageType);
+			ResampleOp resampleOp = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType);
+			return resampleOp.filter(this.outputImage, noAlphaOutputImage);
+		} else {
+			return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
+				.filter(outputImage, null);
+		}
 	}
 }
