@@ -42,9 +42,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 缩略图生成器（链式调用风格）
+ * 图像编辑器（链式调用风格）
  * <p>
- * 本类提供了流式API来创建和处理图像缩略图，支持链式方法调用以配置各种参数。
+ * 本类提供了流式API来处理图像，支持链式方法调用以配置各种参数。
  * 可以轻松实现图像的缩放、旋转、滤镜效果等多种处理操作。
  * </p>
  *
@@ -66,18 +66,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p><b>使用示例：</b></p>
  * <pre>{@code
  * // 基本用法：按宽度等比缩放
- * Thumbnails.of(new File("input.jpg"))
+ * ImageEditor.of(new File("input.jpg"))
  *     .scaleByWidth(200)
  *     .toFile(new File("output.jpg"));
  *
  * // 强制缩放到指定尺寸
- * Thumbnails.of(bufferedImage)
+ * ImageEditor.of(bufferedImage)
  *     .forceScale(300, 200)
  *     .outputFormat("png")
  *     .toOutputStream(outputStream);
  *
  * // 图像处理链
- * Thumbnails.of(url)
+ * ImageEditor.of(url)
  *     .scaleByWidth(400)
  *     .scaleFilterType(ResampleOp.FILTER_LANCZOS)
  *     .rotate(90)
@@ -86,7 +86,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *     .toBufferedImage();
  *
  * // 高级图像处理
- * Thumbnails.of(new File("input.jpg"))
+ * ImageEditor.of(new File("input.jpg"))
  *     .scaleByWidth(500)
  *     .blur(2.0f)
  *     .brightness(0.1f)
@@ -96,7 +96,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p><b>方法调用顺序：</b></p>
  * <ol>
- *   <li>使用静态工厂方法创建实例：{@code Thumbnails.of(...)}</li>
+ *   <li>使用静态工厂方法创建实例：{@code ImageEditor.of(...)}</li>
  *   <li>配置缩放操作：{@link #scaleByWidth(int)}、{@link #scaleByHeight(int)} 或 {@link #forceScale(int, int)}</li>
  *   <li>（可选）配置输出格式：{@link #outputFormat(String)}</li>
  *   <li>（可选）配置滤波器：{@link #scaleFilterType(int)} 或 {@link #scaleHints(int)}</li>
@@ -122,7 +122,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see GrayFilter
  * @since 1.0.0
  */
-public class Thumbnails {
+public class ImageEditor {
 	/**
 	 * 默认的带透明通道图像输出格式
 	 * <p>
@@ -256,7 +256,7 @@ public class Thumbnails {
 	 * @throws NullPointerException 当参数为null时抛出
 	 * @since 1.0.0
 	 */
-	protected Thumbnails(final BufferedImage inputImage, final ImageSize inputImageSize) {
+	protected ImageEditor(final BufferedImage inputImage, final ImageSize inputImageSize) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");
 
@@ -276,11 +276,11 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final URL url) throws IOException {
+	public static ImageEditor of(final URL url) throws IOException {
 		Validate.notNull(url, "url不可为空");
 
 		BufferedImage bufferedImage = ImageIO.read(url);
-		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
+		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
 
 	/**
@@ -297,7 +297,7 @@ public class Thumbnails {
 	 * @see #of(File, boolean)
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final File file) throws IOException, ImageProcessingException {
+	public static ImageEditor of(final File file) throws IOException, ImageProcessingException {
 		return of(file, true);
 	}
 
@@ -311,7 +311,7 @@ public class Thumbnails {
 	 * <ol>
 	 *   <li>验证文件有效性</li>
 	 *   <li>读取图像数据到BufferedImage</li>
-	 *   <li>创建Thumbnails实例</li>
+	 *   <li>创建ImageEditor实例</li>
 	 *   <li>设置输出格式为文件扩展名</li>
 	 *   <li>如果启用自动校正，则读取EXIF方向信息并应用校正</li>
 	 * </ol>
@@ -324,17 +324,17 @@ public class Thumbnails {
 	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final File file, final boolean autoCorrectOrientation) throws IOException, ImageProcessingException {
+	public static ImageEditor of(final File file, final boolean autoCorrectOrientation) throws IOException, ImageProcessingException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(file);
-		Thumbnails thumbnails = new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(),
+		ImageEditor imageEditor = new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
 			bufferedImage.getHeight()));
-		thumbnails.outputFormat(FilenameUtils.getExtension(file.getName()));
+		imageEditor.outputFormat(FilenameUtils.getExtension(file.getName()));
 		if (autoCorrectOrientation) {
-			thumbnails.correctOrientation(ImageUtils.getExifOrientation(file));
+			imageEditor.correctOrientation(ImageUtils.getExifOrientation(file));
 		}
-		return thumbnails;
+		return imageEditor;
 	}
 
 	/**
@@ -351,14 +351,14 @@ public class Thumbnails {
 	 * @see #of(InputStream, boolean)
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final InputStream inputStream) throws IOException, ImageProcessingException {
+	public static ImageEditor of(final InputStream inputStream) throws IOException, ImageProcessingException {
 		return of(inputStream, true);
 	}
 
 	/**
 	 * 从输入流创建缩略图处理器，并可选择是否自动校正图像方向。
 	 * <p>
-	 * 此方法会从输入流中读取图像数据，并创建一个新的 {@code Thumbnails} 实例。
+	 * 此方法会从输入流中读取图像数据，并创建一个新的 {@code ImageEditor} 实例。
 	 * 如果 {@code autoCorrectOrientation} 设置为 {@code true}，方法会尝试读取图像的 EXIF 方向信息并自动校正。
 	 * <p>
 	 * 对于不同类型的输入流，处理策略有所不同：
@@ -377,38 +377,38 @@ public class Thumbnails {
 	 * @see #correctOrientation(int)
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException,
+	public static ImageEditor of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException,
 		ImageProcessingException {
 		Validate.notNull(inputStream, "inputStream不可为空");
 
 		if (!autoCorrectOrientation) {
 			BufferedImage bufferedImage = ImageIO.read(inputStream);
-			return new Thumbnails(bufferedImage, new ImageSize(
+			return new ImageEditor(bufferedImage, new ImageSize(
 				bufferedImage.getWidth(), bufferedImage.getHeight()));
 		}
 
-		Thumbnails thumbnails;
+		ImageEditor imageEditor;
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
 			BufferedImage bufferedImage = ImageIO.read(inputStream);
-			thumbnails = new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(),
+			imageEditor = new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
 				bufferedImage.getHeight()));
 
 			inputStream.reset();
-			thumbnails.correctOrientation(ImageUtils.getExifOrientation(inputStream));
+			imageEditor.correctOrientation(ImageUtils.getExifOrientation(inputStream));
 		} else {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
 
 			try (InputStream tmpInputStream = outputStream.toInputStream()) {
 				BufferedImage bufferedImage = ImageIO.read(tmpInputStream);
-				thumbnails = new Thumbnails(bufferedImage, new ImageSize(
+				imageEditor = new ImageEditor(bufferedImage, new ImageSize(
 					bufferedImage.getWidth(), bufferedImage.getHeight()));
 			}
 
 			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				thumbnails.correctOrientation(ImageUtils.getExifOrientation(tmpInputStream));
+				imageEditor.correctOrientation(ImageUtils.getExifOrientation(tmpInputStream));
 			}
 		}
-		return thumbnails;
+		return imageEditor;
 	}
 
 	/**
@@ -419,11 +419,11 @@ public class Thumbnails {
 	 * @throws IOException 当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final ImageInputStream imageInputStream) throws IOException {
+	public static ImageEditor of(final ImageInputStream imageInputStream) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream不可为空");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
+		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
 
 	/**
@@ -433,10 +433,10 @@ public class Thumbnails {
 	 * @return 缩略图生成器实例
 	 * @since 1.0.0
 	 */
-	public static Thumbnails of(final BufferedImage bufferedImage) {
+	public static ImageEditor of(final BufferedImage bufferedImage) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为空");
 
-		return new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
+		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
 
 	/**
@@ -464,7 +464,7 @@ public class Thumbnails {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.0.0
 	 */
-	public Thumbnails scaleFilterType(final int filterType) {
+	public ImageEditor scaleFilterType(final int filterType) {
 		if (filterType > 15) {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		} else {
@@ -488,7 +488,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails scaleHints(final int hints) {
+	public ImageEditor scaleHints(final int hints) {
 		switch (hints) {
 			case Image.SCALE_FAST:
 			case Image.SCALE_REPLICATE:
@@ -515,7 +515,7 @@ public class Thumbnails {
 	 * @throws IllegalArgumentException 当指定的格式不被支持时
 	 * @since 1.0.0
 	 */
-	public Thumbnails outputFormat(final String outputFormat) {
+	public ImageEditor outputFormat(final String outputFormat) {
 		Validate.isTrue(ImageConstants.getSupportWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
 		this.outputFormat = outputFormat;
 		return this;
@@ -541,7 +541,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails correctOrientation(int orientation) {
+	public ImageEditor correctOrientation(int orientation) {
 		if (orientation < 1 || orientation > 8) {
 			return this;
 		}
@@ -586,7 +586,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails rotate(final int direction) {
+	public ImageEditor rotate(final int direction) {
 		if (direction == ImageUtil.ROTATE_90_CW || direction == ImageUtil.ROTATE_90_CCW || direction == ImageUtil.ROTATE_180) {
 			this.outputImage = ImageUtil.createRotated(this.outputImage, direction);
 		}
@@ -600,7 +600,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails rotate(final double angle) {
+	public ImageEditor rotate(final double angle) {
 		this.outputImage = ImageUtil.createRotated(this.outputImage, angle);
 		return this;
 	}
@@ -611,7 +611,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails blur() {
+	public ImageEditor blur() {
 		this.outputImage = ImageUtil.blur(this.outputImage, 1.5f);
 		return this;
 	}
@@ -623,7 +623,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails blur(final float radius) {
+	public ImageEditor blur(final float radius) {
 		this.outputImage = ImageUtil.blur(this.outputImage, radius);
 		return this;
 	}
@@ -635,7 +635,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails flip(final int axis) {
+	public ImageEditor flip(final int axis) {
 		if (axis == ImageUtil.FLIP_HORIZONTAL || axis == ImageUtil.FLIP_VERTICAL) {
 			this.outputImage = ImageUtil.createFlipped(this.outputImage, axis);
 		}
@@ -648,7 +648,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails sharpen() {
+	public ImageEditor sharpen() {
 		this.outputImage = ImageUtil.sharpen(this.outputImage);
 		return this;
 	}
@@ -660,7 +660,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails sharpen(final float amount) {
+	public ImageEditor sharpen(final float amount) {
 		this.outputImage = ImageUtil.sharpen(this.outputImage, amount);
 		return this;
 	}
@@ -671,7 +671,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails grayscale() {
+	public ImageEditor grayscale() {
 		Image image = ImageUtil.filter(this.outputImage, GRAY_FILTER);
 		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
 		return this;
@@ -683,7 +683,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails contrast() {
+	public ImageEditor contrast() {
 		return contrast(0.3f);
 	}
 
@@ -694,7 +694,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails contrast(final float amount) {
+	public ImageEditor contrast(final float amount) {
 		if (amount == 0f || amount > 1.0 || amount < -1.0) {
 			return this;
 		}
@@ -719,7 +719,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails brightness(final float amount) {
+	public ImageEditor brightness(final float amount) {
 		if (amount == 0f || amount > 2.0 || amount < -2.0) {
 			return this;
 		}
@@ -745,7 +745,7 @@ public class Thumbnails {
 	 * @throws NullPointerException 当过滤器为null时
 	 * @since 1.0.0
 	 */
-	public Thumbnails filter(final ImageFilter filter) {
+	public ImageEditor filter(final ImageFilter filter) {
 		Validate.notNull(filter, "filter不可为空");
 
 		Image image = ImageUtil.filter(this.outputImage, filter);
@@ -761,7 +761,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails forceScale(final int width, final int height) {
+	public ImageEditor forceScale(final int width, final int height) {
 		this.outputImageSize = new ImageSize(width, height);
 		this.outputImage = resample();
 		return this;
@@ -775,7 +775,7 @@ public class Thumbnails {
 	 * @throws NullPointerException 当尺寸参数为null时
 	 * @since 1.0.0
 	 */
-	public Thumbnails forceScale(final ImageSize size) {
+	public ImageEditor forceScale(final ImageSize size) {
 		Validate.notNull(size, "size不可为空");
 
 		this.outputImageSize = size;
@@ -790,7 +790,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails scaleByWidth(final int width) {
+	public ImageEditor scaleByWidth(final int width) {
 		this.outputImageSize = this.outputImageSize.scaleByWidth(width);
 		this.outputImage = resample();
 		return this;
@@ -803,7 +803,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails scaleByHeight(final int height) {
+	public ImageEditor scaleByHeight(final int height) {
 		this.outputImageSize = this.outputImageSize.scaleByHeight(height);
 		this.outputImage = resample();
 		return this;
@@ -818,7 +818,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails scale(final int width, final int height) {
+	public ImageEditor scale(final int width, final int height) {
 		this.outputImageSize = this.outputImageSize.scale(width, height);
 		this.outputImage = resample();
 		return this;
@@ -831,7 +831,7 @@ public class Thumbnails {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public Thumbnails restore() {
+	public ImageEditor restore() {
 		this.outputImage = this.inputImage;
 		this.outputImageSize = this.inputImageSize;
 		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
