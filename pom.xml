@@ -8,7 +8,8 @@
 		<version>1.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<artifactId>pangju-commons-parent</artifactId>
+	<groupId>io.github.pangju666.commons</groupId>
+	<artifactId>commons-parent</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>pangju-commons</name>
@@ -16,18 +17,18 @@
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>
-		<module>pangju-commons-crypto</module>
-		<module>pangju-commons-compress</module>
-		<module>pangju-commons-geo</module>
-		<module>pangju-commons-image</module>
-		<module>pangju-commons-imageio</module>
-		<module>pangju-commons-io</module>
-		<module>pangju-commons-lang</module>
-		<module>pangju-commons-pdf</module>
-		<module>pangju-commons-poi</module>
-		<module>pangju-commons-validation</module>
-		<module>pangju-commons-bom</module>
-		<module>pangju-commons-all</module>
+		<module>commons-crypto</module>
+		<module>commons-compress</module>
+		<module>commons-geo</module>
+		<module>commons-image</module>
+		<module>commons-imageio</module>
+		<module>commons-io</module>
+		<module>commons-lang</module>
+		<module>commons-pdf</module>
+		<module>commons-poi</module>
+		<module>commons-validation</module>
+		<module>commons-bom</module>
+		<module>commons-all</module>
 	</modules>
 
 	<properties>

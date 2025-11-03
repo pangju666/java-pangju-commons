@@ -1,0 +1,74 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.pangju666.commons</groupId>
+		<artifactId>commons-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>commons-bom</artifactId>
+	<description>java 公共库依赖管理</description>
+	<packaging>pom</packaging>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-crypto</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-geo</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-image</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-imageio</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-pdf</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-poi</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666.commons</groupId>
+				<artifactId>commons-validation</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
