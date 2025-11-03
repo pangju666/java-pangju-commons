@@ -52,6 +52,15 @@ public class ImageConstants {
 	private static volatile Set<String> SUPPORT_WRITE_IMAGE_TYPES;
 
 	/**
+	 * 系统支持的可写入图像格式集合（懒加载）
+	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
+	 * <p>使用双重检查锁实现线程安全初始化</p>
+	 *
+	 * @since 1.0.0
+	 */
+	private static volatile Set<String> SUPPORT_WRITE_IMAGE_FORMATS;
+
+	/**
 	 * 获取系统支持的可读取图像MIME类型集合
 	 * <p>首次调用时初始化集合，后续直接返回缓存结果</p>
 	 * <p>线程安全实现特性：</p>
@@ -87,7 +96,7 @@ public class ImageConstants {
 	 * </ul>
 	 *
 	 * @return ImageIO支持的可写入图像MIME类型集合
-	 * @see javax.imageio.ImageIO#getReaderMIMETypes()
+	 * @see javax.imageio.ImageIO#getWriterMIMETypes()
 	 * @since 1.0.0
 	 */
 	public static Set<String> getSupportWriteImageTypes() {
@@ -99,5 +108,30 @@ public class ImageConstants {
 			}
 		}
 		return SUPPORT_WRITE_IMAGE_TYPES;
+	}
+
+	/**
+	 * 获取系统支持的可写入图像格式集合
+	 * <p>首次调用时初始化集合，后续直接返回缓存结果</p>
+	 * <p>线程安全实现特性：</p>
+	 * <ul>
+	 *   <li>使用volatile保证可见性</li>
+	 *   <li>双重检查锁保证初始化安全性</li>
+	 *   <li>返回不可变集合保证数据安全</li>
+	 * </ul>
+	 *
+	 * @return ImageIO支持的可写入图像格式集合
+	 * @see javax.imageio.ImageIO#getWriterFormatNames()
+	 * @since 1.0.0
+	 */
+	public static Set<String> getSupportWriteImageFormats() {
+		if (Objects.isNull(SUPPORT_WRITE_IMAGE_FORMATS)) {
+			synchronized (ImageConstants.class) {
+				if (Objects.isNull(SUPPORT_WRITE_IMAGE_FORMATS)) {
+					SUPPORT_WRITE_IMAGE_FORMATS = Set.of(ImageIO.getWriterFormatNames());
+				}
+			}
+		}
+		return SUPPORT_WRITE_IMAGE_FORMATS;
 	}
 }
