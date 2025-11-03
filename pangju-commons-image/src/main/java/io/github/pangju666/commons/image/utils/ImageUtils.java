@@ -759,15 +759,18 @@ public class ImageUtils {
 		}
 
 		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(outputStream.toInputStream());
+
+		try (InputStream tmpInputStream = outputStream.toInputStream()) {
+			Metadata metadata = ImageMetadataReader.readMetadata(tmpInputStream);
 			ImageSize imageSize = getSize(metadata);
 			if (Objects.nonNull(imageSize)) {
 				return imageSize;
 			}
 		} catch (ImageProcessingException | IOException ignored) {
 		}
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(outputStream.toInputStream())) {
+
+		try (InputStream tmpInputStream = outputStream.toInputStream();
+			 ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;
 			}
@@ -860,8 +863,8 @@ public class ImageUtils {
 		if (ObjectUtils.anyNull(imageWidth, imageHeight)) {
 			return null;
 		}
-		return (imageOrientation >= 5 && imageOrientation <= 8) ?
-			new ImageSize(imageHeight, imageWidth) : new ImageSize(imageWidth, imageHeight);
+		return (imageOrientation >= 5 && imageOrientation <= 8) ? new ImageSize(imageHeight, imageWidth) :
+			new ImageSize(imageWidth, imageHeight);
 	}
 
 	/**
