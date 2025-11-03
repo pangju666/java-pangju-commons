@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 缩略图生成器（链式调用风格）
  * <p>
  * 本类提供了流式API来创建和处理图像缩略图，支持链式方法调用以配置各种参数。
+ * 可以轻松实现图像的缩放、旋转、滤镜效果等多种处理操作。
  * </p>
  *
  * <p><b>核心特性：</b></p>
@@ -58,6 +59,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>支持图像旋转、翻转、模糊、锐化等处理</li>
  *   <li>支持亮度、对比度调整和灰度转换</li>
  *   <li>自动根据EXIF信息校正图像方向</li>
+ *   <li>支持图像处理效果的叠加应用</li>
+ *   <li>提供恢复原始图像状态的功能</li>
  * </ul>
  *
  * <p><b>使用示例：</b></p>
@@ -81,6 +84,14 @@ import java.util.concurrent.ConcurrentHashMap;
  *     .grayscale()
  *     .contrast(0.2f)
  *     .toBufferedImage();
+ *
+ * // 高级图像处理
+ * Thumbnails.of(new File("input.jpg"))
+ *     .scaleByWidth(500)
+ *     .blur(2.0f)
+ *     .brightness(0.1f)
+ *     .contrast(0.2f)
+ *     .toFile(new File("output.jpg"));
  * }</pre>
  *
  * <p><b>方法调用顺序：</b></p>
@@ -89,8 +100,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>配置缩放操作：{@link #scaleByWidth(int)}、{@link #scaleByHeight(int)} 或 {@link #forceScale(int, int)}</li>
  *   <li>（可选）配置输出格式：{@link #outputFormat(String)}</li>
  *   <li>（可选）配置滤波器：{@link #scaleFilterType(int)} 或 {@link #scaleHints(int)}</li>
- *   <li>（可选）应用图像处理：{@link #rotate(int)}、{@link #grayscale()}、{@link #blur()} 等</li>
- *   <li>输出结果：{@link #toFile(File)}、{@link #toOutputStream(OutputStream)} 等</li>
+ *   <li>（可选）应用图像处理：{@link #rotate(int)}、{@link #grayscale()}、{@link #blur()}、{@link #brightness(float)}、{@link #contrast(float)} 等</li>
+ *   <li>输出结果：{@link #toFile(File)}、{@link #toOutputStream(OutputStream)}、{@link #toBufferedImage()} 等</li>
  * </ol>
  *
  * <p><b>注意事项：</b></p>
@@ -99,12 +110,16 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>默认输出格式根据输入图像是否有透明通道自动选择（PNG或JPEG）</li>
  *   <li>不支持透明的格式（如JPEG）会自动转换为RGB模式</li>
  *   <li>可以使用{@link #restore()}方法恢复到原始图像状态</li>
+ *   <li>处理大量图像时，建议在使用完毕后显式关闭相关资源</li>
+ *   <li>图像处理操作会按照调用顺序依次应用</li>
  * </ul>
  *
  * @author pangju666
  * @see ResampleOp
  * @see ImageSize
  * @see ImageUtil
+ * @see BrightnessContrastFilter
+ * @see GrayFilter
  * @since 1.0.0
  */
 public class Thumbnails {
@@ -238,7 +253,7 @@ public class Thumbnails {
 	 *
 	 * @param inputImage     原始图像，不可为null
 	 * @param inputImageSize 原始图像尺寸，不可为null
-	 * @throws IllegalArgumentException 当参数无效时抛出
+	 * @throws NullPointerException 当参数为null时抛出
 	 * @since 1.0.0
 	 */
 	protected Thumbnails(final BufferedImage inputImage, final ImageSize inputImageSize) {
@@ -271,12 +286,15 @@ public class Thumbnails {
 	/**
 	 * 从文件创建缩略图生成器
 	 * <p>
-	 * 自动从文件扩展名推断输出格式。
+	 * 自动从文件扩展名推断输出格式，并默认启用EXIF方向自动校正。
+	 * 这是{@link #of(File, boolean)}方法的便捷重载，自动校正参数设为true。
 	 * </p>
 	 *
 	 * @param file 图像文件，不可为null
 	 * @return 缩略图生成器实例
 	 * @throws IOException 当读取图像失败时抛出
+	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
+	 * @see #of(File, boolean)
 	 * @since 1.0.0
 	 */
 	public static Thumbnails of(final File file) throws IOException, ImageProcessingException {
@@ -286,12 +304,24 @@ public class Thumbnails {
 	/**
 	 * 从文件创建缩略图生成器
 	 * <p>
-	 * 自动从文件扩展名推断输出格式。
+	 * 自动从文件扩展名推断输出格式。可选择是否根据EXIF信息自动校正图像方向。
+	 * </p>
+	 * <p>
+	 * 处理流程：
+	 * <ol>
+	 *   <li>验证文件有效性</li>
+	 *   <li>读取图像数据到BufferedImage</li>
+	 *   <li>创建Thumbnails实例</li>
+	 *   <li>设置输出格式为文件扩展名</li>
+	 *   <li>如果启用自动校正，则读取EXIF方向信息并应用校正</li>
+	 * </ol>
 	 * </p>
 	 *
 	 * @param file 图像文件，不可为null
+	 * @param autoCorrectOrientation 是否自动校正图像方向（根据EXIF信息）
 	 * @return 缩略图生成器实例
 	 * @throws IOException 当读取图像失败时抛出
+	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @since 1.0.0
 	 */
 	public static Thumbnails of(final File file, final boolean autoCorrectOrientation) throws IOException, ImageProcessingException {
@@ -309,10 +339,16 @@ public class Thumbnails {
 
 	/**
 	 * 从输入流创建缩略图生成器
+	 * <p>
+	 * 默认启用EXIF方向自动校正。这是{@link #of(InputStream, boolean)}方法的便捷重载，
+	 * 自动校正参数设为true。
+	 * </p>
 	 *
 	 * @param inputStream 输入流，不可为null
 	 * @return 缩略图生成器实例
 	 * @throws IOException 当读取图像失败时抛出
+	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
+	 * @see #of(InputStream, boolean)
 	 * @since 1.0.0
 	 */
 	public static Thumbnails of(final InputStream inputStream) throws IOException, ImageProcessingException {
@@ -320,27 +356,45 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 从输入流创建缩略图生成器
+	 * 从输入流创建缩略图处理器，并可选择是否自动校正图像方向。
+	 * <p>
+	 * 此方法会从输入流中读取图像数据，并创建一个新的 {@code Thumbnails} 实例。
+	 * 如果 {@code autoCorrectOrientation} 设置为 {@code true}，方法会尝试读取图像的 EXIF 方向信息并自动校正。
+	 * <p>
+	 * 对于不同类型的输入流，处理策略有所不同：
+	 * <ul>
+	 *   <li>对于可重置的输入流（如 {@link ByteArrayInputStream}），会先读取图像数据，然后重置流并读取 EXIF 信息</li>
+	 *   <li>对于不可重置的输入流，会先将内容复制到内存中，然后分别读取图像数据和 EXIF 信息</li>
+	 * </ul>
 	 *
-	 * @param inputStream 输入流，不可为null
-	 * @return 缩略图生成器实例
-	 * @throws IOException 当读取图像失败时抛出
+	 * @param inputStream 包含图像数据的输入流
+	 * @param autoCorrectOrientation 是否根据 EXIF 信息自动校正图像方向
+	 * @return 新创建的缩略图处理器实例
+	 * @throws IOException 当读取输入流出错时
+	 * @throws ImageProcessingException 当处理图像过程中出错时
+	 * @throws NullPointerException 当输入流为 null 时
+	 * @see #of(File, boolean)
+	 * @see #correctOrientation(int)
 	 * @since 1.0.0
 	 */
 	public static Thumbnails of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException,
 		ImageProcessingException {
 		Validate.notNull(inputStream, "inputStream不可为空");
 
+		if (!autoCorrectOrientation) {
+			BufferedImage bufferedImage = ImageIO.read(inputStream);
+			return new Thumbnails(bufferedImage, new ImageSize(
+				bufferedImage.getWidth(), bufferedImage.getHeight()));
+		}
+
 		Thumbnails thumbnails;
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
 			BufferedImage bufferedImage = ImageIO.read(inputStream);
-			thumbnails = new Thumbnails(bufferedImage, new ImageSize(
-				bufferedImage.getWidth(), bufferedImage.getHeight()));
+			thumbnails = new Thumbnails(bufferedImage, new ImageSize(bufferedImage.getWidth(),
+				bufferedImage.getHeight()));
 
-			if (autoCorrectOrientation) {
-				inputStream.reset();
-				thumbnails.correctOrientation(ImageUtils.getExifOrientation(inputStream));
-			}
+			inputStream.reset();
+			thumbnails.correctOrientation(ImageUtils.getExifOrientation(inputStream));
 		} else {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
 
@@ -350,10 +404,8 @@ public class Thumbnails {
 					bufferedImage.getWidth(), bufferedImage.getHeight()));
 			}
 
-			if (autoCorrectOrientation) {
-				try (InputStream tmpInputStream = outputStream.toInputStream()) {
-					thumbnails.correctOrientation(ImageUtils.getExifOrientation(tmpInputStream));
-				}
+			try (InputStream tmpInputStream = outputStream.toInputStream()) {
+				thumbnails.correctOrientation(ImageUtils.getExifOrientation(tmpInputStream));
 			}
 		}
 		return thumbnails;
@@ -393,7 +445,7 @@ public class Thumbnails {
 	 * 可选的滤波器类型参见{@link ResampleOp}常量。
 	 * </p>
 	 *
-	 * @param filterType 滤波器类型，建议使用{@link ResampleOp#FILTER_TRIANGLE}
+	 * @param filterType 滤波器类型，建议使用{@link ResampleOp#FILTER_LANCZOS}
 	 * @return 当前实例，支持链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -421,6 +473,21 @@ public class Thumbnails {
 		return this;
 	}
 
+	/**
+	 * 设置图像缩放的提示类型，影响缩放算法的选择。
+	 * <p>
+	 * 根据不同的提示类型，会选择不同的重采样过滤器：
+	 * <ul>
+	 *   <li>{@link Image#SCALE_FAST} 或 {@link Image#SCALE_REPLICATE}: 使用最近邻插值 (FILTER_POINT)</li>
+	 *   <li>{@link Image#SCALE_AREA_AVERAGING}: 使用盒式过滤 (FILTER_BOX)</li>
+	 *   <li>{@link Image#SCALE_SMOOTH}: 使用Lanczos算法 (FILTER_LANCZOS)</li>
+	 *   <li>其他值: 使用二次插值 (FILTER_QUADRATIC)</li>
+	 * </ul>
+	 *
+	 * @param hints 缩放提示类型，来自 {@link Image} 类的常量
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
 	public Thumbnails scaleHints(final int hints) {
 		switch (hints) {
 			case Image.SCALE_FAST:
@@ -441,11 +508,11 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 设置输出图片格式
+	 * 设置输出图像的格式。
 	 *
-	 * @param outputFormat 输出格式（如"png"、"jpeg"等），必须是支持的格式
-	 * @return 当前实例，支持链式调用
-	 * @throws IllegalArgumentException 当格式不支持时抛出
+	 * @param outputFormat 输出格式，如 "jpg"、"png" 等
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @throws IllegalArgumentException 当指定的格式不被支持时
 	 * @since 1.0.0
 	 */
 	public Thumbnails outputFormat(final String outputFormat) {
@@ -455,13 +522,23 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 根据EXIF方向信息校正图像方向
+	 * 根据EXIF方向信息校正图像方向。
 	 * <p>
-	 * 根据EXIF元数据中的方向信息自动旋转或翻转图像，使其显示正确的方向。
-	 * </p>
+	 * 根据EXIF标准，方向值范围为1-8：
+	 * <ul>
+	 *   <li>1: 正常方向 (不需要校正)</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转180度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 顺时针旋转90度后水平翻转</li>
+	 *   <li>6: 顺时针旋转90度</li>
+	 *   <li>7: 逆时针旋转90度后水平翻转</li>
+	 *   <li>8: 逆时针旋转90度</li>
+	 * </ul>
+	 * 对于方向值5-8，会同时调整输出图像的宽高比例。
 	 *
-	 * @param orientation EXIF方向值（1-8）
-	 * @return 当前实例，支持链式调用
+	 * @param orientation EXIF方向值(1-8)
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails correctOrientation(int orientation) {
@@ -503,16 +580,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 旋转图像（按预定义方向）
-	 * <p>
-	 * 将图像按指定的预定义方向旋转。
-	 * </p>
+	 * 按指定方向旋转图像。
 	 *
-	 * @param direction 旋转方向，使用{@link ImageUtil}中的常量：
-	 *                 {@link ImageUtil#ROTATE_90_CW}、
-	 *                 {@link ImageUtil#ROTATE_90_CCW}或
-	 *                 {@link ImageUtil#ROTATE_180}
-	 * @return 当前实例，支持链式调用
+	 * @param direction 旋转方向，可以是 {@link ImageUtil#ROTATE_90_CW}、{@link ImageUtil#ROTATE_90_CCW} 或 {@link ImageUtil#ROTATE_180}
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails rotate(final int direction) {
@@ -523,13 +594,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 旋转图像（按指定角度）
-	 * <p>
-	 * 将图像按指定的角度旋转。
-	 * </p>
+	 * 按指定角度旋转图像。
 	 *
-	 * @param angle 旋转角度（度），正值表示顺时针旋转，负值表示逆时针旋转
-	 * @return 当前实例，支持链式调用
+	 * @param angle 旋转角度（度数），正值表示顺时针旋转
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails rotate(final double angle) {
@@ -538,12 +606,9 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 模糊图像（使用默认半径）
-	 * <p>
-	 * 对图像应用高斯模糊效果，使用默认模糊半径1.5。
-	 * </p>
+	 * 对图像应用模糊效果，使用默认模糊半径1.5。
 	 *
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails blur() {
@@ -552,14 +617,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 模糊图像（指定模糊半径）
-	 * <p>
-	 * 对图像应用高斯模糊效果，使用指定的模糊半径。
-	 * 半径越大，模糊效果越强。
-	 * </p>
+	 * 对图像应用模糊效果，使用指定的模糊半径。
 	 *
 	 * @param radius 模糊半径，值越大模糊效果越强
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails blur(final float radius) {
@@ -568,15 +629,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 翻转图像
-	 * <p>
-	 * 沿指定轴翻转图像（水平或垂直）。
-	 * </p>
+	 * 翻转图像。
 	 *
-	 * @param axis 翻转轴，使用{@link ImageUtil}中的常量：
-	 *            {@link ImageUtil#FLIP_HORIZONTAL}或
-	 *            {@link ImageUtil#FLIP_VERTICAL}
-	 * @return 当前实例，支持链式调用
+	 * @param axis 翻转轴，可以是 {@link ImageUtil#FLIP_HORIZONTAL} 或 {@link ImageUtil#FLIP_VERTICAL}
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails flip(final int axis) {
@@ -587,12 +643,9 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 锐化图像（使用默认强度）
-	 * <p>
-	 * 对图像应用锐化效果，使用默认锐化强度。
-	 * </p>
+	 * 对图像应用锐化效果，使用默认锐化参数。
 	 *
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails sharpen() {
@@ -601,14 +654,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 锐化图像（指定锐化强度）
-	 * <p>
 	 * 对图像应用锐化效果，使用指定的锐化强度。
-	 * 强度越大，锐化效果越明显。
-	 * </p>
 	 *
-	 * @param amount 锐化强度，值越大锐化效果越强
-	 * @return 当前实例，支持链式调用
+	 * @param amount 锐化强度
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails sharpen(final float amount) {
@@ -617,12 +666,9 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 将图像转换为灰度
-	 * <p>
-	 * 将彩色图像转换为灰度图像。
-	 * </p>
+	 * 将图像转换为灰度图。
 	 *
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails grayscale() {
@@ -632,12 +678,9 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 调整图像对比度（使用默认值）
-	 * <p>
-	 * 使用默认对比度值0.3调整图像对比度。
-	 * </p>
+	 * 调整图像对比度，使用默认对比度值0.3。
 	 *
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails contrast() {
@@ -645,14 +688,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 调整图像对比度（指定对比度值）
-	 * <p>
-	 * 使用指定的对比度值调整图像对比度。
-	 * 值范围为-1.0到1.0，正值增加对比度，负值降低对比度。
-	 * </p>
+	 * 调整图像对比度。
 	 *
-	 * @param amount 对比度调整值，范围为-1.0到1.0
-	 * @return 当前实例，支持链式调用
+	 * @param amount 对比度调整值，范围为-1.0到1.0，0表示不变，正值增加对比度，负值降低对比度
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails contrast(final float amount) {
@@ -674,14 +713,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 调整图像亮度
-	 * <p>
-	 * 使用指定的亮度值调整图像亮度。
-	 * 值范围为-2.0到2.0，正值增加亮度，负值降低亮度。
-	 * </p>
+	 * 调整图像亮度。
 	 *
-	 * @param amount 亮度调整值，范围为-2.0到2.0
-	 * @return 当前实例，支持链式调用
+	 * @param amount 亮度调整值，范围为-2.0到2.0，0表示不变，正值增加亮度，负值降低亮度
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails brightness(final float amount) {
@@ -702,6 +737,14 @@ public class Thumbnails {
 		return this;
 	}
 
+	/**
+	 * 对图像应用自定义过滤器。
+	 *
+	 * @param filter 要应用的图像过滤器
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @throws NullPointerException 当过滤器为null时
+	 * @since 1.0.0
+	 */
 	public Thumbnails filter(final ImageFilter filter) {
 		Validate.notNull(filter, "filter不可为空");
 
@@ -710,12 +753,28 @@ public class Thumbnails {
 		return this;
 	}
 
+	/**
+	 * 强制将图像缩放到指定的宽度和高度，不保持原始宽高比。
+	 *
+	 * @param width 目标宽度（像素）
+	 * @param height 目标高度（像素）
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
 	public Thumbnails forceScale(final int width, final int height) {
 		this.outputImageSize = new ImageSize(width, height);
 		this.outputImage = resample();
 		return this;
 	}
 
+	/**
+	 * 强制将图像缩放到指定的尺寸，不保持原始宽高比。
+	 *
+	 * @param size 目标尺寸
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @throws NullPointerException 当尺寸参数为null时
+	 * @since 1.0.0
+	 */
 	public Thumbnails forceScale(final ImageSize size) {
 		Validate.notNull(size, "size不可为空");
 
@@ -724,18 +783,41 @@ public class Thumbnails {
 		return this;
 	}
 
+	/**
+	 * 按指定宽度等比例缩放图像，保持原始宽高比。
+	 *
+	 * @param width 目标宽度（像素）
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
 	public Thumbnails scaleByWidth(final int width) {
 		this.outputImageSize = this.outputImageSize.scaleByWidth(width);
 		this.outputImage = resample();
 		return this;
 	}
 
+	/**
+	 * 按指定高度等比例缩放图像，保持原始宽高比。
+	 *
+	 * @param height 目标高度（像素）
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
 	public Thumbnails scaleByHeight(final int height) {
 		this.outputImageSize = this.outputImageSize.scaleByHeight(height);
 		this.outputImage = resample();
 		return this;
 	}
 
+	/**
+	 * 将图像缩放到指定的最大宽度和高度范围内，保持原始宽高比。
+	 * 缩放后的图像尺寸不会超过指定的宽度和高度。
+	 *
+	 * @param width 最大宽度（像素）
+	 * @param height 最大高度（像素）
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
 	public Thumbnails scale(final int width, final int height) {
 		this.outputImageSize = this.outputImageSize.scale(width, height);
 		this.outputImage = resample();
@@ -743,13 +825,10 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 恢复到原始图像
-	 * <p>
-	 * 将当前处理的图像恢复到原始输入图像状态，
-	 * 清除所有已应用的处理效果和参数设置。
-	 * </p>
+	 * 恢复图像到初始状态，重置所有处理效果。
+	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
 	 *
-	 * @return 当前实例，支持链式调用
+	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public Thumbnails restore() {
@@ -761,11 +840,12 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 将缩放后的图像写入文件
+	 * 将处理后的图像保存到文件。
 	 *
-	 * @param outputFile 输出文件，不可为null
-	 * @return 是否成功写入
-	 * @throws IOException 当写入失败时抛出
+	 * @param outputFile 输出文件
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException 当写入文件出错时
+	 * @throws NullPointerException 当输出文件为null时
 	 * @since 1.0.0
 	 */
 	public boolean toFile(final File outputFile) throws IOException {
@@ -775,11 +855,12 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 将缩放后的图像写入输出流
+	 * 将处理后的图像写入输出流。
 	 *
-	 * @param outputStream 输出流，不可为null
-	 * @return 是否成功写入
-	 * @throws IOException 当写入失败时抛出
+	 * @param outputStream 输出流
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException 当写入输出流出错时
+	 * @throws NullPointerException 当输出流为null时
 	 * @since 1.0.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
@@ -789,11 +870,12 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 将缩放后的图像写入图像输出流
+	 * 将处理后的图像写入图像输出流。
 	 *
-	 * @param imageOutputStream 图像输出流，不可为null
-	 * @return 是否成功写入
-	 * @throws IOException 当写入失败时抛出
+	 * @param imageOutputStream 图像输出流
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException 当写入图像输出流出错时
+	 * @throws NullPointerException 当图像输出流为null时
 	 * @since 1.0.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
@@ -803,12 +885,9 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 获取缩放后的BufferedImage对象
-	 * <p>
-	 * 可用于进一步的图像处理或内存操作。
-	 * </p>
+	 * 获取处理后图像的副本。
 	 *
-	 * @return 缩放后的图像对象
+	 * @return 处理后图像的BufferedImage副本
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
@@ -816,14 +895,8 @@ public class Thumbnails {
 	}
 
 	/**
-	 * 图像重采样方法（内部使用）
-	 * <p>
-	 * 根据输出格式自动处理透明通道：
-	 * <ul>
-	 *   <li>不支持透明的格式 → 转换为RGB模式</li>
-	 *   <li>支持透明的格式 → 保留Alpha通道</li>
-	 * </ul>
-	 * </p>
+	 * 对图像进行重采样处理，根据当前设置的输出尺寸和重采样过滤器类型。
+	 * 如果输出格式不支持透明度但原图有透明通道，会自动转换为不透明图像。
 	 *
 	 * @return 重采样后的图像
 	 * @since 1.0.0
