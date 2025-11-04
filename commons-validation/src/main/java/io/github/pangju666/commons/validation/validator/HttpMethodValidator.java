@@ -18,6 +18,7 @@ package io.github.pangju666.commons.validation.validator;
 import io.github.pangju666.commons.validation.annotation.HttpMethod;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Set;
@@ -29,13 +30,16 @@ import java.util.Set;
  * @see HttpMethod
  * @since 1.0.0
  */
-public class HttpMethodValidator implements ConstraintValidator<HttpMethod, String> {
-	private static final Set<String> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "HEAD", "DELETE", "OPTIONS");
+public class HttpMethodValidator implements ConstraintValidator<HttpMethod, CharSequence> {
+	private static final Set<CharSequence> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "HEAD", "DELETE", "OPTIONS");
 
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+	public boolean isValid(CharSequence value, ConstraintValidatorContext constraintValidatorContext) {
 		if (Objects.isNull(value)) {
 			return true;
+		}
+		if (StringUtils.isBlank(value)) {
+			return false;
 		}
 		return HTTP_METHODS.contains(value);
 	}

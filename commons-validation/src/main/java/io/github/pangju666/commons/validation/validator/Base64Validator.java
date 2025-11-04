@@ -17,10 +17,12 @@
 package io.github.pangju666.commons.validation.validator;
 
 import io.github.pangju666.commons.validation.annotation.BASE64;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 /**
  * 验证字符串是否为有效的Base64编码
@@ -29,18 +31,15 @@ import org.apache.commons.codec.binary.Base64;
  * @see BASE64
  * @since 1.0.0
  */
-public class Base64Validator implements ConstraintValidator<BASE64, String> {
-	private boolean notBlank;
-	private boolean notEmpty;
-
+public class Base64Validator implements ConstraintValidator<BASE64, CharSequence> {
 	@Override
-	public void initialize(BASE64 constraintAnnotation) {
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
-	}
-
-	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, Base64::isBase64);
+	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+		if (Objects.isNull(value)) {
+			return true;
+		}
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		return Base64.isBase64(value.toString());
 	}
 }

@@ -18,10 +18,11 @@ package io.github.pangju666.commons.validation.validator;
 import io.github.pangju666.commons.lang.pool.RegExPool;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.Md5;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -31,20 +32,17 @@ import java.util.regex.Pattern;
  * @see Md5
  * @since 1.0.0
  */
-public class Md5Validator implements ConstraintValidator<Md5, String> {
+public class Md5Validator implements ConstraintValidator<Md5, CharSequence> {
 	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.MD5, true, true);
 
-	private boolean notBlank;
-	private boolean notEmpty;
-
 	@Override
-	public void initialize(Md5 constraintAnnotation) {
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
-	}
-
-	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, PATTERN);
+	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+		if (Objects.isNull(value)) {
+			return true;
+		}
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		return PATTERN.matcher(value).matches();
 	}
 }

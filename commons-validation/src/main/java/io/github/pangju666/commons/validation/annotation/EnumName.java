@@ -31,8 +31,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 枚举值校验注解
  * <p>验证字段值是否在指定枚举类的枚举值范围内</p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
+ * </p> 
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see org.apache.commons.lang3.EnumUtils#isValidEnum(Class, String)
+ * @see org.apache.commons.lang3.EnumUtils#isValidEnumIgnoreCase(Class, String)
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

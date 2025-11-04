@@ -20,6 +20,7 @@ import io.github.pangju666.commons.validation.annotation.EnumName;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ import java.util.Objects;
  * @see EnumName
  * @since 1.0.0
  */
-public class EnumNameValidator implements ConstraintValidator<EnumName, String> {
+public class EnumNameValidator implements ConstraintValidator<EnumName, CharSequence> {
 	private Class<? extends java.lang.Enum> enumClass;
 	private boolean ignoreCase;
 
@@ -42,13 +43,14 @@ public class EnumNameValidator implements ConstraintValidator<EnumName, String> 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
+	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
 		if (Objects.isNull(value)) {
 			return true;
 		}
-		if (value.isBlank()) {
+		if (StringUtils.isBlank(value)) {
 			return false;
 		}
-		return ignoreCase ? EnumUtils.isValidEnumIgnoreCase(enumClass, value) : EnumUtils.isValidEnum(enumClass, value);
+		return ignoreCase ? EnumUtils.isValidEnumIgnoreCase(enumClass, value.toString()) :
+			EnumUtils.isValidEnum(enumClass, value.toString());
 	}
 }

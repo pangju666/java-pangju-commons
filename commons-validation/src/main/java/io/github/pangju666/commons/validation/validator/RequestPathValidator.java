@@ -15,10 +15,10 @@
  */
 package io.github.pangju666.commons.validation.validator;
 
-import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.RequestPath;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -30,14 +30,17 @@ import java.util.regex.Pattern;
  * @see RequestPath
  * @since 1.0.0
  */
-public class RequestPathValidator implements ConstraintValidator<RequestPath, String> {
+public class RequestPathValidator implements ConstraintValidator<RequestPath, CharSequence> {
 	private static final Pattern PATTERN = Pattern.compile("^/[\\w/-]+$");
 
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+	public boolean isValid(CharSequence value, ConstraintValidatorContext constraintValidatorContext) {
 		if (Objects.isNull(value)) {
 			return true;
 		}
-		return RegExUtils.matches(PATTERN, value);
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		return PATTERN.matcher(value).matches();
 	}
 }

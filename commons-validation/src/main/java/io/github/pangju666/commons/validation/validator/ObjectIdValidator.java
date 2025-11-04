@@ -1,23 +1,22 @@
 package io.github.pangju666.commons.validation.validator;
 
+import io.github.pangju666.commons.validation.annotation.ObjectId;
 import io.github.pangju666.commons.validation.annotation.Xss;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.util.Objects;
 
 /**
- * 验证字符串是否包含HTML内容
+ * 验证字符串是否为有效的ObjectId
  *
  * @author pangju666
  * @see Xss
- * @see Jsoup
+ * @see org.bson.types.ObjectId
  * @since 1.0.0
  */
-public class XssValidator implements ConstraintValidator<Xss, CharSequence> {
+public class ObjectIdValidator implements ConstraintValidator<ObjectId, CharSequence> {
 	@Override
 	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
 		if (Objects.isNull(value)) {
@@ -26,9 +25,6 @@ public class XssValidator implements ConstraintValidator<Xss, CharSequence> {
 		if (StringUtils.isBlank(value)) {
 			return false;
 		}
-		String str = value.toString();
-		Document document = Jsoup.parse(str);
-		// 如果解析后的文本与原始文本不同，则可能是 HTML
-		return !document.text().equals(str.trim());
+		return org.bson.types.ObjectId.isValid(value.toString());
 	}
 }

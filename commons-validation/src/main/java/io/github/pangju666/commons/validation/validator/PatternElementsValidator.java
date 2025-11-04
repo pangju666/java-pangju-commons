@@ -16,35 +16,45 @@
 package io.github.pangju666.commons.validation.validator;
 
 import io.github.pangju666.commons.lang.utils.RegExUtils;
-import io.github.pangju666.commons.validation.annotation.Regex;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
+import io.github.pangju666.commons.validation.annotation.PatternElements;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * 验证字符串是否匹配指定的正则表达式
+ * 验证字符串集合中的元素是否匹配指定的正则表达式
  *
  * @author pangju666
- * @see Regex
+ * @see PatternElements
  * @since 1.0.0
  */
-public class RegexValidator implements ConstraintValidator<Regex, String> {
+public class PatternElementsValidator implements ConstraintValidator<PatternElements, Collection<? extends CharSequence>> {
 	private Pattern pattern;
-	private boolean notBlank;
-	private boolean notEmpty;
+	private boolean allMatch;
 
 	@Override
-	public void initialize(Regex constraintAnnotation) {
+	public void initialize(PatternElements constraintAnnotation) {
 		int flags = RegExUtils.computeFlags(constraintAnnotation.flags());
-		this.pattern = RegExUtils.compile(constraintAnnotation.regexp(), flags, constraintAnnotation.matchStart(), constraintAnnotation.matchEnd());
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
+		this.pattern = Pattern.compile(constraintAnnotation.regexp(), flags);
+		this.allMatch = constraintAnnotation.allMatch();
 	}
 
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, pattern);
+	public boolean isValid(Collection<? extends CharSequence> values, ConstraintValidatorContext context) {
+		if (Objects.isNull(values) || values.isEmpty()) {
+			return true;
+		}
+		for (CharSequence value : values) {
+			boolean result = Objects.isNull(value) || !pattern.matcher(value).matches();
+			if (result && allMatch) {
+				return false;
+			} else if (!result && !allMatch) {
+				return true;
+			}
+		}
+		return true;
 	}
 }

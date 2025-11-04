@@ -18,11 +18,11 @@ package io.github.pangju666.commons.validation.validator;
 import io.github.pangju666.commons.lang.pool.RegExPool;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.PhoneNumber;
-import io.github.pangju666.commons.validation.enums.PhoneNumberType;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -32,44 +32,47 @@ import java.util.regex.Pattern;
  * @see PhoneNumber
  * @since 1.0.0
  */
-public class PhoneNumberValidator implements ConstraintValidator<PhoneNumber, String> {
-	private static final Pattern MOBILE_PHONE_STRONG_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_STRONG, true, true);
-	private static final Pattern MOBILE_PHONE_WEAK_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_WEAK, true, true);
-	private static final Pattern TEL_PHONE_PATTERN = RegExUtils.compile(RegExPool.TEL_PHONE, true, true);
+public class PhoneNumberValidator implements ConstraintValidator<PhoneNumber, CharSequence> {
+	private static final Pattern MOBILE_PHONE_STRONG_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_STRONG,
+		true, true);
+	private static final Pattern MOBILE_PHONE_WEAK_PATTERN = RegExUtils.compile(RegExPool.MOBILE_PHONE_WEAK,
+		true, true);
+	private static final Pattern TEL_PHONE_PATTERN = RegExUtils.compile(RegExPool.TEL_PHONE, true,
+		true);
 
-	private PhoneNumberType type;
+	private PhoneNumber.Type type;
 	private boolean strongStrength;
-	private boolean notBlank;
-	private boolean notEmpty;
 
 	@Override
 	public void initialize(PhoneNumber constraintAnnotation) {
 		this.type = constraintAnnotation.type();
 		this.strongStrength = constraintAnnotation.strong();
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
 	}
 
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, val -> {
-			switch (type) {
-				case TEL:
-					return RegExUtils.matches(TEL_PHONE_PATTERN, val);
-				case MOBILE:
-					if (strongStrength) {
-						return RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
-					}
-					return RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
-				default:
-					if (RegExUtils.matches(TEL_PHONE_PATTERN, val)) {
-						return true;
-					}
-					if (strongStrength) {
-						return RegExUtils.matches(MOBILE_PHONE_STRONG_PATTERN, val);
-					}
-					return RegExUtils.matches(MOBILE_PHONE_WEAK_PATTERN, val);
+	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+		if (Objects.isNull(value)) {
+			return true;
+		}
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		switch (type) {
+			case TEL:
+				return TEL_PHONE_PATTERN.matcher(value).matches();
+			case MOBILE:
+				if (strongStrength) {
+					return MOBILE_PHONE_STRONG_PATTERN.matcher(value).matches();
 				}
-		});
+				return MOBILE_PHONE_WEAK_PATTERN.matcher(value).matches();
+			default:
+				if (TEL_PHONE_PATTERN.matcher(value).matches()) {
+					return true;
+				}
+				if (strongStrength) {
+					return MOBILE_PHONE_STRONG_PATTERN.matcher(value).matches();
+				}
+				return MOBILE_PHONE_WEAK_PATTERN.matcher(value).matches();
+		}
 	}
 }

@@ -16,32 +16,41 @@
 package io.github.pangju666.commons.validation.validator;
 
 import io.github.pangju666.commons.validation.annotation.NotBlankElements;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
- * 验证字符串集合中的每个元素是否为非空白字符串
+ * 验证字符串集合中的元素是否为非空白字符串
  *
  * @author pangju666
  * @see NotBlankElements
  * @since 1.0.0
  */
-public class NotBlankElementsValidator implements ConstraintValidator<NotBlankElements, Collection<String>> {
+public class NotBlankElementsValidator implements ConstraintValidator<NotBlankElements, Collection<? extends CharSequence>> {
 	private boolean allMatch;
-	private boolean notEmpty;
 
 	@Override
 	public void initialize(NotBlankElements constraintAnnotation) {
 		this.allMatch = constraintAnnotation.allMatch();
-		this.notEmpty = constraintAnnotation.notEmpty();
 	}
 
 	@Override
-	public boolean isValid(Collection<String> value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, allMatch, notEmpty, StringUtils::isNotBlank);
+	public boolean isValid(Collection<? extends CharSequence> values, ConstraintValidatorContext context) {
+		if (Objects.isNull(values) || values.isEmpty()) {
+			return true;
+		}
+		for (CharSequence value : values) {
+			boolean result = StringUtils.isBlank(value.toString());
+			if (result && allMatch) {
+				return false;
+			} else if (!result && !allMatch) {
+				return true;
+			}
+		}
+		return true;
 	}
 }

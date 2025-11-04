@@ -36,8 +36,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>application/json</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#MIME_TYPE
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -48,20 +53,6 @@ public @interface MimeType {
 	 * 校验失败时的默认消息
 	 */
 	String message() default "MIME类型格式不正确";
-
-	/**
-	 * 是否要求值不能为空白（仅空格等空白字符）
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notBlank() default false;
-
-	/**
-	 * 是否要求值不能为空字符串
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};
 

@@ -36,8 +36,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>正数（positive=true）</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。 {@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#NUMBER
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#POSITIVE_NUMBER
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#FLOAT_NUMBER
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#POSITIVE_FLOAT_NUMBER
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

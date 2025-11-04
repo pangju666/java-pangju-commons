@@ -35,8 +35,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>当allMatch=false时，至少一个元素非空</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code Collection<? extends CharSequence>}。{@code null}或空集合视为有效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see jakarta.validation.constraints.NotBlank
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -46,7 +51,7 @@ public @interface NotBlankElements {
 	/**
 	 * 校验失败时的默认消息
 	 */
-	String message() default "集合中存在空白的值";
+	String message() default "集合中存在空白字符串";
 
 	/**
 	 * 是否要求所有元素匹配（默认true）
@@ -55,14 +60,6 @@ public @interface NotBlankElements {
 	 * @since 1.0.0
 	 */
 	boolean allMatch() default true;
-
-	/**
-	 * 是否要求集合不能为空
-	 * <p>包括null和空集合两种情况</p>
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};
 

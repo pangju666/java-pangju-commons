@@ -31,8 +31,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 银行卡号校验注解
  * <p>验证字符串是否符合银行卡号格式规范</p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null}视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#BANK_CARD
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -43,20 +48,6 @@ public @interface BankCard {
 	 * 校验失败时的默认消息
 	 */
 	String message() default "银行卡号格式不正确";
-
-	/**
-	 * 是否要求值不能为空白（仅空格等空白字符）
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notBlank() default false;
-
-	/**
-	 * 是否要求值不能为空字符串
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
 
 	Class<?>[] groups() default {};
 

@@ -17,9 +17,11 @@ package io.github.pangju666.commons.validation.validator;
 
 import io.github.pangju666.commons.lang.utils.IdCardUtils;
 import io.github.pangju666.commons.validation.annotation.IdCard;
-import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 /**
  * 验证字符串是否为有效的身份证号码
@@ -28,18 +30,15 @@ import jakarta.validation.ConstraintValidatorContext;
  * @see IdCard
  * @since 1.0.0
  */
-public class IdCardValidator implements ConstraintValidator<IdCard, String> {
-	private boolean notBlank;
-	private boolean notEmpty;
-
+public class IdCardValidator implements ConstraintValidator<IdCard, CharSequence> {
 	@Override
-	public void initialize(IdCard constraintAnnotation) {
-		this.notBlank = constraintAnnotation.notBlank();
-		this.notEmpty = constraintAnnotation.notEmpty();
-	}
-
-	@Override
-	public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
-		return ConstraintValidatorUtils.validate(value, notBlank, notEmpty, IdCardUtils::validate);
+	public boolean isValid(CharSequence value, ConstraintValidatorContext constraintValidatorContext) {
+		if (Objects.isNull(value)) {
+			return true;
+		}
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		return IdCardUtils.validate(value.toString());
 	}
 }

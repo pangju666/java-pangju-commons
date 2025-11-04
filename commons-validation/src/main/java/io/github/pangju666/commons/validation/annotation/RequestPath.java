@@ -31,6 +31,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * HTTP请求路径校验注解
  * <p>验证字符串是否符合HTTP请求路径格式规范，支持绝对路径和相对路径校验</p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。 {@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
  */

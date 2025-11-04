@@ -109,7 +109,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @return 完全匹配时返回true
 	 * @since 1.0.0
 	 */
-	public static boolean matches(final String regex, final String str) {
+	public static boolean matches(final String regex, final CharSequence str) {
 		Validate.notBlank(regex, "regex 不可为空");
 		if (StringUtils.isBlank(str)) {
 			return false;
@@ -125,7 +125,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @return 完全匹配时返回true
 	 * @since 1.0.0
 	 */
-	public static boolean matches(final Pattern pattern, final String str) {
+	public static boolean matches(final Pattern pattern, final CharSequence str) {
 		Validate.notNull(pattern, "pattern 不可为null");
 		if (StringUtils.isBlank(str)) {
 			return false;
@@ -141,7 +141,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @return 包含所有匹配子串的列表（可能为空列表）
 	 * @since 1.0.0
 	 */
-	public static List<String> find(final String regex, final String str) {
+	public static List<String> find(final String regex, final CharSequence str) {
 		Validate.notBlank(regex, "regex 不可为空");
 		return find(Pattern.compile(regex), str);
 	}
@@ -154,7 +154,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * @return 包含所有匹配子串的列表（可能为空列表）
 	 * @since 1.0.0
 	 */
-	public static List<String> find(final Pattern pattern, final String str) {
+	public static List<String> find(final Pattern pattern, final CharSequence str) {
 		Validate.notNull(pattern, "pattern 不可为null");
 		if (StringUtils.isBlank(str)) {
 			return Collections.emptyList();

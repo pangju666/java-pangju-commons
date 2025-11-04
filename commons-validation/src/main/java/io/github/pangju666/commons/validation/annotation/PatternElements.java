@@ -17,7 +17,7 @@
 package io.github.pangju666.commons.validation.annotation;
 
 import io.github.pangju666.commons.lang.enums.RegExFlag;
-import io.github.pangju666.commons.validation.validator.RegexElementsValidator;
+import io.github.pangju666.commons.validation.validator.PatternElementsValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -34,17 +34,21 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <ul>
  *     <li>通过allMatch控制全部匹配或任一匹配</li>
  *     <li>正则标志位设置（如忽略大小写等）</li>
- *     <li>集合空值策略控制</li>
  * </ul></p>
+ *
+ * <p>
+ * 支持的类型是 {@code Collection<? extends CharSequence>}。{@code null}或空集合视为有效。
+ * </p>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see jakarta.validation.constraints.Pattern
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = RegexElementsValidator.class)
-public @interface RegexElements {
+@Constraint(validatedBy = PatternElementsValidator.class)
+public @interface PatternElements {
 	/**
 	 * 正则表达式模式（必填）
 	 *
@@ -61,20 +65,6 @@ public @interface RegexElements {
 	RegExFlag[] flags() default {};
 
 	/**
-	 * 是否强制从字符串开头匹配（默认true）
-	 *
-	 * @since 1.0.0
-	 */
-	boolean matchStart() default true;
-
-	/**
-	 * 是否强制匹配到字符串结尾（默认true）
-	 *
-	 * @since 1.0.0
-	 */
-	boolean matchEnd() default true;
-
-	/**
 	 * 是否要求所有元素匹配（默认true）
 	 * <p>false表示只要任一元素匹配即通过</p>
 	 *
@@ -83,17 +73,9 @@ public @interface RegexElements {
 	boolean allMatch() default true;
 
 	/**
-	 * 是否要求集合不能为空
-	 * <p>包括null和空集合两种情况</p>
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
-
-	/**
 	 * 校验失败时的默认消息
 	 */
-	String message() default "集合中存在格式不正确的值";
+	String message() default "集合中存在格式不正确的字符串";
 
 	Class<?>[] groups() default {};
 

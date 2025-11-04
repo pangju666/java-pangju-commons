@@ -35,8 +35,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>支持文件扩展名校验（根据extension参数）</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#FILENAME
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#FILENAME_WITHOUT_EXTENSION
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

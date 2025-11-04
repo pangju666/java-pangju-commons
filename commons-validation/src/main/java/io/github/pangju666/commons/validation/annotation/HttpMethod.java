@@ -37,6 +37,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>DELETE等标准方法</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
  */

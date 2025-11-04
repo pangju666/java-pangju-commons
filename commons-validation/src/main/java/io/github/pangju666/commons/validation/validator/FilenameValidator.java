@@ -21,6 +21,7 @@ import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.Filename;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
  * @see Filename
  * @since 1.0.0
  */
-public class FilenameValidator implements ConstraintValidator<Filename, String> {
+public class FilenameValidator implements ConstraintValidator<Filename, CharSequence> {
 	private static final Pattern REGEX = RegExUtils.compile(RegExPool.FILENAME, true, true);
 	private static final Pattern NO_EXTENSION_REGEX = RegExUtils.compile(RegExPool.FILENAME_WITHOUT_EXTENSION, true, true);
 
@@ -44,10 +45,13 @@ public class FilenameValidator implements ConstraintValidator<Filename, String> 
 	}
 
 	@Override
-	public boolean isValid(String value, ConstraintValidatorContext context) {
+	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
 		if (Objects.isNull(value)) {
 			return true;
 		}
-		return extension ? RegExUtils.matches(REGEX, value) : RegExUtils.matches(NO_EXTENSION_REGEX, value);
+		if (StringUtils.isBlank(value)) {
+			return false;
+		}
+		return extension ? REGEX.matcher(value).matches() : NO_EXTENSION_REGEX.matcher(value).matches();
 	}
 }

@@ -16,7 +16,6 @@
 
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.validation.enums.PhoneNumberType;
 import io.github.pangju666.commons.validation.validator.PhoneNumberValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -37,8 +36,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>混合校验（type=MIX）</li>
  * </ul></p>
  *
+ * <p>
+ * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#MOBILE_PHONE_STRONG
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#MOBILE_PHONE_WEAK
+ * @see io.github.pangju666.commons.lang.pool.RegExPool#TEL_PHONE
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -55,7 +61,7 @@ public @interface PhoneNumber {
 	 *
 	 * @since 1.0.0
 	 */
-	PhoneNumberType type() default PhoneNumberType.MIX;
+	Type type() default Type.MIX;
 
 	/**
 	 * 是否校验运营商号段（默认false）
@@ -65,21 +71,35 @@ public @interface PhoneNumber {
 	 */
 	boolean strong() default false;
 
-	/**
-	 * 是否要求值不能为空白（仅空格等空白字符）
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notBlank() default false;
-
-	/**
-	 * 是否要求值不能为空字符串
-	 *
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
-
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};
+
+	/**
+	 * 电话号码类型枚举
+	 * <p>定义常用的电话号码校验类型</p>
+	 *
+	 * @author pangju666
+	 * @since 1.0.0
+	 */
+	enum Type {
+		/**
+		 * 手机号码类型（仅支持中国大陆手机号格式校验）
+		 *
+		 * @since 1.0.0
+		 */
+		MOBILE,
+		/**
+		 * 固定电话号码类型（包含区号、分机号等格式校验）
+		 *
+		 * @since 1.0.0
+		 */
+		TEL,
+		/**
+		 * 混合类型（同时支持手机号和固定电话格式校验）
+		 *
+		 * @since 1.0.0
+		 */
+		MIX
+	}
 }
