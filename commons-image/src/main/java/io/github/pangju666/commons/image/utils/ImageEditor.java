@@ -51,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p><b>核心特性：</b></p>
  * <ul>
  *   <li>链式调用API，支持流畅的方法调用</li>
- *   <li>支持多种缩放模式：强制缩放、按宽度缩放、按高度缩放等</li>
+ *   <li>支持多种缩放模式：强制缩放、按宽度缩放、按高度缩放、按比例缩放等</li>
  *   <li>自动处理透明通道和图像格式转换</li>
  *   <li>支持多种输入源：URL、文件、流、BufferedImage</li>
  *   <li>支持多种输出目标：文件、流、BufferedImage</li>
@@ -72,7 +72,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * // 强制缩放到指定尺寸
  * ImageEditor.of(bufferedImage)
- *     .forceScale(300, 200)
+ *     .resize(300, 200)
  *     .outputFormat("png")
  *     .toOutputStream(outputStream);
  *
@@ -97,7 +97,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p><b>方法调用顺序：</b></p>
  * <ol>
  *   <li>使用静态工厂方法创建实例：{@code ImageEditor.of(...)}</li>
- *   <li>配置缩放操作：{@link #scaleByWidth(int)}、{@link #scaleByHeight(int)} 或 {@link #forceScale(int, int)}</li>
+ *   <li>配置缩放操作：{@link #scaleByWidth(int)}、{@link #scaleByHeight(int)} 或 {@link #resize(int, int)}</li>
  *   <li>（可选）配置输出格式：{@link #outputFormat(String)}</li>
  *   <li>（可选）配置滤波器：{@link #scaleFilterType(int)} 或 {@link #scaleHints(int)}</li>
  *   <li>（可选）应用图像处理：{@link #rotate(int)}、{@link #grayscale()}、{@link #blur()}、{@link #brightness(float)}、{@link #contrast(float)} 等</li>
@@ -761,7 +761,7 @@ public class ImageEditor {
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor forceScale(final int width, final int height) {
+	public ImageEditor resize(final int width, final int height) {
 		this.outputImageSize = new ImageSize(width, height);
 		this.outputImage = resample();
 		return this;
@@ -775,7 +775,7 @@ public class ImageEditor {
 	 * @throws NullPointerException 当尺寸参数为null时
 	 * @since 1.0.0
 	 */
-	public ImageEditor forceScale(final ImageSize size) {
+	public ImageEditor resize(final ImageSize size) {
 		Validate.notNull(size, "size不可为空");
 
 		this.outputImageSize = size;
@@ -805,6 +805,19 @@ public class ImageEditor {
 	 */
 	public ImageEditor scaleByHeight(final int height) {
 		this.outputImageSize = this.outputImageSize.scaleByHeight(height);
+		this.outputImage = resample();
+		return this;
+	}
+
+	/**
+	 * 将图像缩放到指定的比例，保持原始宽高比。
+	 *
+	 * @param factor 缩放比例
+	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public ImageEditor scale(final double factor) {
+		this.outputImageSize = this.outputImageSize.scale(factor);
 		this.outputImage = resample();
 		return this;
 	}

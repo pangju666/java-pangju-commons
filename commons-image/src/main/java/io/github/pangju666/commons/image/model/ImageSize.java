@@ -106,6 +106,8 @@ public class ImageSize {
 	 * </ul>
 	 * </p>
 	 *
+	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
+	 *
 	 * @param targetWidth 目标宽度，必须满足：
 	 *                    <ul>
 	 *                      <li>大于0</li>
@@ -137,6 +139,8 @@ public class ImageSize {
 	 *   <li>确保最小1像素</li>
 	 * </ul>
 	 * </p>
+	 *
+	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
 	 *
 	 * @param targetHeight 目标高度，必须满足：
 	 *                     <ul>
@@ -170,6 +174,8 @@ public class ImageSize {
 	 * </ol>
 	 * </p>
 	 *
+	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
+	 *
 	 * @param targetSize 目标尺寸对象，必须满足：
 	 *                   <ul>
 	 *                     <li>非null</li>
@@ -194,6 +200,8 @@ public class ImageSize {
 	 *   <li>确保最小1像素</li>
 	 * </ol>
 	 * </p>
+	 *
+	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
 	 *
 	 * @param targetWidth  目标宽度，必须满足：
 	 *                     <ul>
@@ -227,5 +235,21 @@ public class ImageSize {
 			}
 			return new ImageSize((int) actualWidth, targetHeight);
 		}
+	}
+
+	/**
+	 * 按给定比例缩放尺寸，保持宽高比例不变。
+	 *
+	 * <p>该方法不会修改当前对象，而是返回一个新的尺寸实例。</p>
+	 * <p>缩放结果通过强制转换为 {@code int}，小数部分将被截断。</p>
+	 *
+	 * @param factor 缩放比例，必须大于 0
+	 * @return 缩放后的新尺寸
+	 * @throws IllegalArgumentException 当 {@code factor} 小于或等于 0 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageSize scale(final double factor) {
+		Validate.isTrue(factor > 0, "factor 必须大于0");
+		return new ImageSize((int) (this.getWidth() * factor), (int) (this.height * factor));
 	}
 }
