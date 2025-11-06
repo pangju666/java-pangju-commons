@@ -17,6 +17,12 @@
 		</license>
 	</licenses>
 
+	<properties>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+		<maven.site.skip>true</maven.site.skip>
+		<maven.site.attach>false</maven.site.attach>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
@@ -144,16 +150,4 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
