@@ -57,4 +57,9 @@ class IdCardUtilsSpec extends Specification {
 		// 无效情况
 		"invalid"            | null  // 无效格式
 	}
+
+	def "a"() {
+		setup:
+		println IdUtils.fastUUID().toString()
+	}
 }

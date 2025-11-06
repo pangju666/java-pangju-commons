@@ -16,6 +16,7 @@
 package io.github.pangju666.commons.validation.validator;
 
 import io.github.pangju666.commons.lang.pool.RegExPool;
+import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.commons.validation.annotation.MimeType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
  * @since 1.0.0
  */
 public class MimeTypeValidator implements ConstraintValidator<MimeType, CharSequence> {
-	private static final Pattern PATTERN = Pattern.compile(RegExPool.MIME_TYPE);
+	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.MIME_TYPE, true, true);
 
 	@Override
 	public boolean isValid(CharSequence value, ConstraintValidatorContext constraintValidatorContext) {
