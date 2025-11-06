@@ -57,13 +57,13 @@ public class Coordinate {
 	 *
 	 * @since 1.0.0
 	 */
-	private BigDecimal longitude;
+	private final BigDecimal longitude;
 	/**
 	 * 纬度
 	 *
 	 * @since 1.0.0
 	 */
-	private BigDecimal latitude;
+	private final BigDecimal latitude;
 
 	/**
 	 * 主构造方法

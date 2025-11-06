@@ -82,13 +82,7 @@ public class DesensitizationUtils {
 	 * @since 1.0.0
 	 */
 	public static String hideSocialSecurityCardNumber(final String socialSecurityCardNumber) {
-		int length = StringUtils.length(socialSecurityCardNumber);
-		int prefixLength = length / 3;
-		int suffixLength = prefixLength;
-		if (length % 3 != 0) {
-			++prefixLength;
-		}
-		return hideRound(socialSecurityCardNumber, prefixLength, suffixLength);
+		return hideMedicalCardNumber(socialSecurityCardNumber);
 	}
 
 	/**
