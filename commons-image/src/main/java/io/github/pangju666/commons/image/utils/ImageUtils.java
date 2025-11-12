@@ -100,14 +100,6 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class ImageUtils {
-	/**
-	 * EXIF正常方向标识值
-	 *
-	 * @see ExifDirectoryBase#TAG_ORIENTATION
-	 * @since 1.0.0
-	 */
-	protected static final int NORMAL_ORIENTATION = 1;
-
 	protected ImageUtils() {
 	}
 
@@ -838,7 +830,7 @@ public class ImageUtils {
 		Collection<ExifDirectoryBase> exifDirectories = metadata.getDirectoriesOfType(ExifDirectoryBase.class);
 		Integer imageWidth = null;
 		Integer imageHeight = null;
-		int imageOrientation = NORMAL_ORIENTATION;
+		int imageOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		for (ExifDirectoryBase exifDirectoryBase : exifDirectories) {
 			if (exifDirectoryBase instanceof ExifIFD0Directory) {
 				ExifIFD0Directory exifIFD0Directory = (ExifIFD0Directory) exifDirectoryBase;
@@ -890,7 +882,7 @@ public class ImageUtils {
 	 *              <li>存在且可读</li>
 	 *              <li>包含EXIF信息</li>
 	 *            </ul>
-	 * @return EXIF方向值（1-8），无法获取时返回{@link #NORMAL_ORIENTATION}
+	 * @return EXIF方向值（1-8），无法获取时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
 	 * @throws IOException 当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @see ExifDirectoryBase#TAG_ORIENTATION
@@ -927,7 +919,7 @@ public class ImageUtils {
 	 *              <li>非空</li>
 	 *              <li>包含有效的EXIF信息</li>
 	 *            </ul>
-	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
+	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
 	 * @throws IOException 当读取数据失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
 	 * @throws IllegalArgumentException 当bytes为null或空时抛出
@@ -966,7 +958,7 @@ public class ImageUtils {
 	 *                    <li>支持mark/reset操作</li>
 	 *                    <li>包含有效的EXIF信息</li>
 	 *                  </ul>
-	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
+	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
 	 * @throws IOException 当流读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
@@ -1012,11 +1004,10 @@ public class ImageUtils {
 	 *                  <li>非null</li>
 	 *                  <li>包含有效的EXIF信息</li>
 	 *                </ul>
-	 * @return EXIF方向值（1-8），未找到时返回{@link #NORMAL_ORIENTATION}
+	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
 	 * @throws IllegalArgumentException 当元数据为null时抛出
 	 * @see ExifIFD0Directory
 	 * @see ExifDirectoryBase#TAG_ORIENTATION
-	 * @see #NORMAL_ORIENTATION
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final Metadata metadata) {
@@ -1029,7 +1020,7 @@ public class ImageUtils {
 				return orientation;
 			}
 		}
-		return NORMAL_ORIENTATION;
+		return ImageConstants.NORMAL_EXIF_ORIENTATION;
 	}
 
 	/**

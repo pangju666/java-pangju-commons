@@ -28,6 +28,12 @@ import java.util.Set;
  */
 public class ImageConstants {
 	/**
+	 * EXIF正常方向标识值
+	 *
+	 * @since 1.0.0
+	 */
+	public static final int NORMAL_EXIF_ORIENTATION = 1;
+	/**
 	 * 不支持透明通道的图像格式集合
 	 *
 	 * @see java.awt.image.BufferedImage#TYPE_INT_RGB
