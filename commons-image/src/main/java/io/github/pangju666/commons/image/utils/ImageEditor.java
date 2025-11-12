@@ -29,6 +29,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
@@ -286,19 +287,22 @@ public class ImageEditor {
 	/**
 	 * 从文件创建图像编辑器
 	 * <p>
-	 * 自动从文件扩展名推断输出格式，并默认启用EXIF方向自动校正。
-	 * 这是{@link #of(File, boolean)}方法的便捷重载，自动校正参数设为true。
+	 * 自动从文件扩展名推断输出格式
+	 * 这是{@link #of(File, boolean)}方法的便捷重载，自动校正参数设为false。
 	 * </p>
 	 *
 	 * @param file 图像文件，不可为null
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
-	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @see #of(File, boolean)
 	 * @since 1.0.0
 	 */
-	public static ImageEditor of(final File file) throws IOException, ImageProcessingException {
-		return of(file, true);
+	public static ImageEditor of(final File file) throws IOException {
+		try {
+			return of(file, false);
+		} catch (ImageProcessingException e) {
+			throw ExceptionUtils.asRuntimeException(e);
+		}
 	}
 
 	/**
@@ -340,19 +344,22 @@ public class ImageEditor {
 	/**
 	 * 从输入流创建图像编辑器
 	 * <p>
-	 * 默认启用EXIF方向自动校正。这是{@link #of(InputStream, boolean)}方法的便捷重载，
-	 * 自动校正参数设为true。
+	 * 这是{@link #of(InputStream, boolean)}方法的便捷重载，
+	 * 自动校正参数设为false。
 	 * </p>
 	 *
 	 * @param inputStream 输入流，不可为null
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
-	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @see #of(InputStream, boolean)
 	 * @since 1.0.0
 	 */
-	public static ImageEditor of(final InputStream inputStream) throws IOException, ImageProcessingException {
-		return of(inputStream, true);
+	public static ImageEditor of(final InputStream inputStream) throws IOException {
+		try {
+			return of(inputStream, false);
+		} catch (ImageProcessingException e) {
+			throw ExceptionUtils.asRuntimeException(e);
+		}
 	}
 
 	/**
