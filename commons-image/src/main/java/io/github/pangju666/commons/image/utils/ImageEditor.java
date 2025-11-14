@@ -16,7 +16,9 @@
 
 package io.github.pangju666.commons.image.utils;
 
+import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
 import com.twelvemonkeys.image.BrightnessContrastFilter;
 import com.twelvemonkeys.image.GrayFilter;
 import com.twelvemonkeys.image.ImageUtil;
@@ -29,7 +31,6 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
@@ -298,37 +299,32 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file) throws IOException {
-		try {
-			return of(file, false);
-		} catch (ImageProcessingException e) {
-			throw ExceptionUtils.asRuntimeException(e);
-		}
+		return of(file, false);
 	}
 
 	/**
-	 * 从文件创建图像编辑器
-	 * <p>
-	 * 自动从文件扩展名推断输出格式。可选择是否根据EXIF信息自动校正图像方向。
-	 * </p>
-	 * <p>
-	 * 处理流程：
+	 * 从文件创建图像编辑器。
+	 *
+	 * <p>自动从文件扩展名推断输出格式。可选择是否根据 EXIF 信息自动校正图像方向。
+	 * 当 EXIF 不存在或读取失败时，将保持原始方向并忽略相关异常。</p>
+	 *
+	 * <p>处理流程：</p>
 	 * <ol>
 	 *   <li>验证文件有效性</li>
-	 *   <li>读取图像数据到BufferedImage</li>
-	 *   <li>创建ImageEditor实例</li>
+	 *   <li>读取图像数据到 BufferedImage</li>
+	 *   <li>创建 ImageEditor 实例</li>
 	 *   <li>设置输出格式为文件扩展名</li>
-	 *   <li>如果启用自动校正，则读取EXIF方向信息并应用校正</li>
+	 *   <li>若启用自动校正：尝试读取 EXIF 方向并应用校正；若 EXIF 不存在或读取失败则保持原始方向</li>
 	 * </ol>
-	 * </p>
 	 *
-	 * @param file 图像文件，不可为null
-	 * @param autoCorrectOrientation 是否自动校正图像方向（根据EXIF信息）
+	 * @param file                   图像文件，不可为 null
+	 * @param autoCorrectOrientation 是否自动校正图像方向（根据 EXIF 信息）
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
-	 * @throws ImageProcessingException 当处理图像元数据失败时抛出
 	 * @since 1.0.0
+	 * @see io.github.pangju666.commons.image.utils.ImageUtils#getExifOrientation(java.io.File)
 	 */
-	public static ImageEditor of(final File file, final boolean autoCorrectOrientation) throws IOException, ImageProcessingException {
+	public static ImageEditor of(final File file, final boolean autoCorrectOrientation) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(file);
@@ -336,7 +332,13 @@ public class ImageEditor {
 			bufferedImage.getHeight()));
 		imageEditor.outputFormat(FilenameUtils.getExtension(file.getName()));
 		if (autoCorrectOrientation) {
-			imageEditor.correctOrientation(ImageUtils.getExifOrientation(file));
+			int exif = ImageConstants.NORMAL_EXIF_ORIENTATION;
+			try {
+				Metadata metadata = ImageMetadataReader.readMetadata(file);
+				exif = ImageUtils.getExifOrientation(metadata);
+			} catch (ImageProcessingException | IOException ignored) {
+			}
+			imageEditor.correctOrientation(exif);
 		}
 		return imageEditor;
 	}
@@ -355,37 +357,32 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream) throws IOException {
-		try {
-			return of(inputStream, false);
-		} catch (ImageProcessingException e) {
-			throw ExceptionUtils.asRuntimeException(e);
-		}
+		return of(inputStream, false);
 	}
 
 	/**
-	 * 从输入流创建缩略图处理器，并可选择是否自动校正图像方向。
-	 * <p>
-	 * 此方法会从输入流中读取图像数据，并创建一个新的 {@code ImageEditor} 实例。
-	 * 如果 {@code autoCorrectOrientation} 设置为 {@code true}，方法会尝试读取图像的 EXIF 方向信息并自动校正。
-	 * <p>
-	 * 对于不同类型的输入流，处理策略有所不同：
+	 * 从输入流创建图像编辑器，并可选择是否自动校正图像方向。
+	 *
+	 * <p>该方法会从输入流读取图像数据并创建一个新的 {@code ImageEditor} 实例。
+	 * 当 {@code autoCorrectOrientation} 为 {@code true} 时，将尝试读取 EXIF 方向并进行校正；
+	 * 若 EXIF 不存在或读取失败，则保持原始方向，不进行校正且忽略相关异常。</p>
+	 *
+	 * <p>针对不同类型的输入流：</p>
 	 * <ul>
-	 *   <li>对于可重置的输入流（如 {@link ByteArrayInputStream}），会先读取图像数据，然后重置流并读取 EXIF 信息</li>
-	 *   <li>对于不可重置的输入流，会先将内容复制到内存中，然后分别读取图像数据和 EXIF 信息</li>
+	 *   <li>可重置流（如 {@link ByteArrayInputStream}）：先读取图像数据，重置流后再读取 EXIF。</li>
+	 *   <li>不可重置流：先将内容复制到内存，再分别读取图像数据与 EXIF。</li>
 	 * </ul>
 	 *
-	 * @param inputStream 包含图像数据的输入流
+	 * @param inputStream            包含图像数据的输入流，不可为 null
 	 * @param autoCorrectOrientation 是否根据 EXIF 信息自动校正图像方向
-	 * @return 新创建的缩略图处理器实例
+	 * @return 新创建的图像编辑器实例
 	 * @throws IOException 当读取输入流出错时
-	 * @throws ImageProcessingException 当处理图像过程中出错时
-	 * @throws NullPointerException 当输入流为 null 时
 	 * @see #of(File, boolean)
 	 * @see #correctOrientation(int)
+	 * @see io.github.pangju666.commons.image.utils.ImageUtils#getExifOrientation(java.io.InputStream)
 	 * @since 1.0.0
 	 */
-	public static ImageEditor of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException,
-		ImageProcessingException {
+	public static ImageEditor of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException {
 		Validate.notNull(inputStream, "inputStream不可为空");
 
 		if (!autoCorrectOrientation) {
@@ -401,7 +398,13 @@ public class ImageEditor {
 				bufferedImage.getHeight()));
 
 			inputStream.reset();
-			imageEditor.correctOrientation(ImageUtils.getExifOrientation(inputStream));
+			int exif = ImageConstants.NORMAL_EXIF_ORIENTATION;
+			try {
+				Metadata metadata = ImageMetadataReader.readMetadata(inputStream);
+				exif = ImageUtils.getExifOrientation(metadata);
+			} catch (ImageProcessingException | IOException ignored) {
+			}
+			imageEditor.correctOrientation(exif);
 		} else {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
 
@@ -411,9 +414,13 @@ public class ImageEditor {
 					bufferedImage.getWidth(), bufferedImage.getHeight()));
 			}
 
+			int exif = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				imageEditor.correctOrientation(ImageUtils.getExifOrientation(tmpInputStream));
+				Metadata metadata = ImageMetadataReader.readMetadata(tmpInputStream);
+				exif = ImageUtils.getExifOrientation(metadata);
+			} catch (ImageProcessingException | IOException ignored) {
 			}
+			imageEditor.correctOrientation(exif);
 		}
 		return imageEditor;
 	}
@@ -763,7 +770,7 @@ public class ImageEditor {
 	/**
 	 * 强制将图像缩放到指定的宽度和高度，不保持原始宽高比。
 	 *
-	 * @param width 目标宽度（像素）
+	 * @param width  目标宽度（像素）
 	 * @param height 目标高度（像素）
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
@@ -832,11 +839,11 @@ public class ImageEditor {
 	/**
 	 * 将图像缩放到指定的最大宽度和高度范围内，保持原始宽高比。
 	 *
-	 * @param width 最大宽度（像素）
+	 * @param width  最大宽度（像素）
 	 * @param height 最大高度（像素）
 	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @see ImageSize#scale(int, int)
 	 * @since 1.0.0
-	 * @see ImageSize#scale(int, int) 
 	 */
 	public ImageEditor scale(final int width, final int height) {
 		this.outputImageSize = this.outputImageSize.scale(width, height);
@@ -864,7 +871,7 @@ public class ImageEditor {
 	 *
 	 * @param outputFile 输出文件
 	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException 当写入文件出错时
+	 * @throws IOException          当写入文件出错时
 	 * @throws NullPointerException 当输出文件为null时
 	 * @since 1.0.0
 	 */
@@ -879,7 +886,7 @@ public class ImageEditor {
 	 *
 	 * @param outputStream 输出流
 	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException 当写入输出流出错时
+	 * @throws IOException          当写入输出流出错时
 	 * @throws NullPointerException 当输出流为null时
 	 * @since 1.0.0
 	 */
@@ -894,7 +901,7 @@ public class ImageEditor {
 	 *
 	 * @param imageOutputStream 图像输出流
 	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException 当写入图像输出流出错时
+	 * @throws IOException          当写入图像输出流出错时
 	 * @throws NullPointerException 当图像输出流为null时
 	 * @since 1.0.0
 	 */
