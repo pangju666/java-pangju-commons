@@ -95,14 +95,14 @@ public class TextWatermarkOption {
 
 	/**
 	 * 设置透明度（Alpha）。
-	 * 有效范围为 {@code (0.0f, 1.0f)}；越界值将被忽略并保持当前值。
+	 * 有效范围为 {@code [0.0f, 1.0f]}；越界值将被忽略并保持当前值。
 	 * 其中 0 表示完全透明，1 表示完全不透明。
 	 *
 	 * @param opacity 透明度
 	 * @since 1.0.0
 	 */
 	public void setOpacity(float opacity) {
-		if (opacity > 0f && opacity < 1f) {
+		if (opacity >= 0f && opacity <= 1) {
 			this.opacity = opacity;
 		}
 	}

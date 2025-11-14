@@ -960,14 +960,14 @@ public class ImageEditor {
 	 * 设置输出图像整体不透明度并进行覆盖绘制。
 	 * <p>
 	 * 使用 {@code AlphaComposite.SRC_OVER} 以指定透明度将输入图像绘制到当前输出图像上。
-	 * 当 {@code opacity} ≤ 0 或 ≥ 1 时不进行任何处理直接返回。
+	 * 当 {@code opacity} &lt; 0 或 &gt; 1 时不进行任何处理直接返回。
 	 *
-	 * @param opacity 不透明度，取值范围 (0, 1)，超出范围不生效
+	 * @param opacity 不透明度，取值范围 [0, 1]，超出范围不生效
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @since 1.0.0
 	 */
 	public ImageEditor opacity(float opacity) {
-		if (opacity <= 0f || opacity >= 1.0) {
+		if (opacity < 0f || opacity > 1.0) {
 			return this;
 		}
 
