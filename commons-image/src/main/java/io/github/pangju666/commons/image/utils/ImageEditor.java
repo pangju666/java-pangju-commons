@@ -1249,8 +1249,8 @@ public class ImageEditor {
 					waterY = 10;
 					break;
 				case BOTTOM:
-					waterX = 10;
-					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+					waterX = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
 					break;
 				case TOP_LEFT:
 					waterX = 10;
@@ -1267,6 +1267,14 @@ public class ImageEditor {
 				case BOTTOM_RIGHT:
 					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
 					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+					break;
+				case LEFT:
+					waterX = 10;
+					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+					break;
+				case RIGHT:
+					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
+					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
 					break;
 				case CENTER:
 					waterX = (outputImageSize.getWidth() - watermarkImageSize.getWidth()) / 2;
@@ -1336,8 +1344,8 @@ public class ImageEditor {
 					waterY = 20 + textHeight;
 					break;
 				case BOTTOM:
-					waterX = 20;
-					waterY = (outputImageSize.getHeight() + textHeight) / 2;
+					waterX = (outputImageSize.getHeight() + textHeight) / 2;
+					waterY = outputImageSize.getHeight() - 20;
 					break;
 				case TOP_LEFT:
 					waterX = 20;
@@ -1354,6 +1362,14 @@ public class ImageEditor {
 				case BOTTOM_RIGHT:
 					waterX = outputImageSize.getWidth() - textWidth - 20;
 					waterY = outputImageSize.getHeight() - 20;
+					break;
+				case LEFT:
+					waterX = 20;
+					waterY = (outputImageSize.getHeight() + textHeight) / 2;
+					break;
+				case RIGHT:
+					waterX = outputImageSize.getWidth() - textWidth - 20;
+					waterY = (outputImageSize.getHeight() + textHeight) / 2;
 					break;
 				case CENTER:
 					waterX = (outputImageSize.getWidth() - textWidth) / 2;
