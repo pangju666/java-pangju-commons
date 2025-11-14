@@ -70,7 +70,7 @@ public final class NanoId {
 	 * @return 伪随机的NanoId字符串
 	 */
 	public static String randomNanoId(final Random random, final char[] alphabet, final int size) {
-		Validate.notNull(random, "random 不可为空");
+		Validate.notNull(random, "random 不可为 null");
 		Validate.isTrue(size > 0, "size 必须大于0");
 		Validate.isTrue(alphabet.length >= 1 && alphabet.length <= 255, "alphabet必须包含 1 至 255 个符号。");
 

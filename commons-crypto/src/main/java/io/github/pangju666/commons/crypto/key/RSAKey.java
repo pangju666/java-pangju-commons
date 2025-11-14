@@ -166,7 +166,7 @@ public class RSAKey {
 	 * @since 1.0.0
 	 */
 	public static RSAKey fromKeyPair(final KeyPair keyPair) {
-		Validate.notNull(keyPair, "keyPair不可为空");
+		Validate.notNull(keyPair, "keyPair不可为 null");
 		return new RSAKey(keyPair.getPublic(), keyPair.getPrivate());
 	}
 
