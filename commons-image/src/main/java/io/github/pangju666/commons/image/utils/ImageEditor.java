@@ -1219,28 +1219,24 @@ public class ImageEditor {
 
 		// 设置抗锯齿
 		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
 		// 设置不透明度
 		if (option.getOpacity() > 0f && option.getOpacity() < 1) {
 			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, option.getOpacity()));
 		}
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
-		ImageSize watermarkImageSize = originalWatermarkImageSize;
-		if (option.getScale() > 0f) {
-			watermarkImageSize = this.outputImageSize.scale(option.getScale());
-			if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
-				if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
-					watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
-				} else if (watermarkImageSize.getWidth() < option.getMinWidth()) {
-					watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMinWidth());
-				}
-			} else {
-				if (watermarkImageSize.getHeight() > option.getMaxHeight()) {
-					watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMaxHeight());
-				} else if (watermarkImageSize.getHeight() < option.getMinHeight()) {
-					watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMinHeight());
-				}
+		ImageSize watermarkImageSize = this.outputImageSize.scale(option.getScale());
+		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
+			if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
+			} else if (watermarkImageSize.getWidth() < option.getMinWidth()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMinWidth());
+			}
+		} else {
+			if (watermarkImageSize.getHeight() > option.getMaxHeight()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMaxHeight());
+			} else if (watermarkImageSize.getHeight() < option.getMinHeight()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMinHeight());
 			}
 		}
 
@@ -1322,7 +1318,6 @@ public class ImageEditor {
 		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		// 设置字体
 		graphics.setFont(ObjectUtils.getIfNull(option.getFont(), DEFAULT_FONT));
-
 		// 设置不透明度
 		if (option.getOpacity() > 0f && option.getOpacity() < 1) {
 			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, option.getOpacity()));

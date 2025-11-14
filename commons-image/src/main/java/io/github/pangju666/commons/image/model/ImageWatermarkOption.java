@@ -68,47 +68,83 @@ public class ImageWatermarkOption {
 		return scale;
 	}
 
+	/**
+	 * 设置水印的相对缩放比例（相对原图尺寸）。
+	 * 必须为正数；非正数将被忽略并保持当前值。
+	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
+	 *
+	 * @param scale 缩放比例（> 0）
+	 * @since 1.0.0
+	 */
 	public void setScale(float scale) {
-		this.scale = scale;
+		if (scale > 0) {
+			this.scale = scale;
+		}
 	}
 
 	public float getOpacity() {
 		return opacity;
 	}
 
+	/**
+	 * 设置水印透明度（Alpha）。
+	 * 有效范围为 {@code (0.0f, 1.0f)}；越界值将被忽略并保持当前值。
+	 * 其中 0 表示完全透明，1 表示完全不透明。
+	 *
+	 * @param opacity 透明度
+	 * @since 1.0.0
+	 */
 	public void setOpacity(float opacity) {
-		this.opacity = opacity;
+		if (opacity > 0f && opacity < 1) {
+			this.opacity = opacity;
+		}
 	}
 
 	public int getMinWidth() {
 		return minWidth;
 	}
 
-	public void setMinWidth(int minWidth) {
-		this.minWidth = minWidth;
+	/**
+	 * 设置水印宽度的有效范围（像素）。
+	 * 两个参数都必须为正数，且 {@code maxWidth >= minWidth}；
+	 * 无效参数将被忽略并保持当前范围。
+	 *
+	 * @param minWidth 最小宽度（像素）
+	 * @param maxWidth 最大宽度（像素）
+	 * @since 1.0.0
+	 */
+	public void setWidthRange(int minWidth, int maxWidth) {
+		if (minWidth > 0 && maxWidth > 0 && maxWidth >= minWidth) {
+			this.minWidth = minWidth;
+			this.maxWidth = maxWidth;
+		}
 	}
 
 	public int getMaxWidth() {
 		return maxWidth;
 	}
 
-	public void setMaxWidth(int maxWidth) {
-		this.maxWidth = maxWidth;
-	}
-
 	public int getMinHeight() {
 		return minHeight;
 	}
 
-	public void setMinHeight(int minHeight) {
-		this.minHeight = minHeight;
+	/**
+	 * 设置水印高度的有效范围（像素）。
+	 * 两个参数都必须为正数，且 {@code maxHeight >= minHeight}；
+	 * 无效参数将被忽略并保持当前范围。
+	 *
+	 * @param minHeight 最小高度（像素）
+	 * @param maxHeight 最大高度（像素）
+	 * @since 1.0.0
+	 */
+	public void setHeightRange(int minHeight, int maxHeight) {
+		if (minHeight > 0 && maxHeight > 0 && maxHeight >= minHeight) {
+			this.minHeight = minHeight;
+			this.maxHeight = maxHeight;
+		}
 	}
 
 	public int getMaxHeight() {
 		return maxHeight;
-	}
-
-	public void setMaxHeight(int maxHeight) {
-		this.maxHeight = maxHeight;
 	}
 }
