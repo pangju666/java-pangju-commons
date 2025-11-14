@@ -243,13 +243,13 @@ public class ImageSize {
 	 * <p>该方法不会修改当前对象，而是返回一个新的尺寸实例。</p>
 	 * <p>缩放结果通过强制转换为 {@code int}，小数部分将被截断。</p>
 	 *
-	 * @param factor 缩放比例，必须大于 0
+	 * @param scale 缩放比例，必须大于 0
 	 * @return 缩放后的新尺寸
-	 * @throws IllegalArgumentException 当 {@code factor} 小于或等于 0 时抛出
+	 * @throws IllegalArgumentException 当 {@code scale} 小于或等于 0 时抛出
 	 * @since 1.0.0
 	 */
-	public ImageSize scale(final double factor) {
-		Validate.isTrue(factor > 0, "factor 必须大于0");
-		return new ImageSize((int) (this.getWidth() * factor), (int) (this.height * factor));
+	public ImageSize scale(final double scale) {
+		Validate.isTrue(scale > 0, "scale 必须大于0");
+		return new ImageSize((int) (this.getWidth() * scale), (int) (this.height * scale));
 	}
 }

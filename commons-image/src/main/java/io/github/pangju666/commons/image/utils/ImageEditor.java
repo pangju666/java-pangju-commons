@@ -23,13 +23,17 @@ import com.twelvemonkeys.image.BrightnessContrastFilter;
 import com.twelvemonkeys.image.GrayFilter;
 import com.twelvemonkeys.image.ImageUtil;
 import com.twelvemonkeys.image.ResampleOp;
+import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
+import io.github.pangju666.commons.image.model.ImageWatermarkOption;
+import io.github.pangju666.commons.image.model.TextWatermarkOption;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
@@ -41,79 +45,166 @@ import java.awt.image.ImageFilter;
 import java.io.*;
 import java.net.URL;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 图像编辑器（链式调用风格）
  * <p>
- * 本类提供了流式API来处理图像，支持链式方法调用以配置各种参数。
- * 可以轻松实现图像的缩放、旋转、滤镜效果等多种处理操作。
+ * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、以及图片/文字水印等常见操作，
+ * 支持 URL、文件、输入流与 {@code BufferedImage} 作为输入源，并可输出为文件、输出流或 {@code BufferedImage}。
+ * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
  *
  * <p><b>核心特性：</b></p>
  * <ul>
- *   <li>链式调用API，支持流畅的方法调用</li>
- *   <li>支持多种缩放模式：强制缩放、按宽度缩放、按高度缩放、按比例缩放等</li>
- *   <li>自动处理透明通道和图像格式转换</li>
- *   <li>支持多种输入源：URL、文件、流、BufferedImage</li>
- *   <li>支持多种输出目标：文件、流、BufferedImage</li>
- *   <li>可自定义重采样滤波器</li>
- *   <li>支持图像旋转、翻转、模糊、锐化等处理</li>
- *   <li>支持亮度、对比度调整和灰度转换</li>
- *   <li>自动根据EXIF信息校正图像方向</li>
- *   <li>支持图像处理效果的叠加应用</li>
- *   <li>提供恢复原始图像状态的功能</li>
+ *   <li>链式 API，配置与处理顺序清晰</li>
+ *   <li>多种缩放模式：强制缩放、按宽度/高度缩放、按比例缩放</li>
+ *   <li>可自定义重采样滤波器，默认使用 {@link ResampleOp#FILTER_LANCZOS}（高质量）</li>
+ *   <li>旋转、翻转、模糊、锐化、灰度、亮度与对比度调整</li>
+ *   <li>图片水印与文字水印，支持 {@link io.github.pangju666.commons.image.enums.WatermarkDirection 九宫格定位}</li>
+ *   <li>根据 EXIF 自动方向校正（可选）</li>
+ *   <li>自动根据透明通道选择输出格式（PNG 或 JPEG）</li>
  * </ul>
  *
- * <p><b>使用示例：</b></p>
+ * <p><b>坐标与定位：</b></p>
+ * <ul>
+ *   <li>提供两套定位 API：显式坐标方法签名包含 {@code x}/{@code y}；九宫格方法签名包含 {@code direction}，位置由方向计算。</li>
+ *   <li>文字水印的坐标以“文本基线”为基准；图片水印以“左上角”为基准。</li>
+ *   <li>内部实现对边缘位置使用固定边距进行微调：图片约 10px、文字约 20px。</li>
+ * </ul>
+ *
+ * <p><b>代码示例（水印）：</b></p>
  * <pre>{@code
- * // 基本用法：按宽度等比缩放
+ * // 图片水印：按九宫格方向定位（右下角）
  * ImageEditor.of(new File("input.jpg"))
- *     .scaleByWidth(200)
- *     .toFile(new File("output.jpg"));
+ *     .addImageWatermark(ImageIO.read(new File("wm.png")), new ImageWatermarkOption(), WatermarkDirection.BOTTOM_RIGHT)
+ *     .toFile(new File("output_dir.jpg"));
  *
- * // 强制缩放到指定尺寸
- * ImageEditor.of(bufferedImage)
- *     .resize(300, 200)
- *     .outputFormat("png")
- *     .toOutputStream(outputStream);
- *
- * // 图像处理链
- * ImageEditor.of(url)
- *     .scaleByWidth(400)
- *     .scaleFilterType(ResampleOp.FILTER_LANCZOS)
- *     .rotate(90)
- *     .grayscale()
- *     .contrast(0.2f)
- *     .toBufferedImage();
- *
- * // 高级图像处理
+ * // 图片水印：显式坐标定位（左上角 20,20）
  * ImageEditor.of(new File("input.jpg"))
- *     .scaleByWidth(500)
- *     .blur(2.0f)
- *     .brightness(0.1f)
- *     .contrast(0.2f)
- *     .toFile(new File("output.jpg"));
+ *     .addImageWatermark(ImageIO.read(new File("wm.png")), new ImageWatermarkOption(), 20, 20)
+ *     .toFile(new File("output_xy.jpg"));
+ *
+ * // 文字水印：按九宫格方向定位（左上角）
+ * TextWatermarkOption textOpt = new TextWatermarkOption();
+ * textOpt.setOpacity(0.6f);
+ * textOpt.setStroke(true);
+ * ImageEditor.of(new File("input.jpg"))
+ *     .addTextWatermark("© Company", textOpt, WatermarkDirection.TOP_LEFT)
+ *     .toFile(new File("output_text_dir.jpg"));
+ *
+ * // 文字水印：显式坐标定位（基线 50,50）
+ * ImageEditor.of(new File("input.jpg"))
+ *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption(), 50, 50)
+ *     .toFile(new File("output_text_xy.jpg"));
  * }</pre>
  *
- * <p><b>方法调用顺序：</b></p>
- * <ol>
- *   <li>使用静态工厂方法创建实例：{@code ImageEditor.of(...)}</li>
- *   <li>配置缩放操作：{@link #scaleByWidth(int)}、{@link #scaleByHeight(int)} 或 {@link #resize(int, int)}</li>
- *   <li>（可选）配置输出格式：{@link #outputFormat(String)}</li>
- *   <li>（可选）配置滤波器：{@link #scaleFilterType(int)} 或 {@link #scaleHints(int)}</li>
- *   <li>（可选）应用图像处理：{@link #rotate(int)}、{@link #grayscale()}、{@link #blur()}、{@link #brightness(float)}、{@link #contrast(float)} 等</li>
- *   <li>输出结果：{@link #toFile(File)}、{@link #toOutputStream(OutputStream)}、{@link #toBufferedImage()} 等</li>
- * </ol>
+ * <p><b>代码示例（常用操作）：</b></p>
+ * <pre>{@code
+ * // 1) 缩放
+ * ImageEditor.of(new File("input.jpg"))
+ *     .scaleByWidth(400)              // 按宽度等比缩放
+ *     .toFile(new File("out_scale_by_width.jpg"));
  *
- * <p><b>注意事项：</b></p>
+ * ImageEditor.of(new File("input.jpg"))
+ *     .resize(640, 360)               // 强制缩放到指定尺寸
+ *     .outputFormat("png")            // 指定输出格式
+ *     .toFile(new File("out_resize.png"));
+ *
+ * ImageEditor.of(new File("input.jpg"))
+ *     .scale(0.5)                     // 按比例缩放（50%）
+ *     .scaleFilterType(ResampleOp.FILTER_LANCZOS) // 高质量滤波
+ *     .toFile(new File("out_scale_ratio.jpg"));
+ *
+ * // 2) 旋转与翻转
+ * ImageEditor.of(new File("input.jpg"))
+ *     .rotate(ImageUtil.ROTATE_90_CW) // 顺时针 90°
+ *     .toFile(new File("out_rotate_90.jpg"));
+ *
+ * ImageEditor.of(new File("input.jpg"))
+ *     .flip(ImageUtil.FLIP_HORIZONTAL) // 水平翻转
+ *     .toFile(new File("out_flip_h.jpg"));
+ *
+ * // 3) 滤镜、模糊与锐化
+ * ImageEditor.of(new File("input.jpg"))
+ *     .blur(2.0f)                     // 高斯模糊半径 2.0
+ *     .toFile(new File("out_blur.jpg"));
+ *
+ * ImageEditor.of(new File("input.jpg"))
+ *     .sharpen(0.25f)                 // 锐化强度 0.25
+ *     .toFile(new File("out_sharpen.jpg"));
+ *
+ * ImageEditor.of(new File("input.jpg"))
+ *     .grayscale()                    // 转灰度
+ *     .toFile(new File("out_gray.jpg"));
+ *
+ * // 4) 亮度与对比度
+ * ImageEditor.of(new File("input.jpg"))
+ *     .brightness(0.1f)               // 提升亮度
+ *     .contrast(0.2f)                 // 提升对比度
+ *     .toFile(new File("out_light_contrast.jpg"));
+ *
+ * // 5) EXIF 方向校正（自动）
+ * ImageEditor.of(new File("input.jpg"), true) // 启用自动校正，EXIF 缺失或读取失败时不校正
+ *     .toFile(new File("out_exif_auto.jpg"));
+ *
+ * // 5') EXIF 方向校正（手动）
+ * try {
+ *     File in = new File("input.jpg");
+ *     int exif = ImageUtils.getExifOrientation(in); // 可能抛出异常
+ *     ImageEditor.of(in)                            // 不启用自动校正
+ *         .correctOrientation(exif)                 // 手动矫正 EXIF 方向
+ *         .toFile(new File("out_exif_manual.jpg"));
+ * } catch (IOException | ImageProcessingException e) {
+ *     // 无法获取 EXIF 时可保持原始方向或记录日志
+ * }
+ *
+ * // 6) 输出到不同目标
+ * ByteArrayOutputStream os = new ByteArrayOutputStream();
+ * ImageEditor.of(new File("input.jpg"))
+ *     .scaleByHeight(300)
+ *     .toOutputStream(os);            // 输出到流
+ * byte[] data = os.toByteArray();
+ *
+ * BufferedImage bi = ImageEditor.of(new File("input.jpg"))
+ *     .scale(0.75)
+ *     .toBufferedImage();             // 输出为 BufferedImage
+ *
+ * // 7) 恢复初始状态并继续处理
+ * ImageEditor editor = ImageEditor.of(new File("input.jpg"));
+ * editor.blur(1.5f).contrast(0.2f);
+ * editor.restore();                   // 恢复到原始图像
+ * editor.scaleByWidth(500).toFile(new File("out_after_restore.jpg"));
+ * }
+ * </pre>
+ *
+ * <p><b>使用建议：</b></p>
  * <ul>
- *   <li>默认使用{@link ResampleOp#FILTER_LANCZOS Lanczos 插值（高质量）滤波器}</li>
- *   <li>默认输出格式根据输入图像是否有透明通道自动选择（PNG或JPEG）</li>
- *   <li>不支持透明的格式（如JPEG）会自动转换为RGB模式</li>
- *   <li>可以使用{@link #restore()}方法恢复到原始图像状态</li>
- *   <li>处理大量图像时，建议在使用完毕后显式关闭相关资源</li>
- *   <li>图像处理操作会按照调用顺序依次应用</li>
+ *   <li>处理链按照方法调用顺序依次应用，可通过 {@link #restore()} 恢复到初始状态。</li>
+ *   <li>大图或批量处理场景建议合理复用实例并注意资源释放。</li>
+ * </ul>
+ *
+ * <p><b>线程安全：</b></p>
+ * <ul>
+ *   <li>本类为<strong>非线程安全</strong>，实例包含可变状态（如 {@code outputImage}、{@code outputFormat}）。</li>
+ *   <li>不要在多个线程间共享同一实例并发调用；请为每个线程创建独立实例或在外部做同步。</li>
+ *   <li>方法内部会创建并释放 {@code Graphics2D}，并发访问可能导致资源竞争或不可预期的呈现结果。</li>
+ * </ul>
+ *
+ * <p><b>性能与内存：</b></p>
+ * <ul>
+ *   <li>处理大图会占用较多内存，建议先进行缩放再应用其他效果，以降低后续计算量。</li>
+ *   <li>滤波器选择存在质量与速度权衡：{@link ResampleOp#FILTER_LANCZOS} 质量高但较慢；{@link ResampleOp#FILTER_BOX} 较快且质量中等；{@link ResampleOp#FILTER_POINT} 最快但质量较低。</li>
+ *   <li>亮度/对比度滤镜使用简单缓存以复用常用参数实例，重复调用可减少对象创建。</li>
+ *   <li>合成与水印绘制会创建临时 {@code Graphics2D} 并在结束后释放；避免在热点路径中频繁创建与销毁编辑器实例。</li>
+ * </ul>
+ *
+ * <p><b>异常与容错：</b></p>
+ * <ul>
+ *   <li>EXIF 读取失败或不存在时不会抛出异常，保持原始方向并继续处理。</li>
+ *   <li>参数校验使用 {@link org.apache.commons.lang3.Validate}；常见异常为 {@link IllegalArgumentException}（如参数为 {@code null}、文本为空、不支持的输出格式）。</li>
+ *   <li>读取与写入操作（如 {@link #of(File)}、{@link #toFile(File)}）在失败时抛出 {@link IOException}。</li>
  * </ul>
  *
  * @author pangju666
@@ -122,6 +213,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see ImageUtil
  * @see BrightnessContrastFilter
  * @see GrayFilter
+ * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @see io.github.pangju666.commons.image.model.ImageWatermarkOption
+ * @see io.github.pangju666.commons.image.model.TextWatermarkOption
  * @since 1.0.0
  */
 public class ImageEditor {
@@ -135,6 +229,16 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final String DEFAULT_ALPHA_OUTPUT_FORMAT = "png";
+
+	/**
+	 * 文本水印的默认字体。
+	 * <p>
+	 * 当 {@code TextWatermarkOption#font} 未设置时，绘制文字水印将使用该字体。
+	 * 采用对话字体 {@code Font.DIALOG}、常规样式 {@code Font.PLAIN}、字号 12。
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final Font DEFAULT_FONT = new Font(Font.DIALOG, Font.PLAIN, 12);
 
 	/**
 	 * 默认的标准图像输出格式
@@ -279,7 +383,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final URL url) throws IOException {
-		Validate.notNull(url, "url不可为空");
+		Validate.notNull(url, "url不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(url);
 		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
@@ -321,8 +425,8 @@ public class ImageEditor {
 	 * @param autoCorrectOrientation 是否自动校正图像方向（根据 EXIF 信息）
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
-	 * @since 1.0.0
 	 * @see io.github.pangju666.commons.image.utils.ImageUtils#getExifOrientation(java.io.File)
+	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final boolean autoCorrectOrientation) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -383,7 +487,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final boolean autoCorrectOrientation) throws IOException {
-		Validate.notNull(inputStream, "inputStream不可为空");
+		Validate.notNull(inputStream, "inputStream不可为 null");
 
 		if (!autoCorrectOrientation) {
 			BufferedImage bufferedImage = ImageIO.read(inputStream);
@@ -434,7 +538,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final ImageInputStream imageInputStream) throws IOException {
-		Validate.notNull(imageInputStream, "imageInputStream不可为空");
+		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
 		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
@@ -448,7 +552,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final BufferedImage bufferedImage) {
-		Validate.notNull(bufferedImage, "bufferedImage不可为空");
+		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
 
 		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight()));
 	}
@@ -531,6 +635,7 @@ public class ImageEditor {
 	 */
 	public ImageEditor outputFormat(final String outputFormat) {
 		Validate.isTrue(ImageConstants.getSupportWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
+
 		this.outputFormat = outputFormat;
 		return this;
 	}
@@ -760,7 +865,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor filter(final ImageFilter filter) {
-		Validate.notNull(filter, "filter不可为空");
+		Validate.notNull(filter, "filter不可为 null");
 
 		Image image = ImageUtil.filter(this.outputImage, filter);
 		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
@@ -790,7 +895,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor resize(final ImageSize size) {
-		Validate.notNull(size, "size不可为空");
+		Validate.notNull(size, "size不可为 null");
 
 		this.outputImageSize = size;
 		this.outputImage = resample();
@@ -826,12 +931,12 @@ public class ImageEditor {
 	/**
 	 * 将图像缩放到指定的比例，保持原始宽高比。
 	 *
-	 * @param factor 缩放比例
+	 * @param scale 缩放比例
 	 * @return 当前缩略图处理器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor scale(final double factor) {
-		this.outputImageSize = this.outputImageSize.scale(factor);
+	public ImageEditor scale(final double scale) {
+		this.outputImageSize = this.outputImageSize.scale(scale);
 		this.outputImage = resample();
 		return this;
 	}
@@ -849,6 +954,139 @@ public class ImageEditor {
 		this.outputImageSize = this.outputImageSize.scale(width, height);
 		this.outputImage = resample();
 		return this;
+	}
+
+	/**
+	 * 设置输出图像整体不透明度并进行覆盖绘制。
+	 * <p>
+	 * 使用 {@code AlphaComposite.SRC_OVER} 以指定透明度将输入图像绘制到当前输出图像上。
+	 * 当 {@code opacity} ≤ 0 或 ≥ 1 时不进行任何处理直接返回。
+	 *
+	 * @param opacity 不透明度，取值范围 (0, 1)，超出范围不生效
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @since 1.0.0
+	 */
+	public ImageEditor opacity(float opacity) {
+		if (opacity <= 0f || opacity >= 1.0) {
+			return this;
+		}
+
+		Graphics2D graphics2D = this.outputImage.createGraphics();
+		graphics2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+		graphics2D.drawImage(inputImage, 0, 0, null);
+		graphics2D.dispose();
+		return this;
+	}
+
+	/**
+	 * 添加图片水印（显式坐标定位）。
+	 * <p>
+	 * 直接使用传入的左上角坐标 {@code x}/{@code y} 进行定位，不使用九宫格方向。
+	 * 其缩放、透明度与尺寸约束等行为与受保护方法一致。
+	 *
+	 * @param watermarkImage 图片水印源，不能为空
+	 * @param option         水印配置（缩放、透明度、尺寸约束等）
+	 * @param x              绘制起点 X（左上角）
+	 * @param y              绘制起点 Y（左上角）
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @since 1.0.0
+	 */
+	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
+		return addImageWatermark(watermarkImage, option, null, x, y);
+	}
+
+	/**
+	 * 添加图片水印（按九宫格方向自动定位）。
+	 * <p>
+	 * 坐标固定为 (0, 0)，实际绘制位置由 {@code direction} 决定。
+	 * 缩放、透明度与尺寸约束等行为与受保护方法一致。
+	 *
+	 * @param watermarkImage 图片水印源，不能为空
+	 * @param option         水印配置（缩放、透明度、尺寸约束等）
+	 * @param direction      九宫格方向，用于自动计算水印位置
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
+		Validate.notNull(direction, "direction 不可为 null");
+		return addImageWatermark(watermarkImage, option, direction, 0, 0);
+	}
+
+	/**
+	 * 从文件加载并添加图片水印（按九宫格方向自动定位）。
+	 * <p>
+	 * 会先校验文件非空且存在，然后通过 {@code ImageIO.read} 读取为 {@code BufferedImage}。
+	 * 其他缩放、透明度与尺寸约束等行为与受保护方法一致。
+	 *
+	 * @param watermarkFile 水印图片文件，不能为空且存在
+	 * @param option        水印配置（缩放、透明度、尺寸约束等）
+	 * @param direction     九宫格方向，用于自动计算水印位置
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
+		Validate.notNull(direction, "direction 不可为 null");
+		FileUtils.checkFile(watermarkFile, "file 不可为 null");
+		return addImageWatermark(ImageIO.read(watermarkFile), option, direction, 0, 0);
+	}
+
+	/**
+	 * 从文件加载并添加图片水印（显式坐标定位）。
+	 * <p>
+	 * 会先校验文件非空且存在，然后通过 {@code ImageIO.read} 读取为 {@code BufferedImage}。
+	 * 直接使用传入的左上角坐标 {@code x}/{@code y} 进行定位。
+	 *
+	 * @param watermarkFile 水印图片文件，不能为空且存在
+	 * @param option        水印配置（缩放、透明度、尺寸约束等）
+	 * @param x             绘制起点 X（左上角）
+	 * @param y             绘制起点 Y（左上角）
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IOException 当文件读取失败时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
+		FileUtils.checkFile(watermarkFile, "file 不可为 null");
+		return addImageWatermark(ImageIO.read(watermarkFile), option, null, x, y);
+	}
+
+	/**
+	 * 添加文字水印（按九宫格方向自动定位）。
+	 * <p>
+	 * 坐标固定为 (0, 0)，实际绘制位置由 {@code direction} 决定。
+	 * 字体来源于 {@code option.font}，为空则使用默认字体 {@code DEFAULT_FONT}；
+	 * 透明度与描边效果由 {@code option} 控制。
+	 *
+	 * @param watermarkText 非空的水印文本内容
+	 * @param option        文本水印配置（字体、透明度、颜色、描边开关与线宽等）
+	 * @param direction     九宫格方向，用于自动计算水印位置
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
+		Validate.notNull(direction, "direction 不可为 null");
+		return addTextWatermark(watermarkText, option, direction, 0, 0);
+	}
+
+	/**
+	 * 添加文字水印（显式坐标定位）。
+	 * <p>
+	 * 直接使用传入坐标 {@code x}/{@code y}（文本基线）进行定位，不使用九宫格方向。
+	 * 字体来源于 {@code option.font}，为空则使用默认字体 {@code DEFAULT_FONT}；
+	 * 透明度与描边效果由 {@code option} 控制。
+	 *
+	 * @param watermarkText 非空的水印文本内容
+	 * @param option        文本水印配置（字体、透明度、颜色、描边开关与线宽等）
+	 * @param x             绘制起点 X（文本基线）
+	 * @param y             绘制起点 Y（文本基线）
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @since 1.0.0
+	 */
+	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
+		return addTextWatermark(watermarkText, option, null, x, y);
 	}
 
 	/**
@@ -891,7 +1129,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
-		Validate.notNull(outputStream, "outputStream不可为空");
+		Validate.notNull(outputStream, "outputStream不可为 null");
 
 		return ImageIO.write(this.outputImage, this.outputFormat, outputStream);
 	}
@@ -906,7 +1144,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
-		Validate.notNull(imageOutputStream, "imageOutputStream不可为空");
+		Validate.notNull(imageOutputStream, "imageOutputStream不可为null");
 
 		return ImageIO.write(this.outputImage, this.outputFormat, imageOutputStream);
 	}
@@ -947,5 +1185,204 @@ public class ImageEditor {
 			return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 				.filter(outputImage, null);
 		}
+	}
+
+	/**
+	 * 在输出图像上绘制图片水印。
+	 * <p>
+	 * 行为说明：
+	 * <ul>
+	 *   <li>根据 {@code option.scale} 按输出图像尺寸等比计算目标水印大小，随后再受
+	 *   {@code minWidth}/{@code minHeight}/{@code maxWidth}/{@code maxHeight} 的下限与上限约束。</li>
+	 *   <li>当 {@code option.opacity} 在 (0, 1) 之间时，使用相应透明度进行叠加绘制。</li>
+	 *   <li>若提供 {@code direction}，按照九宫格方向自动计算绘制位置；为 {@code null} 时使用传入的左上角坐标 {@code x}/{@code y}。</li>
+	 * </ul>
+	 *
+	 * @param watermarkImage 非空的图片水印源（将被绘制到输出图像上）
+	 * @param option         水印配置（缩放、透明度、尺寸约束等）
+	 * @param direction      九宫格方向；为 {@code null} 时直接使用 {@code x}/{@code y}
+	 * @param x              当 {@code direction} 为 {@code null} 时的绘制起点 X（左上角）
+	 * @param y              当 {@code direction} 为 {@code null} 时的绘制起点 Y（左上角）
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code watermarkImage} 或 {@code option} 为 {@code null} 时抛出
+	 * @see io.github.pangju666.commons.image.model.ImageWatermarkOption
+	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+	 * @since 1.0.0
+	 */
+	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction,
+											int x, int y) {
+		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
+
+		Graphics2D graphics = this.outputImage.createGraphics();
+		graphics.drawImage(this.outputImage, 0, 0, null);
+
+		// 设置抗锯齿
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// 设置不透明度
+		if (option.getOpacity() > 0f && option.getOpacity() < 1) {
+			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, option.getOpacity()));
+		}
+
+		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
+		ImageSize watermarkImageSize = originalWatermarkImageSize;
+		if (option.getScale() > 0f) {
+			watermarkImageSize = this.outputImageSize.scale(option.getScale());
+			if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
+				if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
+					watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
+				} else if (watermarkImageSize.getWidth() < option.getMinWidth()) {
+					watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMinWidth());
+				}
+			} else {
+				if (watermarkImageSize.getHeight() > option.getMaxHeight()) {
+					watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMaxHeight());
+				} else if (watermarkImageSize.getHeight() < option.getMinHeight()) {
+					watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMinHeight());
+				}
+			}
+		}
+
+		int waterX = x;
+		int waterY = y;
+		if (Objects.nonNull(direction)) {
+			switch (direction) {
+				case TOP:
+					waterX = (outputImageSize.getWidth() - watermarkImageSize.getWidth()) / 2;
+					waterY = 10;
+					break;
+				case BOTTOM:
+					waterX = 10;
+					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+					break;
+				case TOP_LEFT:
+					waterX = 10;
+					waterY = 10;
+					break;
+				case TOP_RIGHT:
+					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
+					waterY = 10;
+					break;
+				case BOTTOM_LEFT:
+					waterX = 10;
+					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+					break;
+				case BOTTOM_RIGHT:
+					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
+					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+					break;
+				case CENTER:
+					waterX = (outputImageSize.getWidth() - watermarkImageSize.getWidth()) / 2;
+					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+					break;
+			}
+		}
+
+		graphics.drawImage(watermarkImage, waterX, waterY, watermarkImageSize.getWidth(),
+			watermarkImageSize.getHeight(), null);
+		graphics.dispose();
+
+		return this;
+	}
+
+	/**
+	 * 在输出图像上绘制文字水印。
+	 * <p>
+	 * 行为说明：
+	 * <ul>
+	 *   <li>启用抗锯齿与文字抗锯齿；字体来源于 {@code option.font}，为空则使用默认字体。</li>
+	 *   <li>当 {@code option.opacity} 在 (0, 1) 之间时应用透明度叠加。</li>
+	 *   <li>根据 {@code direction} 自动计算九宫格位置；为 {@code null} 时使用传入坐标 {@code x}/{@code y}。</li>
+	 *   <li>文本位置以基线为准；内部使用字体度量（{@code FontMetrics}）计算文本宽度与高度。</li>
+	 *   <li>当 {@code option.stroke} 为 {@code true} 时，先按描边色与线宽绘制描边，再按填充色绘制文本。</li>
+	 * </ul>
+	 *
+	 * @param text      非空的水印文本内容
+	 * @param option    文本水印配置（字体、透明度、颜色、描边开关与线宽等）
+	 * @param direction 九宫格方向；为 {@code null} 时直接使用 {@code x}/{@code y}
+	 * @param x         当 {@code direction} 为 {@code null} 时的绘制起点 X（文本基线）
+	 * @param y         当 {@code direction} 为 {@code null} 时的绘制起点 Y（文本基线）
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code text} 为空或 {@code option} 为 {@code null} 时抛出
+	 * @see io.github.pangju666.commons.image.model.TextWatermarkOption
+	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+	 * @since 1.0.0
+	 */
+	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
+										   int x, int y) {
+		Validate.notBlank(text, "text 不可为空");
+		Validate.notNull(option, "option 不可为 null");
+
+		Graphics2D graphics = this.outputImage.createGraphics();
+		graphics.drawImage(this.outputImage, 0, 0, null);
+
+		// 设置抗锯齿
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		// 设置字体
+		graphics.setFont(ObjectUtils.getIfNull(option.getFont(), DEFAULT_FONT));
+
+		// 设置不透明度
+		if (option.getOpacity() > 0f && option.getOpacity() < 1) {
+			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, option.getOpacity()));
+		}
+
+		FontMetrics fontMetrics = graphics.getFontMetrics();
+		int textWidth = fontMetrics.stringWidth(text);
+		int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
+
+		int waterX = x;
+		int waterY = y;
+		if (Objects.nonNull(direction)) {
+			switch (direction) {
+				case TOP:
+					waterX = (outputImageSize.getWidth() - textWidth) / 2;
+					waterY = 20 + textHeight;
+					break;
+				case BOTTOM:
+					waterX = 20;
+					waterY = (outputImageSize.getHeight() + textHeight) / 2;
+					break;
+				case TOP_LEFT:
+					waterX = 20;
+					waterY = 20 + textHeight;
+					break;
+				case TOP_RIGHT:
+					waterX = outputImageSize.getWidth() - textWidth - 20;
+					waterY = 20 + textHeight;
+					break;
+				case BOTTOM_LEFT:
+					waterX = 20;
+					waterY = outputImageSize.getHeight() - 20;
+					break;
+				case BOTTOM_RIGHT:
+					waterX = outputImageSize.getWidth() - textWidth - 20;
+					waterY = outputImageSize.getHeight() - 20;
+					break;
+				case CENTER:
+					waterX = (outputImageSize.getWidth() - textWidth) / 2;
+					waterY = (outputImageSize.getHeight() + textHeight) / 2;
+					break;
+			}
+		}
+
+		if (option.isStroke()) {
+			// 绘制描边
+			graphics.setColor(ObjectUtils.getIfNull(option.getStrokeColor(), Color.LIGHT_GRAY));
+			graphics.setStroke(new BasicStroke(option.getStrokeWidth()));
+			graphics.drawString(text, waterX, waterY);
+
+			// 绘制填充
+			graphics.setColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE));
+			graphics.setStroke(new BasicStroke(0.5f));
+			graphics.drawString(text, waterX, waterY);
+		} else {
+			graphics.setColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE));
+			graphics.drawString(text, waterX, waterY);
+		}
+		graphics.dispose();
+
+		return this;
 	}
 }
