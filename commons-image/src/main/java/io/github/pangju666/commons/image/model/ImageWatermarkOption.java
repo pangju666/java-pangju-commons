@@ -40,11 +40,11 @@ public class ImageWatermarkOption {
 	 */
 	private float opacity = 0.4f;
 	/**
-	 * 水印最小宽度（像素）。默认：200
+	 * 水印最小宽度（像素）。默认：40
 	 *
 	 * @since 1.0.0
 	 */
-	private int minWidth = 200;
+	private int minWidth = 40;
 	/**
 	 * 水印最大宽度（像素）。默认：200
 	 *
@@ -58,11 +58,11 @@ public class ImageWatermarkOption {
 	 */
 	private int minHeight = 40;
 	/**
-	 * 水印最大高度（像素）。默认：40
+	 * 水印最大高度（像素）。默认：200
 	 *
 	 * @since 1.0.0
 	 */
-	private int maxHeight = 40;
+	private int maxHeight = 200;
 
 	public float getScale() {
 		return scale;

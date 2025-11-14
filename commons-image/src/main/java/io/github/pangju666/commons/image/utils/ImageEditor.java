@@ -347,7 +347,7 @@ public class ImageEditor {
 	 * <p>
 	 * 指定图像缩放时使用的重采样算法。
 	 * 默认使用{@link ResampleOp#FILTER_LANCZOS Lanczos 插值（高质量）滤波器}。
-	 * 可通过{@link #scaleFilterType(int)}或{@link #scaleHints(int)}方法修改。
+	 * 可通过{@link #resampleFilterType(int)}或{@link #scaleHints(int)}方法修改。
 	 * </p>
 	 *
 	 * @since 1.0.0
@@ -582,7 +582,7 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.0.0
 	 */
-	public ImageEditor scaleFilterType(final int filterType) {
+	public ImageEditor resampleFilterType(final int filterType) {
 		if (filterType < 0 || filterType > 15) {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		} else {
@@ -1225,7 +1225,7 @@ public class ImageEditor {
 		}
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
-		ImageSize watermarkImageSize = this.outputImageSize.scale(option.getScale());
+		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(option.getScale()));
 		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
 			if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
 				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
