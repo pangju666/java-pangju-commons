@@ -1150,13 +1150,13 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 获取处理后图像的副本。
+	 * 获取处理后的图像。
 	 *
-	 * @return 处理后图像的BufferedImage副本
+	 * @return 处理后图像的BufferedImage
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
-		return ImageUtil.createCopy(this.outputImage);
+		return this.outputImage;
 	}
 
 	/**
