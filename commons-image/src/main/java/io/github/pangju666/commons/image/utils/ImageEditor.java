@@ -234,11 +234,11 @@ public class ImageEditor {
 	 * 文本水印的默认字体。
 	 * <p>
 	 * 当 {@code TextWatermarkOption#font} 未设置时，绘制文字水印将使用该字体。
-	 * 采用对话字体 {@code Font.DIALOG}、常规样式 {@code Font.PLAIN}、字号 12。
+	 * 采用字体 {@code Font.SANS_SERIF}、常规样式 {@code Font.PLAIN}、字号 12。
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final Font DEFAULT_FONT = new Font(Font.DIALOG, Font.PLAIN, 12);
+	protected static final Font DEFAULT_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 
 	/**
 	 * 默认的标准图像输出格式
@@ -989,9 +989,11 @@ public class ImageEditor {
 	 * @param x              绘制起点 X（左上角）
 	 * @param y              绘制起点 Y（左上角）
 	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
 	 * @since 1.0.0
 	 */
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
+		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addImageWatermark(watermarkImage, option, null, x, y);
 	}
 
@@ -1083,9 +1085,11 @@ public class ImageEditor {
 	 * @param x             绘制起点 X（文本基线）
 	 * @param y             绘制起点 Y（文本基线）
 	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
 	 * @since 1.0.0
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
+		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addTextWatermark(watermarkText, option, null, x, y);
 	}
 
