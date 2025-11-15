@@ -1296,7 +1296,6 @@ public class ImageEditor {
 	 * 行为说明：
 	 * <ul>
 	 *   <li>启用抗锯齿与文字抗锯齿；字体来源于 {@code option.font}，为空则使用默认字体。</li>
-	 *   <li>当 {@code option.opacity} 在 (0, 1) 之间时应用透明度叠加。</li>
 	 *   <li>根据 {@code direction} 自动计算九宫格位置；为 {@code null} 时使用传入坐标 {@code x}/{@code y}。</li>
 	 *   <li>文本位置以基线为准；内部使用字体度量（{@code FontMetrics}）计算文本宽度与高度。</li>
 	 *   <li>当 {@code option.stroke} 为 {@code true} 时，先按描边色与线宽绘制描边，再按填充色绘制文本。</li>
@@ -1325,10 +1324,6 @@ public class ImageEditor {
 		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		// 设置字体
 		graphics.setFont(ObjectUtils.getIfNull(option.getFont(), DEFAULT_FONT));
-		// 设置不透明度
-		if (option.getOpacity() > 0f && option.getOpacity() < 1) {
-			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, option.getOpacity()));
-		}
 
 		FontMetrics fontMetrics = graphics.getFontMetrics();
 		int textWidth = fontMetrics.stringWidth(text);
@@ -1379,20 +1374,74 @@ public class ImageEditor {
 
 		if (option.isStroke()) {
 			// 绘制描边
-			graphics.setColor(ObjectUtils.getIfNull(option.getStrokeColor(), Color.LIGHT_GRAY));
+			graphics.setColor(getStrokeColor(option));
 			graphics.setStroke(new BasicStroke(option.getStrokeWidth()));
 			graphics.drawString(text, waterX, waterY);
 
 			// 绘制填充
-			graphics.setColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE));
+			graphics.setColor(getFillColor(option));
 			graphics.setStroke(new BasicStroke(0.5f));
 			graphics.drawString(text, waterX, waterY);
 		} else {
-			graphics.setColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE));
+			graphics.setColor(getFillColor(option));
 			graphics.drawString(text, waterX, waterY);
 		}
 		graphics.dispose();
 
 		return this;
+	}
+
+	/**
+	 * 获取文本水印的填充颜色（应用不透明度）
+	 * <p>
+	 * 逻辑：
+	 * <ol>
+	 *   <li>若 {@code option.getFillColor()} 为空，使用 {@link Color#WHITE}</li>
+	 *   <li>当颜色为完全不透明（Alpha=255）且 {@code 0 < option.getOpacity() < 1}，
+	 *   按给定不透明度调整 Alpha 并返回新颜色</li>
+	 *   <li>否则返回原始颜色</li>
+	 * </ol>
+	 * </p>
+	 *
+	 * @param option 文本水印配置，需非 null，使用其中的填充色与不透明度
+	 * @return 应用不透明度后的填充颜色
+	 * @since 1.0.0
+	 */
+	protected Color getFillColor(TextWatermarkOption option) {
+		Color color = ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE);
+		if (color.getAlpha() == 255) {
+			// 设置不透明度
+			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
+				return new Color(color.getRed(), color.getGreen(), color.getBlue(), 255 * option.getOpacity());
+			}
+		}
+		return color;
+	}
+
+	/**
+	 * 获取文本水印的描边颜色（应用不透明度）
+	 * <p>
+	 * 逻辑：
+	 * <ol>
+	 *   <li>若 {@code option.getStrokeColor()} 为空，使用 {@link Color#LIGHT_GRAY}</li>
+	 *   <li>当颜色为完全不透明（Alpha=255）且 {@code 0 < option.getOpacity() < 1}，
+	 *   按给定不透明度调整 Alpha 并返回新颜色</li>
+	 *   <li>否则返回原始颜色</li>
+	 * </ol>
+	 * </p>
+	 *
+	 * @param option 文本水印配置，需非 null，使用其中的描边色与不透明度
+	 * @return 应用不透明度后的描边颜色
+	 * @since 1.0.0
+	 */
+	protected Color getStrokeColor(TextWatermarkOption option) {
+		Color color = ObjectUtils.getIfNull(option.getStrokeColor(), Color.LIGHT_GRAY);
+		if (color.getAlpha() == 255) {
+			// 设置不透明度
+			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
+				return new Color(color.getRed(), color.getGreen(), color.getBlue(), 255 * option.getOpacity());
+			}
+		}
+		return color;
 	}
 }

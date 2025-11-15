@@ -30,23 +30,36 @@ public class TextWatermarkOption {
 	 * 透明度（Alpha）。范围：[0.0f, 1.0f]；默认 0.4f。
 	 * 控制文本整体透明度，0 表示完全透明，1 表示完全不透明。
 	 *
+	 * <p>
+	 * 注意：仅当颜色属性（如 {@code fillColor}、{@code strokeColor}）<b>不含透明通道</b>或为<b>完全不透明</b>（Alpha=255）时，
+	 * {@code opacity} 才会生效；若提供的颜色已包含透明度（Alpha≠255），则以颜色自身的透明度为准。
+	 * </p>
+	 *
 	 * @since 1.0.0
 	 */
 	private float opacity = 0.4f;
 	/**
-	 * 字体（族、样式、字号）。默认 {@code Dialog} 12pt 常规。
+	 * 字体（族、样式、字号）。默认 {@code SansSerif} 12pt 常规。
 	 *
 	 * @since 1.0.0
 	 */
-	private Font font = new Font(Font.DIALOG, Font.PLAIN, 12);
+	private Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 	/**
 	 * 描边颜色，默认浅灰。仅当 {@code stroke=true} 时使用。
+	 * <p>
+	 * 若该颜色<b>不含透明通道</b>或为<b>完全不透明</b>（Alpha=255），并设置了 {@code opacity}（0&lt;opacity&lt;1），
+	 * 将按不透明度调整透明通道；否则保留颜色自身的透明度。
+	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
 	private Color strokeColor = Color.LIGHT_GRAY;
 	/**
 	 * 填充颜色，默认白色。
+	 * <p>
+	 * 若该颜色<b>不含透明通道</b>或为<b>完全不透明</b>（Alpha=255），并设置了 {@code opacity}（0&lt;opacity&lt;1），
+	 * 将按不透明度调整透明通道；否则保留颜色自身的透明度。
+	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
@@ -97,6 +110,11 @@ public class TextWatermarkOption {
 	 * 设置透明度（Alpha）。
 	 * 有效范围为 {@code [0.0f, 1.0f]}；越界值将被忽略并保持当前值。
 	 * 其中 0 表示完全透明，1 表示完全不透明。
+	 *
+	 * <p>
+	 * 注意：仅当颜色属性（如 {@code fillColor}、{@code strokeColor}）<b>不含透明通道</b>或为<b>完全不透明</b>（Alpha=255）时，
+	 * {@code opacity} 才会在渲染时被应用；若提供的颜色已包含透明度（Alpha≠255），则优先使用颜色自身透明度。
+	 * </p>
 	 *
 	 * @param opacity 透明度
 	 * @since 1.0.0
