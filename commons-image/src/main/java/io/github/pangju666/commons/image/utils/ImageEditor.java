@@ -979,6 +979,106 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 居中裁剪为指定尺寸。
+	 * <p>
+	 * 以当前输出图像的中心为基准，裁剪出宽度为 {@code width}、高度为 {@code height} 的区域。
+	 * 若目标尺寸不小于原图尺寸（任一维度），则不进行裁剪并直接返回。
+	 * </p>
+	 *
+	 * @param width  目标裁剪宽度，必须大于 0
+	 * @param height 目标裁剪高度，必须大于 0
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code width} 或 {@code height} 小于等于 0 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor cropByCenter(int width, int height) {
+		Validate.isTrue(width > 0, "width 不能小于0");
+		Validate.isTrue(height > 0, "height 不能小于0");
+
+		// 边界检测
+		if (width >= this.outputImage.getWidth() || height >= this.outputImage.getHeight()) {
+			return this;
+		}
+
+		this.outputImage = this.outputImage.getSubimage((this.outputImage.getWidth() - width) / 2,
+			(this.outputImage.getHeight() - height) / 2, width, height);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		return this;
+	}
+
+	/**
+	 * 按边距偏移进行裁剪。
+	 * <p>
+	 * 从当前输出图像的四个边分别去除指定的偏移量，得到新的裁剪区域。
+	 * 当任一偏移超出图像尺寸或左右/上下偏移之和超出对应维度时，不进行裁剪并返回。
+	 * </p>
+	 *
+	 * @param topOffset    顶部偏移，必须大于等于 0
+	 * @param bottomOffset 底部偏移，必须大于等于 0
+	 * @param leftOffset   左侧偏移，必须大于等于 0
+	 * @param rightOffset  右侧偏移，必须大于等于 0
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当任一偏移为负数时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor cropByOffset(int topOffset, int bottomOffset, int leftOffset, int rightOffset) {
+		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
+			"offset 不能小于0");
+
+		// 边界检测
+		if (rightOffset >= this.outputImage.getWidth() ||
+			leftOffset >= this.outputImage.getWidth() ||
+			leftOffset + rightOffset >= this.outputImage.getWidth() ||
+			topOffset >= this.outputImage.getHeight() ||
+			bottomOffset >= this.outputImage.getHeight() ||
+			topOffset + bottomOffset >= this.outputImage.getHeight()) {
+			return this;
+		}
+
+		this.outputImage = this.outputImage.getSubimage(leftOffset, topOffset,
+			this.outputImage.getWidth() - leftOffset - rightOffset,
+			this.outputImage.getHeight() - topOffset - bottomOffset);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		return this;
+	}
+
+	/**
+	 * 按矩形区域进行裁剪。
+	 * <p>
+	 * 使用左上角坐标 {@code (x, y)} 与尺寸 {@code (width, height)} 指定裁剪矩形。
+	 * 当矩形超出图像边界（包含等于边界的情况）时，不进行裁剪并返回。
+	 * </p>
+	 *
+	 * @param x      裁剪矩形左上角 X 坐标，必须大于等于 0
+	 * @param y      裁剪矩形左上角 Y 坐标，必须大于等于 0
+	 * @param width  裁剪宽度，必须大于 0
+	 * @param height 裁剪高度，必须大于 0
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @throws IllegalArgumentException 当 {@code x} 或 {@code y} 为负数，或 {@code width}、{@code height} 小于等于 0 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageEditor cropByRect(int x, int y, int width, int height) {
+		Validate.isTrue(x >= 0, "x 不能小于0");
+		Validate.isTrue(y >= 0, "y 不能小于0");
+		Validate.isTrue(width > 0, "width 不能小于0");
+		Validate.isTrue(height > 0, "height 不能小于0");
+
+		// 边界检测
+		if (x >= this.outputImage.getWidth() ||
+			width >= this.outputImage.getWidth() ||
+			x + width >= this.outputImage.getWidth() ||
+			y >= this.outputImage.getHeight() ||
+			height >= this.outputImage.getHeight() ||
+			y + height >= this.outputImage.getHeight()) {
+			return this;
+		}
+
+		this.outputImage = this.outputImage.getSubimage(x, y, width, height);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		return this;
+	}
+
+	/**
 	 * 添加图片水印（显式坐标定位）。
 	 * <p>
 	 * 直接使用传入的左上角坐标 {@code x}/{@code y} 进行定位，不使用九宫格方向。
