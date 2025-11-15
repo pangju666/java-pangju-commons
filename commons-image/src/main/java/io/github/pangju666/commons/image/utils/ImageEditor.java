@@ -1322,7 +1322,6 @@ public class ImageEditor {
 		graphics.drawImage(this.outputImage, 0, 0, null);
 
 		// 设置抗锯齿
-		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		// 设置字体
 		graphics.setFont(ObjectUtils.getIfNull(option.getFont(), DEFAULT_FONT));

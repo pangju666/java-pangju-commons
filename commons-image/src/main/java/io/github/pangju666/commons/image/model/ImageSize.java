@@ -152,7 +152,7 @@ public class ImageSize {
 	 * @since 1.0.0
 	 */
 	public ImageSize scaleByHeight(final int targetHeight) {
-		Validate.isTrue(targetHeight > 0, "inputImage 必须大于0");
+		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于0");
 
 		if (width > height) {
 			double ratio = (double) width / height;
@@ -191,17 +191,19 @@ public class ImageSize {
 	}
 
 	/**
-	 * 双约束等比缩放（基于宽高值）
+	 * 双约束等比缩放（基于目标宽高值）
 	 * <p>
-	 * 在不超过目标宽高的前提下保持宽高比：
+	 * 保持原始宽高比，且不超过给定的 {@code targetWidth} 与 {@code targetHeight}：
 	 * <ol>
-	 *   <li>优先适配宽度计算</li>
-	 *   <li>若高度超出则改为适配高度</li>
-	 *   <li>确保最小1像素</li>
+	 *   <li>计算原图宽高比 {@code ratio = width / height}</li>
+	 *   <li>优先按目标宽度计算高度：{@code heightByWidth = targetWidth / ratio}</li>
+	 *   <li>若 {@code heightByWidth} 超过 {@code targetHeight}，则按目标高度计算宽度：{@code widthByHeight = targetHeight * ratio}</li>
+	 *   <li>所有结果均保证至少为 1 像素</li>
 	 * </ol>
 	 * </p>
 	 *
-	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
+	 * <p>该方法不会修改当前对象，而是返回一个新的尺寸实例。</p>
+	 * <p>缩放结果通过强制转换为 {@code int}，小数部分将被截断。</p>
 	 *
 	 * @param targetWidth  目标宽度，必须满足：
 	 *                     <ul>
@@ -219,22 +221,15 @@ public class ImageSize {
 	 */
 	public ImageSize scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于0");
-		Validate.isTrue(targetHeight > 0, "inputImage 必须大于0");
+		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于0");
 
 		double ratio = (double) width / height;
-		if (width > height) {
-			double actualHeight = Math.max(targetWidth / ratio, 1);
-			if (actualHeight > targetHeight) {
-				return new ImageSize((int) Math.max(targetHeight * ratio, 1), targetHeight);
-			}
-			return new ImageSize(targetWidth, (int) actualHeight);
-		} else {
-			double actualWidth = Math.max(targetHeight / ratio, 1);
-			if (actualWidth > targetWidth) {
-				return new ImageSize((int) Math.max(targetHeight * ratio, 1), targetHeight);
-			}
-			return new ImageSize((int) actualWidth, targetHeight);
+		int heightByWidth = (int) Math.max(targetWidth / ratio, 1);
+		if (heightByWidth <= targetHeight) {
+			return new ImageSize(targetWidth, heightByWidth);
 		}
+		int widthByHeight = (int) Math.max(targetHeight * ratio, 1);
+		return new ImageSize(widthByHeight, targetHeight);
 	}
 
 	/**
