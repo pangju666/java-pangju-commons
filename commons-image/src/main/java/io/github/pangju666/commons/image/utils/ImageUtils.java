@@ -104,6 +104,50 @@ public class ImageUtils {
 	}
 
 	/**
+	 * 带 Alpha 的颜色十六进制格式模板
+	 * <p>
+	 * 格式：{@code #AARRGGBB}，每个通道使用两位十六进制表示。
+	 * 生成示例：Alpha=255, R=16, G=32, B=48 → {@code "#ff102030"}
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final String ALPHA_COLOR_HEX_FORMAT = "#%02x%02x%02x%02x";
+
+	/**
+	 * 不带 Alpha 的颜色十六进制格式模板
+	 * <p>
+	 * 格式：{@code #RRGGBB}，每个通道使用两位十六进制表示。
+	 * 生成示例：R=16, G=32, B=48 → {@code "#102030"}
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final String COLOR_HEX_FORMAT = "#%02x%02x%02x";
+
+	/**
+	 * 将 Color 转换为 #AARRGGBB 格式的十六进制字符串
+	 *
+	 * @since 1.0.0
+	 */
+	public static String colorToHexWithAlpha(final Color color) {
+		Validate.notNull(color, "color 不可为 null");
+
+		return String.format(ALPHA_COLOR_HEX_FORMAT, color.getAlpha(), color.getRed(), color.getGreen(), color.getBlue());
+	}
+
+	/**
+	 * 将 Color 转换为 #RRGGBB 格式的十六进制字符串（忽略 Alpha）
+	 *
+	 * @since 1.0.0
+	 */
+	public static String colorToHex(final Color color) {
+		Validate.notNull(color, "color 不可为 null");
+
+		return String.format(COLOR_HEX_FORMAT, color.getRed(), color.getGreen(), color.getBlue());
+	}
+
+	/**
 	 * 检查MIME类型是否支持读取
 	 *
 	 * <p>

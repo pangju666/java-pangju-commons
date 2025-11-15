@@ -73,7 +73,7 @@ public class ImageWatermarkOption {
 	 * 必须为正数；非正数将被忽略并保持当前值。
 	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
-	 * @param scale 缩放比例（> 0）
+	 * @param scale 缩放比例（&gt; 0）
 	 * @since 1.0.0
 	 */
 	public void setScale(float scale) {
