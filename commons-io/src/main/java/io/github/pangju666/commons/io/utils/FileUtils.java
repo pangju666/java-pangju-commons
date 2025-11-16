@@ -238,7 +238,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param password   加密密钥（16字节，同时作为IV使用）
+	 * @param key   加密密钥（16字节，同时作为IV使用）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在或不可读</li>
@@ -248,13 +248,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, password);
+			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key);
 		}
 	}
 
@@ -264,7 +264,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param password   加密密码（16/24/32字节）
+	 * @param key   加密密码（16/24/32字节）
 	 * @param iv         16字节初始化向量
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
@@ -275,14 +275,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final byte[] password,
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key,
 								   final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, password, iv);
+			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
@@ -296,7 +296,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  加密文件（必须为有效加密文件）
 	 * @param outputFile 输出文件（自动创建父目录）
-	 * @param password   解密密钥（16字节，同时作为IV使用）
+	 * @param key   解密密钥（16字节，同时作为IV使用）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>密钥错误导致解密失败</li>
@@ -307,13 +307,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, password);
+			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key);
 		}
 	}
 
@@ -328,7 +328,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  加密文件（必须为有效加密文件）
 	 * @param outputFile 输出文件（自动创建父目录）
-	 * @param password   解密密码（需与加密密码一致）
+	 * @param key   解密密码（需与加密密码一致）
 	 * @param iv         16字节初始化向量（必须与加密时相同）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
@@ -339,14 +339,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] password,
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key,
 								   final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, password, iv);
+			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
@@ -360,7 +360,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param password   加密密钥（16字节，同时作为IV使用）
+	 * @param key   加密密钥（16字节，同时作为IV使用）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在或不可读</li>
@@ -370,13 +370,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, password);
+			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key);
 		}
 	}
 
@@ -386,7 +386,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param password   加密密钥（16/24/32字节）
+	 * @param key   加密密钥（16/24/32字节）
 	 * @param iv         16字节初始化向量
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
@@ -397,14 +397,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] password,
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key,
 										final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, password, iv);
+			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
@@ -419,7 +419,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  加密文件（必须存在且可读）
 	 * @param outputFile 解密输出文件（自动创建父目录）
-	 * @param password   解密密码（需与加密时一致）
+	 * @param key   解密密码（需与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>密码错误导致解密失败</li>
@@ -429,13 +429,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password) throws IOException {
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, password);
+			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key);
 		}
 	}
 
@@ -451,7 +451,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param inputFile  加密文件（必须存在且可读）
 	 * @param outputFile 解密输出文件（自动创建父目录）
-	 * @param password   解密密码（需与加密时一致）
+	 * @param key   解密密码（需与加密时一致）
 	 * @param iv         初始化向量（必须与加密时相同）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
@@ -462,14 +462,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] password,
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key,
 										final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 		try (OutputStream outputStream = openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, password, iv);
+			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
