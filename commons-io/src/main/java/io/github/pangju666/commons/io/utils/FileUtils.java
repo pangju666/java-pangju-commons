@@ -233,243 +233,263 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 使用AES/CBC/PKCS5Padding模式加密文件
-	 * <p>最大支持2GB文件加密</p>
+	 * 使用 AES/CBC/PKCS5Padding 模式加密文件
+	 * <p><strong>特性：</strong></p>
+	 * <ul>
+	 *     <li>使用 PKCS5Padding 填充，兼容任意长度数据</li>
+	 *     <li>流式处理，适合大文件</li>
+	 * </ul>
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param key   加密密钥（16字节，同时作为IV使用）
+	 * @param key        加密密钥（16/24/32 字节）
+	 * @param iv         初始化向量（16 字节，解密时必须与加密一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出目录不可写</li>
-	 *                         <li>密钥长度不符合16字节要求</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
 	 *                     </ul>
-	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[])
-	 * @since 1.0.0
-	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key) throws IOException {
-		checkFile(inputFile, "inputFile 不可为 null");
-		checkFileIfExist(outputFile, "outputFile 不可为 null");
-		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key);
-		}
-	}
-
-	/**
-	 * 使用AES/CBC/PKCS5Padding模式加密文件（自定义初始化向量）
-	 * <p>最大支持2GB文件加密</p>
-	 *
-	 * @param inputFile  待加密源文件（必须存在且可读）
-	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param key   加密密码（16/24/32字节）
-	 * @param iv         16字节初始化向量
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>IV长度不符合16字节要求</li>
-	 *                         <li>密码长度不符合要求</li>
-	 *                         <li>文件IO操作失败</li>
-	 *                     </ul>
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key,
-								   final byte[] iv) throws IOException {
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
 	/**
-	 * 使用AES/CBC/PKCS5Padding模式解密文件
-	 * <p><strong>安全要求：</strong></p>
-	 * <ul>
-	 *     <li>必须使用与加密完全相同的密码</li>
-	 *     <li>加密文件必须完整未修改</li>
-	 * </ul>
+	 * 使用 AES/CBC/PKCS5Padding 模式加密文件（自定义缓冲区）
+	 * <p>加密使用的 IV 必须在解密时保持完全一致。</p>
 	 *
-	 * @param inputFile  加密文件（必须为有效加密文件）
-	 * @param outputFile 输出文件（自动创建父目录）
-	 * @param key   解密密钥（16字节，同时作为IV使用）
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param key        加密密钥（16/24/32 字节）
+	 * @param iv         初始化向量（16 字节）
+	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>密钥错误导致解密失败</li>
-	 *                         <li>输入文件被截断或损坏</li>
-	 *                         <li>输出路径无写入权限</li>
-	 *                         <li>填充验证失败（可能文件被篡改）</li>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
 	 *                     </ul>
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[])
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
+	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
 	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key) throws IOException {
+	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
+								   final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key);
+			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
 
 	/**
-	 * AES/CBC模式文件解密（自定义初始化向量）
-	 * <p><strong>注意事项：</strong></p>
+	 * 使用 AES/CBC/PKCS5Padding 模式解密文件
+	 * <p><strong>要求：</strong></p>
 	 * <ul>
-	 *     <li>IV必须与加密时使用的完全一致</li>
-	 *     <li>重复使用相同IV会降低安全性</li>
-	 *     <li>加密文件必须完整未修改</li>
+	 *     <li>解密密钥与加密时一致</li>
+	 *     <li>IV 与加密时一致</li>
+	 *     <li>加密文件必须完整未修改，否则可能出现填充验证失败</li>
 	 * </ul>
 	 *
-	 * @param inputFile  加密文件（必须为有效加密文件）
-	 * @param outputFile 输出文件（自动创建父目录）
-	 * @param key   解密密码（需与加密密码一致）
-	 * @param iv         16字节初始化向量（必须与加密时相同）
+	 * @param inputFile  加密文件（必须存在且可读）
+	 * @param outputFile 解密输出文件（自动创建父目录）
+	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
+	 * @param iv         初始化向量（16 字节，与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>IV值不匹配导致解密失败</li>
-	 *                         <li>输入文件被截断或损坏</li>
-	 *                         <li>密码长度不符合要求</li>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
+	 *                         <li>填充验证失败（可能文件被篡改）</li>
 	 *                     </ul>
-	 * @see io.github.pangju666.commons.io.utils.IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
+	 * @see IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key,
-								   final byte[] iv) throws IOException {
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
 	/**
-	 * 使用AES/CTR模式加密文件
-	 * <p><strong>技术特性：</strong></p>
-	 * <ul>
-	 *     <li>无填充要求，支持任意长度数据</li>
-	 *     <li>计数器模式保证并行加密能力</li>
-	 * </ul>
+	 * 使用 AES/CBC/PKCS5Padding 模式解密文件（自定义缓冲区）
+	 * <p>解密所用的密钥与 IV 必须与加密时完全一致。</p>
 	 *
-	 * @param inputFile  待加密源文件（必须存在且可读）
-	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param key   加密密钥（16字节，同时作为IV使用）
+	 * @param inputFile  加密文件（必须存在且可读）
+	 * @param outputFile 解密输出文件（自动创建父目录）
+	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
+	 * @param iv         初始化向量（16 字节，与加密时一致）
+	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
 	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出目录不可写</li>
-	 *                         <li>密码长度不符合16字节要求</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
+	 *                         <li>填充验证失败（可能文件被篡改）</li>
 	 *                     </ul>
-	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[])
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
+	 * @see IOUtils#decrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
 	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key) throws IOException {
+	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
+								   final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key);
+			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
 
 	/**
-	 * 使用AES/CTR模式加密文件（自定义初始化向量）
-	 * <p>需要与解密时使用的IV值完全一致</p>
+	 * 使用 AES/CTR 模式加密文件
+	 * <p><strong>技术特性：</strong></p>
+	 * <ul>
+	 *     <li>无填充要求，支持任意长度数据</li>
+	 *     <li>计数器模式支持并行处理</li>
+	 *     <li>流式处理，适合大文件</li>
+	 * </ul>
 	 *
 	 * @param inputFile  待加密源文件（必须存在且可读）
 	 * @param outputFile 加密输出文件（自动创建父目录）
-	 * @param key   加密密钥（16/24/32字节）
-	 * @param iv         16字节初始化向量
+	 * @param key        加密密钥（16/24/32 字节）
+	 * @param iv         初始化向量（16 字节，解密时必须与加密一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>IV长度不符合16字节要求</li>
-	 *                         <li>密码长度不符合要求</li>
-	 *                         <li>文件IO操作失败</li>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
 	 *                     </ul>
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key,
-										final byte[] iv) throws IOException {
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
 
 	/**
-	 * AES/CTR模式文件解密
-	 * <p><strong>技术特性：</strong></p>
-	 * <ul>
-	 *     <li>无填充要求，支持任意长度数据</li>
-	 *     <li>计数器模式保证并行解密能力</li>
-	 *     <li>流式处理，支持超大文件解密</li>
-	 * </ul>
+	 * 使用 AES/CTR 模式加密文件（自定义缓冲区）
+	 * <p>加密使用的 IV 必须在解密时保持完全一致。</p>
 	 *
-	 * @param inputFile  加密文件（必须存在且可读）
-	 * @param outputFile 解密输出文件（自动创建父目录）
-	 * @param key   解密密码（需与加密时一致）
+	 * @param inputFile  待加密源文件（必须存在且可读）
+	 * @param outputFile 加密输出文件（自动创建父目录）
+	 * @param key        加密密钥（16/24/32 字节）
+	 * @param iv         初始化向量（16 字节）
+	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>密码错误导致解密失败</li>
-	 *                         <li>输入文件被截断或损坏</li>
-	 *                         <li>输出路径无写入权限</li>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
 	 *                     </ul>
-	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[])
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
+	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key) throws IOException {
+	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
+										final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
-			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key);
+			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
 
 	/**
-	 * AES/CTR模式文件解密（自定义初始化向量）
-	 *
+	 * AES/CTR 模式文件解密
 	 * <p><strong>技术特性：</strong></p>
 	 * <ul>
 	 *     <li>无填充要求，支持任意长度数据</li>
-	 *     <li>计数器模式保证并行解密能力</li>
-	 *     <li>流式处理，支持超大文件解密</li>
+	 *     <li>计数器模式支持并行处理</li>
+	 *     <li>流式处理，适合大文件</li>
 	 * </ul>
 	 *
 	 * @param inputFile  加密文件（必须存在且可读）
 	 * @param outputFile 解密输出文件（自动创建父目录）
-	 * @param key   解密密码（需与加密时一致）
-	 * @param iv         初始化向量（必须与加密时相同）
+	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
+	 * @param iv         初始化向量（16 字节，与加密时一致）
 	 * @throws IOException 当发生以下情况时抛出：
 	 *                     <ul>
-	 *                         <li>IV值不匹配导致解密失败</li>
-	 *                         <li>输入文件被截断或损坏</li>
-	 *                         <li>输出路径无写入权限</li>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
 	 *                     </ul>
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
 	 */
-	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key,
-										final byte[] iv) throws IOException {
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
 			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
+		}
+	}
+
+	/**
+	 * AES/CTR 模式文件解密（自定义缓冲区）
+	 * <p>解密所用的密钥与 IV 必须与加密时完全一致。</p>
+	 *
+	 * @param inputFile  加密文件（必须存在且可读）
+	 * @param outputFile 解密输出文件（自动创建父目录）
+	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
+	 * @param iv         初始化向量（16 字节，与加密时一致）
+	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
+	 * @throws IOException 当发生以下情况时抛出：
+	 *                     <ul>
+	 *                         <li>输入文件不存在或不可读</li>
+	 *                         <li>输出路径不可写或创建失败</li>
+	 *                         <li>文件 IO 操作失败</li>
+	 *                     </ul>
+	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
+	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[], int)
+	 * @since 1.0.0
+	 */
+	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
+										final int bufferSize) throws IOException {
+		checkFile(inputFile, "inputFile 不可为 null");
+		checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		try (OutputStream outputStream = openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
 
