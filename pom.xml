@@ -83,10 +83,23 @@
 			<plugin>
 				<groupId>org.codehaus.gmavenplus</groupId>
 				<artifactId>gmavenplus-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compileTests</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skipTests>true</skipTests>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
+				<configuration>
+					<generateBackupPoms>false</generateBackupPoms>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
