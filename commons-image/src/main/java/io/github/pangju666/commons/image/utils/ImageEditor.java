@@ -44,9 +44,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
 import java.io.*;
 import java.net.URL;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 图像编辑器（链式调用风格）
@@ -196,7 +194,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *   <li>处理大图会占用较多内存，建议先进行缩放再应用其他效果，以降低后续计算量。</li>
  *   <li>滤波器选择存在质量与速度权衡：{@link ResampleOp#FILTER_LANCZOS} 质量高但较慢；{@link ResampleOp#FILTER_BOX} 较快且质量中等；{@link ResampleOp#FILTER_POINT} 最快但质量较低。</li>
- *   <li>亮度/对比度滤镜使用简单缓存以复用常用参数实例，重复调用可减少对象创建。</li>
  *   <li>合成与水印绘制会创建临时 {@code Graphics2D} 并在结束后释放；避免在热点路径中频繁创建与销毁编辑器实例。</li>
  * </ul>
  *
@@ -261,32 +258,6 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
-
-	/**
-	 * 亮度滤镜缓存
-	 * <p>
-	 * 存储不同亮度值对应的滤镜实例，避免重复创建相同参数的滤镜对象。
-	 * 键为亮度调整值，值为对应的亮度对比度滤镜实例。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected static final Map<Float, BrightnessContrastFilter> BRIGHTNESS_FILTERS_MAP = new ConcurrentHashMap<>(10);
-
-	/**
-	 * 对比度滤镜缓存
-	 * <p>
-	 * 存储不同对比度值对应的滤镜实例，避免重复创建相同参数的滤镜对象。
-	 * 键为对比度调整值，值为对应的亮度对比度滤镜实例。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected static final Map<Float, BrightnessContrastFilter> CONTRAST_FILTERS_MAP = new ConcurrentHashMap<>(10);
-
-	static {
-		CONTRAST_FILTERS_MAP.put(0.3f, new BrightnessContrastFilter(0f, 0.3f));
-	}
 
 	/**
 	 * 原始输入图像
@@ -818,14 +789,7 @@ public class ImageEditor {
 			return this;
 		}
 
-		BrightnessContrastFilter filter;
-		if (CONTRAST_FILTERS_MAP.containsKey(amount)) {
-			filter = BRIGHTNESS_FILTERS_MAP.get(amount);
-		} else {
-			filter = new BrightnessContrastFilter(0f, amount);
-			BRIGHTNESS_FILTERS_MAP.put(amount, filter);
-		}
-
+		BrightnessContrastFilter filter = new BrightnessContrastFilter(0f, amount);
 		Image image = ImageUtil.filter(this.outputImage, filter);
 		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
 		return this;
@@ -843,14 +807,7 @@ public class ImageEditor {
 			return this;
 		}
 
-		BrightnessContrastFilter filter;
-		if (BRIGHTNESS_FILTERS_MAP.containsKey(amount)) {
-			filter = BRIGHTNESS_FILTERS_MAP.get(amount);
-		} else {
-			filter = new BrightnessContrastFilter(amount, 0f);
-			BRIGHTNESS_FILTERS_MAP.put(amount, filter);
-		}
-
+		BrightnessContrastFilter filter = new BrightnessContrastFilter(amount, 0f);
 		Image image = ImageUtil.filter(this.outputImage, filter);
 		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
 		return this;

@@ -27,6 +27,7 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,11 +113,12 @@ public class KeyPairUtils {
 	 */
 	public static KeyFactory getKeyFactory(final String algorithm) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
-		if (KEY_FACTORY_MAP.containsKey(algorithm)) {
-			return KEY_FACTORY_MAP.get(algorithm);
+		KeyFactory keyFactory = KEY_FACTORY_MAP.get(algorithm);
+		if (Objects.nonNull(keyFactory)) {
+			return keyFactory;
 		}
-		KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
-		KEY_FACTORY_MAP.put(algorithm, keyFactory);
+		keyFactory = KeyFactory.getInstance(algorithm);
+		KEY_FACTORY_MAP.putIfAbsent(algorithm, keyFactory);
 		return keyFactory;
 	}
 
@@ -138,12 +140,10 @@ public class KeyPairUtils {
 	 */
 	public static KeyPair generateKeyPair(final String algorithm) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
-		KeyPairGenerator generator;
-		if (KEY_PAIR_GENERATOR_MAP.containsKey(algorithm)) {
-			generator = KEY_PAIR_GENERATOR_MAP.get(algorithm);
-		} else {
+		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.get(algorithm);
+		if (Objects.isNull(generator)) {
 			generator = KeyPairGenerator.getInstance(algorithm);
-			KEY_PAIR_GENERATOR_MAP.put(algorithm, generator);
+			KEY_PAIR_GENERATOR_MAP.putIfAbsent(algorithm, generator);
 		}
 		return generator.generateKeyPair();
 	}
@@ -170,13 +170,11 @@ public class KeyPairUtils {
 	public static KeyPair generateKeyPair(final String algorithm, final int keySize) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
 		String mapKey = algorithm + "-" + keySize;
-		KeyPairGenerator generator;
-		if (KEY_PAIR_GENERATOR_MAP.containsKey(mapKey)) {
-			generator = KEY_PAIR_GENERATOR_MAP.get(mapKey);
-		} else {
+		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.get(mapKey);
+		if (Objects.isNull(generator)) {
 			generator = KeyPairGenerator.getInstance(algorithm);
 			generator.initialize(keySize);
-			KEY_PAIR_GENERATOR_MAP.put(mapKey, generator);
+			KEY_PAIR_GENERATOR_MAP.putIfAbsent(mapKey, generator);
 		}
 		return generator.generateKeyPair();
 	}
