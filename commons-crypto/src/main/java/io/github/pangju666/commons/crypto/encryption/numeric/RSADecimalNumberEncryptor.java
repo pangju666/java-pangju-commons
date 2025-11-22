@@ -17,8 +17,10 @@
 package io.github.pangju666.commons.crypto.encryption.numeric;
 
 import io.github.pangju666.commons.crypto.encryption.binary.RSABinaryEncryptor;
-import io.github.pangju666.commons.crypto.key.RSAKey;
+import io.github.pangju666.commons.crypto.key.RSAKeyPair;
 import io.github.pangju666.commons.crypto.transformation.RSATransformation;
+import io.github.pangju666.commons.crypto.transformation.impl.RSAOEAPWithSHA256Transformation;
+import io.github.pangju666.commons.crypto.transformation.impl.RSAPKCS1PaddingTransformation;
 import org.apache.commons.lang3.Validate;
 import org.jasypt.commons.CommonUtils;
 import org.jasypt.exceptions.AlreadyInitializedException;
@@ -28,56 +30,57 @@ import org.jasypt.util.numeric.DecimalNumberEncryptor;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Objects;
 
 /**
- * RSA算法高精度浮点数加密器，提供BigDecimal类型的精确加密解密能力
- * <p>
- * 本类实现了{@link DecimalNumberEncryptor}接口，通过分离BigDecimal的标度(scale)和
- * 无标度值(unscaled value)实现浮点数的无损加密，确保解密后能完全还原原始数值精度。
- * </p>
+ * RSA 高精度浮点数加密解密器
+ * <p>实现 {@link DecimalNumberEncryptor}，对 {@link BigDecimal} 执行非对称加/解密，按“密文 + 4 字节长度尾(MSB)”封装，保留原始标度。</p>
  *
  * <h3>核心特性</h3>
  * <ul>
- *   <li><b>精度保留</b> - 精确保持原始数值的小数位数和精度</li>
- *   <li><b>安全算法</b> - 采用RSA非对称加密算法，支持2048/3072/4096位密钥</li>
- *   <li><b>数值完整性</b> - 加密后的BigDecimal仍保持数学运算特性</li>
- *   <li><b>格式兼容</b> - 处理补码格式确保跨平台一致性</li>
+ *   <li>非对称加密：公钥加密、私钥解密</li>
+ *   <li>方案可插拔：默认 OAEPWithSHA-256，兼容 PKCS#1 v1.5</li>
+ *   <li>精度保留：保留原始 scale，不损失数值精度</li>
+ *   <li>数据封装：unscaledValue 存储“密文 + 4 字节长度尾(MSB)”</li>
+ * </ul>
+ *
+ * <h3>使用说明</h3>
+ * <ul>
+ *   <li>默认不包含密钥；使用前需通过 {@code setPublicKey}/{@code setPrivateKey} 或 {@code setKeyPair} 配置</li>
+ *   <li>惰性初始化：首次加/解密时计算并缓存分块大小</li>
  * </ul>
  *
  * <h3>典型应用场景</h3>
- * <ol>
- *   <li>金融系统金额加密（如汇率、利率计算）</li>
+ * <ul>
+ *   <li>金融系统金额加密</li>
  *   <li>科学计算数据保护</li>
  *   <li>数据库敏感浮点字段加密</li>
  *   <li>需要精确小数运算的安全协议</li>
- * </ol>
+ * </ul>
  *
- * <h3>技术实现细节</h3>
+ * <h3>技术实现</h3>
  * <ul>
- *   <li>加密流程：BigDecimal → 分离标度 → 无标度值加密 → 重组</li>
- *   <li>解密流程：解析加密值 → 解密无标度值 → 应用原始标度</li>
- *   <li>最大处理精度：支持BigDecimal的任意标度</li>
+ *   <li>加密：BigDecimal → 提取 scale/unscaledValue → RSA 加密 unscaledValue → 追加长度尾 → 构造新 BigDecimal</li>
+ *   <li>解密：密文 BigDecimal → 解析打包 → RSA 解密 unscaledValue → 复原原始 BigDecimal（保留 scale）</li>
  * </ul>
  *
  * @author pangju666
- * @since 1.0.0
  * @see DecimalNumberEncryptor
  * @see RSABinaryEncryptor
  * @see RSATransformation
- * @see RSAKey
+ * @see RSAKeyPair
+ * @since 1.0.0
  */
 public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	/**
-	 * 核心RSA二进制加密处理器，执行底层加密运算
-	 * <p>
-	 * 此实例通过构造函数注入，具有以下设计特性：
-	 * </p>
+	 * 核心 RSA 二进制加密处理器
+	 * <p>承载底层加/解密与分块逻辑，随宿主对象生命周期存在。</p>
 	 * <ul>
-	 *   <li><b>不可变性</b> - final修饰确保线程安全</li>
-	 *   <li><b>委托模式</b> - 所有加密操作最终委托给此实例</li>
-	 *   <li><b>配置代理</b> - 配置变更通过此实例的对应方法实现</li>
-	 *   <li><b>生命周期</b> - 与宿主对象绑定，不可单独存在</li>
+	 *   <li>不可变引用：字段为 final，不可在运行期替换实例</li>
+	 *   <li>委托模式：加/解密委托给该处理器</li>
+	 *   <li>惰性初始化：首次加/解密时计算并缓存分块大小</li>
 	 * </ul>
 	 *
 	 * @since 1.0.0
@@ -85,18 +88,12 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	private final RSABinaryEncryptor binaryEncryptor;
 
 	/**
-	 * 构建使用默认安全配置的加密器
+	 * 构建使用默认配置的加密器实例
 	 * <p>
-	 * 默认采用金融级安全配置：
+	 * 默认仅配置加密方案为 {@link RSAOEAPWithSHA256Transformation}，不设置密钥。
+	 * 使用前需通过 {@link #setPublicKey(RSAPublicKey)} / {@link #setPrivateKey(RSAPrivateKey)} 或 {@link #setKeyPair(RSAKeyPair)} 配置密钥。
 	 * </p>
-	 * <ul>
-	 *   <li><b>密钥强度</b>：2048位RSA密钥（平衡安全与性能）</li>
-	 *   <li><b>加密方案</b>：RSA/ECB/OAEPWithSHA-256AndMGF1Padding</li>
-	 *   <li><b>填充方式</b>：最优非对称加密填充(OAEP)</li>
-	 *   <li><b>精度支持</b>：支持任意标度的BigDecimal</li>
-	 * </ul>
 	 *
-	 * @throws EncryptionInitializationException 当密钥生成失败时抛出
 	 * @since 1.0.0
 	 */
 	public RSADecimalNumberEncryptor() {
@@ -104,23 +101,21 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	}
 
 	/**
-	 * 构造方法（使用默认密钥长度和指定加密方案）
+	 * 使用指定加密方案构建加密器实例（不包含默认密钥）
 	 * <p>
-	 * 允许自定义加密方案但使用默认2048位密钥长度。
+	 * 该构造方法仅设置加密方案（算法/填充），不生成或设置任何密钥；
+	 * 使用前需通过 {@link #setPublicKey(RSAPublicKey)} / {@link #setPrivateKey(RSAPrivateKey)} 或 {@link #setKeyPair(RSAKeyPair)} 配置密钥。
 	 * </p>
 	 *
-	 * <h3>方案选择指南</h3>
+	 * <h3>方案选择建议</h3>
 	 * <ul>
-	 *   <li><b>PKCS1v1.5</b> - 兼容性好但安全性较低</li>
-	 *   <li><b>OAEP</b> - 安全性高（推荐）</li>
+	 *   <li>高安全性：{@link RSAOEAPWithSHA256Transformation}</li>
+	 *   <li>兼容性：{@link RSAPKCS1PaddingTransformation}</li>
 	 * </ul>
 	 *
-	 * @param transformation 加密方案，必须：
-	 *                       <ul>
-	 *                         <li>非null</li>
-	 *                         <li>与默认密钥长度兼容</li>
-	 *                       </ul>
-	 * @throws NullPointerException 当参数为null时抛出
+	 * @param transformation 加密方案，不可为 null
+	 * @throws NullPointerException 当传入 null 参数时抛出
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	public RSADecimalNumberEncryptor(final RSATransformation transformation) {
@@ -128,125 +123,17 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	}
 
 	/**
-	 * 构造方法（使用指定密钥长度和默认加密方案）
-	 * <p>
-	 * 允许自定义密钥长度但使用默认OAEP加密方案。
-	 * </p>
+	 * 使用预配置的二进制加密器构建实例
+	 * <p>适用于复用已有密钥与加密方案的场景，避免重复配置。</p>
 	 *
-	 * <h3>密钥长度建议</h3>
+	 * <h3>说明</h3>
 	 * <ul>
-	 *   <li><b>生产环境</b>：2048位（平衡安全与性能）</li>
-	 *   <li><b>高安全需求</b>：3072或4096位</li>
-	 *   <li><b>测试用途</b>：1024位（不推荐生产环境）</li>
+	 *   <li>加密器可未初始化；初始化在首次加/解密时惰性触发</li>
+	 *   <li>密钥与加密方案应按需配置</li>
 	 * </ul>
 	 *
-	 * @param keySize RSA密钥长度（单位：bit），有效值：
-	 *                <ul>
-	 *                  <li>1024（仅测试）</li>
-	 *                  <li>2048（推荐）</li>
-	 *                  <li>3072/4096（高安全）</li>
-	 *                </ul>
-	 * @throws IllegalArgumentException 当密钥长度不在上述范围内时抛出
-	 * @since 1.0.0
-	 */
-	public RSADecimalNumberEncryptor(final int keySize) {
-		this.binaryEncryptor = new RSABinaryEncryptor(keySize);
-	}
-
-	/**
-	 * 构造方法（使用指定密钥长度和加密方案）
-	 * <p>
-	 * 完全自定义配置构造方法，需确保密钥长度与加密方案兼容。
-	 * </p>
-	 *
-	 * <h3>兼容性要求</h3>
-	 * <ul>
-	 *   <li>OAEP方案要求最小2048位密钥</li>
-	 *   <li>PKCS#1方案兼容1024位密钥</li>
-	 *   <li>3072/4096位密钥推荐使用OAEP方案</li>
-	 * </ul>
-	 *
-	 * @param keySize 密钥长度（单位：bit）
-	 * @param transformation 加密方案
-	 * @throws IllegalArgumentException 当密钥长度与方案不兼容时抛出
-	 * @since 1.0.0
-	 */
-	public RSADecimalNumberEncryptor(final int keySize, final RSATransformation transformation) {
-		this.binaryEncryptor = new RSABinaryEncryptor(keySize, transformation);
-	}
-
-	/**
-	 * 构造方法（使用已有密钥和默认加密方案）
-	 * <p>
-	 * 适用于密钥预生成场景，使用默认OAEP加密方案。
-	 * </p>
-	 *
-	 * <h3>密钥要求</h3>
-	 * <ul>
-	 *   <li>必须包含有效的公钥（加密）或私钥（解密）</li>
-	 *   <li>密钥强度应与安全需求匹配</li>
-	 *   <li>支持硬件安全模块(HSM)生成的密钥</li>
-	 * </ul>
-	 *
-	 * @param key 预生成的RSA密钥对
-	 * @throws NullPointerException 当密钥为null时抛出
-	 * @see RSAKey
-	 * @since 1.0.0
-	 */
-	public RSADecimalNumberEncryptor(final RSAKey key) {
-		this.binaryEncryptor = new RSABinaryEncryptor(key);
-	}
-
-	/**
-	 * 构造方法（使用已有密钥和指定加密方案）
-	 * <p>
-	 * 完全自定义配置构造方法，需确保密钥与加密方案兼容。
-	 * </p>
-	 *
-	 * <h3>验证规则</h3>
-	 * <ul>
-	 *   <li>检查密钥长度是否支持所选方案</li>
-	 *   <li>验证密钥是否包含必要参数</li>
-	 *   <li>确保密钥未过期或被撤销</li>
-	 * </ul>
-	 *
-	 * @param key 预生成的RSA密钥对
-	 * @param transformation 加密方案
-	 * @throws IllegalArgumentException 当密钥与方案不兼容时抛出
-	 * @since 1.0.0
-	 */
-	public RSADecimalNumberEncryptor(final RSAKey key, final RSATransformation transformation) {
-		this.binaryEncryptor = new RSABinaryEncryptor(key, transformation);
-	}
-
-	/**
-	 * 使用预配置的加密器构建实例
-	 * <p>
-	 * 高级构造方法，适用于需要精细控制加密器生命周期的场景。
-	 * </p>
-	 *
-	 * <h3>典型使用场景</h3>
-	 * <ul>
-	 *   <li><b>加密器池</b>：复用预配置的加密器实例</li>
-	 *   <li><b>热更新</b>：实现加密方案的无缝切换</li>
-	 *   <li><b>性能优化</b>：预初始化加密器减少首次加密延迟</li>
-	 * </ul>
-	 *
-	 * <h3>技术要求</h3>
-	 * <ul>
-	 *   <li>加密器必须已完成密钥配置</li>
-	 *   <li>加密方案必须与密钥兼容</li>
-	 *   <li>加密器应处于未初始化或已初始化状态</li>
-	 * </ul>
-	 *
-	 * @param binaryEncryptor 预配置的RSABinaryEncryptor实例，要求：
-	 *                        <ul>
-	 *                          <li>非null</li>
-	 *                          <li>已完成必要配置</li>
-	 *                          <li>未被其他线程独占使用</li>
-	 *                        </ul>
-	 * @throws NullPointerException 当参数为null时抛出
-	 * @throws IllegalStateException 当加密器配置不完整时抛出
+	 * @param binaryEncryptor 二进制加密器实例，必须非 null
+	 * @throws NullPointerException 当加密器为 null 时抛出
 	 * @see RSABinaryEncryptor
 	 * @since 1.0.0
 	 */
@@ -255,83 +142,56 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 		this.binaryEncryptor = binaryEncryptor;
 	}
 
-	public RSAKey getKey() {
-		return binaryEncryptor.getKey();
+	/**
+	 * 设置 RSA 密钥容器（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥与私钥。</p>
+	 *
+	 * @param keyPair 新的密钥容器，允许为 null（null 将清除当前密钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
+	 * @since 1.0.0
+	 */
+	public void setKeyPair(final RSAKeyPair keyPair) {
+		this.binaryEncryptor.setKeyPair(keyPair);
 	}
 
 	/**
-	 * 配置RSA加密方案
-	 * <p>
-	 * 修改加密/填充方案，影响后续所有加密操作。
-	 * </p>
+	 * 设置 RSA 私钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前私钥。</p>
 	 *
-	 * <h3>方案选择指南</h3>
-	 * <table border="1">
-	 *   <tr><th>方案</th><th>安全性</th><th>兼容性</th><th>推荐场景</th></tr>
-	 *   <tr><td>PKCS1v1.5</td><td>中</td><td>高</td><td>传统系统兼容</td></tr>
-	 *   <tr><td>OAEP</td><td>高</td><td>中</td><td>新系统(推荐)</td></tr>
-	 * </table>
-	 *
-	 * @param transformation 加密方案枚举，必须：
-	 *                       <ul>
-	 *                         <li>非null</li>
-	 *                         <li>与当前密钥长度兼容</li>
-	 *                       </ul>
-	 * @throws AlreadyInitializedException 如果已执行过加密操作
-	 * @throws IllegalArgumentException 当方案与密钥不兼容时抛出
-	 * @see RSATransformation
+	 * @param privateKey 私钥，允许为 null（null 将清除当前私钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public void setTransformation(final RSATransformation transformation) {
-		this.binaryEncryptor.setTransformation(transformation);
+	public void setPrivateKey(final RSAPrivateKey privateKey) {
+		this.binaryEncryptor.setPrivateKey(privateKey);
 	}
 
 	/**
-	 * 更新RSA密钥对
-	 * <p>
-	 * 动态更换加密/解密使用的密钥对。
-	 * </p>
+	 * 设置 RSA 公钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥。</p>
 	 *
-	 * <h3>密钥更换流程</h3>
-	 * <ol>
-	 *   <li>验证新密钥有效性</li>
-	 *   <li>检查与当前加密方案的兼容性</li>
-	 *   <li>原子性更新密钥引用</li>
-	 *   <li>重置内部状态</li>
-	 * </ol>
-	 *
-	 * @param key 新的RSA密钥对，必须：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>包含有效的公钥或私钥</li>
-	 *              <li>与当前加密方案兼容</li>
-	 *            </ul>
-	 * @throws AlreadyInitializedException 如果已初始化后调用
-	 * @throws EncryptionInitializationException 当密钥无效时抛出
-	 * @see RSAKey
+	 * @param publicKey 公钥，允许为 null（null 将清除当前公钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public void setKey(final RSAKey key) {
-		this.binaryEncryptor.setKey(key);
+	public void setPublicKey(final RSAPublicKey publicKey) {
+		this.binaryEncryptor.setPublicKey(publicKey);
 	}
 
 	/**
 	 * 初始化加密组件
-	 * <p>根据当前配置初始化加密/解密处理器，此方法会自动检测可用密钥：</p>
+	 * <p>根据当前配置计算并缓存分块大小（加密/解密），自动检测可用密钥：</p>
 	 * <ul>
-	 *   <li>存在公钥：初始化加密功能</li>
-	 *   <li>存在私钥：初始化解密功能</li>
+	 *   <li>存在公钥：初始化加密分块大小</li>
+	 *   <li>存在私钥：初始化解密分块大小</li>
 	 * </ul>
-	 * <p><strong>注意：</strong>此方法会自动被{@link #encrypt(BigDecimal)}和{@link #decrypt(BigDecimal)}调用，通常不需要手动调用。</p>
+	 * <p><strong>说明：</strong>该方法为惰性执行且幂等；当未设置任何密钥时不会抛出异常，分块大小保持未初始化状态。</p>
+	 * <p>该方法会在 {@link #encrypt(BigDecimal)} 与 {@link #decrypt(BigDecimal)} 调用时自动触发。</p>
 	 *
-	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
-	 *                                           <ul>
-	 *                                               <li>未配置任何密钥</li>
-	 *                                               <li>算法不支持</li>
-	 *                                               <li>密钥无效</li>
-	 *                                           </ul>
-	 * @see #encrypt(BigDecimal)
-	 * @see #decrypt(BigDecimal)
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
 	 * @since 1.0.0
 	 */
 	public void initialize() {
@@ -339,37 +199,20 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	}
 
 	/**
-	 * 加密BigDecimal数值
-	 * <p>
-	 * 实现{@link DecimalNumberEncryptor}接口的核心方法，提供精确的浮点数加密。
-	 * </p>
+	 * 加密 BigDecimal 数值
+	 * <p>实现 {@link DecimalNumberEncryptor}，对无标度字节执行 RSA 公钥加密，并在末尾附加 4 字节长度尾。</p>
 	 *
-	 * <h3>加密数据格式</h3>
+	 * <h3>数据格式</h3>
 	 * <pre>
-	 * +----------------+----------------+----------------+
-	 * | 原始标度(4字节) | 4字节长度头    | RSA加密数据体   |
-	 * +----------------+----------------+----------------+
+	 * +----------------+----------------+
+	 * | RSA加密数据体   | 4字节长度尾(MSB) |
+	 * +----------------+----------------+
 	 * </pre>
 	 *
-	 * @param number 待加密数值，处理规则：
-	 *               <ul>
-	 *                 <li>null → 返回null</li>
-	 *                 <li>0.0 → 加密后的非零值</li>
-	 *                 <li>负数 → 保留符号位</li>
-	 *                 <li>任意精度 → 完全保留</li>
-	 *               </ul>
-	 * @return 加密后的BigDecimal，具有以下特征：
-	 *         <ul>
-	 *           <li>标度与原始值相同</li>
-	 *           <li>无标度值为加密数据</li>
-	 *           <li>可参与数学运算但结果无意义</li>
-	 *         </ul>
-	 * @throws EncryptionOperationNotPossibleException 当：
-	 *         <ul>
-	 *           <li>数值超过最大加密长度</li>
-	 *           <li>公钥未初始化</li>
-	 *           <li>加密失败</li>
-	 *         </ul>
+	 * @param number 待加密数值；null 返回 null
+	 * @return 加密后的 BigDecimal（scale 与原值一致；unscaledValue 为密文字节）
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionOperationNotPossibleException 公钥未设置或加密失败
 	 * @since 1.0.0
 	 */
 	@Override
@@ -377,6 +220,7 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 		if (Objects.isNull(number)) {
 			return null;
 		}
+
 		try {
 			final int scale = number.scale();
 			final BigInteger unscaledMessage = number.unscaledValue();
@@ -393,36 +237,20 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	}
 
 	/**
-	 * 解密BigDecimal数值
-	 * <p>
-	 * 精确还原加密前的原始浮点数值，保证数值精度一致性。
-	 * </p>
+	 * 解密 BigDecimal 数值
+	 * <p>按“RSA加密数据体 + 4字节长度尾(MSB)”解析 unscaledValue，并用保留的 scale 还原原始数值。</p>
 	 *
-	 * <h3>解密验证</h3>
+	 * <h3>验证</h3>
 	 * <ul>
-	 *   <li>校验长度头与实际数据长度是否匹配</li>
-	 *   <li>验证私钥是否与加密公钥配对</li>
-	 *   <li>检查填充方案是否一致</li>
-	 *   <li>确认标度值有效性</li>
+	 *   <li>长度尾与实际密文长度一致</li>
+	 *   <li>私钥与加密公钥配对，方案一致</li>
+	 *   <li>scale 为原始标度</li>
 	 * </ul>
 	 *
-	 * @param encryptedNumber 加密后的BigDecimal，必须：
-	 *                        <ul>
-	 *                          <li>由本类{@link #encrypt(BigDecimal)}方法生成</li>
-	 *                          <li>未被篡改</li>
-	 *                        </ul>
-	 * @return 解密后的原始数值，保证：
-	 *         <ul>
-	 *           <li>数值与加密前完全一致</li>
-	 *           <li>标度精确还原</li>
-	 *           <li>null输入返回null</li>
-	 *         </ul>
-	 * @throws EncryptionOperationNotPossibleException 当：
-	 *         <ul>
-	 *           <li>输入格式非法</li>
-	 *           <li>私钥不匹配</li>
-	 *           <li>解密失败</li>
-	 *         </ul>
+	 * @param encryptedNumber 由 {@link #encrypt(BigDecimal)} 生成的密文；null 返回 null
+	 * @return 原始数值
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionOperationNotPossibleException 输入格式非法、私钥未设置/不匹配或解密失败
 	 * @since 1.0.0
 	 */
 	@Override
@@ -430,6 +258,7 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 		if (Objects.isNull(encryptedNumber)) {
 			return null;
 		}
+
 		try {
 			int scale = encryptedNumber.scale();
 			BigInteger unscaledEncryptedMessage = encryptedNumber.unscaledValue();

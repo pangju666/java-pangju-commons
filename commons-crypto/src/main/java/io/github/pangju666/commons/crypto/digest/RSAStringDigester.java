@@ -16,57 +16,58 @@
 
 package io.github.pangju666.commons.crypto.digest;
 
-import io.github.pangju666.commons.crypto.enums.RsaSignatureAlgorithm;
-import io.github.pangju666.commons.crypto.key.RSAKey;
-import io.github.pangju666.commons.crypto.lang.CryptoConstants;
-import org.apache.commons.codec.DecoderException;
+import io.github.pangju666.commons.crypto.enums.RSASignatureAlgorithm;
+import io.github.pangju666.commons.crypto.key.RSAKeyPair;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jasypt.digest.StringDigester;
+import org.jasypt.exceptions.AlreadyInitializedException;
 import org.jasypt.exceptions.EncryptionInitializationException;
 
 import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 /**
- * RSA字符串签名处理器
- * <p>
- * 本类实现了基于RSA算法的字符串签名功能，提供以下核心能力：
+ * RSA 字符串签名处理器
+ * <p>基于 RSA 的字符串签名与验证，仅支持标准 Base64 编码输出。</p>
+ *
+ * <h3>核心特性</h3>
  * <ul>
- *   <li><strong>字符串签名</strong> - 对字符串消息生成数字签名</li>
- *   <li><strong>签名验证</strong> - 验证字符串消息与签名的匹配性</li>
- *   <li><strong>多格式支持</strong> - 支持Base64和十六进制编码格式</li>
- *   <li><strong>线程安全</strong> - 所有操作都进行了同步控制</li>
+ *   <li>签名生成：私钥对字符串签名</li>
+ *   <li>签名验证：公钥验签</li>
+ *   <li>编码规范：RFC 4648 标准 Base64（包含填充）</li>
+ *   <li>并发安全：关键配置与初始化同步控制</li>
  * </ul>
  *
- * <h3>典型使用场景：</h3>
+ * <h3>密钥管理</h3>
  * <ul>
- *   <li>API请求参数签名验证</li>
+ *   <li>默认不包含密钥；使用前需通过 {@code setPublicKey}/{@code setPrivateKey} 或 {@code setKeyPair} 配置</li>
+ * </ul>
+ *
+ * <h3>初始化行为</h3>
+ * <ul>
+ *   <li>惰性初始化且幂等；按需触发</li>
+ * </ul>
+ *
+ * <h3>典型使用场景</h3>
+ * <ul>
+ *   <li>API 请求参数签名验证</li>
  *   <li>配置文件完整性校验</li>
  *   <li>消息防篡改保护</li>
- * </ul>
- *
- * <h3>编码格式说明：</h3>
- * <ul>
- *   <li>{@link #digest(String)}/{@link #matches(String, String)} - 使用Base64编码</li>
- *   <li>{@link #digestToHexString(String)}/{@link #matchesFromHexString(String, String)} - 使用十六进制编码</li>
  * </ul>
  *
  * @author pangju666
  * @see StringDigester
  * @see RSAByteDigester
- * @see RSAKey
+ * @see RSAKeyPair
  * @since 1.0.0
  */
 public final class RSAStringDigester implements StringDigester {
 	/**
-	 * 底层字节数组签名处理器
-	 * <p>实际执行签名操作的核心组件，具有以下特性：</p>
-	 * <ul>
-	 *   <li>非null</li>
-	 *   <li>线程安全</li>
-	 *   <li>延迟初始化</li>
-	 * </ul>
+	 * 底层字节签名处理器
+	 * <p>负责执行实际的签名/验签逻辑；引用为 final，惰性初始化。</p>
 	 *
 	 * @see RSAByteDigester
 	 * @since 1.0.0
@@ -74,10 +75,9 @@ public final class RSAStringDigester implements StringDigester {
 	private final RSAByteDigester byteDigester;
 
 	/**
-	 * 构造方法（使用默认配置）
-	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和默认算法("SHA256withRSA")的实例</p>
+	 * 使用默认签名算法构建实例
+	 * <p>默认算法：SHA256withRSA。</p>
 	 *
-	 * @see RSAByteDigester#RSAByteDigester()
 	 * @since 1.0.0
 	 */
 	public RSAStringDigester() {
@@ -85,147 +85,73 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 构造方法（自定义算法，默认密钥长度）
-	 * <p>使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和指定算法创建实例</p>
+	 * 使用指定签名算法构建实例
 	 *
-	 * @param algorithm 签名算法
-	 * @throws NullPointerException 当algorithm为null时抛出
-	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
+	 * @param algorithm 签名算法，不能为 null
+	 * @throws NullPointerException 当 {@code algorithm} 为 null
 	 * @since 1.0.0
 	 */
-	public RSAStringDigester(final RsaSignatureAlgorithm algorithm) {
+	public RSAStringDigester(final RSASignatureAlgorithm algorithm) {
 		this.byteDigester = new RSAByteDigester(algorithm);
 	}
 
 	/**
-	 * 构造方法（自定义密钥长度，默认算法）
-	 * <p>使用指定密钥长度和默认算法("SHA256withRSA")创建实例</p>
+	 * 使用预配置的字节签名处理器构建实例
+	 * <p>适用于复用已有密钥与算法配置的场景。</p>
 	 *
-	 * @param keySize RSA密钥位长度，推荐值：
-	 *                <ul>
-	 *                  <li>2048(商业应用最低要求)</li>
-	 *                  <li>4096(高安全需求)</li>
-	 *                </ul>
-	 * @throws IllegalArgumentException 当keySize小于1024时抛出
-	 * @since 1.0.0
-	 */
-	public RSAStringDigester(final int keySize) {
-		this.byteDigester = new RSAByteDigester(keySize);
-	}
-
-	/**
-	 * 构造方法（完全自定义配置）
-	 * <p>使用指定密钥长度和算法创建实例</p>
-	 *
-	 * @param keySize   密钥位长度，最小1024
-	 * @param algorithm 签名算法，非null
-	 * @throws NullPointerException     当algorithm为null时抛出
-	 * @throws IllegalArgumentException 当keySize小于1024时抛出
-	 * @since 1.0.0
-	 */
-	public RSAStringDigester(final int keySize, final RsaSignatureAlgorithm algorithm) {
-		this.byteDigester = new RSAByteDigester(keySize, algorithm);
-	}
-
-	/**
-	 * 构造方法（使用现有密钥，默认算法）
-	 * <p>使用预生成的RSA密钥对和默认算法("SHA256withRSA")创建实例</p>
-	 *
-	 * @param key RSA密钥对，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>至少包含公钥或私钥</li>
-	 *            </ul>
-	 * @throws NullPointerException     当key为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @since 1.0.0
-	 */
-	public RSAStringDigester(final RSAKey key) {
-		this.byteDigester = new RSAByteDigester(key);
-	}
-
-	/**
-	 * 构造方法（完全自定义密钥和算法）
-	 * <p>使用预生成的RSA密钥对和指定算法创建实例</p>
-	 *
-	 * @param key       RSA密钥对，必须包含至少一个密钥
-	 * @param algorithm 签名算法，非null
-	 * @throws NullPointerException     当key或algorithm为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @since 1.0.0
-	 */
-	public RSAStringDigester(final RSAKey key, final RsaSignatureAlgorithm algorithm) {
-		this.byteDigester = new RSAByteDigester(key, algorithm);
-	}
-
-	/**
-	 * 构造方法（自定义底层处理器）
-	 * <p>使用指定的字节数组签名处理器创建实例</p>
-	 *
-	 * @param byteDigester 底层处理器，必须满足：
-	 *                     <ul>
-	 *                       <li>非null</li>
-	 *                       <li>已配置有效密钥</li>
-	 *                     </ul>
-	 * @throws NullPointerException 当byteDigester为null时抛出
-	 * @see RSAByteDigester
+	 * @param byteDigester 预配置的字节签名处理器，不能为 null
+	 * @throws NullPointerException 当 {@code byteDigester} 为 null
 	 * @since 1.0.0
 	 */
 	public RSAStringDigester(final RSAByteDigester byteDigester) {
+		Validate.notNull(byteDigester, "byteDigester 不能为 null");
 		this.byteDigester = byteDigester;
 	}
 
-	public RSAKey getKey() {
-		return byteDigester.getKey();
-	}
-
 	/**
-	 * 设置RSA密钥对
-	 * <p>更新签名处理器使用的密钥对</p>
+	 * 设置 RSA 密钥容器（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥与私钥。</p>
 	 *
-	 * @param key 新的密钥对，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>至少包含公钥或私钥</li>
-	 *            </ul>
-	 * @throws NullPointerException 当key为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @see RSAByteDigester#setKey(RSAKey)
+	 * @param keyPair 新的密钥容器，允许为 null（null 将清除当前密钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public void setKey(final RSAKey key) {
-		byteDigester.setKey(key);
+	public void setKeyPair(final RSAKeyPair keyPair) {
+		this.byteDigester.setKeyPair(keyPair);
 	}
 
 	/**
-	 * 设置签名算法
-	 * <p>更新签名处理器使用的算法</p>
+	 * 设置 RSA 私钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前私钥。</p>
 	 *
-	 * @param algorithm 新的算法
-	 * @throws NullPointerException 当algorithm为null时抛出
+	 * @param privateKey 私钥，允许为 null（null 将清除当前私钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public void setAlgorithm(final RsaSignatureAlgorithm algorithm) {
-		byteDigester.setAlgorithm(algorithm);
+	public void setPrivateKey(final RSAPrivateKey privateKey) {
+		this.byteDigester.setPrivateKey(privateKey);
 	}
 
 	/**
-	 * 初始化签名组件
-	 * <p>触发底层签名处理器的初始化操作，具有以下特性：</p>
-	 * <ul>
-	 *   <li>自动检测可用密钥</li>
-	 *   <li>按需初始化签名/验证功能</li>
-	 *   <li>线程安全</li>
-	 * </ul>
-	 * <p><strong>注意：</strong>此方法通常不需要显式调用，会在首次签名/验证时自动触发。</p>
+	 * 设置 RSA 公钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥。</p>
 	 *
-	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
-	 *         <ul>
-	 *           <li>未配置任何密钥</li>
-	 *           <li>算法不支持</li>
-	 *           <li>密钥无效</li>
-	 *         </ul>
-	 * @see RSAByteDigester#initialize()
+	 * @param publicKey 公钥，允许为 null（null 将清除当前公钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
+	 * @since 1.0.0
+	 */
+	public void setPublicKey(final RSAPublicKey publicKey) {
+		this.byteDigester.setPublicKey(publicKey);
+	}
+
+	/**
+	 * 初始化摘要组件
+	 * <p><strong>说明：</strong>该方法为惰性执行且幂等；当未设置任何密钥时不会抛出异常。</p>
+	 * <p>该方法会在 {@link #digest(String)} 与 {@link #matches(String, String)} 调用时自动触发。</p>
+	 *
 	 * @since 1.0.0
 	 */
 	public void initialize() {
@@ -233,15 +159,18 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 生成Base64编码签名
-	 * <p>对输入字符串生成Base64编码的数字签名</p>
+	 * 生成 Base64 编码签名
+	 * <p>使用私钥与当前算法对字符串进行签名，并以标准 Base64 编码输出。</p>
 	 *
-	 * @param message 要签名的消息，空字符串返回空字符串
-	 * @return Base64编码的签名结果，具有以下特性：
-	 *         <ul>
-	 *           <li>非null</li>
-	 *           <li>空输入返回空字符串</li>
-	 *         </ul>
+	 * <h3>输出规范</h3>
+	 * <ul>
+	 *   <li>RFC 4648 标准 Base64（包含填充）</li>
+	 *   <li>空输入返回空字符串</li>
+	 * </ul>
+	 *
+	 * @param message 原始消息，null 或空返回空字符串
+	 * @return Base64 编码的签名
+	 * @throws EncryptionInitializationException 未设置私钥
 	 * @see RSAByteDigester#digest(byte[])
 	 * @since 1.0.0
 	 */
@@ -254,16 +183,19 @@ public final class RSAStringDigester implements StringDigester {
 	}
 
 	/**
-	 * 验证Base64编码签名
-	 * <p>验证消息与Base64编码签名的匹配性</p>
+	 * 验证 Base64 编码签名
+	 * <p>使用公钥与当前算法验证字符串与签名是否匹配。</p>
+	 *
+	 * <h3>输入要求</h3>
+	 * <ul>
+	 *   <li>消息为空：当且仅当签名也为空时返回 true</li>
+	 *   <li>签名为空：返回 false</li>
+	 * </ul>
 	 *
 	 * @param message 原始消息
-	 * @param digest  Base64编码的签名
-	 * @return 验证结果，满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>消息和签名都为空</li>
-	 *           <li>签名与消息匹配</li>
-	 *         </ul>
+	 * @param digest Base64 编码的签名
+	 * @return 是否匹配
+	 * @throws EncryptionInitializationException 未设置公钥
 	 * @see RSAByteDigester#matches(byte[], byte[])
 	 * @since 1.0.0
 	 */
@@ -276,51 +208,5 @@ public final class RSAStringDigester implements StringDigester {
 		}
 		return byteDigester.matches(message.getBytes(StandardCharsets.UTF_8),
 			Base64.decodeBase64(digest));
-	}
-
-	/**
-	 * 生成十六进制编码签名
-	 * <p>对输入字符串生成十六进制编码的数字签名</p>
-	 *
-	 * @param message 要签名的消息，空字符串返回空字符串
-	 * @return 十六进制编码的签名结果，具有以下特性：
-	 *         <ul>
-	 *           <li>非null</li>
-	 *           <li>空输入返回空字符串</li>
-	 *           <li>长度是原始签名的两倍</li>
-	 *         </ul>
-	 * @see RSAByteDigester#digest(byte[])
-	 * @since 1.0.0
-	 */
-	public String digestToHexString(String message) {
-		if (StringUtils.isBlank(message)) {
-			return StringUtils.EMPTY;
-		}
-		return Hex.encodeHexString(byteDigester.digest(message.getBytes(StandardCharsets.UTF_8)));
-	}
-
-	/**
-	 * 验证十六进制编码签名
-	 * <p>验证消息与十六进制编码签名的匹配性</p>
-	 *
-	 * @param message 原始消息
-	 * @param digest  十六进制编码的签名
-	 * @return 验证结果
-	 * @throws RuntimeException 当签名格式无效时抛出
-	 * @see RSAByteDigester#matches(byte[], byte[])
-	 * @since 1.0.0
-	 */
-	public boolean matchesFromHexString(String message, String digest) {
-		if (StringUtils.isBlank(message)) {
-			return StringUtils.isBlank(digest);
-		} else if (StringUtils.isBlank(digest)) {
-			return false;
-		}
-		try {
-			return byteDigester.matches(message.getBytes(StandardCharsets.UTF_8),
-				Hex.decodeHex(digest));
-		} catch (DecoderException e) {
-			throw new RuntimeException(e);
-		}
 	}
 }

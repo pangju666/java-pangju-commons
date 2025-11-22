@@ -16,10 +16,11 @@
 
 package io.github.pangju666.commons.crypto.encryption.binary;
 
-import io.github.pangju666.commons.crypto.key.RSAKey;
+import io.github.pangju666.commons.crypto.key.RSAKeyPair;
 import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import io.github.pangju666.commons.crypto.transformation.RSATransformation;
 import io.github.pangju666.commons.crypto.transformation.impl.RSAOEAPWithSHA256Transformation;
+import io.github.pangju666.commons.crypto.transformation.impl.RSAPKCS1PaddingTransformation;
 import io.github.pangju666.commons.crypto.utils.KeyPairUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -36,8 +37,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -45,64 +46,41 @@ import java.util.Objects;
 
 /**
  * RSA 二进制数据加密解密器
- * <p>
- * 本类实现了基于RSA算法的二进制数据加密/解密功能，提供以下核心能力：
+ * <p>基于 RSA 的二进制数据加/解密，支持分段处理与可插拔填充方案。</p>
+ *
+ * <h3>核心特性</h3>
  * <ul>
- *   <li><strong>分段加密/解密</strong> - 自动处理大数据的分块操作</li>
- *   <li><strong>多密钥支持</strong> - 支持公钥加密/私钥解密</li>
- *   <li><strong>算法扩展</strong> - 支持多种填充模式(如OAEPWithSHA-256)</li>
- *   <li><strong>线程安全</strong> - 所有关键操作都进行了同步控制</li>
+ *   <li>分段处理：自动对超出单块大小的数据进行分块加/解密</li>
+ *   <li>非对称密钥：公钥加密、私钥解密</li>
+ *   <li>方案可插拔：默认 OAEPWithSHA-256，支持自定义（如 PKCS#1 v1.5）</li>
+ *   <li>并发安全：关键初始化与配置变更均做同步控制</li>
  * </ul>
  *
- * <h3>典型使用场景：</h3>
+ * <h3>密钥管理</h3>
  * <ul>
- *   <li>敏感数据加密存储</li>
- *   <li>安全通信数据传输</li>
- *   <li>数字信封实现</li>
+ *   <li>默认不包含密钥；使用前需通过 {@code setPublicKey}/{@code setPrivateKey} 或 {@code setKeyPair} 配置</li>
+ *   <li>初始化后不可修改密钥与加密方案</li>
  * </ul>
  *
- * <h3>线程安全说明：</h3>
- * <p>本类所有公共方法均已实现线程安全，但需要注意：</p>
+ * <h3>安全与限制</h3>
  * <ul>
- *   <li>初始化后不可修改密钥和加密方案</li>
- *   <li>加密/解密操作会自动触发初始化</li>
+ *   <li>优先使用 OAEP；不建议在新场景使用过时的 PKCS#1 v1.5</li>
+ *   <li>大数据建议采用“RSA + 对称加密”的混合方案</li>
+ *   <li>分块逻辑为工程兼容处理，不改变 RSA 单块大小上限</li>
+ * </ul>
+ *
+ * <h3>初始化行为</h3>
+ * <ul>
+ *   <li>惰性初始化且幂等；首次加/解密时计算并缓存分块大小</li>
  * </ul>
  *
  * @see RSATransformation
- * @see RSAKey
+ * @see RSAKeyPair
  * @see BinaryEncryptor
  * @author pangju666
  * @since 1.0.0
  */
 public final class RSABinaryEncryptor implements BinaryEncryptor {
-	/**
-	 * 解密密码器实例（延迟初始化）
-	 * <p>用于解密操作的{@link Cipher}实例，具有以下特性：</p>
-	 * <ul>
-	 *   <li>使用私钥初始化</li>
-	 *   <li>线程安全（通过外部同步控制）</li>
-	 *   <li>按需初始化</li>
-	 * </ul>
-	 *
-	 * @see #initialize()
-	 * @since 1.0.0
-	 */
-	private Cipher decryptCipher;
-
-	/**
-	 * 加密密码器实例（延迟初始化）
-	 * <p>用于加密操作的{@link Cipher}实例，具有以下特性：</p>
-	 * <ul>
-	 *   <li>使用公钥初始化</li>
-	 *   <li>线程安全（通过外部同步控制）</li>
-	 *   <li>按需初始化</li>
-	 * </ul>
-	 *
-	 * @see #initialize()
-	 * @since 1.0.0
-	 */
-	private Cipher encryptCipher;
-
 	/**
 	 * 加密分块大小（字节）
 	 * <p>根据公钥和加密方案计算得出，表示：</p>
@@ -130,18 +108,25 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	private int decryptBlockSize;
 
 	/**
-	 * RSA密钥对容器
-	 * <p>存储用于加密/解密的非对称密钥对，必须满足：</p>
+	 * RSA 加密方案
+	 * <p>定义算法与填充模式，影响 Cipher 名称与分块大小计算：</p>
 	 * <ul>
-	 *   <li>非null</li>
-	 *   <li>至少包含公钥或私钥</li>
+	 *   <li>默认 OAEPWithSHA-256</li>
 	 *   <li>初始化后不可更改</li>
+	 *   <li>决定加/解密分块大小</li>
 	 * </ul>
 	 *
-	 * @see RSAKey
+	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
-	private RSAKey key;
+	private final RSATransformation transformation;
+	/**
+	 * 当前 RSA 公钥
+	 * <p>用于加密与计算加密分块大小；可能为 null。</p
+	 *
+	 * @since 1.0.0
+	 */
+	private RSAPublicKey publicKey;
 
 	/**
 	 * 初始化状态标识
@@ -155,203 +140,132 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @since 1.0.0
 	 */
 	private boolean initialized = false;
-
 	/**
-	 * RSA加密方案
-	 * <p>定义加密算法和填充模式，具有以下特性：</p>
-	 * <ul>
-	 *   <li>默认使用OAEPWithSHA-256填充</li>
-	 *   <li>初始化后不可更改</li>
-	 *   <li>决定分块大小计算方式</li>
-	 * </ul>
+	 * 当前 RSA 私钥
+	 * <p>用于解密与计算解密分块大小；可能为 null。</p>
 	 *
-	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
-	private RSATransformation transformation = new RSAOEAPWithSHA256Transformation();
+	private RSAPrivateKey privateKey;
 
 	/**
-	 * 构造方法（使用默认密钥长度和加密方案）
-	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和默认加密方案的实例</p>
+	 * 构建使用默认配置的加密器实例
+	 * <p>
+	 * 默认仅配置加密方案为 {@link RSAOEAPWithSHA256Transformation}，不设置密钥。
+	 * 使用前需通过 {@link #setPublicKey(RSAPublicKey)} / {@link #setPrivateKey(RSAPrivateKey)} 或 {@link #setKeyPair(RSAKeyPair)} 配置密钥。
+	 * </p>
 	 *
-	 * @see CryptoConstants#RSA_DEFAULT_KEY_SIZE
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor() {
-		this.key = RSAKey.random(CryptoConstants.RSA_DEFAULT_KEY_SIZE);
+		this.transformation = new RSAOEAPWithSHA256Transformation();
 	}
 
 	/**
-	 * 构造方法（使用默认密钥长度和指定加密方案）
-	 * <p>创建使用默认密钥长度({@value CryptoConstants#RSA_DEFAULT_KEY_SIZE})和自定义加密方案的实例</p>
+	 * 使用指定加密方案构建加密器实例（不包含默认密钥）
+	 * <p>
+	 * 该构造方法仅设置加密方案（算法/填充），不生成或设置任何密钥；
+	 * 使用前需通过 {@link #setPublicKey(RSAPublicKey)} / {@link #setPrivateKey(RSAPrivateKey)} 或 {@link #setKeyPair(RSAKeyPair)} 配置密钥。
+	 * </p>
 	 *
-	 * @param transformation 加密方案，必须满足：
-	 *                       <ul>
-	 *                         <li>非null</li>
-	 *                         <li>有效的RSA转换方案</li>
-	 *                       </ul>
-	 * @throws NullPointerException 当transformation为null时抛出
+	 * <h3>方案选择建议</h3>
+	 * <ul>
+	 *   <li>高安全性：{@link RSAOEAPWithSHA256Transformation}</li>
+	 *   <li>兼容性：{@link RSAPKCS1PaddingTransformation}</li>
+	 * </ul>
+	 *
+	 * @param transformation 加密方案，不可为 null
+	 * @throws NullPointerException 当传入 null 参数时抛出
 	 * @see RSATransformation
 	 * @since 1.0.0
 	 */
 	public RSABinaryEncryptor(final RSATransformation transformation) {
-		this.key = RSAKey.random(CryptoConstants.RSA_DEFAULT_KEY_SIZE);
-		this.transformation = transformation;
-	}
-
-	/**
-	 * 构造方法（使用指定密钥长度和默认加密方案）
-	 * <p>创建使用自定义密钥长度和默认加密方案的实例</p>
-	 *
-	 * @param keySize 密钥长度(bit)，必须满足：
-	 *                <ul>
-	 *                  <li>&gt;=1024</li>
-	 *                  <li>&lt;=8192</li>
-	 *                </ul>
-	 * @throws IllegalArgumentException 当keySize不满足要求时抛出
-	 * @since 1.0.0
-	 */
-	public RSABinaryEncryptor(final int keySize) {
-		this.key = RSAKey.random(keySize);
-	}
-
-	/**
-	 * 构造方法（使用指定密钥长度和加密方案）
-	 * <p>创建完全自定义配置的实例</p>
-	 *
-	 * @param keySize 密钥长度(bit)，必须≥1024
-	 * @param transformation 加密方案，非null
-	 * @throws NullPointerException 当transformation为null时抛出
-	 * @throws IllegalArgumentException 当keySize不满足要求时抛出
-	 * @since 1.0.0
-	 */
-	public RSABinaryEncryptor(final int keySize, final RSATransformation transformation) {
-		this.key = RSAKey.random(keySize);
-		this.transformation = transformation;
-	}
-
-	/**
-	 * 构造方法（使用已有密钥和默认加密方案）
-	 * <p>使用预生成的RSA密钥对创建实例</p>
-	 *
-	 * @param key RSA密钥对，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>至少包含公钥或私钥</li>
-	 *            </ul>
-	 * @throws NullPointerException 当key为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @since 1.0.0
-	 */
-	public RSABinaryEncryptor(final RSAKey key) {
-		this.key = key;
-	}
-
-	/**
-	 * 构造方法（使用已有密钥和指定加密方案）
-	 * <p>使用预生成的RSA密钥对和自定义加密方案创建实例</p>
-	 *
-	 * @param key RSA密钥对，必须包含至少一个密钥
-	 * @param transformation 加密方案，非null
-	 * @throws NullPointerException 当key或transformation为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @since 1.0.0
-	 */
-	public RSABinaryEncryptor(final RSAKey key, final RSATransformation transformation) {
-		this.key = key;
-		this.transformation = transformation;
-	}
-
-	public RSAKey getKey() {
-		return key;
-	}
-
-	/**
-	 * 设置加密方案（初始化前有效）
-	 * <p>在实例初始化前设置新的加密方案，用于替换默认方案。</p>
-	 *
-	 * @param transformation 新的加密方案，必须满足：
-	 *                       <ul>
-	 *                         <li>非null</li>
-	 *                         <li>有效的RSA转换方案</li>
-	 *                       </ul>
-	 * @throws NullPointerException 当transformation为null时抛出
-	 * @throws AlreadyInitializedException 已初始化后调用时抛出
-	 * @see RSATransformation
-	 * @since 1.0.0
-	 */
-	public synchronized void setTransformation(final RSATransformation transformation) {
 		Validate.notNull(transformation, "transformation 不可为 null");
-		if (initialized) {
-			throw new AlreadyInitializedException();
-		}
 		this.transformation = transformation;
 	}
 
 	/**
-	 * 设置RSA密钥对（初始化前有效）
-	 * <p>在实例初始化前设置新的RSA密钥对，用于替换默认生成的密钥。</p>
+	 * 设置 RSA 密钥容器（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥与私钥。</p>
 	 *
-	 * @param key 新的密钥容器，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>至少包含公钥或私钥</li>
-	 *            </ul>
-	 * @throws NullPointerException 当key为null时抛出
-	 * @throws IllegalArgumentException 当key不包含任何密钥时抛出
-	 * @throws AlreadyInitializedException 已初始化后调用时抛出
-	 * @see #initialize()
+	 * @param keyPair 新的密钥容器，允许为 null（null 将清除当前密钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
 	 * @since 1.0.0
 	 */
-	public synchronized void setKey(final RSAKey key) {
-		Validate.notNull(key, "key 不可为 null");
+	public synchronized void setKeyPair(final RSAKeyPair keyPair) {
 		if (initialized) {
 			throw new AlreadyInitializedException();
 		}
-		this.key = key;
+		if (Objects.nonNull(keyPair)) {
+			this.privateKey = keyPair.getPrivateKey();
+			this.publicKey = keyPair.getPublicKey();
+		} else {
+			this.privateKey = null;
+			this.publicKey = null;
+		}
+	}
+
+	/**
+	 * 设置 RSA 私钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前私钥。</p>
+	 *
+	 * @param privateKey 私钥，允许为 null（null 将清除当前私钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
+	 * @since 1.0.0
+	 */
+	public synchronized void setPrivateKey(final RSAPrivateKey privateKey) {
+		if (initialized) {
+			throw new AlreadyInitializedException();
+		}
+		this.privateKey = privateKey;
+	}
+
+	/**
+	 * 设置 RSA 公钥（初始化前有效）
+	 * <p>已初始化后调用将抛出 {@link AlreadyInitializedException}。</p>
+	 * <p>允许传入 null；为 null 时将清除当前公钥。</p>
+	 *
+	 * @param publicKey 公钥，允许为 null（null 将清除当前公钥）
+	 * @throws AlreadyInitializedException 当已初始化后调用时抛出
+	 * @since 1.0.0
+	 */
+	public synchronized void setPublicKey(final RSAPublicKey publicKey) {
+		if (initialized) {
+			throw new AlreadyInitializedException();
+		}
+		this.publicKey = publicKey;
 	}
 
 	/**
 	 * 初始化加密组件
-	 * <p>根据当前配置初始化加密/解密处理器，此方法会自动检测可用密钥：</p>
+	 * <p>根据当前配置计算并缓存分块大小（加密/解密），自动检测可用密钥：</p>
 	 * <ul>
-	 *   <li>存在公钥：初始化加密功能</li>
-	 *   <li>存在私钥：初始化解密功能</li>
+	 *   <li>存在公钥：初始化加密分块大小</li>
+	 *   <li>存在私钥：初始化解密分块大小</li>
 	 * </ul>
-	 * <p><strong>注意：</strong>此方法会自动被{@link #encrypt(byte[])}和{@link #decrypt(byte[])}调用，通常不需要手动调用。</p>
+	 * <p><strong>说明：</strong>该方法为惰性执行且幂等；当未设置任何密钥时不会抛出异常，分块大小保持未初始化状态。</p>
+	 * <p>该方法会在 {@link #encrypt(byte[])} 与 {@link #decrypt(byte[])} 调用时自动触发。</p>
 	 *
-	 * @throws EncryptionInitializationException 当以下情况发生时抛出：
-	 *         <ul>
-	 *             <li>未配置任何密钥</li>
-	 *             <li>算法不支持</li>
-	 *             <li>密钥无效</li>
-	 *         </ul>
-	 * @see #encrypt(byte[])
-	 * @see #decrypt(byte[])
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
 	 * @since 1.0.0
 	 */
 	public synchronized void initialize() {
 		if (!initialized) {
 			try {
-				if (Objects.nonNull(key.getPublicKey())) {
-					PublicKey publicKey = key.getPublicKey();
+				if (Objects.nonNull(publicKey)) {
 					RSAPublicKeySpec publicKeySpec = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
 						.getKeySpec(publicKey, RSAPublicKeySpec.class);
 					this.encryptBlockSize = this.transformation.getEncryptBlockSize(publicKeySpec);
-					this.encryptCipher = Cipher.getInstance(this.transformation.getName());
-					this.encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 				}
 
-				if (Objects.nonNull(key.getPrivateKey())) {
-					PrivateKey privateKey = key.getPrivateKey();
+				if (Objects.nonNull(privateKey)) {
 					RSAPrivateKeySpec privateKeySpec = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
 						.getKeySpec(privateKey, RSAPrivateKeySpec.class);
 					this.decryptBlockSize = this.transformation.getDecryptBlockSize(privateKeySpec);
-					this.decryptCipher = Cipher.getInstance(this.transformation.getName());
-					this.decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 				}
-			} catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-					 InvalidKeySpecException e) {
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 				throw new EncryptionInitializationException(e);
 			}
 			initialized = true;
@@ -360,80 +274,76 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 
 	/**
 	 * 加密二进制数据
-	 * <p>使用公钥加密原始数据，自动处理大数据分块，流程包括：</p>
+	 * <p>使用公钥对原始数据进行加密，自动处理大数据分块：</p>
 	 * <ol>
-	 *   <li>检查输入数据</li>
-	 *   <li>自动初始化(如需要)</li>
-	 *   <li>分块加密数据</li>
-	 *   <li>返回加密结果</li>
+	 *   <li>检查输入数据（支持 null/空数组）</li>
+	 *   <li>惰性初始化（如需要）</li>
+	 *   <li>按分块大小迭代加密</li>
+	 *   <li>合并并返回结果</li>
 	 * </ol>
 	 *
-	 * @param binary 要加密的数据，允许为空数组(返回空数组)
-	 * @return 加密后的数据，具有以下特性：
-	 *         <ul>
-	 *           <li>非null</li>
-	 *           <li>空输入返回空数组</li>
-	 *         </ul>
-	 * @throws EncryptionOperationNotPossibleException 当以下情况发生时抛出：
-	 *         <ul>
-	 *           <li>未设置公钥</li>
-	 *           <li>加密过程出现异常</li>
-	 *         </ul>
+	 * @param binary 要加密的数据，允许为 null 或空数组（返回空数组）
+	 * @return 加密后的数据（非 null；空输入返回空数组）
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionOperationNotPossibleException 未设置公钥或加密过程出现异常时抛出
+	 * @apiNote 若需提升大数据性能，建议配合对称加密采用混合方案
 	 * @since 1.0.0
 	 */
 	public byte[] encrypt(final byte[] binary) {
 		if (ArrayUtils.isEmpty(binary)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(key.getPublicKey())) {
+		if (Objects.isNull(publicKey)) {
 			throw new EncryptionOperationNotPossibleException("未设置公钥");
 		}
 		if (!initialized) {
 			initialize();
 		}
+
 		try {
-			return doFinal(this.encryptCipher, binary, this.encryptBlockSize);
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
+			Cipher cipher = Cipher.getInstance(this.transformation.getName());
+			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+			return doFinal(cipher, binary, this.encryptBlockSize);
+		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | NoSuchAlgorithmException |
+				 NoSuchPaddingException e) {
 			throw new EncryptionOperationNotPossibleException(e);
 		}
 	}
 
 	/**
 	 * 解密二进制数据
-	 * <p>使用私钥解密数据，自动处理大数据分块，流程包括：</p>
+	 * <p>使用私钥对加密数据进行解密，自动处理大数据分块：</p>
 	 * <ol>
-	 *   <li>检查输入数据</li>
-	 *   <li>自动初始化(如需要)</li>
-	 *   <li>分块解密数据</li>
-	 *   <li>返回解密结果</li>
+	 *   <li>检查输入数据（支持 null/空数组）</li>
+	 *   <li>惰性初始化（如需要）</li>
+	 *   <li>按分块大小迭代解密</li>
+	 *   <li>合并并返回原文</li>
 	 * </ol>
 	 *
-	 * @param encryptedBinary 要解密的数据，允许为空数组(返回空数组)
-	 * @return 解密后的原始数据，具有以下特性：
-	 *         <ul>
-	 *           <li>非null</li>
-	 *           <li>空输入返回空数组</li>
-	 *         </ul>
-	 * @throws EncryptionOperationNotPossibleException 当以下情况发生时抛出：
-	 *         <ul>
-	 *           <li>未设置私钥</li>
-	 *           <li>解密过程出现异常</li>
-	 *         </ul>
+	 * @param encryptedBinary 要解密的数据，允许为 null 或空数组（返回空数组）
+	 * @return 解密后的原始数据（非 null；空输入返回空数组）
+	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionOperationNotPossibleException 未设置私钥或解密过程出现异常时抛出
+	 * @apiNote 若需提升大数据性能，建议配合对称加密采用混合方案
 	 * @since 1.0.0
 	 */
 	public byte[] decrypt(final byte[] encryptedBinary) {
 		if (ArrayUtils.isEmpty(encryptedBinary)) {
 			return ArrayUtils.EMPTY_BYTE_ARRAY;
 		}
-		if (Objects.isNull(key.getPrivateKey())) {
+		if (Objects.isNull(privateKey)) {
 			throw new EncryptionOperationNotPossibleException("未设置私钥");
 		}
 		if (!initialized) {
 			initialize();
 		}
+
 		try {
-			return doFinal(this.decryptCipher, encryptedBinary, this.decryptBlockSize);
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
+			Cipher cipher = Cipher.getInstance(this.transformation.getName());
+			cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			return doFinal(cipher, encryptedBinary, this.decryptBlockSize);
+		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | NoSuchAlgorithmException |
+				 NoSuchPaddingException e) {
 			throw new EncryptionOperationNotPossibleException(e);
 		}
 	}
@@ -461,7 +371,6 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		}
 		int inputLength = input.length;
 		int offsetLength = 0;
-		int i = 0;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		while (inputLength - offsetLength > 0) {
 			byte[] bytes;
@@ -474,8 +383,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 				outputStream.write(bytes);
 			} catch (IOException ignored) {
 			}
-			++i;
-			offsetLength = size * i;
+			offsetLength += size;
 		}
 		return outputStream.toByteArray();
 	}

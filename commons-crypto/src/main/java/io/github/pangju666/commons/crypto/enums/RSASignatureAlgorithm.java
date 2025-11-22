@@ -8,7 +8,7 @@ package io.github.pangju666.commons.crypto.enums;
  * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html">JCA 签名算法标准名称</a>
  * @since 1.0.0
  */
-public enum RsaSignatureAlgorithm {
+public enum RSASignatureAlgorithm {
 	MD2_WITH_RSA("MD2withRSA"),
 	MD5_WITH_RSA("MD5withRSA"),
 	SHA1_WITH_RSA("SHA1withRSA"),
@@ -21,7 +21,7 @@ public enum RsaSignatureAlgorithm {
 
 	private final String algorithm;
 
-	RsaSignatureAlgorithm(String algorithm) {
+	RSASignatureAlgorithm(String algorithm) {
 		this.algorithm = algorithm;
 	}
 
