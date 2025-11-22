@@ -16,10 +16,12 @@
 
 package io.github.pangju666.commons.crypto.utils;
 
+import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -91,6 +93,23 @@ public class KeyPairUtils {
 	 * @since 1.0.0
 	 */
 	protected static final Map<String, KeyPairGenerator> KEY_PAIR_GENERATOR_MAP = new ConcurrentHashMap<>(3);
+
+	// 预缓存RSA算法密钥工厂和密钥生成器
+	static {
+		try {
+			KEY_FACTORY_MAP.put(CryptoConstants.RSA_ALGORITHM, KeyFactory.getInstance(CryptoConstants.RSA_ALGORITHM));
+			KEY_PAIR_GENERATOR_MAP.put(CryptoConstants.RSA_ALGORITHM, KeyPairGenerator.getInstance(CryptoConstants.RSA_ALGORITHM));
+			for (Integer keySize : CryptoConstants.RSA_KEY_SIZE_SET) {
+				String mapKey = CryptoConstants.RSA_ALGORITHM + "-" + keySize;
+				KeyPairGenerator generator = KeyPairGenerator.getInstance(CryptoConstants.RSA_ALGORITHM);
+				generator.initialize(keySize);
+				KEY_PAIR_GENERATOR_MAP.put(mapKey, generator);
+			}
+		} catch (NoSuchAlgorithmException e) {
+			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
+			throw ExceptionUtils.asRuntimeException(e);
+		}
+	}
 
 	protected KeyPairUtils() {
 	}
