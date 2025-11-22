@@ -258,6 +258,16 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
+	/**
+	 * 默认对比度过滤器
+	 * <p>
+	 * 用于调整图像对比度的滤镜实例。
+	 * 该滤镜在{@link #contrast()}方法中使用。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
 
 	/**
 	 * 原始输入图像
@@ -774,7 +784,9 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor contrast() {
-		return contrast(0.3f);
+		Image image = ImageUtil.filter(this.outputImage, DEFAULT_CONTRAST_FILTER);
+		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		return this;
 	}
 
 	/**
