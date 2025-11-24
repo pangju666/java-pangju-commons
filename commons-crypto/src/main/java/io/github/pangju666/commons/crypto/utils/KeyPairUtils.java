@@ -68,14 +68,14 @@ public class KeyPairUtils {
 	 *
 	 * <h3>缓存策略</h3>
 	 * <ul>
-	 *   <li>初始容量：3（适合RSA/DSA/EC等常见算法）</li>
+	 *   <li>初始容量：1（适合RSA/DSA/EC等常见算法）</li>
 	 *   <li>并发安全：使用ConcurrentHashMap实现</li>
 	 *   <li>生命周期：随ClassLoader存在</li>
 	 * </ul>
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final Map<String, KeyFactory> KEY_FACTORY_MAP = new ConcurrentHashMap<>(3);
+	protected static final Map<String, KeyFactory> KEY_FACTORY_MAP = new ConcurrentHashMap<>(1);
 
 	/**
 	 * KeyPairGenerator对象缓存池（按算法名称缓存）
@@ -85,25 +85,28 @@ public class KeyPairUtils {
 	 *
 	 * <h3>缓存策略</h3>
 	 * <ul>
-	 *   <li>初始容量：3（适合RSA/DSA/EC等常见算法）</li>
+	 *   <li>初始容量：4（适合RSA/DSA/EC等常见算法）</li>
 	 *   <li>并发安全：使用ConcurrentHashMap实现</li>
 	 *   <li>生命周期：随ClassLoader存在</li>
 	 * </ul>
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final Map<String, KeyPairGenerator> KEY_PAIR_GENERATOR_MAP = new ConcurrentHashMap<>(3);
+	protected static final Map<String, KeyPairGenerator> KEY_PAIR_GENERATOR_MAP = new ConcurrentHashMap<>(4);
 
 	// 预缓存RSA算法密钥工厂和密钥生成器
 	static {
 		try {
 			KEY_FACTORY_MAP.put(CryptoConstants.RSA_ALGORITHM, KeyFactory.getInstance(CryptoConstants.RSA_ALGORITHM));
-			KEY_PAIR_GENERATOR_MAP.put(CryptoConstants.RSA_ALGORITHM, KeyPairGenerator.getInstance(CryptoConstants.RSA_ALGORITHM));
 			for (Integer keySize : CryptoConstants.RSA_KEY_SIZE_SET) {
 				String mapKey = CryptoConstants.RSA_ALGORITHM + "-" + keySize;
 				KeyPairGenerator generator = KeyPairGenerator.getInstance(CryptoConstants.RSA_ALGORITHM);
 				generator.initialize(keySize);
 				KEY_PAIR_GENERATOR_MAP.put(mapKey, generator);
+
+				if (keySize == CryptoConstants.RSA_DEFAULT_KEY_SIZE) {
+					KEY_PAIR_GENERATOR_MAP.put(CryptoConstants.RSA_ALGORITHM, generator);
+				}
 			}
 		} catch (NoSuchAlgorithmException e) {
 			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
