@@ -17,6 +17,7 @@
 package io.github.pangju666.commons.io.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
+import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.MemoryMappedFileInputStream;
@@ -28,6 +29,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tika.metadata.Metadata;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -35,33 +38,39 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 增强型文件操作工具类（继承自 {@link org.apache.commons.io.FileUtils}）
- * <p>在Apache Commons IO原生功能基础上扩展以下核心能力：</p>
+ * 增强型文件工具类
+ * <p>扩展自 {@link org.apache.commons.io.FileUtils}，在通用文件操作基础上强化性能与可用性。</p>
  *
- * <h3>功能特性：</h3>
+ * <h3>核心特性</h3>
  * <ul>
- *     <li><strong>高性能IO流</strong> - 提供内存映射文件流、缓冲通道流等高效读取方案，支持大文件处理</li>
- *     <li><strong>文件加解密体系</strong> - 支持AES/CBC和AES/CTR两种加密模式，提供完整加解密解决方案</li>
- *     <li><strong>元数据解析</strong> - 基于Apache Tika实现50+种文件格式的元数据提取</li>
- *     <li><strong>内容类型检测</strong> - 精准识别300+种MIME类型，不受文件扩展名影响</li>
- *     <li><strong>安全删除机制</strong> - 增强的文件删除功能，支持强制删除被占用文件</li>
+ *   <li>高性能读取：提供内存映射、缓冲通道、非同步缓冲等多种输入流</li>
+ *   <li>内容类型检测：独立于扩展名识别大量 MIME 类型</li>
+ *   <li>元数据解析：集成 Apache Tika 进行元数据提取</li>
+ *   <li>健壮删除：增强删除策略，可处理被占用文件</li>
+ *   <li>文件加解密：提供 AES/CBC 与 AES/CTR 文件加/解密便捷方法（委托 {@link IOUtils}，流式处理）</li>
+ *   <li>快速摘要：基于 xxHash64 的三段采样文件摘要</li>
  * </ul>
  *
- * <h3>设计原则：</h3>
- * <ol>
- *     <li>所有方法均为线程安全的静态方法</li>
- *     <li>严格参数校验，避免NPE和非法参数</li>
- *     <li>与Apache Commons IO保持API风格一致</li>
- *     <li>针对大文件处理进行性能优化</li>
- * </ol>
+ * <h3>加解密说明</h3>
+ * <ul>
+ *   <li>密钥长度：16/24/32 字节（128/192/256 位）</li>
+ *   <li>IV 长度：16 字节；解密需与加密一致</li>
+ *   <li>错误处理：CBC 模式填充验证失败或配置错误将抛出 {@code IOException}</li>
+ * </ul>
  *
- * <h3>使用建议：</h3>
- * <ol>
- *     <li>首先考虑是否在意线程安全，不在意则使用{@link #openUnsynchronizedBufferedInputStream(File)}</li>
- *      <li>其次考虑是否为超大文件，不是则使用{@link #openInputStream(File)}</li>
- *     <li>其次考虑是否在意内存占用，不在意则使用{@link #openMemoryMappedFileInputStream(File)}</li>
- *     <li>不满足以上条件的话，使用{@link #openBufferedFileChannelInputStream(File)}</li>
- * </ol>
+ * <h3>设计原则</h3>
+ * <ul>
+ *   <li>严格参数校验，避免非法输入</li>
+ *   <li>针对大文件场景优化性能</li>
+ * </ul>
+ *
+ * <h3>使用建议</h3>
+ * <ul>
+ *   <li>不关注线程安全：优先 {@link #openUnsynchronizedBufferedInputStream(File)}</li>
+ *   <li>常规大小文件：优先 {@link #openInputStream(File)}</li>
+ *   <li>不敏感于内存占用且需极致性能：考虑 {@link #openMemoryMappedFileInputStream(File)}</li>
+ *   <li>其他场景：使用 {@link #openBufferedFileChannelInputStream(File)}</li>
+ * </ul>
  *
  * @author pangju666
  * @since 1.0.0
@@ -76,7 +85,119 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	protected static final long GB_1 = 1024 * MB_1;
 	protected static final long GB_10 = 10 * GB_1;
 
+	/**
+	 * 64 位 xxHash 函数
+	 * <p>用于快速计算文件摘要，兼顾性能与较低碰撞率。</p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final LongHashFunction HASH_FUNC = LongHashFunction.xx();
+	/**
+	 * 采样字节数
+	 * <p>分别从文件头/中/尾各读取该大小的字节用于摘要计算。</p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int SAMPLE_SIZE = 64;
+	/**
+	 * 空文件摘要固定值
+	 * <p>当文件大小为 0 时直接返回该 16 位十六进制字符串。</p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final String EMPTY_FILE_DIGEST = "0000000000000000";
+	/**
+	 * 摘要输出格式
+	 * <p>使用 16 位十六进制、左侧 0 填充（`%016x`）。</p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final String FILE_DIGEST_FORMAT = "%016x";
+
 	protected FileUtils() {
+	}
+
+	/**
+	 * 计算文件摘要
+	 * <p>基于文件大小与三段采样（头/中/尾各 {@link #SAMPLE_SIZE} 字节）组合后使用 xxHash64 计算，输出 16 位十六进制字符串。</p>
+	 *
+	 * <h3>处理规则</h3>
+	 * <ul>
+	 *   <li>空文件返回固定值 {@link #EMPTY_FILE_DIGEST}</li>
+	 *   <li>中段位置在避开头尾的区间居中选取</li>
+	 * </ul>
+	 *
+	 * @param file 目标文件，不能为空
+	 * @return 16 位十六进制摘要字符串（左侧 0 填充）
+	 * @throws IOException 读写通道异常
+	 * @since 1.0.0
+	 */
+	public static String computeDigest(final File file) throws IOException {
+		checkFile(file, "file不可为 null");
+
+		long fileSize = file.length();
+		if (fileSize == 0) {
+			return EMPTY_FILE_DIGEST;
+		}
+
+		byte[] head = new byte[SAMPLE_SIZE];
+		byte[] mid = new byte[SAMPLE_SIZE];
+		byte[] tail = new byte[SAMPLE_SIZE];
+
+		try (RandomAccessFile raf = new RandomAccessFile(file, "r");
+			 FileChannel channel = raf.getChannel()) {
+
+			// 读取开头
+			readFully(channel, 0, head);
+
+			// 读取结尾
+			long tailPos = Math.max(0, fileSize - SAMPLE_SIZE);
+			readFully(channel, tailPos, tail);
+
+			// 读取中间（避开头尾）
+			long midPos;
+			if (fileSize <= 2L * SAMPLE_SIZE) {
+				// 文件太小，中间与头重叠
+				midPos = 0;
+			} else {
+				// 在 [SAMPLE_SIZE, fileSize - SAMPLE_SIZE) 区间居中
+				midPos = SAMPLE_SIZE + (fileSize - 2L * SAMPLE_SIZE) / 2;
+			}
+			readFully(channel, midPos, mid);
+		}
+
+		// 合并：[fileSize][head][mid][tail]
+		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + 3 * SAMPLE_SIZE);
+		buffer.putLong(fileSize);
+		buffer.put(head);
+		buffer.put(mid);
+		buffer.put(tail);
+
+		long hash = HASH_FUNC.hashBytes(buffer.array());
+		return String.format(FILE_DIGEST_FORMAT, hash); // 16 位 0 补齐
+	}
+
+	/**
+	 * 从指定位置读取固定长度字节
+	 * <p>循环读取至缓冲区填满或到达 EOF，允许部分读取。</p>
+	 *
+	 * @param channel  文件通道
+	 * @param position 起始读取位置（字节偏移）
+	 * @param buffer   目标缓冲区（长度即期望读取量）
+	 * @throws IOException 通道读写异常
+	 * @since 1.0.0
+	 */
+	protected static void readFully(final FileChannel channel, final long position, final byte[] buffer) throws IOException {
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		int totalRead = 0;
+		while (totalRead < buffer.length) {
+			channel.position(position + totalRead);
+			int read = channel.read(bb);
+			if (read <= 0) {
+				break;
+			}
+			totalRead += read;
+		}
 	}
 
 	/**
@@ -149,6 +270,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *     <li>自动根据文件大小优化缓冲区</li>
 	 *     <li>内置文件存在性校验</li>
 	 * </ul>
+	 *
 	 * @param file 要读取的文件对象（必须存在且可读）
 	 * @return 配置好的非同步缓冲输入流实例
 	 * @throws IOException 当发生以下情况时抛出：
@@ -176,6 +298,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *     <li>自动根据文件大小优化缓冲区</li>
 	 *     <li>适合顺序读取大文件场景</li>
 	 * </ul>
+	 *
 	 * @param file 要读取的文件对象（必须存在且可读）
 	 * @return 配置好的缓冲文件通道输入流
 	 * @throws IOException 当发生以下情况时抛出：
@@ -244,12 +367,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 加密输出文件（自动创建父目录）
 	 * @param key        加密密钥（16/24/32 字节）
 	 * @param iv         初始化向量（16 字节，解密时必须与加密一致）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
@@ -274,12 +397,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param key        加密密钥（16/24/32 字节）
 	 * @param iv         初始化向量（16 字节）
 	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
@@ -309,13 +432,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 解密输出文件（自动创建父目录）
 	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
 	 * @param iv         初始化向量（16 字节，与加密时一致）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                         <li>填充验证失败（可能文件被篡改）</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                      <li>填充验证失败（可能文件被篡改）</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decrypt(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
@@ -340,13 +463,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
 	 * @param iv         初始化向量（16 字节，与加密时一致）
 	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                         <li>填充验证失败（可能文件被篡改）</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                      <li>填充验证失败（可能文件被篡改）</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
@@ -376,12 +499,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 加密输出文件（自动创建父目录）
 	 * @param key        加密密钥（16/24/32 字节）
 	 * @param iv         初始化向量（16 字节，解密时必须与加密一致）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
@@ -406,12 +529,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param key        加密密钥（16/24/32 字节）
 	 * @param iv         初始化向量（16 字节）
 	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
@@ -441,12 +564,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param outputFile 解密输出文件（自动创建父目录）
 	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
 	 * @param iv         初始化向量（16 字节，与加密时一致）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[])
 	 * @since 1.0.0
@@ -471,12 +594,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param key        解密密钥（16/24/32 字节，与加密时一致）
 	 * @param iv         初始化向量（16 字节，与加密时一致）
 	 * @param bufferSize 处理缓冲区大小（正数，建议参考 {@link IOUtils#DEFAULT_BUFFER_SIZE}）
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不存在或不可读</li>
-	 *                         <li>输出路径不可写或创建失败</li>
-	 *                         <li>文件 IO 操作失败</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出路径不可写或创建失败</li>
+	 *                                      <li>文件 IO 操作失败</li>
+	 *                                  </ul>
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
@@ -544,7 +667,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @param file 待删除的文件（可为null）
 	 * @throws SecurityException 当安全管理器拒绝删除操作时抛出
-	 * @throws IOException 当发生I/O错误时抛出
+	 * @throws IOException       当发生I/O错误时抛出
 	 * @see File#delete()
 	 * @since 1.0.0
 	 */
@@ -825,7 +948,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *     <li>如需频繁匹配大量类型，建议使用集合版本</li>
 	 * </ul>
 	 *
-	 * @param file 目标文件（必须存在且可读）
+	 * @param file      目标文件（必须存在且可读）
 	 * @param mimeTypes 待匹配的MIME类型数组（可空）
 	 * @return 当文件MIME类型匹配数组中任意元素时返回true
 	 * @throws IOException 当发生以下情况时抛出：
@@ -861,7 +984,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *     <li>支持更灵活的类型过滤逻辑</li>
 	 * </ol>
 	 *
-	 * @param file 目标文件（必须存在且可读）
+	 * @param file      目标文件（必须存在且可读）
 	 * @param mimeTypes 待匹配的MIME类型集合（可空）
 	 * @return 当文件MIME类型匹配集合中任意元素时返回true
 	 * @throws IOException 当发生以下情况时抛出：
@@ -902,12 +1025,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param newFilename 新名称
 	 * @return 重命名后的文件对象
 	 * @throws FileExistsException 当目标文件已存在时抛出
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>文件系统权限不足</li>
-	 *                         <li>跨文件系统移动</li>
-	 *                         <li>磁盘I/O错误</li>
-	 *                     </ul>
+	 * @throws IOException         当发生以下情况时抛出：
+	 *                             <ul>
+	 *                                 <li>文件系统权限不足</li>
+	 *                                 <li>跨文件系统移动</li>
+	 *                                 <li>磁盘I/O错误</li>
+	 *                             </ul>
 	 * @see File#renameTo(File)
 	 * @since 1.0.0
 	 */
@@ -1008,9 +1131,9 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *     <li>统一异常处理机制</li>
 	 * </ul>
 	 *
-	 * @param file 待校验的文件对象
+	 * @param file    待校验的文件对象
 	 * @param message 校验失败时的异常消息
-	 * @throws IOException 当文件不存在时抛出FileNotFoundException
+	 * @throws IOException          当文件不存在时抛出FileNotFoundException
 	 * @throws NullPointerException 当file为null时抛出
 	 * @see File#exists()
 	 * @since 1.0.0

@@ -39,6 +39,10 @@
 			<artifactId>jakarta.activation-api</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>zero-allocation-hashing</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
 			<scope>test</scope>
