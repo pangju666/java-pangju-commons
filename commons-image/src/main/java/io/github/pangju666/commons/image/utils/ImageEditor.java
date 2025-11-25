@@ -399,7 +399,6 @@ public class ImageEditor {
 	/**
 	 * 从文件创建图像编辑器
 	 * <p>
-	 * 自动从文件扩展名推断输出格式
 	 * 这是{@link #of(File, boolean)}方法的便捷重载，自动校正参数设为false。
 	 * </p>
 	 *
