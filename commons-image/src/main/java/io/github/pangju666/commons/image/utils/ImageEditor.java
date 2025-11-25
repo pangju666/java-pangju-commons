@@ -89,7 +89,6 @@ import java.util.Objects;
  *   <li>修改对比度</li>
  *   <li>锐化或模糊（这两个操作互斥，一般不会同时用）</li>
  *   <li>滤镜</li>
- *   <li>修改透明度</li>
  *   <li>添加水印</li>
  * </ol>
  *
@@ -941,28 +940,6 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 设置输出图像整体不透明度并进行覆盖绘制。
-	 * <p>
-	 * 使用 {@code AlphaComposite.SRC_OVER} 以指定透明度将输入图像绘制到当前输出图像上。
-	 * 当 {@code opacity} &lt; 0 或 &gt; 1 时不进行任何处理直接返回。
-	 *
-	 * @param opacity 不透明度，取值范围 [0, 1]，超出范围不生效
-	 * @return 当前编辑器实例（便于链式调用）
-	 * @since 1.0.0
-	 */
-	public ImageEditor opacity(float opacity) {
-		if (opacity < 0f || opacity > 1.0) {
-			return this;
-		}
-
-		Graphics2D graphics2D = this.outputImage.createGraphics();
-		graphics2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
-		graphics2D.drawImage(inputImage, 0, 0, null);
-		graphics2D.dispose();
-		return this;
-	}
-
-	/**
 	 * 居中裁剪为指定尺寸。
 	 * <p>
 	 * 以当前输出图像的中心为基准，裁剪出宽度为 {@code width}、高度为 {@code height} 的区域。
@@ -1299,7 +1276,6 @@ public class ImageEditor {
 		Validate.notNull(option, "option 不可为 null");
 
 		Graphics2D graphics = this.outputImage.createGraphics();
-		graphics.drawImage(this.outputImage, 0, 0, null);
 
 		// 设置抗锯齿
 		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1402,7 +1378,6 @@ public class ImageEditor {
 		Validate.notNull(option, "option 不可为 null");
 
 		Graphics2D graphics = this.outputImage.createGraphics();
-		graphics.drawImage(this.outputImage, 0, 0, null);
 
 		// 设置抗锯齿
 		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
