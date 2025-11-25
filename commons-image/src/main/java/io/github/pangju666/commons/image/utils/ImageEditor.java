@@ -34,6 +34,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
@@ -291,7 +292,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private final BufferedImage inputImage;
+	protected final BufferedImage inputImage;
 
 	/**
 	 * 原始图像尺寸
@@ -301,7 +302,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private final ImageSize inputImageSize;
+	protected final ImageSize inputImageSize;
 
 	/**
 	 * 处理后的输出图像
@@ -312,7 +313,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private BufferedImage outputImage;
+	protected BufferedImage outputImage;
 
 	/**
 	 * 输出图像尺寸
@@ -323,7 +324,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private ImageSize outputImageSize;
+	protected ImageSize outputImageSize;
 
 	/**
 	 * 输出图像格式
@@ -335,7 +336,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private String outputFormat;
+	protected String outputFormat;
 
 	/**
 	 * 重采样滤波器类型
@@ -347,10 +348,21 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	private int resampleFilterType = ResampleOp.FILTER_LANCZOS;
+	protected int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
-	 * 构造图像编辑器（指定输出格式）
+	 * 输入图像格式
+	 * <p>
+	 * 通过 {@link #of(File)} 或 {@link #of(File, boolean)} 从文件创建时，取自文件扩展名（如 "png"、"jpg"/"jpeg"）；需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportReadImageFormats()}）。
+	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #restore()} 时也会用它恢复输出格式。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected String inputFormat;
+
+	/**
+	 * 构造图像编辑器
 	 *
 	 * @param inputImage     原始图像，不可为null
 	 * @param inputImageSize 原始图像尺寸，不可为null
@@ -404,32 +416,39 @@ public class ImageEditor {
 	/**
 	 * 从文件创建图像编辑器。
 	 *
-	 * <p>自动从文件扩展名推断输出格式。可选择是否根据 EXIF 信息自动校正图像方向。
+	 * <p>自动从文件扩展名推断输入/输出格式；可选择是否根据 EXIF 信息自动校正图像方向。
 	 * 当 EXIF 不存在或读取失败时，将保持原始方向并忽略相关异常。</p>
 	 *
 	 * <p>处理流程：</p>
 	 * <ol>
-	 *   <li>验证文件有效性</li>
+	 *   <li>验证文件有效性（存在且为常规文件）</li>
+	 *   <li>提取文件扩展名并校验是否为支持的读取格式</li>
 	 *   <li>读取图像数据到 BufferedImage</li>
 	 *   <li>创建 ImageEditor 实例</li>
-	 *   <li>设置输出格式为文件扩展名</li>
+	 *   <li>记录输入格式，并将输出格式初始化为该扩展名</li>
 	 *   <li>若启用自动校正：尝试读取 EXIF 方向并应用校正；若 EXIF 不存在或读取失败则保持原始方向</li>
 	 * </ol>
 	 *
 	 * @param file                   图像文件，不可为 null
 	 * @param autoCorrectOrientation 是否自动校正图像方向（根据 EXIF 信息）
 	 * @return 图像编辑器实例
-	 * @throws IOException 当读取图像失败时抛出
+	 * @throws NullPointerException      当 file 为 null 时抛出
+	 * @throws IllegalArgumentException  当 file 为目录或扩展名不在支持的读取格式列表时抛出
+	 * @throws IOException               当读取图像失败时抛出
 	 * @see io.github.pangju666.commons.image.utils.ImageUtils#getExifOrientation(java.io.File)
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final boolean autoCorrectOrientation) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
+		String inputFormat = FilenameUtils.getExtension(file.getName());
+		Validate.isTrue(ImageConstants.getSupportReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
+
 		BufferedImage bufferedImage = ImageIO.read(file);
 		ImageEditor imageEditor = new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
 			bufferedImage.getHeight()));
-		imageEditor.outputFormat(FilenameUtils.getExtension(file.getName()));
+		imageEditor.inputFormat = inputFormat;
+		imageEditor.outputFormat = inputFormat;
 		if (autoCorrectOrientation) {
 			int exif = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try {
@@ -598,7 +617,7 @@ public class ImageEditor {
 	 * </ul>
 	 *
 	 * @param hints 缩放提示类型，来自 {@link Image} 类的常量
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleHints(final int hints) {
@@ -624,7 +643,7 @@ public class ImageEditor {
 	 * 设置输出图像的格式。
 	 *
 	 * @param outputFormat 输出格式，如 "jpg"、"png" 等
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当指定的格式不被支持时
 	 * @since 1.0.0
 	 */
@@ -652,7 +671,7 @@ public class ImageEditor {
 	 * 对于方向值5-8，会同时调整输出图像的宽高比例。
 	 *
 	 * @param orientation EXIF方向值(1-8)
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor correctOrientation(int orientation) {
@@ -697,7 +716,7 @@ public class ImageEditor {
 	 * 按指定方向旋转图像。
 	 *
 	 * @param direction 旋转方向，可以是 {@link ImageUtil#ROTATE_90_CW}、{@link ImageUtil#ROTATE_90_CCW} 或 {@link ImageUtil#ROTATE_180}
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor rotate(final int direction) {
@@ -711,7 +730,7 @@ public class ImageEditor {
 	 * 按指定角度旋转图像。
 	 *
 	 * @param angle 旋转角度（度数），正值表示顺时针旋转
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor rotate(final double angle) {
@@ -722,7 +741,7 @@ public class ImageEditor {
 	/**
 	 * 对图像应用模糊效果，使用默认模糊半径1.5。
 	 *
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor blur() {
@@ -734,7 +753,7 @@ public class ImageEditor {
 	 * 对图像应用模糊效果，使用指定的模糊半径。
 	 *
 	 * @param radius 模糊半径，值越大模糊效果越强
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor blur(final float radius) {
@@ -746,7 +765,7 @@ public class ImageEditor {
 	 * 翻转图像。
 	 *
 	 * @param axis 翻转轴，可以是 {@link ImageUtil#FLIP_HORIZONTAL} 或 {@link ImageUtil#FLIP_VERTICAL}
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor flip(final int axis) {
@@ -759,7 +778,7 @@ public class ImageEditor {
 	/**
 	 * 对图像应用锐化效果，使用默认锐化强度0.3。
 	 *
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor sharpen() {
@@ -771,7 +790,7 @@ public class ImageEditor {
 	 * 对图像应用锐化效果，使用指定的锐化强度。
 	 *
 	 * @param amount 锐化强度
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor sharpen(final float amount) {
@@ -782,7 +801,7 @@ public class ImageEditor {
 	/**
 	 * 将图像转换为灰度图。
 	 *
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor grayscale() {
@@ -794,7 +813,7 @@ public class ImageEditor {
 	/**
 	 * 调整图像对比度，使用默认对比度值0.3。
 	 *
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor contrast() {
@@ -807,7 +826,7 @@ public class ImageEditor {
 	 * 调整图像对比度。
 	 *
 	 * @param amount 对比度调整值，范围为-1.0到1.0，0表示不变，正值增加对比度，负值降低对比度
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor contrast(final float amount) {
@@ -825,7 +844,7 @@ public class ImageEditor {
 	 * 调整图像亮度。
 	 *
 	 * @param amount 亮度调整值，范围为-2.0到2.0，0表示不变，正值增加亮度，负值降低亮度
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor brightness(final float amount) {
@@ -843,7 +862,7 @@ public class ImageEditor {
 	 * 对图像应用自定义过滤器。
 	 *
 	 * @param filter 要应用的图像过滤器
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @throws NullPointerException 当过滤器为null时
 	 * @since 1.0.0
 	 */
@@ -860,7 +879,7 @@ public class ImageEditor {
 	 *
 	 * @param width  目标宽度（像素）
 	 * @param height 目标高度（像素）
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor resize(final int width, final int height) {
@@ -873,7 +892,7 @@ public class ImageEditor {
 	 * 强制将图像缩放到指定的尺寸，不保持原始宽高比。
 	 *
 	 * @param size 目标尺寸
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @throws NullPointerException 当尺寸参数为null时
 	 * @since 1.0.0
 	 */
@@ -889,7 +908,7 @@ public class ImageEditor {
 	 * 按指定宽度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param width 目标宽度（像素）
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleByWidth(final int width) {
@@ -902,7 +921,7 @@ public class ImageEditor {
 	 * 按指定高度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param height 目标高度（像素）
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleByHeight(final int height) {
@@ -915,7 +934,7 @@ public class ImageEditor {
 	 * 将图像缩放到指定的比例，保持原始宽高比。
 	 *
 	 * @param scale 缩放比例
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public ImageEditor scale(final double scale) {
@@ -929,7 +948,7 @@ public class ImageEditor {
 	 *
 	 * @param width  最大宽度（像素）
 	 * @param height 最大高度（像素）
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例，用于链式调用
 	 * @see ImageSize#scale(int, int)
 	 * @since 1.0.0
 	 */
@@ -1158,13 +1177,16 @@ public class ImageEditor {
 	 * 恢复图像到初始状态，重置所有处理效果。
 	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
 	 *
-	 * @return 当前缩略图处理器实例，用于链式调用
+	 * @return 当前编辑器实例（便于链式调用）
 	 * @since 1.0.0
 	 */
 	public ImageEditor restore() {
 		this.outputImage = this.inputImage;
 		this.outputImageSize = this.inputImageSize;
-		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+		this.outputFormat = this.inputFormat;
+		if (StringUtils.isBlank(this.outputFormat)) {
+			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+		}
 		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		return this;
 	}
