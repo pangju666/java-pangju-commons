@@ -72,6 +72,48 @@ import java.util.Objects;
  *   <li>内部实现对边缘位置使用固定边距进行微调：图片约 10px、文字约 20px。</li>
  * </ul>
  *
+ * <p><b>使用建议：</b></p>
+ * <ul>
+ *   <li>处理链按照方法调用顺序依次应用，可通过 {@link #restore()} 恢复到初始状态。</li>
+ *   <li>大图或批量处理场景建议合理复用实例并注意资源释放。</li>
+ * </ul>
+ *
+ * <p><b>推荐方法调用顺序：</b></p>
+ * <ol>
+ *   <li>裁剪</li>
+ *   <li>缩放</li>
+ *   <li>旋转</li>
+ *   <li>翻转</li>
+ *   <li>灰度化</li>
+ *   <li>修改亮度</li>
+ *   <li>修改对比度</li>
+ *   <li>锐化或模糊（这两个操作互斥，一般不会同时用）</li>
+ *   <li>滤镜</li>
+ *   <li>修改透明度</li>
+ *   <li>添加水印</li>
+ * </ol>
+ *
+ * <p><b>线程安全：</b></p>
+ * <ul>
+ *   <li>本类为<strong>非线程安全</strong>，实例包含可变状态（如 {@code outputImage}、{@code outputFormat}）。</li>
+ *   <li>不要在多个线程间共享同一实例并发调用；请为每个线程创建独立实例或在外部做同步。</li>
+ *   <li>方法内部会创建并释放 {@code Graphics2D}，并发访问可能导致资源竞争或不可预期的呈现结果。</li>
+ * </ul>
+ *
+ * <p><b>性能与内存：</b></p>
+ * <ul>
+ *   <li>处理大图会占用较多内存，建议先进行缩放再应用其他效果，以降低后续计算量。</li>
+ *   <li>滤波器选择存在质量与速度权衡：{@link ResampleOp#FILTER_LANCZOS} 质量高但较慢；{@link ResampleOp#FILTER_BOX} 较快且质量中等；{@link ResampleOp#FILTER_POINT} 最快但质量较低。</li>
+ *   <li>合成与水印绘制会创建临时 {@code Graphics2D} 并在结束后释放；避免在热点路径中频繁创建与销毁编辑器实例。</li>
+ * </ul>
+ *
+ * <p><b>异常与容错：</b></p>
+ * <ul>
+ *   <li>EXIF 读取失败或不存在时不会抛出异常，保持原始方向并继续处理。</li>
+ *   <li>参数校验使用 {@link org.apache.commons.lang3.Validate}；常见异常为 {@link IllegalArgumentException}（如参数为 {@code null}、文本为空、不支持的输出格式）。</li>
+ *   <li>读取与写入操作（如 {@link #of(File)}、{@link #toFile(File)}）在失败时抛出 {@link IOException}。</li>
+ * </ul>
+ *
  * <p><b>代码示例（水印）：</b></p>
  * <pre>{@code
  * // 图片水印：按九宫格方向定位（右下角）
@@ -176,33 +218,6 @@ import java.util.Objects;
  * editor.scaleByWidth(500).toFile(new File("out_after_restore.jpg"));
  * }
  * </pre>
- *
- * <p><b>使用建议：</b></p>
- * <ul>
- *   <li>处理链按照方法调用顺序依次应用，可通过 {@link #restore()} 恢复到初始状态。</li>
- *   <li>大图或批量处理场景建议合理复用实例并注意资源释放。</li>
- * </ul>
- *
- * <p><b>线程安全：</b></p>
- * <ul>
- *   <li>本类为<strong>非线程安全</strong>，实例包含可变状态（如 {@code outputImage}、{@code outputFormat}）。</li>
- *   <li>不要在多个线程间共享同一实例并发调用；请为每个线程创建独立实例或在外部做同步。</li>
- *   <li>方法内部会创建并释放 {@code Graphics2D}，并发访问可能导致资源竞争或不可预期的呈现结果。</li>
- * </ul>
- *
- * <p><b>性能与内存：</b></p>
- * <ul>
- *   <li>处理大图会占用较多内存，建议先进行缩放再应用其他效果，以降低后续计算量。</li>
- *   <li>滤波器选择存在质量与速度权衡：{@link ResampleOp#FILTER_LANCZOS} 质量高但较慢；{@link ResampleOp#FILTER_BOX} 较快且质量中等；{@link ResampleOp#FILTER_POINT} 最快但质量较低。</li>
- *   <li>合成与水印绘制会创建临时 {@code Graphics2D} 并在结束后释放；避免在热点路径中频繁创建与销毁编辑器实例。</li>
- * </ul>
- *
- * <p><b>异常与容错：</b></p>
- * <ul>
- *   <li>EXIF 读取失败或不存在时不会抛出异常，保持原始方向并继续处理。</li>
- *   <li>参数校验使用 {@link org.apache.commons.lang3.Validate}；常见异常为 {@link IllegalArgumentException}（如参数为 {@code null}、文本为空、不支持的输出格式）。</li>
- *   <li>读取与写入操作（如 {@link #of(File)}、{@link #toFile(File)}）在失败时抛出 {@link IOException}。</li>
- * </ul>
  *
  * @author pangju666
  * @see ResampleOp
