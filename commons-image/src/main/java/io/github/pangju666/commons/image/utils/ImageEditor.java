@@ -1204,7 +1204,7 @@ public class ImageEditor {
 	public boolean toFile(final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		return ImageIO.write(this.outputImage, this.outputFormat, outputFile);
+		return ImageIO.write(toBufferedImage(), this.outputFormat, outputFile);
 	}
 
 	/**
@@ -1219,7 +1219,7 @@ public class ImageEditor {
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream不可为 null");
 
-		return ImageIO.write(this.outputImage, this.outputFormat, outputStream);
+		return ImageIO.write(toBufferedImage(), this.outputFormat, outputStream);
 	}
 
 	/**
@@ -1234,7 +1234,7 @@ public class ImageEditor {
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
 		Validate.notNull(imageOutputStream, "imageOutputStream不可为null");
 
-		return ImageIO.write(this.outputImage, this.outputFormat, imageOutputStream);
+		return ImageIO.write(toBufferedImage(), this.outputFormat, imageOutputStream);
 	}
 
 	/**
@@ -1244,17 +1244,6 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
-		return this.outputImage;
-	}
-
-	/**
-	 * 对图像进行重采样处理，根据当前设置的输出尺寸和重采样过滤器类型。
-	 * 如果输出格式不支持透明度但原图有透明通道，会自动转换为不透明图像。
-	 *
-	 * @return 重采样后的图像
-	 * @since 1.0.0
-	 */
-	protected BufferedImage resample() {
 		if (outputImage.getColorModel().hasAlpha() && ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat)) {
 			int imageType;
 			switch (outputImage.getType()) {
@@ -1266,13 +1255,20 @@ public class ImageEditor {
 					imageType = BufferedImage.TYPE_INT_RGB;
 					break;
 			}
-			BufferedImage noAlphaOutputImage = new BufferedImage(outputImageSize.getWidth(), outputImageSize.getHeight(), imageType);
-			ResampleOp resampleOp = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType);
-			return resampleOp.filter(this.outputImage, noAlphaOutputImage);
-		} else {
-			return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
-				.filter(outputImage, null);
+			return ImageUtil.toBuffered(outputImage, imageType);
 		}
+		return this.outputImage;
+	}
+
+	/**
+	 * 对图像进行重采样处理，根据当前设置的输出尺寸和重采样过滤器类型。
+	 *
+	 * @return 重采样后的图像
+	 * @since 1.0.0
+	 */
+	protected BufferedImage resample() {
+		return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
+			.filter(outputImage, null);
 	}
 
 	/**
