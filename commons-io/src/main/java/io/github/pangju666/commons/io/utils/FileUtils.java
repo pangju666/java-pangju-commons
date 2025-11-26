@@ -178,29 +178,6 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 从指定位置读取固定长度字节
-	 * <p>循环读取至缓冲区填满或到达 EOF，允许部分读取。</p>
-	 *
-	 * @param channel  文件通道
-	 * @param position 起始读取位置（字节偏移）
-	 * @param buffer   目标缓冲区（长度即期望读取量）
-	 * @throws IOException 通道读写异常
-	 * @since 1.0.0
-	 */
-	protected static void readFully(final FileChannel channel, final long position, final byte[] buffer) throws IOException {
-		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		int totalRead = 0;
-		while (totalRead < buffer.length) {
-			channel.position(position + totalRead);
-			int read = channel.read(bb);
-			if (read <= 0) {
-				break;
-			}
-			totalRead += read;
-		}
-	}
-
-	/**
 	 * 根据文件大小计算最佳缓冲区大小
 	 * <p>缓冲区大小策略如下：</p>
 	 * <table border="1">
@@ -1193,6 +1170,29 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			if (file.isDirectory()) {
 				throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 			}
+		}
+	}
+
+	/**
+	 * 从指定位置读取固定长度字节
+	 * <p>循环读取至缓冲区填满或到达 EOF，允许部分读取。</p>
+	 *
+	 * @param channel  文件通道
+	 * @param position 起始读取位置（字节偏移）
+	 * @param buffer   目标缓冲区（长度即期望读取量）
+	 * @throws IOException 通道读写异常
+	 * @since 1.0.0
+	 */
+	protected static void readFully(final FileChannel channel, final long position, final byte[] buffer) throws IOException {
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		int totalRead = 0;
+		while (totalRead < buffer.length) {
+			channel.position(position + totalRead);
+			int read = channel.read(bb);
+			if (read <= 0) {
+				break;
+			}
+			totalRead += read;
 		}
 	}
 }
