@@ -343,7 +343,7 @@ public class ImageEditor {
 	 * <p>
 	 * 指定图像缩放时使用的重采样算法。
 	 * 默认使用{@link ResampleOp#FILTER_LANCZOS Lanczos 插值（高质量）滤波器}。
-	 * 可通过{@link #resampleFilterType(int)}或{@link #scaleHints(int)}方法修改。
+	 * 可通过{@link #resampleFilterType(int)}方法修改。
 	 * </p>
 	 *
 	 * @since 1.0.0
@@ -576,6 +576,8 @@ public class ImageEditor {
 	 * 可选的滤波器类型参见{@link ResampleOp}常量。
 	 * </p>
 	 *
+	 * <p>默认设置为{@link ResampleOp#FILTER_LANCZOS}，一般情况下不需要设置这个。</p>
+	 *
 	 * @param filterType 滤波器类型，建议使用{@link ResampleOp#FILTER_LANCZOS}
 	 * @return 当前实例，支持链式调用
 	 * @see ResampleOp#FILTER_POINT
@@ -600,40 +602,6 @@ public class ImageEditor {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		} else {
 			this.resampleFilterType = filterType;
-		}
-		return this;
-	}
-
-	/**
-	 * 设置图像缩放的提示类型，影响缩放算法的选择。
-	 * <p>
-	 * 根据不同的提示类型，会选择不同的重采样过滤器：
-	 * <ul>
-	 *   <li>{@link Image#SCALE_FAST} 或 {@link Image#SCALE_REPLICATE}: 使用最近邻插值 (FILTER_POINT)</li>
-	 *   <li>{@link Image#SCALE_AREA_AVERAGING}: 使用盒式过滤 (FILTER_BOX)</li>
-	 *   <li>{@link Image#SCALE_SMOOTH}: 使用Lanczos算法 (FILTER_LANCZOS)</li>
-	 *   <li>其他值: 使用二次插值 (FILTER_QUADRATIC)</li>
-	 * </ul>
-	 *
-	 * @param hints 缩放提示类型，来自 {@link Image} 类的常量
-	 * @return 当前编辑器实例，用于链式调用
-	 * @since 1.0.0
-	 */
-	public ImageEditor scaleHints(final int hints) {
-		switch (hints) {
-			case Image.SCALE_FAST:
-			case Image.SCALE_REPLICATE:
-				this.resampleFilterType = ResampleOp.FILTER_POINT;
-				break;
-			case Image.SCALE_AREA_AVERAGING:
-				this.resampleFilterType = ResampleOp.FILTER_BOX;
-				break;
-			case Image.SCALE_SMOOTH:
-				this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
-				break;
-			default:
-				this.resampleFilterType = ResampleOp.FILTER_QUADRATIC;
-				break;
 		}
 		return this;
 	}
@@ -740,6 +708,8 @@ public class ImageEditor {
 	/**
 	 * 对图像应用模糊效果，使用默认模糊半径1.5。
 	 *
+	 * <p><b>效果说明</b>：使用高斯模糊核，半径越大越模糊；1.5 像素提供轻微柔化，适合降噪或 UI 图标处理。</p>
+	 *
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
@@ -750,6 +720,15 @@ public class ImageEditor {
 
 	/**
 	 * 对图像应用模糊效果，使用指定的模糊半径。
+	 *
+	 * <p><b>取值建议</b>：
+	 * <ul>
+	 *   <li>{@code radius ∈ (1, 2]}：轻微模糊，适用于轻微柔化或抗锯齿；</li>
+	 *   <li>{@code radius ∈ (2, 4]}：中等模糊，适合背景虚化或隐私遮挡；</li>
+	 *   <li>{@code radius > 4}：强烈模糊，计算开销显著增加，且可能显得“涂抹”；</li>
+	 *   <li>注意：实际模糊核大小 ≈ {@code 2 * radius + 1}，过大会导致性能下降；</li>
+	 *   <li>推荐范围：{@code 1.5 ~ 3.0}。</li>
+	 * </ul></p>
 	 *
 	 * @param radius 模糊半径，值越大模糊效果越强
 	 * @return 当前编辑器实例，用于链式调用
@@ -777,6 +756,8 @@ public class ImageEditor {
 	/**
 	 * 对图像应用锐化效果，使用默认锐化强度0.3。
 	 *
+	 * <p><b>效果说明</b>：基于非锐化掩模（Unsharp Mask）原理，0.3 提供自然清晰度提升，无明显光晕。</p>
+	 *
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
@@ -787,6 +768,15 @@ public class ImageEditor {
 
 	/**
 	 * 对图像应用锐化效果，使用指定的锐化强度。
+	 *
+	 * <p><b>取值建议</b>：
+	 * <ul>
+	 *   <li>{@code amount ∈ (0, 0.5]}：安全锐化，提升细节而不引入伪影；</li>
+	 *   <li>{@code amount ∈ (0.5, 1.0]}：较强锐化，边缘可能出现轻微白边（halo）；</li>
+	 *   <li>{@code amount > 1.0}：过度锐化，放大噪点，图像失真；</li>
+	 *   <li>负值表示“反向锐化”（即额外模糊），但通常不推荐；</li>
+	 *   <li>推荐范围：{@code 0.2 ~ 0.6}。</li>
+	 * </ul></p>
 	 *
 	 * @param amount 锐化强度
 	 * @return 当前编辑器实例，用于链式调用
@@ -812,6 +802,8 @@ public class ImageEditor {
 	/**
 	 * 调整图像对比度，使用默认对比度值0.3。
 	 *
+	 * <p><b>效果说明</b>：0.3 表示对比度提升约 30%，使明暗更分明，适用于灰蒙图像。</p>
+	 *
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
@@ -823,6 +815,16 @@ public class ImageEditor {
 
 	/**
 	 * 调整图像对比度。
+	 *
+	 * <p><b>取值建议</b>：
+	 * <ul>
+	 *   <li>{@code amount ∈ (0, 0.5]}：适度增强对比度，自然观感；</li>
+	 *   <li>{@code amount ∈ (0.5, 1.0]}：高对比度，适合艺术效果或低动态范围图像；</li>
+	 *   <li>{@code amount ∈ [-0.5, 0)}：降低对比度，营造“朦胧”或“褪色”风格；</li>
+	 *   <li>{@code amount = -1}：完全去对比度（灰度均一化）；</li>
+	 *   <li>避免极端值（如 ±1），可能导致细节丢失；</li>
+	 *   <li>推荐范围：{@code -0.3 ~ 0.6}。</li>
+	 * </ul></p>
 	 *
 	 * @param amount 对比度调整值，范围为-1.0到1.0，0表示不变，正值增加对比度，负值降低对比度
 	 * @return 当前编辑器实例，用于链式调用
@@ -841,6 +843,16 @@ public class ImageEditor {
 
 	/**
 	 * 调整图像亮度。
+	 *
+	 * <p><b>取值建议</b>：
+	 * <ul>
+	 *   <li>{@code amount ∈ (0, 1]}：提亮图像，1.0 表示亮度翻倍（可能过曝）；</li>
+	 *   <li>{@code amount ∈ [-1, 0)}：降低亮度，-1.0 表示完全变黑；</li>
+	 *   <li>{@code amount > 1}：极度提亮，高光区域严重溢出（纯白）；</li>
+	 *   <li>{@code amount < -1}：极度压暗，阴影细节完全丢失；</li>
+	 *   <li>日常调整建议：{@code -0.5 ~ 0.8}；</li>
+	 *   <li>注意：亮度调整是线性加法（RGB += amount），非感知均匀。</li>
+	 * </ul></p>
 	 *
 	 * @param amount 亮度调整值，范围为-2.0到2.0，0表示不变，正值增加亮度，负值降低亮度
 	 * @return 当前编辑器实例，用于链式调用
