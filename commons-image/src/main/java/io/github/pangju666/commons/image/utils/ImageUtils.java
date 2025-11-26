@@ -160,20 +160,20 @@ public class ImageUtils {
 	 *   <tr><td>image/bmp</td><td>BMP图像</td></tr>
 	 *   <tr><td>image/webp</td><td>WebP图像</td></tr>
 	 * </table>
-	 * 完整列表见{@link ImageConstants#getSupportReadImageTypes()}
+	 * 完整列表见{@link ImageConstants#getSupportedReadImageTypes()}
 	 * </p>
 	 *
 	 * @param imageMimeType 待检查的MIME类型，允许为null或空
 	 * @return 如果支持读取返回true，否则返回false
 	 * @see ImageReaderSpi
-	 * @see ImageConstants#getSupportReadImageTypes()
+	 * @see ImageConstants#getSupportedReadImageTypes()
 	 * @since 1.0.0
 	 */
 	public static boolean isSupportReadType(final String imageMimeType) {
 		if (StringUtils.isBlank(imageMimeType)) {
 			return false;
 		}
-		return ImageConstants.getSupportReadImageTypes().contains(imageMimeType);
+		return ImageConstants.getSupportedReadImageTypes().contains(imageMimeType);
 	}
 
 	/**
@@ -187,20 +187,20 @@ public class ImageUtils {
 	 *   <tr><td>image/bmp</td><td>BMP图像</td></tr>
 	 *   <tr><td>image/webp</td><td>WebP图像</td></tr>
 	 * </table>
-	 * 完整列表见{@link ImageConstants#getSupportWriteImageTypes()}
+	 * 完整列表见{@link ImageConstants#getSupportedWriteImageTypes()}
 	 * </p>
 	 *
 	 * @param imageMimeType 待检查的MIME类型，允许为null或空
 	 * @return 如果支持写入返回true，否则返回false
 	 * @see ImageWriterSpi
-	 * @see ImageConstants#getSupportWriteImageTypes()
+	 * @see ImageConstants#getSupportedWriteImageTypes()
 	 * @since 1.0.0
 	 */
 	public static boolean isSupportWriteType(final String imageMimeType) {
 		if (StringUtils.isBlank(imageMimeType)) {
 			return false;
 		}
-		return ImageConstants.getSupportWriteImageTypes().contains(imageMimeType);
+		return ImageConstants.getSupportedWriteImageTypes().contains(imageMimeType);
 	}
 
 	/**

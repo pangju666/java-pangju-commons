@@ -47,7 +47,7 @@ public class ImageConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	private static volatile Set<String> SUPPORT_READ_IMAGE_TYPES;
+	private static volatile Set<String> SUPPORTED_READ_IMAGE_TYPES;
 	/**
 	 * 系统支持的可写入图像MIME类型集合（懒加载）
 	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
@@ -55,7 +55,7 @@ public class ImageConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	private static volatile Set<String> SUPPORT_WRITE_IMAGE_TYPES;
+	private static volatile Set<String> SUPPORTED_WRITE_IMAGE_TYPES;
 
 	/**
 	 * 系统支持的可读取图像格式集合（懒加载）
@@ -64,7 +64,7 @@ public class ImageConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	private static volatile Set<String> SUPPORT_READ_IMAGE_FORMATS;
+	private static volatile Set<String> SUPPORTED_READ_IMAGE_FORMATS;
 	/**
 	 * 系统支持的可写入图像格式集合（懒加载）
 	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
@@ -72,7 +72,7 @@ public class ImageConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	private static volatile Set<String> SUPPORT_WRITE_IMAGE_FORMATS;
+	private static volatile Set<String> SUPPORTED_WRITE_IMAGE_FORMATS;
 
 	/**
 	 * 获取系统支持的可读取图像MIME类型集合
@@ -88,15 +88,15 @@ public class ImageConstants {
 	 * @see javax.imageio.ImageIO#getReaderMIMETypes()
 	 * @since 1.0.0
 	 */
-	public static Set<String> getSupportReadImageTypes() {
-		if (Objects.isNull(SUPPORT_READ_IMAGE_TYPES)) {
+	public static Set<String> getSupportedReadImageTypes() {
+		if (Objects.isNull(SUPPORTED_READ_IMAGE_TYPES)) {
 			synchronized (ImageConstants.class) {
-				if (Objects.isNull(SUPPORT_READ_IMAGE_TYPES)) {
-					SUPPORT_READ_IMAGE_TYPES = Set.of(ImageIO.getReaderMIMETypes());
+				if (Objects.isNull(SUPPORTED_READ_IMAGE_TYPES)) {
+					SUPPORTED_READ_IMAGE_TYPES = Set.of(ImageIO.getReaderMIMETypes());
 				}
 			}
 		}
-		return SUPPORT_READ_IMAGE_TYPES;
+		return SUPPORTED_READ_IMAGE_TYPES;
 	}
 
 	/**
@@ -113,15 +113,15 @@ public class ImageConstants {
 	 * @see javax.imageio.ImageIO#getWriterMIMETypes()
 	 * @since 1.0.0
 	 */
-	public static Set<String> getSupportWriteImageTypes() {
-		if (Objects.isNull(SUPPORT_WRITE_IMAGE_TYPES)) {
+	public static Set<String> getSupportedWriteImageTypes() {
+		if (Objects.isNull(SUPPORTED_WRITE_IMAGE_TYPES)) {
 			synchronized (ImageConstants.class) {
-				if (Objects.isNull(SUPPORT_WRITE_IMAGE_TYPES)) {
-					SUPPORT_WRITE_IMAGE_TYPES = Set.of(ImageIO.getWriterMIMETypes());
+				if (Objects.isNull(SUPPORTED_WRITE_IMAGE_TYPES)) {
+					SUPPORTED_WRITE_IMAGE_TYPES = Set.of(ImageIO.getWriterMIMETypes());
 				}
 			}
 		}
-		return SUPPORT_WRITE_IMAGE_TYPES;
+		return SUPPORTED_WRITE_IMAGE_TYPES;
 	}
 
 	/**
@@ -138,15 +138,15 @@ public class ImageConstants {
 	 * @see javax.imageio.ImageIO#getWriterFormatNames()
 	 * @since 1.0.0
 	 */
-	public static Set<String> getSupportWriteImageFormats() {
-		if (Objects.isNull(SUPPORT_WRITE_IMAGE_FORMATS)) {
+	public static Set<String> getSupportedWriteImageFormats() {
+		if (Objects.isNull(SUPPORTED_WRITE_IMAGE_FORMATS)) {
 			synchronized (ImageConstants.class) {
-				if (Objects.isNull(SUPPORT_WRITE_IMAGE_FORMATS)) {
-					SUPPORT_WRITE_IMAGE_FORMATS = Set.of(ImageIO.getWriterFormatNames());
+				if (Objects.isNull(SUPPORTED_WRITE_IMAGE_FORMATS)) {
+					SUPPORTED_WRITE_IMAGE_FORMATS = Set.of(ImageIO.getWriterFormatNames());
 				}
 			}
 		}
-		return SUPPORT_WRITE_IMAGE_FORMATS;
+		return SUPPORTED_WRITE_IMAGE_FORMATS;
 	}
 
 	/**
@@ -163,14 +163,14 @@ public class ImageConstants {
 	 * @see javax.imageio.ImageIO#getReaderFormatNames()
 	 * @since 1.0.0
 	 */
-	public static Set<String> getSupportReadImageFormats() {
-		if (Objects.isNull(SUPPORT_READ_IMAGE_FORMATS)) {
+	public static Set<String> getSupportedReadImageFormats() {
+		if (Objects.isNull(SUPPORTED_READ_IMAGE_FORMATS)) {
 			synchronized (ImageConstants.class) {
-				if (Objects.isNull(SUPPORT_READ_IMAGE_FORMATS)) {
-					SUPPORT_READ_IMAGE_FORMATS = Set.of(ImageIO.getReaderFormatNames());
+				if (Objects.isNull(SUPPORTED_READ_IMAGE_FORMATS)) {
+					SUPPORTED_READ_IMAGE_FORMATS = Set.of(ImageIO.getReaderFormatNames());
 				}
 			}
 		}
-		return SUPPORT_READ_IMAGE_FORMATS;
+		return SUPPORTED_READ_IMAGE_FORMATS;
 	}
 }

@@ -353,7 +353,7 @@ public class ImageEditor {
 	/**
 	 * 输入图像格式
 	 * <p>
-	 * 通过 {@link #of(File)} 或 {@link #of(File, boolean)} 从文件创建时，取自文件扩展名（如 "png"、"jpg"/"jpeg"）；需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportReadImageFormats()}）。
+	 * 通过 {@link #of(File)} 或 {@link #of(File, boolean)} 从文件创建时，取自文件扩展名（如 "png"、"jpg"/"jpeg"）；需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportedReadImageFormats()}）。
 	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #restore()} 时也会用它恢复输出格式。
 	 * </p>
 	 *
@@ -441,7 +441,7 @@ public class ImageEditor {
 		FileUtils.checkFile(file, "file 不可为 null");
 
 		String inputFormat = FilenameUtils.getExtension(file.getName());
-		Validate.isTrue(ImageConstants.getSupportReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
+		Validate.isTrue(ImageConstants.getSupportedReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
 
 		BufferedImage bufferedImage = ImageIO.read(file);
 		ImageEditor imageEditor = new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
@@ -647,7 +647,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor outputFormat(final String outputFormat) {
-		Validate.isTrue(ImageConstants.getSupportWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat), "不支持输出该图像格式");
 
 		this.outputFormat = outputFormat;
 		return this;
