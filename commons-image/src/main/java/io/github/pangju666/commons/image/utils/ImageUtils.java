@@ -73,7 +73,6 @@ import java.util.Objects;
  * <ul>
  *   <li>所有方法均为静态方法，不可实例化</li>
  *   <li>线程安全 - 无共享状态</li>
- *   <li>大文件处理 - 对于超过100MB的文件建议关闭元数据读取</li>
  * </ul>
  *
  * <p>推荐以下方法：
@@ -567,7 +566,7 @@ public class ImageUtils {
 	 * 获取图像文件的尺寸信息（自动处理EXIF方向）
 	 * <p>
 	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
-	 * 对于大文件（&gt;100MB），建议使用{@link #getSize(File, boolean)}并设置useMetadata为false。
+	 * 对于确定方向正确的图像，建议使用{@link #getSize(File, boolean)}并设置useMetadata为false。
 	 * </p>
 	 *
 	 * <p><b>实现细节：</b></p>
@@ -606,7 +605,7 @@ public class ImageUtils {
 	 * <ul>
 	 *   <li>useMetadata=true：会尝试读取完整文件元数据</li>
 	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
-	 *   <li>对于大文件(&gt;100MB)，建议设置useMetadata=false</li>
+	 *   <li>对于确定方向正确的图像，建议设置useMetadata=false</li>
 	 * </ul>
 	 *
 	 * @param file 图像文件对象，必须满足：
@@ -652,7 +651,7 @@ public class ImageUtils {
 	 * 获取字节数组数据的图像尺寸（自动处理EXIF方向）
 	 * <p>
 	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
-	 * 对于大字节数组(&gt;100MB)，建议使用{@link #getSize(byte[], boolean)}并设置useMetadata为false。
+	 * 对于确定方向正确的图像，建议使用{@link #getSize(byte[], boolean)}并设置useMetadata为false。
 	 * </p>
 	 *
 	 * <p><b>实现细节：</b></p>
@@ -685,7 +684,7 @@ public class ImageUtils {
 	 * <ul>
 	 *   <li>useMetadata=true：会尝试读取完整元数据</li>
 	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
-	 *   <li>对于大字节数组(&gt;100MB)，建议设置useMetadata=false</li>
+	 *   <li>对于确定方向正确的图像，建议设置useMetadata=false</li>
 	 * </ul>
 	 *
 	 * @param bytes 要检查的字节数组，必须满足：
@@ -719,7 +718,7 @@ public class ImageUtils {
 	 * 获取输入流的图像尺寸（自动处理EXIF方向）
 	 * <p>
 	 * 自动检测并处理EXIF方向信息，确保返回的尺寸与实际显示尺寸一致。
-	 * 对于大流数据(&gt;100MB)，建议使用{@link #getSize(InputStream, boolean)}并设置useMetadata为false。
+	 * 对于确定方向正确的图像，建议使用{@link #getSize(InputStream, boolean)}并设置useMetadata为false。
 	 * </p>
 	 *
 	 * <p><b>实现细节：</b></p>
@@ -757,7 +756,7 @@ public class ImageUtils {
 	 * <ul>
 	 *   <li>useMetadata=true：会尝试读取完整流数据</li>
 	 *   <li>useMetadata=false：直接读取图像尺寸，性能更好</li>
-	 *   <li>对于大流数据(&gt;100MB)，建议设置useMetadata=false</li>
+	 *   <li>对于确定方向正确的图像，建议设置useMetadata=false</li>
 	 * </ul>
 	 *
 	 * @param inputStream 输入流对象，必须满足：
