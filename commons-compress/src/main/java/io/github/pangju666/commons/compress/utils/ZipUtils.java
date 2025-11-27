@@ -25,7 +25,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
-import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -189,9 +188,8 @@ public class ZipUtils {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
 		}
-		try (FileInputStream fileInputStream = FileUtils.openInputStream(inputFile);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(fileInputStream);
-			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			unCompress(zipArchiveInputStream, outputDir);
 		}
 	}
@@ -233,8 +231,8 @@ public class ZipUtils {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException("不是zip类型文件");
 		}
-		try (UnsynchronizedByteArrayInputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(byteArrayInputStream)) {
+		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			unCompress(zipArchiveInputStream, outputDir);
 		}
 	}
@@ -269,7 +267,7 @@ public class ZipUtils {
 					unCompress(archiveInputStream, outputDir);
 				}
 			} else {
-				try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
+				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 					 ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
 					unCompress(archiveInputStream, outputDir);
 				}
@@ -583,7 +581,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
-		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			String entryName = inputFile.getName();
 			if (StringUtils.isNotBlank(parent)) {
 				if (parent.endsWith(CompressConstants.PATH_SEPARATOR)) {

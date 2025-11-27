@@ -25,7 +25,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
-import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -150,9 +149,8 @@ public class TarUtils {
 		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是tar类型文件");
 		}
-		try (FileInputStream fileInputStream = FileUtils.openInputStream(inputFile);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(fileInputStream);
-			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			unCompress(tarArchiveInputStream, outputDir);
 		}
 	}
@@ -174,8 +172,8 @@ public class TarUtils {
 		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException("不是tar类型文件");
 		}
-		try (UnsynchronizedByteArrayInputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(byteArrayInputStream)) {
+		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			unCompress(tarArchiveInputStream, outputDir);
 		}
 	}
@@ -201,7 +199,7 @@ public class TarUtils {
 					unCompress(archiveInputStream, outputDir);
 				}
 			} else {
-				try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
+				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 					 TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
 					unCompress(archiveInputStream, outputDir);
 				}
@@ -488,7 +486,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {
-		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			String entryName = inputFile.getName();
 			if (StringUtils.isNotBlank(parent)) {
 				if (parent.endsWith(CompressConstants.PATH_SEPARATOR)) {

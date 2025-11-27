@@ -22,7 +22,6 @@ import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
-import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -314,7 +313,8 @@ public class SevenZUtils {
 	protected static void addDir(final File inputFile, final SevenZOutputFile outputFile, final String parent) throws IOException {
 		String archiveEntryName = StringUtils.isNotBlank(parent) ?
 			parent + CompressConstants.PATH_SEPARATOR + inputFile.getName() : inputFile.getName();
-		SevenZArchiveEntry archiveEntry = outputFile.createArchiveEntry(inputFile, archiveEntryName + CompressConstants.PATH_SEPARATOR);
+		SevenZArchiveEntry archiveEntry = outputFile.createArchiveEntry(inputFile, archiveEntryName +
+			CompressConstants.PATH_SEPARATOR);
 		archiveEntry.setDirectory(true);
 		outputFile.putArchiveEntry(archiveEntry);
 		outputFile.closeArchiveEntry();
@@ -352,9 +352,9 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(final File inputFile, final SevenZOutputFile outputFile, final String parent) throws IOException {
-		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
-			String archiveEntryName = StringUtils.isNotBlank(parent) ?
-				parent + CompressConstants.PATH_SEPARATOR + inputFile.getName() : inputFile.getName();
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			String archiveEntryName = StringUtils.isNotBlank(parent) ? parent + CompressConstants.PATH_SEPARATOR +
+				inputFile.getName() : inputFile.getName();
 			SevenZArchiveEntry archiveEntry = outputFile.createArchiveEntry(inputFile, archiveEntryName);
 			outputFile.putArchiveEntry(archiveEntry);
 			outputFile.write(inputStream);
