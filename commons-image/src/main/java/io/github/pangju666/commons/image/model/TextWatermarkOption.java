@@ -147,14 +147,14 @@ public class TextWatermarkOption {
 
 	/**
 	 * 设置字体大小比例。
-	 * 必须为非负数（{@code >= 0}）；负数将被忽略并保持当前值。
+	 * 必须为非负数（{@code > 0}）；负数将被忽略并保持当前值。
 	 * 实际字号由渲染器结合图像尺寸与该比例计算；比例越小文字越小。
 	 *
 	 * @param fontSizeRatio 字体大小比例（非负）
 	 * @since 1.0.0
 	 */
 	public void setFontSizeRatio(double fontSizeRatio) {
-		if (fontSizeRatio >= 0) {
+		if (fontSizeRatio > 0) {
 			this.fontSizeRatio = fontSizeRatio;
 		}
 	}
