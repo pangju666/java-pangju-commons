@@ -1153,11 +1153,11 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null}、或 {@code watermarkText} 为空、或 {@code option} 为 {@code null} 时抛出
 	 * @since 1.0.0
-	 * @see #addTextWatermark(ImageSize, String, TextWatermarkOption, WatermarkDirection, int, int)
+	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
-		return addTextWatermark(this.outputImageSize, watermarkText, option, direction, 0, 0);
+		return addTextWatermark(watermarkText, option, direction, 0, 0);
 	}
 
 	/**
@@ -1175,11 +1175,11 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code x < 0} 或 {@code y < 0}，或 {@code watermarkText} 为空，或 {@code option} 为 {@code null} 时抛出
 	 * @since 1.0.0
-	 * @see #addTextWatermark(ImageSize, String, TextWatermarkOption, WatermarkDirection, int, int)
+	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
-		return addTextWatermark(this.outputImageSize, watermarkText, option, null, x, y);
+		return addTextWatermark(watermarkText, option, null, x, y);
 	}
 
 	/**
@@ -1393,7 +1393,6 @@ public class ImageEditor {
 	 *   <li>颜色透明度受 {@code option.opacity} 或颜色自身 Alpha 影响；内部按 {@code TextWatermarkOption} 配置进行转换。</li>
 	 * </ul>
 	 *
-	 * @param imageSize 输出图像尺寸（用于计算字号与自动定位）
 	 * @param text      非空的水印文本内容
 	 * @param option    文本水印配置（字体、透明度、颜色、描边开关与线宽等）
 	 * @param direction 九宫格方向；为 {@code null} 时使用传入坐标 {@code x}/{@code y}
@@ -1405,7 +1404,7 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
 	 */
-	protected ImageEditor addTextWatermark(ImageSize imageSize, String text, TextWatermarkOption option, WatermarkDirection direction,
+	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
 										   int x, int y) {
 		Validate.notBlank(text, "text 不可为空");
 		Validate.notNull(option, "option 不可为 null");
@@ -1413,10 +1412,10 @@ public class ImageEditor {
 		Graphics2D graphics = this.outputImage.createGraphics();
 
 		int fontSize;
-		if (imageSize.getWidth() > imageSize.getHeight()) {
-			fontSize = (int) Math.round(imageSize.getWidth() * option.getFontSizeRatio());
+		if (outputImageSize.getWidth() > outputImageSize.getHeight()) {
+			fontSize = (int) Math.round(outputImageSize.getWidth() * option.getFontSizeRatio());
 		} else {
-			fontSize = (int) Math.round(imageSize.getHeight() * option.getFontSizeRatio());
+			fontSize = (int) Math.round(outputImageSize.getHeight() * option.getFontSizeRatio());
 		}
 
 		Font font = new Font(option.getFontName(), option.getFontStyle(), fontSize);
