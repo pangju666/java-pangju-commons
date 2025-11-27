@@ -25,6 +25,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -32,32 +33,57 @@ import org.apache.commons.lang3.Validate;
 import java.io.*;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.Enumeration;
 import java.util.Objects;
 
 /**
- * ZIP压缩解压工具类
- * <p>提供基于Apache Commons Compress的增强功能，实现ZIP格式的高效压缩与解压缩操作。</p>
+ * ZIP压缩/解压工具类。
+ * <p>基于 Apache Commons Compress 提供 ZIP 的高效压缩与解压能力。</p>
  *
- * <h3>核心特性：</h3>
+ * <h3>核心特性</h3>
  * <ul>
- *     <li><strong>多输入源支持</strong> - 支持文件、字节数组、输入流、ZipFile对象等多种压缩源</li>
- *     <li><strong>递归压缩</strong> - 自动处理目录结构的递归压缩，保持原始文件层级关系</li>
- *     <li><strong>格式安全校验</strong> - 通过Tika检测和魔数验证确保ZIP文件格式有效性</li>
- *     <li><strong>大文件优化</strong> - 采用缓冲通道流(Buffered Stream)提升大文件处理性能</li>
- *     <li><strong>资源管理</strong> - 自动管理文件资源，防止资源泄漏</li>
+ *   <li><strong>多输入源</strong>：支持文件、字节数组、输入流、{@code ZipFile}。</li>
+ *   <li><strong>目录递归</strong>：保持原始目录层级结构进行压缩。</li>
+ *   <li><strong>格式校验</strong>：通过 Tika 的 MIME 类型检测判断 ZIP 格式（输入流版本不预校验，若非 ZIP 将在读取过程中失败）。</li>
+ *   <li><strong>性能优化</strong>：广泛使用缓冲流与流式传输，适合大文件。</li>
+ *   <li><strong>资源管理</strong>：使用 try-with-resources 自动释放资源。</li>
  * </ul>
  *
- * <h3>线程安全说明：</h3>
- * <p>本工具类所有方法均为静态方法，可安全用于多线程环境。</p>
+ * <h3>线程安全</h3>
+ * <p>类本身无共享状态，方法均为静态；并发处理不同文件/目录是安全的。若对同一路径/同一输出文件并发写入，可能发生冲突或覆盖。</p>
  *
- * <h3>使用示例：</h3>
+ * <h3>使用示例</h3>
  * <pre>{@code
- * // 压缩单个文件
- * ZipUtils.compress(new File("input.txt"), new File("output.zip"));
+ * // 1) 压缩单个文件到 .zip
+ * ZipUtils.compress(new File("input.txt"), new File("archive.zip"));
  *
- * // 解压缩文件
+ * // 2) 压缩目录到输出流（不会自动关闭传入流）
+ * try (FileOutputStream fos = new FileOutputStream("archive.zip");
+ *      ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(fos)) {
+ *     ZipUtils.compress(new File("inputDir"), zaos);
+ * }
+ *
+ * // 3) 批量压缩多个文件/目录到 .zip
+ * java.util.List<File> inputs = java.util.List.of(new File("a.txt"), new File("b"), new File("c"));
+ * ZipUtils.compress(inputs, new File("batch.zip"));
+ *
+ * // 4) 解压 ZIP 文件到目录
  * ZipUtils.unCompress(new File("archive.zip"), new File("outputDir"));
+ *
+ * // 5) 解压字节数组（字节数组会先进行 MIME 类型校验）
+ * byte[] bytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("archive.zip"));
+ * ZipUtils.unCompress(bytes, new File("outputDir"));
+ *
+ * // 6) 解压输入流（不预校验格式，读取失败体现在 I/O 异常）
+ * try (InputStream in = new FileInputStream("archive.zip")) {
+ *     ZipUtils.unCompress(in, new File("outputDir"));
+ * }
+ *
+ * // 7) 使用 ZipFile 解压（适合随机访问和大文件）
+ * try (org.apache.commons.compress.archivers.zip.ZipFile zf =
+ *          new org.apache.commons.compress.archivers.zip.ZipFile(new File("archive.zip"))) {
+ *     ZipUtils.unCompress(zf, new File("outputDir"));
+ * }
  * }</pre>
  *
  * @author pangju666
@@ -83,9 +109,6 @@ public class ZipUtils {
 	 * </ul>
 	 * @throws NullPointerException 当file参数为null时抛出
 	 * @throws IOException          当文件访问发生I/O异常时抛出
-	 * @throws SecurityException    当没有文件读取权限时抛出
-	 * @see FileUtils#isMimeType(File, String)
-	 * @see CompressConstants#ZIP_MIME_TYPE
 	 * @since 1.0.0
 	 */
 	public static boolean isZip(final File file) throws IOException {
@@ -96,15 +119,12 @@ public class ZipUtils {
 	 * 检查字节数组内容是否为有效的ZIP格式
 	 * <p>通过检测字节数组的魔数(Magic Number)和Tika内容分析判断是否为ZIP格式</p>
 	 *
-	 * @param bytes 待检测的字节数组，不可为null或空数组
+	 * @param bytes 待检测的字节数组；为 {@code null} 或空数组将返回 {@code false}
 	 * @return 当且仅当满足以下条件时返回true：
 	 * <ul>
 	 *     <li>字节数组非null且非空</li>
 	 *     <li>内容检测为ZIP格式(魔数为"PK"开头)</li>
 	 * </ul>
-	 * @throws IllegalArgumentException 当bytes为空数组时抛出
-	 * @see IOConstants#getDefaultTika()
-	 * @see CompressConstants#ZIP_MIME_TYPE
 	 * @since 1.0.0
 	 */
 	public static boolean isZip(final byte[] bytes) {
@@ -116,20 +136,14 @@ public class ZipUtils {
 	 * 检查输入流内容是否为有效的ZIP格式
 	 * <p>通过检测输入流的魔数(Magic Number)和Tika内容分析判断是否为ZIP格式</p>
 	 *
-	 * @param inputStream 待检测的输入流，必须支持mark/reset操作以便格式检测
+	 * @param inputStream 待检测的输入流，非空
 	 * @return 当且仅当满足以下条件时返回true：
 	 * <ul>
 	 *     <li>输入流非null</li>
 	 *     <li>内容检测为ZIP格式(魔数为"PK"开头)</li>
 	 * </ul>
 	 * @throws NullPointerException 当inputStream为null时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>流读取发生I/O错误</li>
-	 *                                  <li>流不支持mark/reset操作</li>
-	 *                              </ul>
-	 * @see IOConstants#getDefaultTika()
-	 * @see CompressConstants#ZIP_MIME_TYPE
+	 * @throws IOException          当流读取发生I/O错误时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean isZip(final InputStream inputStream) throws IOException {
@@ -166,9 +180,6 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #isZip(File)
-	 * @see #unCompress(ZipFile, File)
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
@@ -178,8 +189,10 @@ public class ZipUtils {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
 		}
-		try (ZipFile zipFile = ZipFile.builder().setFile(inputFile).get()) {
-			unCompress(zipFile, outputDir);
+		try (FileInputStream fileInputStream = FileUtils.openInputStream(inputFile);
+			 UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(fileInputStream);
+			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
+			unCompress(zipArchiveInputStream, outputDir);
 		}
 	}
 
@@ -211,9 +224,6 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #isZip(byte[])
-	 * @see #unCompress(InputStream, File)
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
@@ -223,7 +233,8 @@ public class ZipUtils {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
 			throw new IllegalArgumentException("不是zip类型文件");
 		}
-		try (ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
+		try (UnsynchronizedByteArrayInputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
+			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(byteArrayInputStream)) {
 			unCompress(zipArchiveInputStream, outputDir);
 		}
 	}
@@ -231,24 +242,20 @@ public class ZipUtils {
 	/**
 	 * 从输入流解压ZIP内容
 	 *
-	 * @param inputStream ZIP格式输入流，必须支持mark/reset操作以便格式检测
+	 * @param inputStream ZIP格式输入流，非空
 	 * @param outputDir   解压目标目录，会自动创建不存在的目录结构
 	 * @throws NullPointerException     当inputStream或outputDir为null时抛出
 	 * @throws IllegalArgumentException 当出现以下情况时抛出：
 	 *                                  <ul>
 	 *                                      <li>outputDir存在但不是目录</li>
-	 *                                      <li>输入流内容不是有效ZIP格式</li>
 	 *                                  </ul>
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
 	 *                                      <li>输入流不可读或已关闭</li>
 	 *                                      <li>输出目录不可写</li>
-	 *                                      <li>解压过程中发生I/O错误</li>
+	 *                                      <li>解压过程中发生I/O错误（包括输入内容非ZIP导致的读取失败）</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #unCompress(byte[], File)
-	 * @see #unCompress(File, File)
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final InputStream inputStream, final File outputDir) throws IOException {
@@ -257,8 +264,15 @@ public class ZipUtils {
 		if (inputStream instanceof ZipArchiveInputStream) {
 			unCompress((ZipArchiveInputStream) inputStream, outputDir);
 		} else {
-			try (ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(inputStream)) {
-				unCompress(archiveInputStream, outputDir);
+			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
+				try (ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(inputStream)) {
+					unCompress(archiveInputStream, outputDir);
+				}
+			} else {
+				try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
+					 ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
+					unCompress(archiveInputStream, outputDir);
+				}
 			}
 		}
 	}
@@ -280,25 +294,24 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #unCompress(InputStream, File)
 	 * @since 1.0.0
 	 */
 	public static void unCompress(final ZipFile zipFile, final File outputDir) throws IOException {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 
-		Iterator<ZipArchiveEntry> iterator = zipFile.getEntries().asIterator();
-		while (iterator.hasNext()) {
-			ZipArchiveEntry zipEntry = iterator.next();
+		Enumeration<ZipArchiveEntry> zipFileEntries = zipFile.getEntries();
+		while (zipFileEntries.hasMoreElements()) {
+			ZipArchiveEntry zipEntry = zipFileEntries.nextElement();
 			File file = new File(outputDir, zipEntry.getName());
 			if (zipEntry.isDirectory()) {
 				if (!file.exists()) {
 					FileUtils.forceMkdir(file);
 				}
 			} else {
+				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
 					 InputStream inputStream = zipFile.getInputStream(zipEntry)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
@@ -309,7 +322,7 @@ public class ZipUtils {
 	/**
 	 * 从ZipArchiveInputStream解压缩到指定目录
 	 *
-	 * @param archiveInputStream 已初始化的ZIP输入流，必须处于可读取状态且不为null
+	 * @param tarArchiveInputStream 已初始化的ZIP输入流，必须处于可读取状态且不为null
 	 * @param outputDir          解压目标目录，会自动创建不存在的目录结构
 	 * @throws NullPointerException     当archiveInputStream或outputDir为null时抛出
 	 * @throws IllegalArgumentException 当出现以下情况时抛出：
@@ -323,15 +336,13 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #unCompress(ZipFile, File)
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final ZipArchiveInputStream archiveInputStream, final File outputDir) throws IOException {
-		Validate.notNull(archiveInputStream, "archiveInputStream 不可为 null");
+	public static void unCompress(final ZipArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
+		Validate.notNull(tarArchiveInputStream, "tarArchiveInputStream 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 
-		ZipArchiveEntry zipEntry = archiveInputStream.getNextEntry();
+		ZipArchiveEntry zipEntry = tarArchiveInputStream.getNextEntry();
 		while (Objects.nonNull(zipEntry)) {
 			File file = new File(outputDir, zipEntry.getName());
 			if (zipEntry.isDirectory()) {
@@ -339,12 +350,13 @@ public class ZipUtils {
 					FileUtils.forceMkdir(file);
 				}
 			} else {
+				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
-					archiveInputStream.transferTo(bufferedOutputStream);
+					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
+					tarArchiveInputStream.transferTo(bufferedOutputStream);
 				}
 			}
-			zipEntry = archiveInputStream.getNextEntry();
+			zipEntry = tarArchiveInputStream.getNextEntry();
 		}
 	}
 
@@ -354,27 +366,21 @@ public class ZipUtils {
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
 	 * @param outputFile 输出ZIP文件路径，会自动创建父目录并覆盖已存在文件
-	 * @throws NullPointerException     当inputFile或outputFile为null时抛出
-	 * @throws IllegalArgumentException 当出现以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>inputFile不存在</li>
-	 *                                      <li>outputFile存在但不是文件</li>
-	 *                                  </ul>
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>输入文件不可读</li>
-	 *                                      <li>输出文件不可写</li>
-	 *                                      <li>压缩过程中发生I/O错误</li>
-	 *                                      <li>磁盘空间不足</li>
-	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #compress(Collection, File)
-	 * @see #compress(File, OutputStream)
+	 * @throws NullPointerException 当inputFile或outputFile为null时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出文件不可写</li>
+	 *                                  <li>压缩过程中发生I/O错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
+		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFile, zipArchiveOutputStream);
 		}
 	}
@@ -385,17 +391,13 @@ public class ZipUtils {
 	 *
 	 * @param inputFile    要压缩的文件或目录，必须存在且可读
 	 * @param outputStream 输出流对象，必须可写且不为null(方法不会自动关闭此流)
-	 * @throws NullPointerException     当inputFile或outputStream为null时抛出
-	 * @throws IllegalArgumentException 当inputFile不存在时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>输入文件不可读</li>
-	 *                                      <li>输出流不可写</li>
-	 *                                      <li>压缩过程中发生I/O错误</li>
-	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #compress(File, File)
-	 * @see #compress(File, ZipArchiveOutputStream)
+	 * @throws NullPointerException 当inputFile或outputStream为null时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出流不可写</li>
+	 *                                  <li>压缩过程中发生I/O错误</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
@@ -404,7 +406,8 @@ public class ZipUtils {
 		if (outputStream instanceof ZipArchiveOutputStream) {
 			compress(inputFile, (ZipArchiveOutputStream) outputStream);
 		} else {
-			try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream)) {
+			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+				 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFile, zipArchiveOutputStream);
 			}
 		}
@@ -416,16 +419,13 @@ public class ZipUtils {
 	 *
 	 * @param inputFile              要压缩的文件或目录，必须存在且可读
 	 * @param zipArchiveOutputStream 已初始化的ZIP输出流，必须可写且不为null
-	 * @throws NullPointerException     当inputFile或zipArchiveOutputStream为null时抛出
-	 * @throws IllegalArgumentException 当inputFile不存在时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>输入文件不可读</li>
-	 *                                      <li>输出流不可写或已关闭</li>
-	 *                                      <li>压缩过程中发生I/O错误</li>
-	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #compress(File, OutputStream)
+	 * @throws NullPointerException 当inputFile或zipArchiveOutputStream为null时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出流不可写或已关闭</li>
+	 *                                  <li>压缩过程中发生I/O错误</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
@@ -457,14 +457,13 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #compress(File, File)
-	 * @see #compress(Collection, OutputStream)
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile)) {
+		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
+			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFiles, zipArchiveOutputStream);
 		}
 	}
@@ -480,11 +479,7 @@ public class ZipUtils {
 	 *                              <ul>
 	 *                                  <li>输出流不可写</li>
 	 *                                  <li>压缩过程中发生I/O错误</li>
-	 *                                  <li>输入文件冲突(同名文件)</li>
 	 *                              </ul>
-	 * @throws SecurityException    当没有文件系统操作权限时抛出
-	 * @see #compress(File, OutputStream)
-	 * @see #compress(Collection, ZipArchiveOutputStream)
 	 * @since 1.0.0
 	 */
 	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
@@ -493,7 +488,8 @@ public class ZipUtils {
 		if (outputStream instanceof ZipArchiveOutputStream) {
 			compress(inputFiles, (ZipArchiveOutputStream) outputStream);
 		} else {
-			try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream)) {
+			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+				 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFiles, zipArchiveOutputStream);
 			}
 		}
@@ -510,10 +506,8 @@ public class ZipUtils {
 	 *                              <ul>
 	 *                                  <li>输出流不可写或已关闭</li>
 	 *                                  <li>压缩过程中发生I/O错误</li>
-	 *                                  <li>输入文件冲突(同名文件)</li>
+	 *                                  <li>部分输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                              </ul>
-	 * @throws SecurityException    当没有文件系统操作权限时抛出
-	 * @see #compress(Collection, OutputStream)
 	 * @since 1.0.0
 	 */
 	public static void compress(Collection<File> inputFiles, final ZipArchiveOutputStream zipArchiveOutputStream) throws IOException {
@@ -537,19 +531,16 @@ public class ZipUtils {
 	 * 递归添加目录到ZIP流
 	 * <p>将目录及其所有子目录和文件递归添加到ZIP输出流中，保持原始目录结构</p>
 	 *
-	 * @param inputDir               要添加的目录，必须存在且可读
+	 * @param inputDir               要添加的目录，需可读
 	 * @param zipArchiveOutputStream ZIP输出流对象，必须已初始化且可写
 	 * @param parent                 父目录相对路径(用于构建ZIP条目路径)，可为null
-	 * @throws NullPointerException     当inputDir或zipArchiveOutputStream为null时抛出
-	 * @throws IllegalArgumentException 当inputDir不存在或不是目录时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>目录不可读</li>
-	 *                                      <li>输出流不可写或已关闭</li>
-	 *                                      <li>添加过程中发生I/O错误</li>
-	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #addFile(File, ZipArchiveOutputStream, String)
+	 * @throws NullPointerException 当inputDir或zipArchiveOutputStream为null时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>目录不可读</li>
+	 *                                  <li>输出流不可写或已关闭</li>
+	 *                                  <li>添加过程中发生I/O错误</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	protected static void addDir(File inputDir, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
@@ -582,20 +573,17 @@ public class ZipUtils {
 	 * @param inputFile              要添加的文件，必须存在且可读
 	 * @param zipArchiveOutputStream ZIP输出流对象，必须已初始化且可写
 	 * @param parent                 父目录相对路径(用于构建ZIP条目路径)，可为null
-	 * @throws NullPointerException     当inputFile或zipArchiveOutputStream为null时抛出
-	 * @throws IllegalArgumentException 当inputFile不存在或不是文件时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                      <li>文件不可读</li>
-	 *                                      <li>输出流不可写或已关闭</li>
-	 *                                      <li>添加过程中发生I/O错误</li>
-	 *                                  </ul>
-	 * @throws SecurityException        当没有文件系统操作权限时抛出
-	 * @see #addDir(File, ZipArchiveOutputStream, String)
+	 * @throws NullPointerException 当inputFile或zipArchiveOutputStream为null时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出流不可写或已关闭</li>
+	 *                                  <li>添加过程中发生I/O错误</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
-		try (UnsynchronizedBufferedInputStream fileChannelInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			String entryName = inputFile.getName();
 			if (StringUtils.isNotBlank(parent)) {
 				if (parent.endsWith(CompressConstants.PATH_SEPARATOR)) {
@@ -606,7 +594,7 @@ public class ZipUtils {
 			}
 			ZipArchiveEntry archiveEntry = new ZipArchiveEntry(inputFile, entryName);
 			zipArchiveOutputStream.putArchiveEntry(archiveEntry);
-			fileChannelInputStream.transferTo(zipArchiveOutputStream);
+			inputStream.transferTo(zipArchiveOutputStream);
 			zipArchiveOutputStream.closeArchiveEntry();
 		}
 	}
