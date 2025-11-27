@@ -243,16 +243,6 @@ public class ImageEditor {
 	protected static final String DEFAULT_ALPHA_OUTPUT_FORMAT = "png";
 
 	/**
-	 * 文本水印的默认字体。
-	 * <p>
-	 * 当 {@code TextWatermarkOption#font} 未设置时，绘制文字水印将使用该字体。
-	 * 采用字体 {@code Font.SANS_SERIF}、常规样式 {@code Font.PLAIN}、字号 12。
-	 *
-	 * @since 1.0.0
-	 */
-	protected static final Font DEFAULT_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
-
-	/**
 	 * 默认的标准图像输出格式
 	 * <p>
 	 * 当输入图像不包含透明通道时，默认使用的输出格式。
@@ -1082,6 +1072,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
 	 * @since 1.0.0
+	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
@@ -1100,6 +1091,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @since 1.0.0
+	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -1119,6 +1111,7 @@ public class ImageEditor {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @since 1.0.0
+	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -1139,6 +1132,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.0.0
+	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
@@ -1148,40 +1142,44 @@ public class ImageEditor {
 	/**
 	 * 添加文字水印（按九宫格方向自动定位）。
 	 * <p>
-	 * 坐标固定为 (0, 0)，实际绘制位置由 {@code direction} 决定。
-	 * 字体来源于 {@code option.font}，为空则使用默认字体 {@code DEFAULT_FONT}；
-	 * 透明度与描边效果由 {@code option} 控制。
+	 * 坐标固定为 (0, 0)（文本基线），实际绘制位置由 {@code direction} 决定。
+	 * 字体来源于 {@code option.fontName}/{@code option.fontStyle}；字号按输出图像较长边结合 {@code option.fontSizeRatio} 计算并四舍五入。
+	 * 文本抗锯齿开启；透明度与描边效果由 {@code option} 控制。
+	 * </p>
 	 *
 	 * @param watermarkText 非空的水印文本内容
 	 * @param option        文本水印配置（字体、透明度、颜色、描边开关与线宽等）
 	 * @param direction     九宫格方向，用于自动计算水印位置
 	 * @return 当前编辑器实例（便于链式调用）
-	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
+	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null}、或 {@code watermarkText} 为空、或 {@code option} 为 {@code null} 时抛出
 	 * @since 1.0.0
+	 * @see #addTextWatermark(ImageSize, String, TextWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
-		return addTextWatermark(watermarkText, option, direction, 0, 0);
+		return addTextWatermark(this.outputImageSize, watermarkText, option, direction, 0, 0);
 	}
 
 	/**
 	 * 添加文字水印（显式坐标定位）。
 	 * <p>
 	 * 直接使用传入坐标 {@code x}/{@code y}（文本基线）进行定位，不使用九宫格方向。
-	 * 字体来源于 {@code option.font}，为空则使用默认字体 {@code DEFAULT_FONT}；
-	 * 透明度与描边效果由 {@code option} 控制。
+	 * 字体来源于 {@code option.fontName}/{@code option.fontStyle}；字号按输出图像较长边结合 {@code option.fontSizeRatio} 计算并四舍五入。
+	 * 文本抗锯齿开启；透明度与描边效果由 {@code option} 控制。
+	 * </p>
 	 *
 	 * @param watermarkText 非空的水印文本内容
 	 * @param option        文本水印配置（字体、透明度、颜色、描边开关与线宽等）
 	 * @param x             绘制起点 X（文本基线）
 	 * @param y             绘制起点 Y（文本基线）
 	 * @return 当前编辑器实例（便于链式调用）
-	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
+	 * @throws IllegalArgumentException 当 {@code x < 0} 或 {@code y < 0}，或 {@code watermarkText} 为空，或 {@code option} 为 {@code null} 时抛出
 	 * @since 1.0.0
+	 * @see #addTextWatermark(ImageSize, String, TextWatermarkOption, WatermarkDirection, int, int)
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
-		return addTextWatermark(watermarkText, option, null, x, y);
+		return addTextWatermark(this.outputImageSize, watermarkText, option, null, x, y);
 	}
 
 	/**
@@ -1286,7 +1284,7 @@ public class ImageEditor {
 	 * <p>
 	 * 行为说明：
 	 * <ul>
-	 *   <li>根据 {@code option.scale} 按输出图像尺寸等比计算目标水印大小，随后再受
+	 *   <li>根据 {@code option.relativeScale} 按输出图像尺寸等比计算目标水印大小，随后再受
 	 *   {@code minWidth}/{@code minHeight}/{@code maxWidth}/{@code maxHeight} 的下限与上限约束。</li>
 	 *   <li>当 {@code option.opacity} 在 (0, 1) 之间时，使用相应透明度进行叠加绘制。</li>
 	 *   <li>若提供 {@code direction}，按照九宫格方向自动计算绘制位置；为 {@code null} 时使用传入的左上角坐标 {@code x}/{@code y}。</li>
@@ -1318,7 +1316,7 @@ public class ImageEditor {
 		}
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
-		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(option.getScale()));
+		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(option.getRelativeScale()));
 		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
 			if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
 				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
@@ -1388,15 +1386,17 @@ public class ImageEditor {
 	 * <p>
 	 * 行为说明：
 	 * <ul>
-	 *   <li>启用抗锯齿与文字抗锯齿；字体来源于 {@code option.font}，为空则使用默认字体。</li>
-	 *   <li>根据 {@code direction} 自动计算九宫格位置；为 {@code null} 时使用传入坐标 {@code x}/{@code y}。</li>
+	 *   <li>启用文本抗锯齿；字体来源于 {@code option.fontName}/{@code option.fontStyle}，字号按较长边与 {@code option.fontSizeRatio} 计算并四舍五入。</li>
 	 *   <li>文本位置以基线为准；内部使用字体度量（{@code FontMetrics}）计算文本宽度与高度。</li>
+	 *   <li>当 {@code direction} 非空时按九宫格方向自动计算位置；为 {@code null} 时使用传入坐标 {@code x}/{@code y}（基线）。</li>
 	 *   <li>当 {@code option.stroke} 为 {@code true} 时，先按描边色与线宽绘制描边，再按填充色绘制文本。</li>
+	 *   <li>颜色透明度受 {@code option.opacity} 或颜色自身 Alpha 影响；内部按 {@code TextWatermarkOption} 配置进行转换。</li>
 	 * </ul>
 	 *
+	 * @param imageSize 输出图像尺寸（用于计算字号与自动定位）
 	 * @param text      非空的水印文本内容
 	 * @param option    文本水印配置（字体、透明度、颜色、描边开关与线宽等）
-	 * @param direction 九宫格方向；为 {@code null} 时直接使用 {@code x}/{@code y}
+	 * @param direction 九宫格方向；为 {@code null} 时使用传入坐标 {@code x}/{@code y}
 	 * @param x         当 {@code direction} 为 {@code null} 时的绘制起点 X（文本基线）
 	 * @param y         当 {@code direction} 为 {@code null} 时的绘制起点 Y（文本基线）
 	 * @return 当前编辑器实例（便于链式调用）
@@ -1405,17 +1405,26 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
 	 */
-	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
+	protected ImageEditor addTextWatermark(ImageSize imageSize, String text, TextWatermarkOption option, WatermarkDirection direction,
 										   int x, int y) {
 		Validate.notBlank(text, "text 不可为空");
 		Validate.notNull(option, "option 不可为 null");
 
 		Graphics2D graphics = this.outputImage.createGraphics();
 
+		int fontSize;
+		if (imageSize.getWidth() > imageSize.getHeight()) {
+			fontSize = (int) Math.round(imageSize.getWidth() * option.getFontSizeRatio());
+		} else {
+			fontSize = (int) Math.round(imageSize.getHeight() * option.getFontSizeRatio());
+		}
+
+		Font font = new Font(option.getFontName(), option.getFontStyle(), fontSize);
+
 		// 设置抗锯齿
 		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		// 设置字体
-		graphics.setFont(ObjectUtils.getIfNull(option.getFont(), DEFAULT_FONT));
+		graphics.setFont(font);
 
 		FontMetrics fontMetrics = graphics.getFontMetrics();
 		int textWidth = fontMetrics.stringWidth(text);

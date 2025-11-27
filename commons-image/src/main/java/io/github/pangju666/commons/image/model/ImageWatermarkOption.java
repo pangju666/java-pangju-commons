@@ -27,14 +27,14 @@ package io.github.pangju666.commons.image.model;
 public class ImageWatermarkOption {
 	/**
 	 * 水印的相对缩放比例（相对原图尺寸）。
-	 * 默认值：0.15f；建议范围：[0.0f, 1.0f]
+	 * 默认值：0.15；建议范围：[0.0, 1.0]
 	 *
 	 * @since 1.0.0
 	 */
-	private float scale = 0.15f;
+	private double relativeScale = 0.15;
 	/**
-	 * 水印透明度（Alpha）。
-	 * 默认值：0.4f；范围：[0.0f（完全透明）, 1.0f（完全不透明）]
+	 * 水印透明度（百分比）。
+	 * 默认值：0.4；范围：[0.0（完全透明）, 1.0（完全不透明）]
 	 *
 	 * @since 1.0.0
 	 */
@@ -64,8 +64,8 @@ public class ImageWatermarkOption {
 	 */
 	private int maxHeight = 200;
 
-	public float getScale() {
-		return scale;
+	public double getRelativeScale() {
+		return relativeScale;
 	}
 
 	/**
@@ -73,12 +73,12 @@ public class ImageWatermarkOption {
 	 * 必须为正数；非正数将被忽略并保持当前值。
 	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
-	 * @param scale 缩放比例（&gt; 0）
+	 * @param relativeScale 相对原图尺寸的缩放比例（&gt; 0）
 	 * @since 1.0.0
 	 */
-	public void setScale(float scale) {
-		if (scale > 0) {
-			this.scale = scale;
+	public void setRelativeScale(double relativeScale) {
+		if (relativeScale > 0) {
+			this.relativeScale = relativeScale;
 		}
 	}
 
@@ -87,8 +87,8 @@ public class ImageWatermarkOption {
 	}
 
 	/**
-	 * 设置水印透明度（Alpha）。
-	 * 有效范围为 {@code [0.0f, 1.0f]}；越界值将被忽略并保持当前值。
+	 * 设置水印透明度（百分比）。
+	 * 有效范围为 {@code [0.0, 1.0]}；越界值将被忽略并保持当前值。
 	 * 其中 0 表示完全透明，1 表示完全不透明。
 	 *
 	 * @param opacity 透明度
