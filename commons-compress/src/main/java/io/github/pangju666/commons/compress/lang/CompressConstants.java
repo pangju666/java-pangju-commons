@@ -36,6 +36,24 @@ public class CompressConstants {
 	 */
 	public static final String SEVEN_Z_MIME_TYPE = "application/x-7z-compressed";
 	/**
+	 * gz压缩文件MIME类型
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String GZIP_TYPE = "application/gzip";
+	/**
+	 * tar压缩文件MIME类型
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String TAR_MIME_TYPE = "application/x-tar";
+	/**
+	 * xz压缩文件MIME类型
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String XZ_MIME_TYPE = "application/x-xz";
+	/**
 	 * 压缩文件路径分隔符
 	 *
 	 * @since 1.0.0
