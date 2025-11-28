@@ -62,20 +62,20 @@ import java.util.Objects;
  * }
  *
  * // 3) 解压 TAR 文件到目录
- * TarUtils.unCompress(new File("archive.tar"), new File("outputDir"));
+ * TarUtils.uncompress(new File("archive.tar"), new File("outputDir"));
  *
  * // 4) 解压字节数组（字节数组会先进行 MIME 类型校验）
  * byte[] bytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("archive.tar"));
- * TarUtils.unCompress(bytes, new File("outputDir"));
+ * TarUtils.uncompress(bytes, new File("outputDir"));
  *
  * // 5) 解压输入流（不预校验格式，读取失败以 I/O 异常体现）
  * try (InputStream in = new FileInputStream("archive.tar")) {
- *     TarUtils.unCompress(in, new File("outputDir"));
+ *     TarUtils.uncompress(in, new File("outputDir"));
  * }
  *
  * // 6) 使用 TarFile 解压
  * try (TarFile tarFile = new TarFile(new File("archive.tar"))) {
- *     TarUtils.unCompress(tarFile, new File("outputDir"));
+ *     TarUtils.uncompress(tarFile, new File("outputDir"));
  * }
  * }</pre>
  *
@@ -142,7 +142,7 @@ public class TarUtils {
 	 * @throws IOException              当输入文件不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
+	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 
 		String mimeType = FileUtils.getMimeType(inputFile);
@@ -151,7 +151,7 @@ public class TarUtils {
 		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-			unCompress(tarArchiveInputStream, outputDir);
+			uncompress(tarArchiveInputStream, outputDir);
 		}
 	}
 
@@ -165,7 +165,7 @@ public class TarUtils {
 	 * @throws IOException              当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
+	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
@@ -174,7 +174,7 @@ public class TarUtils {
 		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-			unCompress(tarArchiveInputStream, outputDir);
+			uncompress(tarArchiveInputStream, outputDir);
 		}
 	}
 
@@ -188,20 +188,20 @@ public class TarUtils {
 	 * @throws IOException          当输入流不可读或已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final InputStream inputStream, final File outputDir) throws IOException {
+	public static void uncompress(final InputStream inputStream, final File outputDir) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof TarArchiveInputStream) {
-			unCompress((TarArchiveInputStream) inputStream, outputDir);
+			uncompress((TarArchiveInputStream) inputStream, outputDir);
 		} else {
 			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 				try (TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(inputStream)) {
-					unCompress(archiveInputStream, outputDir);
+					uncompress(archiveInputStream, outputDir);
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 					 TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
-					unCompress(archiveInputStream, outputDir);
+					uncompress(archiveInputStream, outputDir);
 				}
 			}
 		}
@@ -216,7 +216,7 @@ public class TarUtils {
 	 * @throws IOException          当 {@code tarFile} 已关闭或不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final TarFile tarFile, final File outputDir) throws IOException {
+	public static void uncompress(final TarFile tarFile, final File outputDir) throws IOException {
 		Validate.notNull(tarFile, "tarFile 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 
@@ -246,7 +246,7 @@ public class TarUtils {
 	 * @throws IOException          当输入流已关闭或不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final TarArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
+	public static void uncompress(final TarArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
 		Validate.notNull(tarArchiveInputStream, "tarArchiveInputStream 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 

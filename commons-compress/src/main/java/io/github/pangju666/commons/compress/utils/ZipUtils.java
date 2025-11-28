@@ -67,21 +67,21 @@ import java.util.Objects;
  * ZipUtils.compress(inputs, new File("batch.zip"));
  *
  * // 4) 解压 ZIP 文件到目录
- * ZipUtils.unCompress(new File("archive.zip"), new File("outputDir"));
+ * ZipUtils.uncompress(new File("archive.zip"), new File("outputDir"));
  *
  * // 5) 解压字节数组（字节数组会先进行 MIME 类型校验）
  * byte[] bytes = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("archive.zip"));
- * ZipUtils.unCompress(bytes, new File("outputDir"));
+ * ZipUtils.uncompress(bytes, new File("outputDir"));
  *
  * // 6) 解压输入流（不预校验格式，读取失败体现在 I/O 异常）
  * try (InputStream in = new FileInputStream("archive.zip")) {
- *     ZipUtils.unCompress(in, new File("outputDir"));
+ *     ZipUtils.uncompress(in, new File("outputDir"));
  * }
  *
  * // 7) 使用 ZipFile 解压（适合随机访问和大文件）
  * try (org.apache.commons.compress.archivers.zip.ZipFile zf =
  *          new org.apache.commons.compress.archivers.zip.ZipFile(new File("archive.zip"))) {
- *     ZipUtils.unCompress(zf, new File("outputDir"));
+ *     ZipUtils.uncompress(zf, new File("outputDir"));
  * }
  * }</pre>
  *
@@ -181,7 +181,7 @@ public class ZipUtils {
 	 *                                  </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
+	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 
 		String mimeType = FileUtils.getMimeType(inputFile);
@@ -190,7 +190,7 @@ public class ZipUtils {
 		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
-			unCompress(zipArchiveInputStream, outputDir);
+			uncompress(zipArchiveInputStream, outputDir);
 		}
 	}
 
@@ -224,7 +224,7 @@ public class ZipUtils {
 	 *                                  </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final byte[] bytes, final File outputDir) throws IOException {
+	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
@@ -233,7 +233,7 @@ public class ZipUtils {
 		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
-			unCompress(zipArchiveInputStream, outputDir);
+			uncompress(zipArchiveInputStream, outputDir);
 		}
 	}
 
@@ -256,20 +256,20 @@ public class ZipUtils {
 	 *                                  </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final InputStream inputStream, final File outputDir) throws IOException {
+	public static void uncompress(final InputStream inputStream, final File outputDir) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof ZipArchiveInputStream) {
-			unCompress((ZipArchiveInputStream) inputStream, outputDir);
+			uncompress((ZipArchiveInputStream) inputStream, outputDir);
 		} else {
 			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 				try (ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(inputStream)) {
-					unCompress(archiveInputStream, outputDir);
+					uncompress(archiveInputStream, outputDir);
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 					 ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
-					unCompress(archiveInputStream, outputDir);
+					uncompress(archiveInputStream, outputDir);
 				}
 			}
 		}
@@ -294,7 +294,7 @@ public class ZipUtils {
 	 *                                  </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final ZipFile zipFile, final File outputDir) throws IOException {
+	public static void uncompress(final ZipFile zipFile, final File outputDir) throws IOException {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 
@@ -336,7 +336,7 @@ public class ZipUtils {
 	 *                                  </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final ZipArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
+	public static void uncompress(final ZipArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
 		Validate.notNull(tarArchiveInputStream, "tarArchiveInputStream 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 

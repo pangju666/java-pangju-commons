@@ -63,12 +63,12 @@ import java.util.Objects;
  * SevenZUtils.compress(inputs, new File("batch.7z"));
  *
  * // 4) 解压 7z 文件到目录（文件版本会先进行 MIME 类型校验）
- * SevenZUtils.unCompress(new File("archive.7z"), new File("outputDir"));
+ * SevenZUtils.uncompress(new File("archive.7z"), new File("outputDir"));
  *
  * // 5) 使用 SevenZFile 解压（适合随机访问和大文件）
  * try (org.apache.commons.compress.archivers.sevenz.SevenZFile zf =
  *          org.apache.commons.compress.archivers.sevenz.SevenZFile.builder().setFile(new File("archive.7z")).get()) {
- *     SevenZUtils.unCompress(zf, new File("outputDir"));
+ *     SevenZUtils.uncompress(zf, new File("outputDir"));
  * }
  * }</pre>
  *
@@ -133,7 +133,7 @@ public class SevenZUtils {
 	 * @throws IOException              当输入文件不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final File inputFile, final File outputDir) throws IOException {
+	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 
 		String mimeType = FileUtils.getMimeType(inputFile);
@@ -141,7 +141,7 @@ public class SevenZUtils {
 			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是7z类型文件");
 		}
 		try (SevenZFile sevenZFile = SevenZFile.builder().setFile(inputFile).get()) {
-			unCompress(sevenZFile, outputDir);
+			uncompress(sevenZFile, outputDir);
 		}
 	}
 
@@ -164,7 +164,7 @@ public class SevenZUtils {
 	 *                     </ul>
 	 * @since 1.0.0
 	 */
-	public static void unCompress(final SevenZFile sevenZFile, final File outputDir) throws IOException {
+	public static void uncompress(final SevenZFile sevenZFile, final File outputDir) throws IOException {
 		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
 		FileUtils.forceMkdir(outputDir);
 
