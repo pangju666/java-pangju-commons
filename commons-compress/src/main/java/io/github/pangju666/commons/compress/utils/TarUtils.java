@@ -285,6 +285,8 @@ public class TarUtils {
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
@@ -364,6 +366,8 @@ public class TarUtils {
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {

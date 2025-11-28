@@ -203,6 +203,8 @@ public class SevenZUtils {
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFile, sevenZOutputFile);
 		}
@@ -256,6 +258,8 @@ public class SevenZUtils {
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			compress(inputFiles, sevenZOutputFile);
 		}

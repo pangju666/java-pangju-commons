@@ -376,6 +376,8 @@ public class ZipUtils {
 	 */
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
@@ -459,6 +461,8 @@ public class ZipUtils {
 	 */
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FileUtils.forceMkdirParent(outputFile);
+
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
