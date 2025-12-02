@@ -22,8 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -72,19 +71,11 @@ public class IdCardUtils {
 			return false;
 		}
 
-		try {
-			int year = Integer.parseInt(idCardNumber.substring(6, 10));
-			int month = Integer.parseInt(idCardNumber.substring(10, 12));
-			int day = Integer.parseInt(idCardNumber.substring(12, 14));
-			if (year < MIN_YEAR) {
-				return false;
-			}
-			Date nowDate = new Date();
-			Date birthDate = DateUtils.toDate(LocalDate.of(year, month, day));
-			return DateUtils.truncatedCompareTo(birthDate, nowDate, Calendar.DATE) <= 0;
-		} catch (NumberFormatException e) {
+		LocalDate birthDate = parseBirthDate(idCardNumber);
+		if (Objects.isNull(birthDate) || birthDate.getYear() < MIN_YEAR) {
 			return false;
 		}
+		return !birthDate.isAfter(LocalDate.now());
 	}
 
 	/**
@@ -113,10 +104,10 @@ public class IdCardUtils {
 	 * 解析身份证出生日期
 	 *
 	 * @param idCardNumber 身份证号码（15位或18位）
-	 * @return 出生日期对象，null-输入不合法
+	 * @return 出生日期，null-输入不合法
 	 * @since 1.0.0
 	 */
-	public static Date parseBirthDate(final String idCardNumber) {
+	public static LocalDate parseBirthDate(final String idCardNumber) {
 		if (StringUtils.isBlank(idCardNumber)) {
 			return null;
 		}
@@ -124,16 +115,12 @@ public class IdCardUtils {
 			int year = NumberUtils.toInt("19" + idCardNumber.substring(6, 8));
 			int month = NumberUtils.toInt(idCardNumber.substring(8, 10));
 			int date = NumberUtils.toInt(idCardNumber.substring(10, 12));
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(year, month - 1, date);
-			return calendar.getTime();
+			return LocalDate.of(year, month, date);
 		} else if (idCardNumber.length() == 18) {
 			int year = NumberUtils.toInt(idCardNumber.substring(6, 10));
 			int month = NumberUtils.toInt(idCardNumber.substring(10, 12));
 			int date = NumberUtils.toInt(idCardNumber.substring(12, 14));
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(year, month - 1, date);
-			return calendar.getTime();
+			return LocalDate.of(year, month, date);
 		} else {
 			return null;
 		}
