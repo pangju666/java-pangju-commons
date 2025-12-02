@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.ParseException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -38,6 +40,13 @@ import java.util.Optional;
 public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	protected DateUtils() {
 	}
+
+	/**
+	 * 中国时区
+	 *
+	 * @since 1.0.0
+	 */
+	public static final ZoneId CHINA_ZONE_ID = ZoneId.of("CTT");
 
 	/**
 	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, "yyyy-MM-dd HH:mm"
@@ -126,6 +135,41 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	}
 
 	/**
+	 * 将 {@link Instant} 转换为 {@link Date}。
+	 * <p>
+	 * 当 {@code instant} 为 {@code null} 时返回 {@code null}。
+	 * 等价于调用 {@link #toDate(Instant, Date) toDate(instant, null)}。
+	 * 转换基于时间戳，不涉及时区换算。
+	 * </p>
+	 *
+	 * @param instant 待转换的时间点
+	 * @return 转换得到的 {@link Date}；当 {@code instant} 为 {@code null} 时返回 {@code null}
+	 * @since 1.0.0
+	 */
+	public static Date toDate(final Instant instant) {
+		return toDate(instant, null);
+	}
+
+	/**
+	 * 将 {@link Instant} 转换为 {@link Date}，支持空值默认返回。
+	 * <p>
+	 * 当 {@code instant} 为 {@code null} 时返回 {@code defaultValue}；
+	 * 否则返回 {@link Date#from(Instant)}。转换基于时间戳，不涉及时区换算。
+	 * </p>
+	 *
+	 * @param instant      待转换的时间点
+	 * @param defaultValue 当 {@code instant} 为 {@code null} 时返回的默认值
+	 * @return 转换得到的 {@link Date} 或 {@code defaultValue}
+	 * @since 1.0.0
+	 */
+	public static Date toDate(final Instant instant, final Date defaultValue) {
+		if (Objects.isNull(instant)) {
+			return defaultValue;
+		}
+		return Date.from(instant);
+	}
+
+	/**
 	 * 获取Date对象的时间戳
 	 *
 	 * @param date 日期对象
@@ -149,6 +193,41 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 			return defaultValue;
 		}
 		return date.getTime();
+	}
+
+	/**
+	 * 将 {@link Date} 转换为 {@link Instant}。
+	 * <p>
+	 * 当 {@code date} 为 {@code null} 时返回 {@code null}。等价于
+	 * {@link #toInstant(Date, Instant) toInstant(date, null)}。
+	 * 该转换基于时间戳，不涉及时区换算。
+	 * </p>
+	 *
+	 * @param date 待转换的日期
+	 * @return 转换得到的 {@link Instant}；当 {@code date} 为 {@code null} 时返回 {@code null}
+	 * @since 1.0.0
+	 */
+	public static Instant toInstant(final Date date) {
+		return toInstant(date, null);
+	}
+
+	/**
+	 * 将 {@link Date} 转换为 {@link Instant}，支持空值默认返回。
+	 * <p>
+	 * 当 {@code date} 为 {@code null} 时返回 {@code defaultValue}；
+	 * 否则返回 {@link Date#toInstant()}。该转换基于时间戳，不涉及时区换算。
+	 * </p>
+	 *
+	 * @param date         待转换的日期
+	 * @param defaultValue 当 {@code date} 为 {@code null} 时返回的默认值
+	 * @return 转换得到的 {@link Instant} 或 {@code defaultValue}
+	 * @since 1.0.0
+	 */
+	public static Instant toInstant(final Date date, final Instant defaultValue) {
+		if (Objects.isNull(date)) {
+			return defaultValue;
+		}
+		return date.toInstant();
 	}
 
 	/**
