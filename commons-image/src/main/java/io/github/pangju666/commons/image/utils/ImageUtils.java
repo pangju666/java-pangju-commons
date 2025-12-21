@@ -880,95 +880,103 @@ public class ImageUtils {
 	public static ImageSize getSize(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
 
-		int imageOrientation = getExifOrientation(metadata);
+		int imageOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		Integer imageWidth = null;
 		Integer imageHeight = null;
 
-		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof BmpHeaderDirectory) {
-				BmpHeaderDirectory bmpHeaderDirectory = (BmpHeaderDirectory) directory;
-				if (bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof EpsDirectory) {
-				EpsDirectory epsDirectory = (EpsDirectory) directory;
-				if (epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_WIDTH) &&
-					epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof GifImageDirectory) {
-				GifImageDirectory gifImageDirectory = (GifImageDirectory) directory;
-				if (gifImageDirectory.containsTag(GifImageDirectory.TAG_WIDTH) &&
-					gifImageDirectory.containsTag(GifImageDirectory.TAG_HEIGHT)) {
-					imageWidth = gifImageDirectory.getInteger(GifImageDirectory.TAG_WIDTH);
-					imageHeight = gifImageDirectory.getInteger(GifImageDirectory.TAG_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof HeifDirectory) {
-				HeifDirectory heifDirectory = (HeifDirectory) directory;
-				if (heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_WIDTH) &&
-					heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof IcoDirectory) {
-				IcoDirectory icoDirectory = (IcoDirectory) directory;
-				if (icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
-					icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof JpegDirectory) {
-				JpegDirectory jpegDirectory = (JpegDirectory) directory;
-				if (jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
-					jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof PsdHeaderDirectory) {
-				PsdHeaderDirectory exifDirectory = (PsdHeaderDirectory) directory;
-				if (exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof PngDirectory) {
-				PngDirectory pngDirectory = (PngDirectory) directory;
-				if (pngDirectory.containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
-					pngDirectory.containsTag(PngDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof WebpDirectory) {
-				WebpDirectory webpDirectory = (WebpDirectory) directory;
-				if (webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
-					webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)) {
-					imageWidth = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_WIDTH);
-					imageHeight = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_HEIGHT);
-				}
-				break;
-			} else if (directory instanceof ExifDirectoryBase) {
-				ExifDirectoryBase exifDirectory = (ExifDirectoryBase) directory;
-				if (exifDirectory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
-					exifDirectory.containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)) {
-					imageWidth = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
-					imageHeight = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
-				}
-				break;
+		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		if (Objects.nonNull(exifIFD0Directory)) {
+			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
+			if (Objects.nonNull(orientation)) {
+				imageOrientation = orientation;
+			}
+
+			if (exifIFD0Directory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
+				exifIFD0Directory.containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)) {
+				imageWidth = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
+				imageHeight = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
 			}
 		}
+
 		if (ObjectUtils.anyNull(imageWidth, imageHeight)) {
-			return null;
+			for (Directory directory : metadata.getDirectories()) {
+				if (directory instanceof BmpHeaderDirectory) {
+					BmpHeaderDirectory bmpHeaderDirectory = (BmpHeaderDirectory) directory;
+					if (bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
+						bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof EpsDirectory) {
+					EpsDirectory epsDirectory = (EpsDirectory) directory;
+					if (epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_WIDTH) &&
+						epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof GifImageDirectory) {
+					GifImageDirectory gifImageDirectory = (GifImageDirectory) directory;
+					if (gifImageDirectory.containsTag(GifImageDirectory.TAG_WIDTH) &&
+						gifImageDirectory.containsTag(GifImageDirectory.TAG_HEIGHT)) {
+						imageWidth = gifImageDirectory.getInteger(GifImageDirectory.TAG_WIDTH);
+						imageHeight = gifImageDirectory.getInteger(GifImageDirectory.TAG_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof HeifDirectory) {
+					HeifDirectory heifDirectory = (HeifDirectory) directory;
+					if (heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_WIDTH) &&
+						heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof IcoDirectory) {
+					IcoDirectory icoDirectory = (IcoDirectory) directory;
+					if (icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
+						icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof JpegDirectory) {
+					JpegDirectory jpegDirectory = (JpegDirectory) directory;
+					if (jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
+						jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof PsdHeaderDirectory) {
+					PsdHeaderDirectory exifDirectory = (PsdHeaderDirectory) directory;
+					if (exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
+						exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof PngDirectory) {
+					PngDirectory pngDirectory = (PngDirectory) directory;
+					if (pngDirectory.containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
+						pngDirectory.containsTag(PngDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				} else if (directory instanceof WebpDirectory) {
+					WebpDirectory webpDirectory = (WebpDirectory) directory;
+					if (webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
+						webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)) {
+						imageWidth = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_WIDTH);
+						imageHeight = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_HEIGHT);
+					}
+					break;
+				}
+			}
+			if (ObjectUtils.anyNull(imageWidth, imageHeight)) {
+				return null;
+			}
 		}
 		return (imageOrientation >= 5 && imageOrientation <= 8) ? new ImageSize(imageHeight, imageWidth) :
 			new ImageSize(imageWidth, imageHeight);
@@ -1109,9 +1117,9 @@ public class ImageUtils {
 	 * <p><b>处理流程：</b></p>
 	 * <ol>
 	 *   <li>检查元数据是否为null</li>
-	 *   <li>遍历所有EXIF目录</li>
+	 *   <li>获取Exif元数据</li>
 	 *   <li>查找TAG_ORIENTATION标签</li>
-	 *   <li>返回找到的第一个有效方向值</li>
+	 *   <li>返回找到的方向值</li>
 	 * </ol>
 	 *
 	 * @param metadata 图像元数据对象，必须满足：
@@ -1128,9 +1136,9 @@ public class ImageUtils {
 	public static int getExifOrientation(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
 
-		Collection<ExifDirectoryBase> exifDirectories = metadata.getDirectoriesOfType(ExifDirectoryBase.class);
-		for (ExifDirectoryBase exifDirectory : exifDirectories) {
-			Integer orientation = exifDirectory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
+		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		if (Objects.nonNull(exifIFD0Directory)) {
+			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
 			if (Objects.nonNull(orientation)) {
 				return orientation;
 			}
