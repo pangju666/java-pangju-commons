@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,13 +39,6 @@ import java.util.Optional;
 public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	protected DateUtils() {
 	}
-
-	/**
-	 * 中国时区
-	 *
-	 * @since 1.0.0
-	 */
-	public static final ZoneId CHINA_ZONE_ID = ZoneId.of("CTT");
 
 	/**
 	 * 将字符串解析为Date对象，使用预设格式{@link Constants#DATE_FORMAT}、{@link Constants#DATETIME_FORMAT}, "yyyy-MM-dd HH:mm"

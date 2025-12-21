@@ -16,6 +16,8 @@
 
 package io.github.pangju666.commons.lang.pool;
 
+import java.time.ZoneId;
+
 /**
  * 常用的一些常量
  *
@@ -27,6 +29,12 @@ public class Constants {
 	public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	public static final String DATE_FORMAT = "yyyy-MM-dd";
 	public static final String TIME_FORMAT = "HH:mm:ss";
+	/**
+	 * 中国时区
+	 *
+	 * @since 1.0.0
+	 */
+	public static final ZoneId CHINA_ZONE_ID = ZoneId.of("Asia/Shanghai");
 
 	// 字符串相关常量
 	/**
