@@ -18,11 +18,21 @@ package io.github.pangju666.commons.image.utils;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataReader;
+import com.drew.metadata.bmp.BmpHeaderDirectory;
+import com.drew.metadata.eps.EpsDirectory;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.file.FileTypeDirectory;
+import com.drew.metadata.gif.GifImageDirectory;
+import com.drew.metadata.heif.HeifDirectory;
+import com.drew.metadata.ico.IcoDirectory;
+import com.drew.metadata.jpeg.JpegDirectory;
+import com.drew.metadata.photoshop.PsdHeaderDirectory;
+import com.drew.metadata.png.PngDirectory;
+import com.drew.metadata.webp.WebpDirectory;
 import com.twelvemonkeys.image.ImageUtil;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
@@ -259,13 +269,13 @@ public class ImageUtils {
 	 * </ol>
 	 *
 	 * @param file     要检查的文件对象，必须满足：
-	 *               <ul>
-	 *                 <li>非null</li>
-	 *                 <li>存在且可读</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>非null</li>
+	 *                   <li>存在且可读</li>
+	 *                 </ul>
 	 * @param mimeType 要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
-	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IOException              当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
@@ -288,13 +298,13 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param bytes    要检查的字节数组，必须满足：
-	 *               <ul>
-	 *                 <li>非null</li>
-	 *                 <li>非空</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>非null</li>
+	 *                   <li>非空</li>
+	 *                 </ul>
 	 * @param mimeType 要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
-	 * @throws IOException 当读取数据失败时抛出
+	 * @throws IOException              当读取数据失败时抛出
 	 * @throws IllegalArgumentException 当bytes为null或空时抛出
 	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
@@ -321,13 +331,13 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param inputStream 要检查的输入流，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>支持mark/reset操作</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                    </ul>
 	 * @param mimeType    要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
-	 * @throws IOException 当读取流失败时抛出
+	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @see #parseMimeTypes(ImageInputStream)
 	 * @since 1.0.0
@@ -360,11 +370,11 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param imageInputStream 要检查的图像输入流，必须满足：
-	 *                      <ul>
-	 *                        <li>非null</li>
-	 *                        <li>已定位到图像数据起始位置</li>
-	 *                      </ul>
-	 * @param mimeType        要匹配的MIME类型，允许为空（将返回false）
+	 *                         <ul>
+	 *                           <li>非null</li>
+	 *                           <li>已定位到图像数据起始位置</li>
+	 *                         </ul>
+	 * @param mimeType         要匹配的MIME类型，允许为空（将返回false）
 	 * @return 如果匹配返回true，否则返回false
 	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
 	 * @see #parseMimeTypes(ImageInputStream)
@@ -393,12 +403,12 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param file 要检查的文件对象，必须满足：
-	 *           <ul>
-	 *             <li>非null</li>
-	 *             <li>存在且可读</li>
-	 *           </ul>
+	 *             <ul>
+	 *               <li>非null</li>
+	 *               <li>存在且可读</li>
+	 *             </ul>
 	 * @return 文件的MIME类型，无法获取时返回null
-	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IOException              当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @apiNote 此方法专门用于获取图像文件的MIME类型
 	 * @see ImageReaderSpi#getMIMETypes()
@@ -457,12 +467,12 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param inputStream 要检查的输入流，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>支持mark/reset操作</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                    </ul>
 	 * @return 流的MIME类型，无法获取时返回null
-	 * @throws IOException 当读取流失败时抛出
+	 * @throws IOException              当读取流失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @apiNote 此方法专门用于获取图像流的MIME类型
 	 * @see ImageReaderSpi#getMIMETypes()
@@ -499,10 +509,10 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param imageInputStream 要检查的图像输入流，必须满足：
-	 *                      <ul>
-	 *                        <li>非null</li>
-	 *                        <li>已定位到图像数据起始位置</li>
-	 *                      </ul>
+	 *                         <ul>
+	 *                           <li>非null</li>
+	 *                           <li>已定位到图像数据起始位置</li>
+	 *                         </ul>
 	 * @return 流的MIME类型，无法获取时返回null
 	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
 	 * @apiNote 此方法专门用于获取图像流的MIME类型
@@ -537,15 +547,15 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param metadata 图像元数据对象，必须满足：
-	 *               <ul>
-	 *                 <li>非null</li>
-	 *                 <li>包含有效的图像元数据</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>非null</li>
+	 *                   <li>包含有效的图像元数据</li>
+	 *                 </ul>
 	 * @return 检测到的MIME类型字符串，格式如"image/jpeg"，
-	 *         未找到时返回null
+	 * 未找到时返回null
 	 * @throws IllegalArgumentException 当metadata为null时抛出
 	 * @apiNote 此方法依赖于metadata-extractor库的实现，
-	 *          对于不支持的格式将返回null
+	 * 对于不支持的格式将返回null
 	 * @see FileTypeDirectory#TAG_DETECTED_FILE_MIME_TYPE
 	 * @see FileUtils#getMimeType(File)
 	 * @since 1.0.0
@@ -578,13 +588,13 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param file 图像文件对象，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>存在且可读</li>
-	 *              <li>有效的图像文件</li>
-	 *            </ul>
+	 *             <ul>
+	 *               <li>非null</li>
+	 *               <li>存在且可读</li>
+	 *               <li>有效的图像文件</li>
+	 *             </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IOException              当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @see #getSize(File, boolean)
 	 * @see #getSize(Metadata)
@@ -608,19 +618,19 @@ public class ImageUtils {
 	 *   <li>对于确定方向正确的图像，建议设置useMetadata=false</li>
 	 * </ul>
 	 *
-	 * @param file 图像文件对象，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>存在且可读</li>
-	 *              <li>有效的图像文件</li>
-	 *            </ul>
+	 * @param file        图像文件对象，必须满足：
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>存在且可读</li>
+	 *                      <li>有效的图像文件</li>
+	 *                    </ul>
 	 * @param useMetadata 是否优先使用元数据获取尺寸：
-	 *                  <ul>
-	 *                    <li>true：自动处理EXIF方向</li>
-	 *                    <li>false：直接读取图像尺寸</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>true：自动处理EXIF方向</li>
+	 *                      <li>false：直接读取图像尺寸</li>
+	 *                    </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当文件不存在或读取失败时抛出
+	 * @throws IOException              当文件不存在或读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
@@ -687,18 +697,18 @@ public class ImageUtils {
 	 *   <li>对于确定方向正确的图像，建议设置useMetadata=false</li>
 	 * </ul>
 	 *
-	 * @param bytes 要检查的字节数组，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>非空</li>
-	 *            </ul>
+	 * @param bytes       要检查的字节数组，必须满足：
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>非空</li>
+	 *                    </ul>
 	 * @param useMetadata 是否优先使用元数据获取尺寸：
-	 *                  <ul>
-	 *                    <li>true：自动处理EXIF方向</li>
-	 *                    <li>false：直接读取图像尺寸</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>true：自动处理EXIF方向</li>
+	 *                      <li>false：直接读取图像尺寸</li>
+	 *                    </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当读取数据失败时抛出
+	 * @throws IOException              当读取数据失败时抛出
 	 * @throws IllegalArgumentException 当bytes为null或空时抛出
 	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
@@ -730,12 +740,12 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流对象，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>支持mark/reset操作</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                    </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @see #getSize(InputStream, boolean)
 	 * @see #getSize(Metadata)
@@ -760,17 +770,17 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流对象，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>支持mark/reset操作</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                    </ul>
 	 * @param useMetadata 是否优先使用元数据获取尺寸：
-	 *                  <ul>
-	 *                    <li>true：自动处理EXIF方向</li>
-	 *                    <li>false：直接读取图像尺寸</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>true：自动处理EXIF方向</li>
+	 *                      <li>false：直接读取图像尺寸</li>
+	 *                    </ul>
 	 * @return 包含宽度和高度的ImageSize对象，无法获取时返回null
-	 * @throws IOException 当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @apiNote 此方法适用于需要平衡准确性和性能的场景
 	 * @see MetadataReader
@@ -870,29 +880,91 @@ public class ImageUtils {
 	public static ImageSize getSize(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
 
-		Collection<ExifDirectoryBase> exifDirectories = metadata.getDirectoriesOfType(ExifDirectoryBase.class);
+		int imageOrientation = getExifOrientation(metadata);
 		Integer imageWidth = null;
 		Integer imageHeight = null;
-		int imageOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		for (ExifDirectoryBase exifDirectoryBase : exifDirectories) {
-			if (exifDirectoryBase instanceof ExifIFD0Directory) {
-				ExifIFD0Directory exifIFD0Directory = (ExifIFD0Directory) exifDirectoryBase;
-				if (exifIFD0Directory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH)) {
-					Integer width = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
-					if (Objects.nonNull(width)) {
-						imageWidth = width;
-					}
+
+		for (Directory directory : metadata.getDirectories()) {
+			if (directory instanceof BmpHeaderDirectory) {
+				BmpHeaderDirectory bmpHeaderDirectory = (BmpHeaderDirectory) directory;
+				if (bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
-				if (exifIFD0Directory.containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)) {
-					Integer height = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
-					if (Objects.nonNull(height)) {
-						imageHeight = height;
-					}
+				break;
+			} else if (directory instanceof EpsDirectory) {
+				EpsDirectory epsDirectory = (EpsDirectory) directory;
+				if (epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_WIDTH) &&
+					epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_HEIGHT);
 				}
-			}
-			Integer orientation = exifDirectoryBase.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
-			if (Objects.nonNull(orientation)) {
-				imageOrientation = orientation;
+				break;
+			} else if (directory instanceof GifImageDirectory) {
+				GifImageDirectory gifImageDirectory = (GifImageDirectory) directory;
+				if (gifImageDirectory.containsTag(GifImageDirectory.TAG_WIDTH) &&
+					gifImageDirectory.containsTag(GifImageDirectory.TAG_HEIGHT)) {
+					imageWidth = gifImageDirectory.getInteger(GifImageDirectory.TAG_WIDTH);
+					imageHeight = gifImageDirectory.getInteger(GifImageDirectory.TAG_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof HeifDirectory) {
+				HeifDirectory heifDirectory = (HeifDirectory) directory;
+				if (heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_WIDTH) &&
+					heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof IcoDirectory) {
+				IcoDirectory icoDirectory = (IcoDirectory) directory;
+				if (icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
+					icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof JpegDirectory) {
+				JpegDirectory jpegDirectory = (JpegDirectory) directory;
+				if (jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
+					jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof PsdHeaderDirectory) {
+				PsdHeaderDirectory exifDirectory = (PsdHeaderDirectory) directory;
+				if (exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof PngDirectory) {
+				PngDirectory pngDirectory = (PngDirectory) directory;
+				if (pngDirectory.containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
+					pngDirectory.containsTag(PngDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof WebpDirectory) {
+				WebpDirectory webpDirectory = (WebpDirectory) directory;
+				if (webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
+					webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)) {
+					imageWidth = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_WIDTH);
+					imageHeight = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_HEIGHT);
+				}
+				break;
+			} else if (directory instanceof ExifDirectoryBase) {
+				ExifDirectoryBase exifDirectory = (ExifDirectoryBase) directory;
+				if (exifDirectory.containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
+					exifDirectory.containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)) {
+					imageWidth = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_WIDTH);
+					imageHeight = exifDirectory.getInteger(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
+				}
+				break;
 			}
 		}
 		if (ObjectUtils.anyNull(imageWidth, imageHeight)) {
@@ -920,13 +992,13 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param file 图像文件，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>存在且可读</li>
-	 *              <li>包含EXIF信息</li>
-	 *            </ul>
+	 *             <ul>
+	 *               <li>非null</li>
+	 *               <li>存在且可读</li>
+	 *               <li>包含EXIF信息</li>
+	 *             </ul>
 	 * @return EXIF方向值（1-8），无法获取时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
-	 * @throws IOException 当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null时抛出
 	 * @see ExifDirectoryBase#TAG_ORIENTATION
 	 * @since 1.0.0
@@ -957,13 +1029,13 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param bytes 图像字节数组，必须满足：
-	 *            <ul>
-	 *              <li>非null</li>
-	 *              <li>非空</li>
-	 *              <li>包含有效的EXIF信息</li>
-	 *            </ul>
+	 *              <ul>
+	 *                <li>非null</li>
+	 *                <li>非空</li>
+	 *                <li>包含有效的EXIF信息</li>
+	 *              </ul>
 	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
-	 * @throws IOException 当读取数据失败时抛出
+	 * @throws IOException              当读取数据失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
 	 * @throws IllegalArgumentException 当bytes为null或空时抛出
 	 * @see #getExifOrientation(Metadata)
@@ -996,13 +1068,13 @@ public class ImageUtils {
 	 * </p>
 	 *
 	 * @param inputStream 图像输入流，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>支持mark/reset操作</li>
-	 *                    <li>包含有效的EXIF信息</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非null</li>
+	 *                      <li>支持mark/reset操作</li>
+	 *                      <li>包含有效的EXIF信息</li>
+	 *                    </ul>
 	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
-	 * @throws IOException 当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws ImageProcessingException 当图像处理异常时抛出
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @see #getExifOrientation(Metadata)
@@ -1043,10 +1115,10 @@ public class ImageUtils {
 	 * </ol>
 	 *
 	 * @param metadata 图像元数据对象，必须满足：
-	 *                <ul>
-	 *                  <li>非null</li>
-	 *                  <li>包含有效的EXIF信息</li>
-	 *                </ul>
+	 *                 <ul>
+	 *                   <li>非null</li>
+	 *                   <li>包含有效的EXIF信息</li>
+	 *                 </ul>
 	 * @return EXIF方向值（1-8），未找到时返回{@link ImageConstants#NORMAL_EXIF_ORIENTATION}
 	 * @throws IllegalArgumentException 当元数据为null时抛出
 	 * @see ExifIFD0Directory
@@ -1080,7 +1152,7 @@ public class ImageUtils {
 	 *   <li>输入流必须支持mark/reset操作</li>
 	 * </ul>
 	 *
-	 * @param inputStream  输入流，必须满足：
+	 * @param inputStream 输入流，必须满足：
 	 *                    <ul>
 	 *                      <li>非null</li>
 	 *                      <li>支持mark/reset操作</li>
@@ -1127,10 +1199,10 @@ public class ImageUtils {
 	 * </ul>
 	 *
 	 * @param imageInputStream 图像输入流，必须满足：
-	 *                       <ul>
-	 *                         <li>非null</li>
-	 *                         <li>已定位到图像数据起始位置</li>
-	 *                       </ul>
+	 *                         <ul>
+	 *                           <li>非null</li>
+	 *                           <li>已定位到图像数据起始位置</li>
+	 *                         </ul>
 	 * @return MIME类型数组，可能为空数组但不会为null
 	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
 	 * @see ImageReaderSpi#getMIMETypes()
