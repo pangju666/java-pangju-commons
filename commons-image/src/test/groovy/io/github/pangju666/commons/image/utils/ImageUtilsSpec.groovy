@@ -1,5 +1,7 @@
 package io.github.pangju666.commons.image.utils
 
+import com.drew.imaging.ImageMetadataReader
+import com.drew.metadata.Metadata
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
@@ -155,5 +157,11 @@ class ImageUtilsSpec extends Specification {
 
 		then:
 		results.every { it?.width() == 4095 }
+	}
+
+	def "asda"() {
+		setup:
+		Metadata metadata = ImageMetadataReader.readMetadata(new File("C:\\Users\\nullp\\Downloads\\wac_nearside.tif"));
+		println metadata
 	}
 }

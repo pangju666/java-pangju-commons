@@ -16,28 +16,27 @@
 
 package io.github.pangju666.commons.image.model;
 
+import io.github.pangju666.commons.image.lang.ImageConstants;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * 图像尺寸模型类
+ * 图像尺寸模型（不可变）
  * <p>
- * 表示图像的显示尺寸，封装宽度和高度两个不可变属性，
- * 提供多种保持宽高比的尺寸缩放计算方法。
+ * 封装图像的宽度、高度及 EXIF 方向信息，提供物理尺寸与可视化尺寸的转换能力。
  * </p>
  *
- * <h3>核心特性</h3>
+ * <h3>核心概念</h3>
  * <ul>
- *   <li><strong>不可变性</strong> - 线程安全，适合并发场景</li>
- *   <li><strong>宽高比保持</strong> - 所有缩放操作保持原始比例</li>
- *   <li><strong>像素保护</strong> - 结果像素值最小为 1</li>
- *   <li><strong>取整策略</strong> - 所有尺寸计算采用四舍五入到最近像素</li>
+ *   <li><b>物理尺寸：</b> 图像文件实际存储的像素宽高（不包含旋转信息）。</li>
+ *   <li><b>可视化尺寸：</b> 结合 EXIF 方向信息（Orientation）校正后的显示宽高（通过 {@link #getVisualSize()} 获取）。</li>
  * </ul>
  *
- * <h3>典型应用</h3>
+ * <h3>功能特性</h3>
  * <ul>
- *   <li>图像缩略图生成</li>
- *   <li>响应式图片尺寸计算</li>
- *   <li>图片裁剪预处理</li>
+ *   <li><b>线程安全：</b> 设计为不可变对象，适合并发环境。</li>
+ *   <li><b>等比缩放：</b> 支持基于宽度、高度、比例或限制框的等比缩放计算。</li>
+ *   <li><b>安全计算：</b> 计算结果自动四舍五入，并确保最小尺寸为 1x1 像素。</li>
  * </ul>
  *
  * @author pangju666
@@ -56,14 +55,23 @@ public class ImageSize {
 	 * @since 1.0.0
 	 */
 	private final int height;
+	/**
+	 * EXIF 方向标识
+	 *
+	 * @since 1.0.0
+	 */
+	private final Integer orientation;
+	/**
+	 * 是否为可视化尺寸
+	 *
+	 * @since 1.0.0
+	 */
+	private final boolean visual;
 
 	/**
-	 * 规范构造方法
+	 * 构造方法（无方向）
 	 * <p>
-	 * 对宽度和高度进行有效性验证：
-	 * <ul>
-	 *   <li>必须为正整数</li>
-	 * </ul>
+	 * 创建一个具有指定宽高、不包含 EXIF 方向的图像尺寸对象。
 	 * </p>
 	 *
 	 * @param width  图像宽度（像素），必须大于 0
@@ -77,6 +85,87 @@ public class ImageSize {
 
 		this.width = width;
 		this.height = height;
+		this.orientation = null;
+		this.visual = false;
+	}
+
+	/**
+	 * 构造方法（指定方向）
+	 * <p>
+	 * 创建一个具有指定宽高和 EXIF 方向的图像尺寸对象。
+	 * </p>
+	 *
+	 * @param width       图像宽度（像素），必须大于 0
+	 * @param height      图像高度（像素），必须大于 0
+	 * @param orientation EXIF 方向标识，必须介于 1-8 之间
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
+	 * @since 1.0.0
+	 */
+	public ImageSize(int width, int height, int orientation) {
+		this(width, height, orientation, false);
+	}
+
+	/**
+	 * 全参数构造方法
+	 * <p>
+	 * 内部使用的全参数构造方法，支持设置 visual 属性。
+	 * </p>
+	 *
+	 * @param width       图像宽度（像素），必须大于 0
+	 * @param height      图像高度（像素），必须大于 0
+	 * @param orientation EXIF 方向标识，必须介于 1-8 之间
+	 * @param visual      是否为可视化尺寸
+	 * @throws IllegalArgumentException 当参数不符合要求时抛出
+	 * @since 1.0.0
+	 */
+	protected ImageSize(int width, int height, int orientation, boolean visual) {
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
+		Validate.inclusiveBetween(1, 8, orientation, "orientation 必须介于1-8之间");
+
+		this.width = width;
+		this.height = height;
+		this.orientation = orientation;
+		this.visual = visual;
+	}
+
+	/**
+	 * 获取符合视觉习惯的图像尺寸
+	 * <p>
+	 * 根据 EXIF 方向信息（Orientation）校正宽和高：
+	 * </p>
+	 * <ul>
+	 *   <li><b>方向 5-8：</b> 图像被旋转了 90° 或 270°，此时<b>交换宽度和高度</b>。</li>
+	 *   <li><b>其他方向 或 无方向：</b> 保持原始存储尺寸（无方向时默认视为正常方向）。</li>
+	 * </ul>
+	 * <p>
+	 * 此方法常用于 UI 显示或需要按照图像“摆正”后的样子处理的场景。
+	 * </p>
+	 *
+	 * @return 校正后的 {@link ImageSize} 对象。如果当前对象已经是可视化尺寸（{@code isVisual() == true}），则返回自身。
+	 * @see <a href="https://www.exif.org/ExifTags/0x0112.php">EXIF Orientation Tag</a>
+	 * @since 1.0.0
+	 */
+	public ImageSize getVisualSize() {
+		if (this.visual) {
+			return this;
+		}
+		int effectiveOrientation = ObjectUtils.getIfNull(orientation, ImageConstants.NORMAL_EXIF_ORIENTATION);
+		return effectiveOrientation >= 5 ? new ImageSize(height, width, effectiveOrientation, true) :
+			new ImageSize(width, height, effectiveOrientation, true);
+	}
+
+	/**
+	 * 获取 EXIF 方向标识
+	 * <p>
+	 * 对应 EXIF 标签 Orientation，值的范围为 1-8。
+	 * </p>
+	 *
+	 * @return 方向标识值，如果未定义方向信息则返回 null
+	 * @since 1.0.0
+	 */
+	public Integer getOrientation() {
+		return orientation;
 	}
 
 	/**
@@ -228,13 +317,13 @@ public class ImageSize {
 	 * <p>该方法不会修改当前对象，而是返回一个新的尺寸实例。</p>
 	 * <p>缩放结果采用四舍五入到最近像素。</p>
 	 *
-	 * @param scale 缩放比例，必须大于 0
+	 * @param ratio 缩放比例，必须大于 0
 	 * @return 缩放后的新尺寸
 	 * @throws IllegalArgumentException 当 {@code scale} 小于或等于 0 时抛出
 	 * @since 1.0.0
 	 */
-	public ImageSize scale(final double scale) {
-		Validate.isTrue(scale > 0, "scale 必须大于0");
-		return new ImageSize((int) Math.round(this.getWidth() * scale), (int) Math.round(this.height * scale));
+	public ImageSize scale(final double ratio) {
+		Validate.isTrue(ratio > 0, "scale 必须大于0");
+		return new ImageSize((int) Math.round(this.getWidth() * ratio), (int) Math.round(this.height * ratio));
 	}
 }
