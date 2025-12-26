@@ -773,7 +773,7 @@ public class ImageEditor {
 	 */
 	public ImageEditor rotate(final int direction) {
 		if (direction == ImageUtil.ROTATE_90_CW || direction == ImageUtil.ROTATE_90_CCW || direction == ImageUtil.ROTATE_180) {
-			this.outputImage = ImageUtil.createRotated(this.outputImage, direction);
+			this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(direction));
 		}
 		return this;
 	}
@@ -781,12 +781,12 @@ public class ImageEditor {
 	/**
 	 * 按指定角度旋转图像。
 	 *
-	 * @param angle 旋转角度（度数），正值表示顺时针旋转
+	 * @param angleDegrees 旋转角度（度数），正值表示顺时针旋转
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor rotate(final double angle) {
-		this.outputImage = ImageUtil.createRotated(this.outputImage, angle);
+	public ImageEditor rotate(final double angleDegrees) {
+		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(angleDegrees));
 		return this;
 	}
 

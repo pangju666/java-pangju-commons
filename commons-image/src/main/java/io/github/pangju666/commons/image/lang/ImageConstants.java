@@ -39,7 +39,8 @@ public class ImageConstants {
 	 * @see java.awt.image.BufferedImage#TYPE_INT_RGB
 	 * @since 1.0.0
 	 */
-	public static final Set<String> NON_TRANSPARENT_IMAGE_FORMATS = Set.of("jpeg", "jpg", "jpeg-lossless", "bmp", "gif");
+	public static final Set<String> NON_TRANSPARENT_IMAGE_FORMATS = Set.of("jpeg", "jpg", "jpeg-lossless", "bmp", "gif",
+		"JPEG", "JPG", "JPEG-LOSSLESS", "BMP", "GIF");
 	/**
 	 * 系统支持的可读取图像MIME类型集合（懒加载）
 	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
