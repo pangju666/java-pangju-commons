@@ -19,9 +19,7 @@ package io.github.pangju666.commons.image.enums;
 /**
  * 图像旋转方向枚举。
  * <p>
- * 定义常见的固定角度旋转方向。{@link #angle} 为角度值（单位：度），符号含义：正数表示顺时针，
- * 负数表示逆时针。
- * 该角度用于与底层图像处理引擎进行参数传递。
+ * 定义常见的固定角度旋转方向。
  * </p>
  *
  * @author pangju666
@@ -62,7 +60,7 @@ public enum RotateDirection {
 	/**
 	 * 获取角度值。
 	 *
-	 * @return 角度值（度），正数顺时针、负数逆时针
+	 * @return 角度值（度）
 	 * @since 1.0.0
 	 */
 	public double getAngle() {
