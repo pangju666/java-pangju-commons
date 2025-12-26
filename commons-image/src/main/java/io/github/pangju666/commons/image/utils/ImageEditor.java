@@ -1620,7 +1620,8 @@ public class ImageEditor {
 		if (color.getAlpha() == 255) {
 			// 设置不透明度
 			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
-				return new Color(color.getRed(), color.getGreen(), color.getBlue(), 255 * option.getOpacity());
+				return new Color(color.getRed(), color.getGreen(), color.getBlue(),
+					(int) (255 * option.getOpacity()));
 			}
 		}
 		return color;
@@ -1647,7 +1648,8 @@ public class ImageEditor {
 		if (color.getAlpha() == 255) {
 			// 设置不透明度
 			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
-				return new Color(color.getRed(), color.getGreen(), color.getBlue(), 255 * option.getOpacity());
+				return new Color(color.getRed(), color.getGreen(), color.getBlue(),
+					(int) (255 * option.getOpacity()));
 			}
 		}
 		return color;
