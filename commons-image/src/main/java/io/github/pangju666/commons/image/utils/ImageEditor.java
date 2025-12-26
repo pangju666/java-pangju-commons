@@ -21,6 +21,8 @@ import com.twelvemonkeys.image.BrightnessContrastFilter;
 import com.twelvemonkeys.image.GrayFilter;
 import com.twelvemonkeys.image.ImageUtil;
 import com.twelvemonkeys.image.ResampleOp;
+import io.github.pangju666.commons.image.enums.FlipDirection;
+import io.github.pangju666.commons.image.enums.RotateDirection;
 import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
@@ -732,27 +734,27 @@ public class ImageEditor {
 
 		switch (imageEditor.outputImageSize.getOrientation()) {
 			case 2:
-				imageEditor.flip(ImageUtil.FLIP_HORIZONTAL);
+				imageEditor.flip(FlipDirection.HORIZONTAL);
 				break;
 			case 3:
-				imageEditor.rotate(ImageUtil.ROTATE_180);
+				imageEditor.rotate(RotateDirection.UPSIDE_DOWN);
 				break;
 			case 4:
-				imageEditor.flip(ImageUtil.FLIP_VERTICAL);
+				imageEditor.flip(FlipDirection.VERTICAL);
 				break;
 			case 5:
-				imageEditor.rotate(ImageUtil.ROTATE_90_CW);
-				imageEditor.flip(ImageUtil.FLIP_HORIZONTAL);
+				imageEditor.rotate(RotateDirection.CLOCKWISE_90);
+				imageEditor.flip(FlipDirection.HORIZONTAL);
 				break;
 			case 6:
-				imageEditor.rotate(ImageUtil.ROTATE_90_CW);
+				imageEditor.rotate(RotateDirection.CLOCKWISE_90);
 				break;
 			case 7:
-				imageEditor.rotate(ImageUtil.ROTATE_90_CCW);
-				imageEditor.flip(ImageUtil.FLIP_HORIZONTAL);
+				imageEditor.rotate(RotateDirection.COUNTER_CLOCKWISE_90);
+				imageEditor.flip(FlipDirection.HORIZONTAL);
 				break;
 			case 8:
-				imageEditor.rotate(ImageUtil.ROTATE_90_CCW);
+				imageEditor.rotate(RotateDirection.COUNTER_CLOCKWISE_90);
 				break;
 			default:
 				break;
@@ -767,26 +769,26 @@ public class ImageEditor {
 	/**
 	 * 按指定方向旋转图像。
 	 *
-	 * @param direction 旋转方向，可以是 {@link ImageUtil#ROTATE_90_CW}、{@link ImageUtil#ROTATE_90_CCW} 或 {@link ImageUtil#ROTATE_180}
+	 * @param direction 旋转方向
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor rotate(final int direction) {
-		if (direction == ImageUtil.ROTATE_90_CW || direction == ImageUtil.ROTATE_90_CCW || direction == ImageUtil.ROTATE_180) {
-			this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(direction));
-		}
+	public ImageEditor rotate(final RotateDirection direction) {
+		Validate.notNull(direction, "direction 不可为 null");
+
+		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(direction.getAngle()));
 		return this;
 	}
 
 	/**
 	 * 按指定角度旋转图像。
 	 *
-	 * @param angleDegrees 旋转角度（度数），正值表示顺时针旋转
+	 * @param angle 旋转角度（单位：度），正值表示顺时针旋转
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor rotate(final double angleDegrees) {
-		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(angleDegrees));
+	public ImageEditor rotate(final double angle) {
+		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(angle));
 		return this;
 	}
 
@@ -827,14 +829,14 @@ public class ImageEditor {
 	/**
 	 * 翻转图像。
 	 *
-	 * @param axis 翻转轴，可以是 {@link ImageUtil#FLIP_HORIZONTAL} 或 {@link ImageUtil#FLIP_VERTICAL}
+	 * @param direction 翻转方向
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor flip(final int axis) {
-		if (axis == ImageUtil.FLIP_HORIZONTAL || axis == ImageUtil.FLIP_VERTICAL) {
-			this.outputImage = ImageUtil.createFlipped(this.outputImage, axis);
-		}
+	public ImageEditor flip(final FlipDirection direction) {
+		Validate.notNull(direction, "direction 不可为 null");
+
+		this.outputImage = ImageUtil.createFlipped(this.outputImage, direction.getAxis());
 		return this;
 	}
 
