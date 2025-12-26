@@ -880,7 +880,7 @@ public class ImageEditor {
 	 */
 	public ImageEditor grayscale() {
 		Image image = ImageUtil.filter(this.outputImage, GRAY_FILTER);
-		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
 
@@ -894,7 +894,7 @@ public class ImageEditor {
 	 */
 	public ImageEditor contrast() {
 		Image image = ImageUtil.filter(this.outputImage, DEFAULT_CONTRAST_FILTER);
-		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
 
@@ -922,7 +922,7 @@ public class ImageEditor {
 
 		BrightnessContrastFilter filter = new BrightnessContrastFilter(0f, amount);
 		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
 
@@ -950,7 +950,7 @@ public class ImageEditor {
 
 		BrightnessContrastFilter filter = new BrightnessContrastFilter(amount, 0f);
 		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
 
@@ -966,7 +966,7 @@ public class ImageEditor {
 		Validate.notNull(filter, "filter不可为 null");
 
 		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image, this.outputImage.getType());
+		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
 
