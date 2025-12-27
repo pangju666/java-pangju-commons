@@ -342,10 +342,10 @@ public class ImageEditor {
 		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");
 
 		this.inputImage = inputImage;
-		this.inputImageSize = inputImageSize;
+		this.inputImageSize = inputImageSize.getVisualSize();
 
 		this.outputImage = inputImage;
-		this.outputImageSize = inputImageSize;
+		this.outputImageSize = inputImageSize.getVisualSize();
 		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
 	}
 
@@ -761,11 +761,8 @@ public class ImageEditor {
 			default:
 				break;
 		}
-		imageEditor.outputImageSize = imageEditor.outputImageSize.getVisualSize();
-
 		// 防止 reset 后丢失方向矫正效果
 		imageEditor.inputImage = imageEditor.outputImage;
-		imageEditor.inputImageSize = imageEditor.outputImageSize;
 	}
 
 	/**
