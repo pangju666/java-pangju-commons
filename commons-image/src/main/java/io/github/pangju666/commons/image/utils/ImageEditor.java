@@ -1370,22 +1370,20 @@ public class ImageEditor {
 			imageType != BufferedImage.TYPE_BYTE_GRAY && // 排除灰度化图像类型
 			ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat) &&
 			outputImage.getColorModel().hasAlpha()) {
-			switch (imageType) {
-				case BufferedImage.TYPE_INT_ARGB:
-				case BufferedImage.TYPE_INT_ARGB_PRE:
-					imageType = BufferedImage.TYPE_INT_RGB;
-					break;
-				case BufferedImage.TYPE_4BYTE_ABGR:
-				case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-					imageType = BufferedImage.TYPE_3BYTE_BGR;
-					break;
-				default:
-					if (outputImage.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
-						imageType = BufferedImage.TYPE_BYTE_GRAY;
-					} else {
+			if (outputImage.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
+				imageType = BufferedImage.TYPE_BYTE_GRAY;
+			} else {
+				switch (imageType) {
+					case BufferedImage.TYPE_4BYTE_ABGR:
+					case BufferedImage.TYPE_4BYTE_ABGR_PRE:
+						imageType = BufferedImage.TYPE_3BYTE_BGR;
+						break;
+					case BufferedImage.TYPE_INT_ARGB:
+					case BufferedImage.TYPE_INT_ARGB_PRE:
+					default:
 						imageType = BufferedImage.TYPE_INT_RGB;
-					}
-					break;
+						break;
+				}
 			}
 			return ImageUtil.toBuffered(outputImage, imageType);
 		}
@@ -1425,8 +1423,8 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
 	 */
-	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction,
-											int x, int y) {
+	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option,
+											WatermarkDirection direction, int x, int y) {
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 		Validate.notNull(option, "option 不可为 null");
 
