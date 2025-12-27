@@ -16,10 +16,15 @@
 
 package io.github.pangju666.commons.image.model;
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Objects;
+import java.util.function.Function;
+
 /**
  * 图像水印尺寸与透明度配置。
  *
- * <p>用于控制图片水印绘制时的缩放比例（相对原图尺寸）、透明度，以及水印尺寸的最小/最大限制。</p>
+ * <p>用于控制图片水印绘制时的缩放比例（相对原图尺寸）、透明度，以及水印尺寸的最小/最大限制策略。</p>
  *
  * @author pangju666
  * @since 1.0.0
@@ -39,30 +44,17 @@ public class ImageWatermarkOption {
 	 * @since 1.0.0
 	 */
 	private float opacity = 0.4f;
-	/**
-	 * 水印最小宽度（像素）。默认：40
-	 *
-	 * @since 1.0.0
-	 */
-	private int minWidth = 40;
-	/**
-	 * 水印最大宽度（像素）。默认：200
-	 *
-	 * @since 1.0.0
-	 */
-	private int maxWidth = 200;
-	/**
-	 * 水印最小高度（像素）。默认：40
-	 *
-	 * @since 1.0.0
-	 */
-	private int minHeight = 40;
-	/**
-	 * 水印最大高度（像素）。默认：200
-	 *
-	 * @since 1.0.0
-	 */
-	private int maxHeight = 200;
+
+	private Function<ImageSize, Pair<ImageSize, ImageSize>> sizeRangeStrategy = imageSize -> {
+		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
+		if (shorter < 600) { // 小图
+			return Pair.of(new ImageSize(120, 120), new ImageSize(150, 150));
+		} else if (shorter >= 1920) { // 大图（注意：>=1920）
+			return Pair.of(new ImageSize(250, 250), new ImageSize(400, 400));
+		} else { // 中等图
+			return Pair.of(new ImageSize(150, 150), new ImageSize(250, 250));
+		}
+	};
 
 	public double getRelativeScale() {
 		return relativeScale;
@@ -100,51 +92,13 @@ public class ImageWatermarkOption {
 		}
 	}
 
-	public int getMinWidth() {
-		return minWidth;
+	public Function<ImageSize, Pair<ImageSize, ImageSize>> getSizeRangeStrategy() {
+		return sizeRangeStrategy;
 	}
 
-	/**
-	 * 设置水印宽度的有效范围（像素）。
-	 * 两个参数都必须为正数，且 {@code maxWidth >= minWidth}；
-	 * 无效参数将被忽略并保持当前范围。
-	 *
-	 * @param minWidth 最小宽度（像素）
-	 * @param maxWidth 最大宽度（像素）
-	 * @since 1.0.0
-	 */
-	public void setWidthRange(int minWidth, int maxWidth) {
-		if (minWidth > 0 && maxWidth > 0 && maxWidth >= minWidth) {
-			this.minWidth = minWidth;
-			this.maxWidth = maxWidth;
+	public void setSizeRangeStrategy(Function<ImageSize, Pair<ImageSize, ImageSize>> sizeRangeStrategy) {
+		if (Objects.nonNull(sizeRangeStrategy)) {
+			this.sizeRangeStrategy = sizeRangeStrategy;
 		}
-	}
-
-	public int getMaxWidth() {
-		return maxWidth;
-	}
-
-	public int getMinHeight() {
-		return minHeight;
-	}
-
-	/**
-	 * 设置水印高度的有效范围（像素）。
-	 * 两个参数都必须为正数，且 {@code maxHeight >= minHeight}；
-	 * 无效参数将被忽略并保持当前范围。
-	 *
-	 * @param minHeight 最小高度（像素）
-	 * @param maxHeight 最大高度（像素）
-	 * @since 1.0.0
-	 */
-	public void setHeightRange(int minHeight, int maxHeight) {
-		if (minHeight > 0 && maxHeight > 0 && maxHeight >= minHeight) {
-			this.minHeight = minHeight;
-			this.maxHeight = maxHeight;
-		}
-	}
-
-	public int getMaxHeight() {
-		return maxHeight;
 	}
 }

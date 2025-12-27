@@ -36,11 +36,13 @@ import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
 import java.io.*;
@@ -1426,18 +1428,20 @@ public class ImageEditor {
 		}
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
-		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(option.getRelativeScale()));
+		Pair<ImageSize, ImageSize> waterImageSizeRange = option.getSizeRangeStrategy().apply(outputImageSize);
+		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(
+			option.getRelativeScale()));
 		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
-			if (watermarkImageSize.getWidth() > option.getMaxWidth()) {
-				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMaxWidth());
-			} else if (watermarkImageSize.getWidth() < option.getMinWidth()) {
-				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(option.getMinWidth());
+			if (watermarkImageSize.getWidth() > waterImageSizeRange.getRight().getWidth()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(waterImageSizeRange.getRight().getWidth());
+			} else if (watermarkImageSize.getWidth() < waterImageSizeRange.getLeft().getWidth()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(waterImageSizeRange.getLeft().getWidth());
 			}
 		} else {
-			if (watermarkImageSize.getHeight() > option.getMaxHeight()) {
-				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMaxHeight());
-			} else if (watermarkImageSize.getHeight() < option.getMinHeight()) {
-				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(option.getMinHeight());
+			if (watermarkImageSize.getHeight() > waterImageSizeRange.getRight().getHeight()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(waterImageSizeRange.getRight().getHeight());
+			} else if (watermarkImageSize.getHeight() < waterImageSizeRange.getLeft().getHeight()) {
+				watermarkImageSize = originalWatermarkImageSize.scaleByHeight(waterImageSizeRange.getLeft().getHeight());
 			}
 		}
 
@@ -1521,18 +1525,9 @@ public class ImageEditor {
 
 		Graphics2D graphics = this.outputImage.createGraphics();
 
-		int fontSize;
-		if (outputImageSize.getWidth() > outputImageSize.getHeight()) {
-			fontSize = (int) Math.round(outputImageSize.getWidth() * option.getFontSizeRatio());
-		} else {
-			fontSize = (int) Math.round(outputImageSize.getHeight() * option.getFontSizeRatio());
-		}
-
-		Font font = new Font(option.getFontName(), option.getFontStyle(), fontSize);
-
-		// 设置抗锯齿
-		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		// 设置字体
+		int fontSize = option.getFontSizeStrategy().apply(outputImageSize);
+		Font font = new Font(option.getFontName(), option.getFontStyle(), fontSize);
 		graphics.setFont(font);
 
 		FontMetrics fontMetrics = graphics.getFontMetrics();
@@ -1582,20 +1577,24 @@ public class ImageEditor {
 			}
 		}
 
-		if (option.isStroke()) {
-			// 绘制描边
-			graphics.setColor(getStrokeColor(option));
-			graphics.setStroke(new BasicStroke(option.getStrokeWidth()));
-			graphics.drawString(text, waterX, waterY);
+		// 创建 GlyphVector（文字轮廓）
+		GlyphVector gv = font.createGlyphVector(graphics.getFontRenderContext(), text);
+		Shape shape = gv.getOutline(waterX, waterY);
 
-			// 绘制填充
-			graphics.setColor(getFillColor(option));
-			graphics.setStroke(new BasicStroke(0.5f));
-			graphics.drawString(text, waterX, waterY);
-		} else {
-			graphics.setColor(getFillColor(option));
-			graphics.drawString(text, waterX, waterY);
+		// 设置抗锯齿
+		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		graphics.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+
+		// 绘制描边
+		if (option.isStroke()) {
+			graphics.setColor(getStrokeColor(option));
+			graphics.setStroke(new BasicStroke(option.getStrokeWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			graphics.draw(shape);
 		}
+		// 绘制填充
+		graphics.setColor(getFillColor(option));
+		graphics.fill(shape);
+
 		graphics.dispose();
 
 		return this;
