@@ -31,7 +31,7 @@ import java.util.function.Function;
  */
 public class TextWatermarkOption {
 	/**
-	 * 透明度（百分比）。范围：[0.0, 1.0]；默认 80%。
+	 * 透明度（百分比）。范围：[0.0, 1.0]；默认 40%。
 	 * 控制文本整体透明度，0 表示完全透明，1 表示完全不透明。
 	 *
 	 * <p>
@@ -41,7 +41,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.0.0
 	 */
-	private float opacity = 0.8f;
+	private float opacity = 0.4f;
 	/**
 	 * 字体名称，默认 {@code Font.SANS_SERIF}。
 	 * 仅当值非空且非纯空白时有效；否则保持当前值。
@@ -92,22 +92,42 @@ public class TextWatermarkOption {
 	 */
 	private boolean stroke = true;
 
+	/**
+	 * 字体大小计算策略函数。
+	 * <p>
+	 * 根据目标图像的尺寸（{@link ImageSize}），计算出合适的水印字体大小（单位：pt）。
+	 * 默认策略基于图像短边长度进行动态计算：
+	 * <ul>
+	 *   <li>小图（短边 &lt; 600px）：固定为 32pt</li>
+	 *   <li>中等图（600px &le; 短边 &lt; 1920px）：在 32pt 至 48pt 之间线性增长</li>
+	 *   <li>大图（短边 &ge; 1920px）：在 48pt 至 80pt 之间（随尺寸增长逐渐变缓）</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
 	private Function<ImageSize, Integer> fontSizeStrategy = imageSize -> {
 		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
 		if (shorter < 600) {
-			// 小图：强制 ≥32pt，确保手机上可读
+			// 小图：强制 32pt
 			return 32;
 		} else if (shorter >= 1920) {
-			// 大图：48pt → 80pt 缓慢增长（超大图不无限放大）
+			// 大图：48pt~80pt 缓慢增长
 			double ratio = Math.min(1.0, (shorter - 1920.0) / 3000.0);
 			return (int) Math.round(48 + ratio * (80 - 48));
 		} else {
-			// 中等图：32pt → 48pt 线性增长
+			// 中等图：32pt~48pt 线性增长
 			double ratio = (shorter - 600.0) / (1920.0 - 600.0);
 			return (int) Math.round(32 + ratio * (48 - 32));
 		}
 	};
 
+	/**
+	 * 获取字体名称。
+	 *
+	 * @return 字体名称（如 "SansSerif"）
+	 * @since 1.0.0
+	 */
 	public String getFontName() {
 		return fontName;
 	}
@@ -126,6 +146,12 @@ public class TextWatermarkOption {
 		}
 	}
 
+	/**
+	 * 获取字体样式。
+	 *
+	 * @return 字体样式整数值（如 {@link Font#BOLD}）
+	 * @since 1.0.0
+	 */
 	public int getFontStyle() {
 		return fontStyle;
 	}
@@ -150,16 +176,37 @@ public class TextWatermarkOption {
 		}
 	}
 
+	/**
+	 * 获取当前字体大小计算策略。
+	 *
+	 * @return 计算字体大小的策略函数
+	 * @since 1.0.0
+	 */
 	public Function<ImageSize, Integer> getFontSizeStrategy() {
 		return fontSizeStrategy;
 	}
 
+	/**
+	 * 设置字体大小计算策略。
+	 * <p>
+	 * 允许自定义策略，根据目标图像尺寸动态计算字体大小。
+	 * </p>
+	 *
+	 * @param fontSizeStrategy 字体大小计算策略，不能为 null；如果为 null 则忽略并保持原策略
+	 * @since 1.0.0
+	 */
 	public void setFontSizeStrategy(Function<ImageSize, Integer> fontSizeStrategy) {
 		if (Objects.nonNull(fontSizeStrategy)) {
 			this.fontSizeStrategy = fontSizeStrategy;
 		}
 	}
 
+	/**
+	 * 获取是否启用描边。
+	 *
+	 * @return true 表示启用描边，false 表示禁用
+	 * @since 1.0.0
+	 */
 	public boolean isStroke() {
 		return stroke;
 	}
@@ -175,6 +222,12 @@ public class TextWatermarkOption {
 		this.stroke = stroke;
 	}
 
+	/**
+	 * 获取描边线宽。
+	 *
+	 * @return 线宽（像素）
+	 * @since 1.0.0
+	 */
 	public float getStrokeWidth() {
 		return strokeWidth;
 	}
@@ -233,6 +286,12 @@ public class TextWatermarkOption {
 		}
 	}
 
+	/**
+	 * 获取填充颜色。
+	 *
+	 * @return 填充颜色对象
+	 * @since 1.0.0
+	 */
 	public Color getFillColor() {
 		return fillColor;
 	}

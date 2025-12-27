@@ -1428,7 +1428,7 @@ public class ImageEditor {
 		}
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
-		Pair<ImageSize, ImageSize> waterImageSizeRange = option.getSizeRangeStrategy().apply(outputImageSize);
+		Pair<ImageSize, ImageSize> waterImageSizeRange = option.getSizeLimitStrategy().apply(outputImageSize);
 		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(
 			option.getRelativeScale()));
 		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {

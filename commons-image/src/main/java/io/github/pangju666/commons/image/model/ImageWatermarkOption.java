@@ -45,7 +45,21 @@ public class ImageWatermarkOption {
 	 */
 	private float opacity = 0.4f;
 
-	private Function<ImageSize, Pair<ImageSize, ImageSize>> sizeRangeStrategy = imageSize -> {
+	/**
+	 * 水印尺寸限制策略。
+	 * <p>
+	 * 根据目标图像的尺寸（{@link ImageSize}），计算出水印允许的最小尺寸和最大尺寸（{@link Pair}，左为最小，右为最大）。
+	 * 默认策略根据图像短边长度分为三档：
+	 * <ul>
+	 *   <li>小图（短边 &lt; 600px）：最小 120x120，最大 150x150</li>
+	 *   <li>大图（短边 &ge; 1920px）：最小 250x250，最大 400x400</li>
+	 *   <li>中等图（其他）：最小 150x150，最大 250x250</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	private Function<ImageSize, Pair<ImageSize, ImageSize>> sizeLimitStrategy = imageSize -> {
 		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
 		if (shorter < 600) { // 小图
 			return Pair.of(new ImageSize(120, 120), new ImageSize(150, 150));
@@ -56,6 +70,12 @@ public class ImageWatermarkOption {
 		}
 	};
 
+	/**
+	 * 获取水印的相对缩放比例。
+	 *
+	 * @return 相对缩放比例（如 0.15 表示水印大小约为原图的 15%）
+	 * @since 1.0.0
+	 */
 	public double getRelativeScale() {
 		return relativeScale;
 	}
@@ -74,6 +94,12 @@ public class ImageWatermarkOption {
 		}
 	}
 
+	/**
+	 * 获取水印透明度。
+	 *
+	 * @return 透明度值（0.0 - 1.0）
+	 * @since 1.0.0
+	 */
 	public float getOpacity() {
 		return opacity;
 	}
@@ -92,13 +118,28 @@ public class ImageWatermarkOption {
 		}
 	}
 
-	public Function<ImageSize, Pair<ImageSize, ImageSize>> getSizeRangeStrategy() {
-		return sizeRangeStrategy;
+	/**
+	 * 获取当前的水印尺寸限制策略。
+	 *
+	 * @return 计算最小/最大尺寸的策略函数
+	 * @since 1.0.0
+	 */
+	public Function<ImageSize, Pair<ImageSize, ImageSize>> getSizeLimitStrategy() {
+		return sizeLimitStrategy;
 	}
 
-	public void setSizeRangeStrategy(Function<ImageSize, Pair<ImageSize, ImageSize>> sizeRangeStrategy) {
-		if (Objects.nonNull(sizeRangeStrategy)) {
-			this.sizeRangeStrategy = sizeRangeStrategy;
+	/**
+	 * 设置水印尺寸限制策略。
+	 * <p>
+	 * 允许自定义策略，根据目标图像尺寸动态决定水印的尺寸上下限。
+	 * </p>
+	 *
+	 * @param sizeLimitStrategy 水印尺寸限制策略，不能为 null；如果为 null 则忽略并保持原策略
+	 * @since 1.0.0
+	 */
+	public void setSizeLimitStrategy(Function<ImageSize, Pair<ImageSize, ImageSize>> sizeLimitStrategy) {
+		if (Objects.nonNull(sizeLimitStrategy)) {
+			this.sizeLimitStrategy = sizeLimitStrategy;
 		}
 	}
 }
