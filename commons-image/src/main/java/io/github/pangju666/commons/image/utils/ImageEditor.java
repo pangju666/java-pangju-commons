@@ -42,6 +42,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageFilter;
@@ -395,9 +396,9 @@ public class ImageEditor {
 	 * @param file               图像文件，不可为 null
 	 * @param correctOrientation 是否根据 EXIF 信息自动校正图像方向
 	 * @return 图像编辑器实例
-	 * @throws NullPointerException      当 file 为 null 时抛出
-	 * @throws IllegalArgumentException  当 file 为目录或扩展名不在支持的读取格式列表时抛出
-	 * @throws IOException               当读取图像失败时抛出
+	 * @throws NullPointerException     当 file 为 null 时抛出
+	 * @throws IllegalArgumentException 当 file 为目录或扩展名不在支持的读取格式列表时抛出
+	 * @throws IOException              当读取图像失败时抛出
 	 * @see #correctOrientation(ImageEditor)
 	 * @see ImageUtils#getSize(File)
 	 * @since 1.0.0
@@ -436,7 +437,6 @@ public class ImageEditor {
 	 * <p>读取图像并应用指定的 EXIF 方向进行自动校正。</p>
 	 * <p>适用于已从外部获取了 EXIF 方向信息（例如数据库、文件名或独立元数据读取器）的场景，
 	 * 此时无需再次解析文件中的 EXIF 元数据。</p>
-	 *
 	 *
 	 * @param file            图像文件，不可为 null
 	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
@@ -510,7 +510,7 @@ public class ImageEditor {
 	 *   </li>
 	 * </ul>
 	 *
-	 * @param inputStream            包含图像数据的输入流，不可为 null
+	 * @param inputStream        包含图像数据的输入流，不可为 null
 	 * @param correctOrientation 是否根据 EXIF 信息自动校正图像方向
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取输入流出错时
@@ -1170,8 +1170,8 @@ public class ImageEditor {
 	 * @param y              绘制起点 Y（左上角）
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
-	 * @since 1.0.0
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
@@ -1189,8 +1189,8 @@ public class ImageEditor {
 	 * @param direction      九宫格方向，用于自动计算水印位置
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
-	 * @since 1.0.0
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -1209,8 +1209,8 @@ public class ImageEditor {
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
-	 * @since 1.0.0
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -1230,8 +1230,8 @@ public class ImageEditor {
 	 * @param y             绘制起点 Y（左上角）
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IOException 当文件读取失败时抛出
-	 * @since 1.0.0
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
@@ -1251,8 +1251,8 @@ public class ImageEditor {
 	 * @param direction     九宫格方向，用于自动计算水印位置
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null}、或 {@code watermarkText} 为空、或 {@code option} 为 {@code null} 时抛出
-	 * @since 1.0.0
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -1273,8 +1273,8 @@ public class ImageEditor {
 	 * @param y             绘制起点 Y（文本基线）
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code x < 0} 或 {@code y < 0}，或 {@code watermarkText} 为空，或 {@code option} 为 {@code null} 时抛出
-	 * @since 1.0.0
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
+	 * @since 1.0.0
 	 */
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
@@ -1364,15 +1364,27 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
-		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat) && outputImage.getColorModel().hasAlpha()) {
-			int imageType;
-			switch (outputImage.getType()) {
+		int imageType = outputImage.getType();
+		if (imageType != BufferedImage.TYPE_BYTE_BINARY && // 排除二值化图像类型
+			imageType != BufferedImage.TYPE_USHORT_GRAY && // 排除灰度化图像类型
+			imageType != BufferedImage.TYPE_BYTE_GRAY && // 排除灰度化图像类型
+			ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat) &&
+			outputImage.getColorModel().hasAlpha()) {
+			switch (imageType) {
+				case BufferedImage.TYPE_INT_ARGB:
+				case BufferedImage.TYPE_INT_ARGB_PRE:
+					imageType = BufferedImage.TYPE_INT_RGB;
+					break;
 				case BufferedImage.TYPE_4BYTE_ABGR:
 				case BufferedImage.TYPE_4BYTE_ABGR_PRE:
 					imageType = BufferedImage.TYPE_3BYTE_BGR;
 					break;
 				default:
-					imageType = BufferedImage.TYPE_INT_RGB;
+					if (outputImage.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
+						imageType = BufferedImage.TYPE_BYTE_GRAY;
+					} else {
+						imageType = BufferedImage.TYPE_INT_RGB;
+					}
 					break;
 			}
 			return ImageUtil.toBuffered(outputImage, imageType);
