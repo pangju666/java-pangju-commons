@@ -322,8 +322,9 @@ public class ImageEditor {
 	/**
 	 * 构造实例并初始化以下属性：
 	 * <ul>
-	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。</li>
-	 *   <li><b>图像尺寸：</b> 记录输入图像的尺寸信息（包含可能的 EXIF 方向）。</li>
+	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
+	 *   若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
+	 *   <li><b>图像尺寸：</b> 记录输入图像的<b>可视化尺寸</b>（即 {@link ImageSize#getVisualSize()}，若存在 90°/270° 旋转，宽高会自动交换）。</li>
 	 *   <li><b>输出格式：</b> 根据输入图像是否包含 Alpha 通道（透明度）自动设置默认值：
 	 *     <ul>
 	 *       <li>含透明度：默认为 PNG ({@link #DEFAULT_ALPHA_OUTPUT_FORMAT})。</li>
@@ -347,17 +348,21 @@ public class ImageEditor {
 		this.outputImage = inputImage;
 		this.outputImageSize = inputImageSize.getVisualSize();
 		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+
+		// 矫正视觉方向
+		correctOrientation();
 	}
 
 	/**
-	 * 从文件创建
+	 * 从文件构建实例（默认不校正 EXIF 方向）。
 	 * <p>
-	 * 这是{@link #of(File, boolean)}方法的便捷重载，不矫正图像视觉方向。
+	 * 此方法为 {@link #of(File, boolean)} 的便捷调用，等同于 {@code of(file, false)}。
 	 * </p>
 	 *
-	 * @param file 图像文件，不可为null
+	 * @param file 图像文件，不可为 null
 	 * @return 图像编辑器实例
-	 * @throws IOException 当读取图像失败时抛出
+	 * @throws IOException          当读取图像失败时抛出
+	 * @throws NullPointerException 当 file 为 null 时抛出
 	 * @see #of(File, boolean)
 	 * @since 1.0.0
 	 */
@@ -366,41 +371,29 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从文件创建
-	 *
-	 * <p>读取图像文件数据，并根据参数决定是否处理 EXIF 方向信息。</p>
-	 *
-	 * <p><b>方向处理策略：</b></p>
+	 * 从文件构建实例（可选择是否校正 EXIF 方向）。
+	 * <p>
+	 * 读取图像文件，并根据参数决定是否解析并应用 EXIF 方向信息。
+	 * </p>
+	 * <p><b>初始化行为：</b></p>
 	 * <ul>
-	 *   <li><b>correctOrientation = true：</b>
+	 *   <li><b>格式保持：</b> 输入格式和输出格式将默认设置为文件的扩展名（如 JPG、PNG）。</li>
+	 *   <li><b>方向校正：</b>
 	 *     <ul>
-	 *       <li>优先解析 EXIF 元数据获取方向信息。</li>
-	 *       <li>调用 {@link #correctOrientation(ImageEditor)} 将图像矫正为视觉方向。</li>
-	 *       <li>内部 {@link ImageSize} 将更新为可视化尺寸。</li>
+	 *       <li>{@code correctOrientation = true}：尝试解析文件 EXIF 信息获取方向，若存在方向信息则自动旋转/翻转图像，使其视觉方向正确。
+	 *           <br><b>注意：</b>这会增加一次文件 I/O 操作（读取 EXIF）。</li>
+	 *       <li>{@code correctOrientation = false}：仅读取像素数据，忽略 EXIF 方向信息，图像保持物理存储方向。</li>
 	 *     </ul>
 	 *   </li>
-	 *   <li><b>correctOrientation = false：</b>
-	 *     <ul>
-	 *       <li>仅读取图像的物理像素数据，忽略 EXIF 信息。</li>
-	 *       <li>内部 {@link ImageSize} 不包含方向信息（orientation = null）。</li>
-	 *     </ul>
-	 *   </li>
-	 * </ul>
-	 *
-	 * <p><b>文件处理说明：</b></p>
-	 * <ul>
-	 *   <li><b>correctOrientation = false：</b> 文件仅被读取一次（解码像素数据）。</li>
-	 *   <li><b>correctOrientation = true：</b> 需两次读取文件（解析 EXIF 元数据 + 解码像素数据），会有额外的 I/O 开销。</li>
 	 * </ul>
 	 *
 	 * @param file               图像文件，不可为 null
-	 * @param correctOrientation 是否根据 EXIF 信息自动校正图像方向
+	 * @param correctOrientation 是否自动校正 EXIF 方向
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException     当 file 为 null 时抛出
-	 * @throws IllegalArgumentException 当 file 为目录或扩展名不在支持的读取格式列表时抛出
+	 * @throws IllegalArgumentException 当文件格式不支持读取时抛出
 	 * @throws IOException              当读取图像失败时抛出
-	 * @see #correctOrientation(ImageEditor)
-	 * @see ImageUtils#getSize(File)
+	 * @see ImageUtils#getExifOrientation(File)
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final boolean correctOrientation) throws IOException {
@@ -427,23 +420,27 @@ public class ImageEditor {
 		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
 		imageEditor.inputFormat = inputFormat;
 		imageEditor.outputFormat = inputFormat;
-		correctOrientation(imageEditor);
 		return imageEditor;
 	}
 
 	/**
-	 * 从文件创建（手动指定 EXIF 方向）。
-	 *
-	 * <p>读取图像并应用指定的 EXIF 方向进行自动校正。</p>
-	 * <p>适用于已从外部获取了 EXIF 方向信息（例如数据库、文件名或独立元数据读取器）的场景，
-	 * 此时无需再次解析文件中的 EXIF 元数据。</p>
+	 * 从文件构建实例（手动指定 EXIF 方向）。
+	 * <p>
+	 * 适用于已知图像 EXIF 方向（例如从数据库或前端获取）的场景，避免重复解析文件 EXIF 信息。
+	 * </p>
+	 * <p><b>初始化行为：</b></p>
+	 * <ul>
+	 *   <li><b>格式保持：</b> 输入格式和输出格式将默认设置为文件的扩展名。</li>
+	 *   <li><b>方向校正：</b> 根据传入的 {@code exifOrientation} 值（1-8）自动旋转/翻转图像。</li>
+	 * </ul>
 	 *
 	 * @param file            图像文件，不可为 null
-	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例（已完成方向校正）
-	 * @throws IOException          当读取图像失败时抛出
-	 * @throws NullPointerException 当 file 为 null 时抛出
-	 * @see #correctOrientation(ImageEditor)
+	 * @param exifOrientation EXIF 方向值（1-8），用于校正图像
+	 * @return 图像编辑器实例
+	 * @throws NullPointerException     当 file 为 null 时抛出
+	 * @throws IllegalArgumentException 当文件格式不支持读取时抛出
+	 * @throws IOException              当读取图像失败时抛出
+	 * @see #correctOrientation()
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final int exifOrientation) throws IOException {
@@ -457,17 +454,16 @@ public class ImageEditor {
 		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
 		imageEditor.inputFormat = inputFormat;
 		imageEditor.outputFormat = inputFormat;
-		correctOrientation(imageEditor);
 		return imageEditor;
 	}
 
 	/**
-	 * 从输入流创建
+	 * 从输入流构建实例（默认不校正 EXIF 方向）。
 	 * <p>
-	 * 这是{@link #of(InputStream, boolean)}方法的便捷重载，不矫正图像视觉方向。
+	 * 此方法为 {@link #of(InputStream, boolean)} 的便捷调用，等同于 {@code of(inputStream, false)}。
 	 * </p>
 	 *
-	 * @param inputStream 输入流，不可为null
+	 * @param inputStream 输入流，不可为 null
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @see #of(InputStream, boolean)
@@ -478,44 +474,34 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从输入流创建
-	 *
-	 * <p>读取输入流中的图像数据，并根据参数决定是否处理 EXIF 方向信息。</p>
-	 *
-	 * <p><b>方向处理策略：</b></p>
+	 * 从输入流构建实例（可选择是否校正 EXIF 方向）。
+	 * <p>
+	 * 读取输入流数据，并根据参数决定是否解析并应用 EXIF 方向信息。
+	 * </p>
+	 * <p><b>初始化行为：</b></p>
 	 * <ul>
-	 *   <li><b>correctOrientation = true：</b>
+	 *   <li><b>格式保持：</b> 由于输入流无法直接获取文件名，输入/输出格式将默认为 null（或由后续操作指定）。</li>
+	 *   <li><b>方向校正：</b>
 	 *     <ul>
-	 *       <li>优先解析 EXIF 元数据获取方向信息。</li>
-	 *       <li>调用 {@link #correctOrientation(ImageEditor)} 将图像矫正为视觉方向。</li>
-	 *       <li>内部 {@link ImageSize} 将更新为可视化尺寸。</li>
-	 *     </ul>
-	 *   </li>
-	 *   <li><b>correctOrientation = false：</b>
-	 *     <ul>
-	 *       <li>仅读取图像的物理像素数据，忽略 EXIF 信息。</li>
-	 *       <li>内部 {@link ImageSize} 不包含方向信息（orientation = null）。</li>
+	 *       <li>{@code correctOrientation = true}：尝试解析流中的 EXIF 信息获取方向，并自动旋转/翻转图像。
+	 *           <br><b>注意：</b> 这需要重复读取流（一次获取 EXIF，一次解码像素）。</li>
+	 *       <li>{@code correctOrientation = false}：仅读取像素数据，忽略 EXIF 方向信息。</li>
 	 *     </ul>
 	 *   </li>
 	 * </ul>
-	 *
-	 * <p><b>流处理说明：</b></p>
+	 * <p><b>流处理策略：</b></p>
 	 * <ul>
-	 *   <li><b>correctOrientation = false：</b> 流仅被读取一次，无特殊内存要求。</li>
-	 *   <li><b>correctOrientation = true：</b> 需两次读取流（获取 EXIF + 读取像素），对流类型敏感：
-	 *     <ul>
-	 *       <li><b>{@link ByteArrayInputStream} / {@link UnsynchronizedByteArrayInputStream}：</b> 直接利用 reset 特性重复读取，无额外内存开销。</li>
-	 *       <li><b>其他输入流：</b> 需将数据完全读取到内存中（{@link UnsynchronizedByteArrayOutputStream}）以支持重读，处理大文件时请注意内存占用。</li>
-	 *     </ul>
-	 *   </li>
+	 *   <li><b>支持 reset 的流</b>（如 {@link ByteArrayInputStream}）：直接重置流位置进行二次读取，无额外内存开销。</li>
+	 *   <li><b>普通流：</b> 若开启方向校正，需将流内容完全缓存到内存（{@link UnsynchronizedByteArrayOutputStream}）以支持重读。
+	 *       <br><b>警告：</b> 处理大文件时可能会占用较多内存。建议优先使用 {@link #of(File, boolean)} 或传入支持 reset 的流。</li>
 	 * </ul>
 	 *
 	 * @param inputStream        包含图像数据的输入流，不可为 null
-	 * @param correctOrientation 是否根据 EXIF 信息自动校正图像方向
+	 * @param correctOrientation 是否自动校正 EXIF 方向
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取输入流出错时
-	 * @see #correctOrientation(ImageEditor)
-	 * @see ImageUtils#getSize(InputStream)
+	 * @see #correctOrientation()
+	 * @see ImageUtils#getExifOrientation(InputStream)
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final boolean correctOrientation) throws IOException {
@@ -552,23 +538,21 @@ public class ImageEditor {
 		} else {
 			imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight());
 		}
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
-		correctOrientation(imageEditor);
-		return imageEditor;
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
-	 * 从输入流创建（手动指定 EXIF 方向）。
-	 *
-	 * <p>读取图像并应用指定的 EXIF 方向进行自动校正。</p>
-	 * <p>适用于已从外部获取了 EXIF 方向信息（例如数据库或独立元数据读取器）的场景。</p>
+	 * 从输入流构建实例（手动指定 EXIF 方向）。
+	 * <p>
+	 * 适用于已知图像 EXIF 方向的场景。流仅会被读取一次，无需缓存或重置，性能最优。
+	 * </p>
 	 *
 	 * @param inputStream     包含图像数据的输入流，不可为 null
-	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例（已完成方向校正）
+	 * @param exifOrientation EXIF 方向值（1-8），用于校正图像
+	 * @return 图像编辑器实例
 	 * @throws IOException          当读取输入流出错时
 	 * @throws NullPointerException 当 inputStream 为 null 时抛出
-	 * @see #correctOrientation(ImageEditor)
+	 * @see #correctOrientation()
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final int exifOrientation) throws IOException {
@@ -576,16 +560,15 @@ public class ImageEditor {
 
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
-		correctOrientation(imageEditor);
-		return imageEditor;
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
-	 * 从{@link ImageInputStream}创建
-	 *
-	 * <p>注意：由于 {@link ImageInputStream} 不包含 EXIF 元数据，此方法创建的实例 <b>无法</b> 进行基于 EXIF 的视觉方向校正。</p>
-	 * <p>适用于不需要矫正图像视觉方向的场景。</p>
+	 * 从 {@link ImageInputStream} 构建实例。
+	 * <p>
+	 * <b>注意：</b> {@link ImageInputStream} 不直接提供 EXIF 元数据，因此无法自动进行基于 EXIF 的视觉方向校正。
+	 * 适用于不需要矫正图像视觉方向，或方向信息未知的场景。
+	 * </p>
 	 *
 	 * @param imageInputStream 图像输入流，不可为 null
 	 * @return 图像编辑器实例
@@ -602,34 +585,34 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从{@link ImageInputStream}创建（手动指定 EXIF 方向）。
-	 *
-	 * <p>读取图像并应用指定的 EXIF 方向进行视觉方向校正。</p>
-	 * <p>适用于已从外部获取了 EXIF 方向信息（例如数据库或独立元数据读取器）的场景。</p>
+	 * 从 {@link ImageInputStream} 构建实例（手动指定 EXIF 方向）。
+	 * <p>
+	 * 读取图像数据，并应用指定的 EXIF 方向进行视觉方向校正。
+	 * 适用于已从外部获取了 EXIF 方向信息（例如数据库、文件名或独立元数据读取器）的场景。
+	 * </p>
 	 *
 	 * @param imageInputStream 图像输入流，不可为 null
 	 * @param exifOrientation  外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例（已完成方向校正）
+	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 imageInputStream 为 null 时抛出
 	 * @throws IOException          当读取图像失败时抛出
-	 * @see #correctOrientation(ImageEditor)
+	 * @see #correctOrientation()
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final ImageInputStream imageInputStream, final int exifOrientation) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, new ImageSize(
+		return new ImageEditor(bufferedImage, new ImageSize(
 			bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation));
-		correctOrientation(imageEditor);
-		return imageEditor;
 	}
 
 	/**
-	 * 从 {@link BufferedImage} 创建
-	 *
-	 * <p>注意：由于 {@link BufferedImage} 不包含 EXIF 元数据，此方法创建的实例 <b>无法</b> 进行基于 EXIF 的视觉方向校正。</p>
-	 * <p>适用于不需要矫正图像视觉方向的场景。</p>
+	 * 从 {@link BufferedImage} 构建实例。
+	 * <p>
+	 * <b>注意：</b> {@link BufferedImage} 仅包含像素数据，不包含 EXIF 元数据，因此无法自动进行基于 EXIF 的视觉方向校正。
+	 * 适用于图像已在内存中且不需要方向校正的场景（如生成的图像、已处理过的图像）。
+	 * </p>
 	 *
 	 * @param bufferedImage BufferedImage 对象，不可为 null
 	 * @return 图像编辑器实例
@@ -644,25 +627,24 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从 {@link BufferedImage} 创建（手动指定 EXIF 方向）。
-	 *
-	 * <p>使用内存中的 {@link BufferedImage} 并应用指定的 EXIF 方向进行视觉方向校正。</p>
-	 * <p>适用于图像数据已在内存中，且方向信息已知（例如来自上传请求参数）的场景。</p>
+	 * 从 {@link BufferedImage} 构建实例（手动指定 EXIF 方向）。
+	 * <p>
+	 * 使用内存中的 {@link BufferedImage}，并应用指定的 EXIF 方向进行视觉方向校正。
+	 * 适用于图像数据已在内存中，且方向信息已知（例如来自上传请求参数、数据库）的场景。
+	 * </p>
 	 *
 	 * @param bufferedImage   BufferedImage 对象，不可为 null
 	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例（已完成方向校正）
+	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 bufferedImage 为 null 时抛出
-	 * @see #correctOrientation(ImageEditor)
+	 * @see #correctOrientation()
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final BufferedImage bufferedImage, final int exifOrientation) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
 
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, new ImageSize(
+		return new ImageEditor(bufferedImage, new ImageSize(
 			bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation));
-		correctOrientation(imageEditor);
-		return imageEditor;
 	}
 
 	/**
@@ -699,70 +681,6 @@ public class ImageEditor {
 			this.resampleFilterType = filterType;
 		}
 		return this;
-	}
-
-	/**
-	 * 根据 EXIF 方向信息校正图像方向（将物理尺寸转换为可视化尺寸）。
-	 * <p>
-	 * 解析 {@link ImageSize} 中存储的 EXIF 方向信息，对图像数据应用相应的旋转或翻转操作，
-	 * 使其在视觉上呈现为正确的方向。
-	 * </p>
-	 * <p><b>处理逻辑：</b></p>
-	 * <ul>
-	 *   <li>若未包含方向信息或方向为 1（正常），则不进行任何操作。</li>
-	 *   <li>根据 EXIF 标准（1-8）自动应用旋转/翻转变换。</li>
-	 *   <li>对于方向值 5-8，图像宽高会发生交换。</li>
-	 *   <li>操作完成后，内部维护的 {@link ImageSize} 将更新为 {@link ImageSize#getVisualSize()}（即可视化尺寸）。</li>
-	 * </ul>
-	 *
-	 * <p><b>不同方法处理逻辑：</b></p>
-	 * <ul>
-	 *   <li>1: 正常方向 (不需要校正)</li>
-	 *   <li>2: 水平翻转</li>
-	 *   <li>3: 旋转 180 度</li>
-	 *   <li>4: 垂直翻转</li>
-	 *   <li>5: 顺时针旋转 90 度后水平翻转</li>
-	 *   <li>6: 顺时针旋转 90 度</li>
-	 *   <li>7: 逆时针旋转 90 度后水平翻转</li>
-	 *   <li>8: 逆时针旋转 90 度</li>
-	 * </ul>
-	 *
-	 * @since 1.0.0
-	 */
-	protected static void correctOrientation(ImageEditor imageEditor) {
-		if (Objects.isNull(imageEditor.outputImageSize.getOrientation())) {
-			return;
-		}
-
-		switch (imageEditor.outputImageSize.getOrientation()) {
-			case 2:
-				imageEditor.flip(FlipDirection.HORIZONTAL);
-				break;
-			case 3:
-				imageEditor.rotate(RotateDirection.UPSIDE_DOWN);
-				break;
-			case 4:
-				imageEditor.flip(FlipDirection.VERTICAL);
-				break;
-			case 5:
-				imageEditor.rotate(RotateDirection.CLOCKWISE_90);
-				imageEditor.flip(FlipDirection.HORIZONTAL);
-				break;
-			case 6:
-				imageEditor.rotate(RotateDirection.CLOCKWISE_90);
-				break;
-			case 7:
-				imageEditor.rotate(RotateDirection.COUNTER_CLOCKWISE_90);
-				imageEditor.flip(FlipDirection.HORIZONTAL);
-				break;
-			case 8:
-				imageEditor.rotate(RotateDirection.COUNTER_CLOCKWISE_90);
-				break;
-			default:
-				break;
-		}
-		// 防止 reset 后丢失方向矫正效果
-		imageEditor.inputImage = imageEditor.outputImage;
 	}
 
 	/**
@@ -1629,6 +1547,70 @@ public class ImageEditor {
 			}
 		}
 		return color;
+	}
+
+	/**
+	 * 根据 EXIF 方向信息校正图像方向（将物理尺寸转换为可视化尺寸）。
+	 * <p>
+	 * 解析 {@link ImageSize} 中存储的 EXIF 方向信息，对图像数据应用相应的旋转或翻转操作，
+	 * 使其在视觉上呈现为正确的方向。
+	 * </p>
+	 * <p><b>处理逻辑：</b></p>
+	 * <ul>
+	 *   <li>若未包含方向信息或方向为 1（正常），则不进行任何操作。</li>
+	 *   <li>根据 EXIF 标准（1-8）自动应用旋转/翻转变换。</li>
+	 *   <li>对于方向值 5-8，图像宽高会发生交换。</li>
+	 *   <li>操作完成后，内部维护的 {@link ImageSize} 将更新为 {@link ImageSize#getVisualSize()}（即可视化尺寸）。</li>
+	 * </ul>
+	 *
+	 * <p><b>不同方法处理逻辑：</b></p>
+	 * <ul>
+	 *   <li>1: 正常方向 (不需要校正)</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转 180 度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 顺时针旋转 90 度后水平翻转</li>
+	 *   <li>6: 顺时针旋转 90 度</li>
+	 *   <li>7: 逆时针旋转 90 度后水平翻转</li>
+	 *   <li>8: 逆时针旋转 90 度</li>
+	 * </ul>
+	 *
+	 * @since 1.0.0
+	 */
+	protected void correctOrientation() {
+		if (Objects.isNull(outputImageSize.getOrientation())) {
+			return;
+		}
+
+		switch (outputImageSize.getOrientation()) {
+			case 2:
+				flip(FlipDirection.HORIZONTAL);
+				break;
+			case 3:
+				rotate(RotateDirection.UPSIDE_DOWN);
+				break;
+			case 4:
+				flip(FlipDirection.VERTICAL);
+				break;
+			case 5:
+				rotate(RotateDirection.CLOCKWISE_90);
+				flip(FlipDirection.HORIZONTAL);
+				break;
+			case 6:
+				rotate(RotateDirection.CLOCKWISE_90);
+				break;
+			case 7:
+				rotate(RotateDirection.COUNTER_CLOCKWISE_90);
+				flip(FlipDirection.HORIZONTAL);
+				break;
+			case 8:
+				rotate(RotateDirection.COUNTER_CLOCKWISE_90);
+				break;
+			default:
+				break;
+		}
+		// 防止 reset 后丢失方向矫正效果
+		inputImage = outputImage;
 	}
 
 	/**
