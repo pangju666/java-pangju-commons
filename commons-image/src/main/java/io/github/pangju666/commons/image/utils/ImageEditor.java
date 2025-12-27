@@ -1360,11 +1360,11 @@ public class ImageEditor {
 	/**
 	 * 获取处理后的图像。
 	 *
-	 * @return 处理后图像的BufferedImage
+	 * @return 处理后图像的 BufferedImage
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
-		if (outputImage.getColorModel().hasAlpha() && ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat)) {
+		if (ImageConstants.NON_TRANSPARENT_IMAGE_FORMATS.contains(outputFormat) && outputImage.getColorModel().hasAlpha()) {
 			int imageType;
 			switch (outputImage.getType()) {
 				case BufferedImage.TYPE_4BYTE_ABGR:
@@ -1587,12 +1587,14 @@ public class ImageEditor {
 
 		// 绘制描边
 		if (option.isStroke()) {
-			graphics.setColor(getStrokeColor(option));
+			graphics.setColor(getColor(ObjectUtils.getIfNull(option.getStrokeColor(), Color.BLACK),
+				option.getOpacity()));
 			graphics.setStroke(new BasicStroke(option.getStrokeWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			graphics.draw(shape);
 		}
 		// 绘制填充
-		graphics.setColor(getFillColor(option));
+		graphics.setColor(getColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE),
+			option.getOpacity()));
 		graphics.fill(shape);
 
 		graphics.dispose();
@@ -1601,56 +1603,22 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 获取文本水印的填充颜色（应用不透明度）
+	 * 计算带有透明度的颜色。
 	 * <p>
-	 * 逻辑：
-	 * <ol>
-	 *   <li>若 {@code option.getFillColor()} 为空，使用 {@link Color#WHITE}</li>
-	 *   <li>当颜色为完全不透明（Alpha=255）且 {@code 0 < option.getOpacity() < 1}，
-	 *   按给定不透明度调整 Alpha 并返回新颜色</li>
-	 *   <li>否则返回原始颜色</li>
-	 * </ol>
+	 * 如果原颜色完全不透明（Alpha=255），则根据指定的 opacity 参数应用新的透明度；
+	 * 否则（原颜色已有透明度），忽略 opacity 参数，直接返回原颜色，以避免双重叠加透明度。
 	 * </p>
 	 *
-	 * @param option 文本水印配置，需非 null，使用其中的填充色与不透明度
-	 * @return 应用不透明度后的填充颜色
+	 * @param color   原始颜色
+	 * @param opacity 透明度比率（0.0~1.0），0表示全透，1表示不透
+	 * @return 处理后的颜色对象
 	 * @since 1.0.0
 	 */
-	protected Color getFillColor(TextWatermarkOption option) {
-		Color color = ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE);
+	protected Color getColor(Color color, float opacity) {
 		if (color.getAlpha() == 255) {
 			// 设置不透明度
-			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
-				return new Color(color.getRed(), color.getGreen(), color.getBlue(),
-					(int) (255 * option.getOpacity()));
-			}
-		}
-		return color;
-	}
-
-	/**
-	 * 获取文本水印的描边颜色（应用不透明度）
-	 * <p>
-	 * 逻辑：
-	 * <ol>
-	 *   <li>若 {@code option.getStrokeColor()} 为空，使用 {@link Color#LIGHT_GRAY}</li>
-	 *   <li>当颜色为完全不透明（Alpha=255）且 {@code 0 < option.getOpacity() < 1}，
-	 *   按给定不透明度调整 Alpha 并返回新颜色</li>
-	 *   <li>否则返回原始颜色</li>
-	 * </ol>
-	 * </p>
-	 *
-	 * @param option 文本水印配置，需非 null，使用其中的描边色与不透明度
-	 * @return 应用不透明度后的描边颜色
-	 * @since 1.0.0
-	 */
-	protected Color getStrokeColor(TextWatermarkOption option) {
-		Color color = ObjectUtils.getIfNull(option.getStrokeColor(), Color.LIGHT_GRAY);
-		if (color.getAlpha() == 255) {
-			// 设置不透明度
-			if (option.getOpacity() > 0f && option.getOpacity() < 1) {
-				return new Color(color.getRed(), color.getGreen(), color.getBlue(),
-					(int) (255 * option.getOpacity()));
+			if (opacity > 0f && opacity < 1) {
+				return ImageUtil.createTranslucent(color, (int) (255 * opacity));
 			}
 		}
 		return color;
