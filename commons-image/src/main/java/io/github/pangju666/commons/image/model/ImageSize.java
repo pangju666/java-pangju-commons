@@ -20,6 +20,8 @@ import io.github.pangju666.commons.image.lang.ImageConstants;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.util.Objects;
+
 /**
  * 图像尺寸模型（不可变）。
  * <p>
@@ -123,10 +125,12 @@ public class ImageSize {
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	protected ImageSize(int width, int height, int orientation, boolean visual) {
+	protected ImageSize(int width, int height, Integer orientation, boolean visual) {
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.isTrue(height > 0, "height 必须大于0");
-		Validate.inclusiveBetween(1, 8, orientation, "orientation 必须介于1-8之间");
+		if (Objects.nonNull(orientation)) {
+			Validate.inclusiveBetween(1, 8, orientation, "orientation 必须介于1-8之间");
+		}
 
 		this.width = width;
 		this.height = height;
