@@ -898,23 +898,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor resize(final int width, final int height) {
-		this.outputImageSize = new ImageSize(width, height);
-		this.outputImage = resample();
-		return this;
-	}
-
-	/**
-	 * 强制将图像缩放到指定的尺寸，不保持原始宽高比。
-	 *
-	 * @param size 目标尺寸
-	 * @return 当前编辑器实例，用于链式调用
-	 * @throws NullPointerException 当尺寸参数为null时
-	 * @since 1.0.0
-	 */
-	public ImageEditor resize(final ImageSize size) {
-		Validate.notNull(size, "size不可为 null");
-
-		this.outputImageSize = size;
+		this.outputImageSize = this.outputImageSize.resize(width, height);
 		this.outputImage = resample();
 		return this;
 	}
@@ -1354,8 +1338,9 @@ public class ImageEditor {
 
 		ImageSize originalWatermarkImageSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
 		Pair<ImageSize, ImageSize> waterImageSizeRange = option.getSizeLimitStrategy().apply(outputImageSize);
-		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(this.outputImageSize.scale(
-			option.getRelativeScale()));
+		ImageSize relativeOutputImageSize = this.outputImageSize.scale(option.getRelativeScale());
+		ImageSize watermarkImageSize = originalWatermarkImageSize.scale(relativeOutputImageSize.getWidth(),
+			relativeOutputImageSize.getHeight());
 		if (watermarkImageSize.getWidth() > watermarkImageSize.getHeight()) {
 			if (watermarkImageSize.getWidth() > waterImageSizeRange.getRight().getWidth()) {
 				watermarkImageSize = originalWatermarkImageSize.scaleByWidth(waterImageSizeRange.getRight().getWidth());

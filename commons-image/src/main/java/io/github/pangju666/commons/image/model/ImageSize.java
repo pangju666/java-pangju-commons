@@ -21,22 +21,27 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * 图像尺寸模型（不可变）
+ * 图像尺寸模型（不可变）。
  * <p>
- * 封装图像的宽度、高度及 EXIF 方向信息，提供物理尺寸与可视化尺寸的转换能力。
+ * 封装图像的宽度、高度及 EXIF 方向信息，提供物理尺寸与可视化尺寸的转换能力，以及多种尺寸计算工具。
  * </p>
  *
- * <h3>核心概念</h3>
+ * <p><b>核心概念：</b></p>
  * <ul>
  *   <li><b>物理尺寸：</b> 图像文件实际存储的像素宽高（不包含旋转信息）。</li>
  *   <li><b>可视化尺寸：</b> 结合 EXIF 方向信息（Orientation）校正后的显示宽高（通过 {@link #getVisualSize()} 获取）。</li>
  * </ul>
  *
- * <h3>功能特性</h3>
+ * <p><b>功能特性：</b></p>
  * <ul>
- *   <li><b>线程安全：</b> 设计为不可变对象，适合并发环境。</li>
- *   <li><b>等比缩放：</b> 支持基于宽度、高度、比例或限制框的等比缩放计算。</li>
- *   <li><b>安全计算：</b> 计算结果自动四舍五入，并确保最小尺寸为 1x1 像素。</li>
+ *   <li><b>不可变性：</b> 对象创建后属性不可修改，保证线程安全。</li>
+ *   <li><b>尺寸计算：</b>
+ *     <ul>
+ *       <li><b>等比缩放：</b> 支持按宽度、按高度、按比例或宽高（{@link #scale(int, int)}）进行等比缩放计算。</li>
+ *       <li><b>强制调整：</b> 支持忽略原比例强制指定新尺寸（{@link #resize(int, int)}）。</li>
+ *     </ul>
+ *   </li>
+ *   <li><b>安全计算：</b> 计算结果自动四舍五入，并确保最小尺寸为 1x1 像素，防止异常。</li>
  * </ul>
  *
  * @author pangju666
@@ -211,11 +216,11 @@ public class ImageSize {
 
 		if (width > height) {
 			double ratio = (double) width / height;
-			return new ImageSize(targetWidth, Math.max((int) Math.round(targetWidth / ratio), 1));
+			return new ImageSize(targetWidth, Math.max((int) Math.round(targetWidth / ratio), 1), orientation, visual);
 		}
 
 		double ratio = (double) height / width;
-		return new ImageSize(targetWidth, Math.max((int) Math.round(targetWidth * ratio), 1));
+		return new ImageSize(targetWidth, Math.max((int) Math.round(targetWidth * ratio), 1), orientation, visual);
 	}
 
 	/**
@@ -241,34 +246,11 @@ public class ImageSize {
 
 		if (width > height) {
 			double ratio = (double) width / height;
-			return new ImageSize(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight);
+			return new ImageSize(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight, orientation, visual);
 		}
 
 		double ratio = (double) height / width;
-		return new ImageSize(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight);
-	}
-
-	/**
-	 * 双约束等比缩放（基于尺寸对象）
-	 * <p>
-	 * 在不超过目标尺寸的前提下保持宽高比：
-	 * <ol>
-	 *   <li>优先适配宽度计算</li>
-	 *   <li>若高度超出则改为适配高度</li>
-	 *   <li>所有结果采用四舍五入到最近像素，且最小为 1 像素</li>
-	 * </ol>
-	 * </p>
-	 *
-	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
-	 *
-	 * @param targetSize 目标尺寸对象，非 null，宽高需为正数
-	 * @return 满足约束的缩放尺寸
-	 * @throws IllegalArgumentException 当参数不符合要求时抛出
-	 * @since 1.0.0
-	 */
-	public ImageSize scale(final ImageSize targetSize) {
-		Validate.notNull(targetSize, "targetSize 不可为 null");
-		return scale(targetSize.getWidth(), targetSize.getHeight());
+		return new ImageSize(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight, orientation, visual);
 	}
 
 	/**
@@ -305,10 +287,10 @@ public class ImageSize {
 		double ratio = (double) width / height;
 		int heightByWidth = Math.max((int) Math.round(targetWidth / ratio), 1);
 		if (heightByWidth <= targetHeight) {
-			return new ImageSize(targetWidth, heightByWidth);
+			return new ImageSize(targetWidth, heightByWidth, orientation, visual);
 		}
 		int widthByHeight = Math.max((int) Math.round(targetHeight * ratio), 1);
-		return new ImageSize(widthByHeight, targetHeight);
+		return new ImageSize(widthByHeight, targetHeight, orientation, visual);
 	}
 
 	/**
@@ -324,6 +306,28 @@ public class ImageSize {
 	 */
 	public ImageSize scale(final double ratio) {
 		Validate.isTrue(ratio > 0, "scale 必须大于0");
-		return new ImageSize((int) Math.round(this.getWidth() * ratio), (int) Math.round(this.height * ratio));
+		return new ImageSize((int) Math.round(this.getWidth() * ratio),
+			(int) Math.round(this.height * ratio), orientation, visual);
+	}
+
+	/**
+	 * 强制调整尺寸（非等比）。
+	 * <p>
+	 * 直接返回一个具有指定宽度和高度的新 {@link ImageSize} 实例。
+	 * <br><b>注意：</b> 此方法不保持原有的宽高比，而是强制使用目标尺寸。
+	 * 原对象的 EXIF 方向信息（{@link #orientation}）和可视化状态（{@link #visual}）将被保留。
+	 * </p>
+	 *
+	 * @param targetWidth  目标宽度，必须大于 0
+	 * @param targetHeight 目标高度，必须大于 0
+	 * @return 调整尺寸后的新实例
+	 * @throws IllegalArgumentException 当宽或高小于等于 0 时抛出
+	 * @since 1.0.0
+	 */
+	public ImageSize resize(final int targetWidth, final int targetHeight) {
+		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于0");
+		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于0");
+
+		return new ImageSize(targetWidth, targetHeight, orientation, visual);
 	}
 }
