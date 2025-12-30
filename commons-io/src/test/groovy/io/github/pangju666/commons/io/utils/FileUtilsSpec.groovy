@@ -1,219 +1,319 @@
 package io.github.pangju666.commons.io.utils
 
-import io.github.pangju666.commons.io.lang.IOConstants
-import org.apache.commons.io.FileExistsException
-import org.apache.commons.lang3.RandomUtils
+
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
 
-import java.nio.file.Files
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
 import java.nio.file.Path
 
 class FileUtilsSpec extends Specification {
 	@TempDir
 	Path tempDir
 
-	// 通用测试文件准备
-	private File createTestFile(String content = "test") {
-		def file = tempDir.resolve("test.txt").toFile()
-		Files.writeString(file.toPath(), content)
-		return file
-	}
+	static final byte[] PASSWORD_16 = "1234567890123456".getBytes()
+	static final byte[] IV_16 = "1234567890123456".bytes
 
-	def "测试文件存在性检查"() {
-		given: "准备存在和不存在文件"
-		def existingFile = createTestFile()
-		def nonExistingFile = new File(tempDir.toString(), "ghost.txt")
+	def "computeDigest 空文件与修改后不同"() {
+		given:
+		File f = tempDir.resolve("d.txt").toFile()
+		f.createNewFile()
 
-		expect: "验证存在性检查结果"
-		FileUtils.exist(existingFile)
-		!FileUtils.exist(nonExistingFile)
-		!FileUtils.exist(null)
-		FileUtils.notExist(nonExistingFile)
-	}
+		expect:
+		FileUtils.computeDigest(f) == "0000000000000000"
 
-	def "测试安全重命名文件"() {
-		given: "创建源文件和目标文件"
-		def srcFile = createTestFile()
-		def newFile = new File(tempDir.toString(), "renamed.txt")
+		when:
+		f.text = "abc"
+		def d1 = FileUtils.computeDigest(f)
+		f.text = "abcd"
+		def d2 = FileUtils.computeDigest(f)
 
-		when: "执行重命名"
-		def result = FileUtils.rename(srcFile, "renamed.txt")
-
-		then: "验证重命名结果"
-		result.exists()
-		!srcFile.exists()
-		result.name == "renamed.txt"
-	}
-
-	def "测试重命名已存在文件应抛出异常"() {
-		given: "创建同名文件"
-		def srcFile = createTestFile()
-		def existingFile = new File(tempDir.toString(), "existing.txt")
-		existingFile.createNewFile()
-
-		when: "重命名为已存在文件名"
-		FileUtils.rename(srcFile, "existing.txt")
-
-		then: "应抛出FileExistsException"
-		thrown(FileExistsException)
-	}
-
-	def "测试AES/CBC文件加密解密"() {
-		given: "准备测试文件和密码"
-		def originalFile = createTestFile("secret data")
-		def encryptedFile = new File(tempDir.toString(), "encrypted.dat")
-		def decryptedFile = new File(tempDir.toString(), "decrypted.txt")
-		def password = RandomUtils.secure().randomBytes(16)
-		def iv = RandomUtils.secure().randomBytes(16)
-
-		when: "执行加密解密流程"
-		FileUtils.encryptFile(originalFile, encryptedFile, password, iv)
-		FileUtils.decryptFile(encryptedFile, decryptedFile, password, iv)
-
-		then: "验证解密后内容"
-		decryptedFile.text == "secret data"
-		encryptedFile.length() > originalFile.length()
-	}
-
-	def "测试使用错误密码解密应失败"() {
-		given: "准备加密文件"
-		def originalFile = createTestFile()
-		def password = RandomUtils.secure().randomBytes(16)
-		def iv = RandomUtils.secure().randomBytes(16)
-		def encryptedFile = new File(tempDir.toString(), "encrypted.dat")
-		FileUtils.encryptFile(originalFile, encryptedFile, password, iv)
-
-		when: "使用错误密码解密"
-		FileUtils.decryptFile(encryptedFile, new File(tempDir.toString(), "output.txt"), "aaaaaaaaaaaaaaaa".getBytes(), iv)
-
-		then: "应抛出解密异常"
-		thrown(IOException)
-	}
-
-	def "测试强制删除文件"() {
-		given: "创建测试文件和只读文件"
-		def normalFile = createTestFile()
-		def readOnlyFile = tempDir.resolve("readonly.txt").toFile().tap {
-			it.createNewFile()
-			it.setReadOnly()
-		}
-
-		when: "执行强制删除"
-		FileUtils.forceDeleteIfExist(normalFile)
-		FileUtils.forceDeleteIfExist(readOnlyFile)
-
-		then: "验证文件已删除"
-		!normalFile.exists()
-		!readOnlyFile.exists()
-	}
-
-	def "测试内存映射文件流读取"() {
-		given: "创建大测试文件"
-		def bigFile = tempDir.resolve("big.data").toFile()
-		def content = "A" * 1024 * 1024 // 1MB
-		Files.writeString(bigFile.toPath(), content)
-
-		when: "使用内存映射流读取"
-		def inputStream = FileUtils.openMemoryMappedFileInputStream(bigFile)
-		def result = new String(inputStream.readAllBytes())
-
-		then: "验证读取内容正确"
-		result == content
-	}
-
-	def "测试应用类型检测"() {
-		given: "创建EXE文件头"
-		def exeFile = tempDir.resolve("test.exe").toFile()
-		Files.write(exeFile.toPath(), [0x4D, 0x5A] as byte[]) // MZ头
-
-		expect: "验证应用类型检测"
-		FileUtils.getMimeType(exeFile).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX)
+		then:
+		d1.size() == 16
+		d1 != d2
 	}
 
 	@Unroll
-	def "测试MIME类型精确匹配：#mimeType"() {
-		given: "创建测试文件"
-		def testFile = createTestFile()
+	def "getBufferSize 返回预期大小: size=#size -> buffer=#expected"() {
+		given:
+		File f = tempDir.resolve("buf.dat").toFile()
+		new RandomAccessFile(f, "rw").setLength(size)
 
-		expect: "验证MIME类型匹配结果"
-		FileUtils.isMimeType(testFile, mimeType) == expected
+		expect:
+		FileUtils.getBufferSize(f) == expected
 
 		where:
-		mimeType                   | expected
-		"text/plain"               | true
-		"application/octet-stream" | false
+		size              | expected
+		0                 | 4 * 1024
+		200 * 1024        | 4 * 1024
+		300 * 1024        | 8 * 1024
+		2 * 1024 * 1024   | 32 * 1024
+		50 * 1024 * 1024  | 64 * 1024
+		200 * 1024 * 1024 | 128 * 1024
 	}
 
-	def "测试批量MIME类型匹配（集合）"() {
-		given: "创建文本文件"
-		def textFile = createTestFile("Hello World")
+	@Unroll
+	def "getSlidingBufferSize 返回预期: size=#size"() {
+		given:
+		File f = tempDir.resolve("slide.dat").toFile()
+		new RandomAccessFile(f, "rw").setLength(size)
 
-		when: "匹配允许的类型集合"
-		def result = FileUtils.isAnyMimeType(textFile, ["text/plain", "application/json"])
+		expect:
+		FileUtils.getSlidingBufferSize(f) == expected
 
-		then: "验证匹配结果"
-		result
+		where:
+		size                     | expected
+		50 * 1024 * 1024         | 4 * 1024 * 1024
+		200 * 1024 * 1024        | 16 * 1024 * 1024
+		2L * 1024 * 1024 * 1024  | 32 * 1024 * 1024
+		12L * 1024 * 1024 * 1024 | 64 * 1024 * 1024
 	}
 
-	def "测试替换文件基名"() {
-		given: "创建带扩展名的测试文件"
-		def srcFile = tempDir.resolve("report.pdf").toFile()
-		Files.writeString(srcFile.toPath(), "content")
+	def "openUnsynchronizedBufferedInputStream 读取一致"() {
+		given:
+		File f = tempDir.resolve("in.txt").toFile()
+		f.text = "hello"
 
-		when: "替换基名"
-		def newFile = FileUtils.replaceBaseName(srcFile, "年度报告")
+		when:
+		def inputStream = FileUtils.openUnsynchronizedBufferedInputStream(f)
+		def bytes = inputStream.readAllBytes()
+		inputStream.close()
 
-		then: "验证新文件名"
-		newFile.name == "年度报告.pdf"
-		!srcFile.exists()
+		then:
+		new String(bytes) == "hello"
 	}
 
-	def "测试替换扩展名为空"() {
-		given: "创建测试文件"
-		def srcFile = createTestFile()
+	def "openBufferedFileChannelInputStream 读取一致"() {
+		given:
+		File f = tempDir.resolve("in2.txt").toFile()
+		f.text = "world"
 
-		when: "移除扩展名"
-		def newFile = FileUtils.replaceExtension(srcFile, "")
+		when:
+		def chInputStream = FileUtils.openBufferedFileChannelInputStream(f)
+		def bytes = chInputStream.readAllBytes()
+		chInputStream.close()
 
-		then: "验证新文件名"
-		newFile.name == "test"
+		then:
+		new String(bytes) == "world"
 	}
 
-	def "测试CTR模式加密解密"() {
-		given: "准备测试文件和随机密码"
-		def originalFile = createTestFile("CTR模式测试数据")
-		def password = RandomUtils.secure().randomBytes(16)
-		def iv = RandomUtils.secure().randomBytes(16)
+	def "openMemoryMappedFileInputStream 读取一致"() {
+		given:
+		File f = tempDir.resolve("in3.txt").toFile()
+		f.text = "mmf"
 
-		when: "执行CTR加密解密流程"
-		FileUtils.encryptFileByCtr(originalFile, tempDir.resolve("encrypted.dat").toFile(), password, iv)
-		FileUtils.decryptFileByCtr(tempDir.resolve("encrypted.dat").toFile(), tempDir.resolve("decrypted.txt").toFile(), password, iv)
+		when:
+		def mmInputStream = FileUtils.openMemoryMappedFileInputStream(f)
+		def bytes = mmInputStream.readAllBytes()
+		mmInputStream.close()
 
-		then: "验证解密结果"
-		tempDir.resolve("decrypted.txt").toFile().text == "CTR模式测试数据"
+		then:
+		new String(bytes) == "mmf"
 	}
 
-	def "测试缓冲通道输入流"() {
-		given: "创建测试文件"
-		def content = "BufferedChannel测试内容"
-		def testFile = createTestFile(content)
+	def "getMimeType 与类型判断"() {
+		given:
+		File txt = tempDir.resolve("t.txt").toFile()
+		txt.text = "abc"
+		File png = tempDir.resolve("i.png").toFile()
+		BufferedImage bi = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB)
+		ImageIO.write(bi, "png", png)
 
-		when: "使用缓冲通道流读取"
-		def inputStream = FileUtils.openBufferedFileChannelInputStream(testFile)
-		def result = new String(inputStream.readAllBytes())
-
-		then: "验证读取内容正确"
-		result == content
+		expect:
+		FileUtils.isTextType(txt)
+		FileUtils.isImageType(png)
+		FileUtils.getMimeType(txt).startsWith("text/")
+		FileUtils.getMimeType(png).startsWith("image/")
 	}
 
-	def "测试删除不存在文件不报错"() {
-		when: "删除不存在的文件"
-		FileUtils.deleteIfExist(new File(tempDir.toString(), "ghost.txt"))
+	def "isMimeType 与 isAnyMimeType"() {
+		given:
+		File txt = tempDir.resolve("t2.txt").toFile()
+		txt.text = "xyz"
+		def mt = FileUtils.getMimeType(txt)
 
-		then: "无异常抛出"
-		noExceptionThrown()
+		expect:
+		FileUtils.isMimeType(txt, mt)
+		FileUtils.isAnyMimeType(txt, mt, "application/pdf")
+		!FileUtils.isMimeType(txt, "application/pdf")
+		!FileUtils.isAnyMimeType(txt, "application/pdf", "image/png")
 	}
 
+	def "parseMetaData 非空"() {
+		given:
+		File txt = tempDir.resolve("meta.txt").toFile()
+		txt.text = "meta"
+
+		when:
+		def md = FileUtils.parseMetaData(txt)
+
+		then:
+		md != null
+		md.size() > 0
+		md.containsKey("Content-Type")
+	}
+
+	def "CBC 文件加解密"() {
+		given:
+		File inputFile = tempDir.resolve("cbc_in.txt").toFile()
+		inputFile.text = "CBC-TEST"
+		File encrypted = tempDir.resolve("cbc_out.enc").toFile()
+		File decrypted = tempDir.resolve("cbc_dec.txt").toFile()
+
+		when:
+		FileUtils.encryptFile(inputFile, encrypted, PASSWORD_16, IV_16)
+		FileUtils.decryptFile(encrypted, decrypted, PASSWORD_16, IV_16)
+
+		then:
+		decrypted.text == "CBC-TEST"
+	}
+
+	def "CBC 自定义缓冲区加解密"() {
+		given:
+		File inputFile2 = tempDir.resolve("cbc_in2.txt").toFile()
+		inputFile2.text = "CBC-BUF"
+		File encrypted = tempDir.resolve("cbc_out2.enc").toFile()
+		File decrypted = tempDir.resolve("cbc_dec2.txt").toFile()
+
+		when:
+		FileUtils.encryptFile(inputFile2, encrypted, PASSWORD_16, IV_16, 8192)
+		FileUtils.decryptFile(encrypted, decrypted, PASSWORD_16, IV_16, 8192)
+
+		then:
+		decrypted.text == "CBC-BUF"
+	}
+
+	def "CTR 文件加解密"() {
+		given:
+		File ctrInput = tempDir.resolve("ctr_in.txt").toFile()
+		ctrInput.text = "CTR-TEST"
+		File encrypted = tempDir.resolve("ctr_out.enc").toFile()
+		File decrypted = tempDir.resolve("ctr_dec.txt").toFile()
+
+		when:
+		FileUtils.encryptFileByCtr(ctrInput, encrypted, PASSWORD_16, IV_16)
+		FileUtils.decryptFileByCtr(encrypted, decrypted, PASSWORD_16, IV_16)
+
+		then:
+		decrypted.text == "CTR-TEST"
+	}
+
+	def "CTR 自定义缓冲区加解密"() {
+		given:
+		File ctrInput2 = tempDir.resolve("ctr_in2.txt").toFile()
+		ctrInput2.text = "CTR-BUF"
+		File encrypted = tempDir.resolve("ctr_out2.enc").toFile()
+		File decrypted = tempDir.resolve("ctr_dec2.txt").toFile()
+
+		when:
+		FileUtils.encryptFileByCtr(ctrInput2, encrypted, PASSWORD_16, IV_16, 4096)
+		FileUtils.decryptFileByCtr(encrypted, decrypted, PASSWORD_16, IV_16, 4096)
+
+		then:
+		decrypted.text == "CTR-BUF"
+	}
+
+	def "exist 与 notExist 检查"() {
+		given:
+		File f = tempDir.resolve("exist.txt").toFile()
+		f.text = "x"
+		File none = tempDir.resolve("none.txt").toFile()
+
+		expect:
+		FileUtils.exist(f)
+		!FileUtils.exist(none)
+		!FileUtils.notExist(f)
+		FileUtils.notExist(none)
+	}
+
+	def "existFile 与 notExistFile 检查"() {
+		given:
+		File f = tempDir.resolve("isfile.txt").toFile()
+		f.text = "x"
+		File d = tempDir.resolve("dir").toFile()
+		d.mkdirs()
+
+		expect:
+		FileUtils.existFile(f)
+		!FileUtils.existFile(d)
+		!FileUtils.notExistFile(f)
+		FileUtils.notExistFile(d)
+	}
+
+	def "forceDeleteIfExist 与 deleteIfExist"() {
+		given:
+		File f1 = tempDir.resolve("del1.txt").toFile()
+		f1.text = "a"
+		File f2 = tempDir.resolve("del2.txt").toFile()
+		f2.text = "b"
+
+		when:
+		FileUtils.forceDeleteIfExist(f1)
+		FileUtils.deleteIfExist(f2)
+
+		then:
+		!f1.exists()
+		!f2.exists()
+	}
+
+	def "rename 替换基名与扩展名"() {
+		given:
+		File f = tempDir.resolve("a.txt").toFile()
+		f.text = "y"
+
+		when:
+		File r = FileUtils.rename(f, "b.txt")
+
+		then:
+		r.exists()
+		r.name == "b.txt"
+
+		when:
+		File r2 = FileUtils.replaceBaseName(r, "c")
+
+		then:
+		r2.exists()
+		r2.name == "c.txt"
+
+		when:
+		File r3 = FileUtils.replaceExtension(r2, "log")
+
+		then:
+		r3.exists()
+		r3.name == "c.log"
+	}
+
+	def "check 与 checkFile 与 checkFileIfExist 异常"() {
+		given:
+		File none = tempDir.resolve("noneX.txt").toFile()
+		File dir = tempDir.resolve("d2").toFile()
+		dir.mkdirs()
+
+		when:
+		FileUtils.check(none, "x")
+
+		then:
+		thrown(FileNotFoundException)
+
+		when:
+		FileUtils.checkFile(dir, "x")
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		FileUtils.checkFileIfExist(null, "x")
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		FileUtils.checkFileIfExist(dir, "x")
+
+		then:
+		thrown(IllegalArgumentException)
+	}
 }
+

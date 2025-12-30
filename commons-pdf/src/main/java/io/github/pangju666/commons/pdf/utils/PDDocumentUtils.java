@@ -1361,12 +1361,17 @@ public class PDDocumentUtils {
 											 final int x, final int y, final int width, final int height) throws IOException {
 		checkArgs(page, x, y, width, height);
 
-		PDPage PDPage = new PDPage(new PDRectangle(width, height));
-		try (PDPageContentStream pageContentStream = new PDPageContentStream(document, PDPage)) {
+		PDPage newPage = new PDPage(new PDRectangle(width, height));
+		try (PDPageContentStream pageContentStream = new PDPageContentStream(document, newPage)) {
 			pageContentStream.drawImage(imageXObject, x, y);
 		}
-		PDPage beforePage = document.getPage(page - 1);
-		document.getPages().insertBefore(beforePage, beforePage);
+		int numberOfPages = document.getNumberOfPages();
+		if (page <= numberOfPages) {
+			PDPage beforePage = document.getPage(page - 1);
+			document.getPages().insertBefore(newPage, beforePage);
+		} else {
+			document.addPage(newPage);
+		}
 	}
 
 	/**

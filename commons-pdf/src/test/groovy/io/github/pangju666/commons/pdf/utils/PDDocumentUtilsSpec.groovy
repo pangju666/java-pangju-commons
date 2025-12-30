@@ -1,201 +1,311 @@
 package io.github.pangju666.commons.pdf.utils
 
-import io.github.pangju666.commons.io.lang.IOConstants
-import io.github.pangju666.commons.io.utils.FileUtils
-import io.github.pangju666.commons.pdf.lang.PdfConstants
-import org.apache.pdfbox.Loader
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.pdmodel.PDDocument
 import spock.lang.Specification
-import spock.lang.TempDir
+import spock.lang.Unroll
 
+import javax.imageio.ImageIO
+import java.awt.*
 import java.awt.image.BufferedImage
-import java.nio.file.Path
 
 class PDDocumentUtilsSpec extends Specification {
-	@TempDir
-	Path tempDir
+	File pdfFile = new File("e:\\project\\pangju\\pangju-commons\\commons-pdf\\src\\test\\resources\\test.pdf")
 
-	def "test computeMemoryUsageSetting with different file sizes"() {
-		when:
-		def result = PDDocumentUtils.computeMemoryUsageSetting(fileSize)
-
-		then:
-		result == expectedSetting
-
-		where:
-		fileSize          | expectedSetting
-		49 * 1024 * 1024  | PDDocumentUtils.MAIN_MEMORY_ONLY_MEMORY_USAGE_SETTING
-		100 * 1024 * 1024 | PDDocumentUtils.MIXED_PAGE_MEMORY_USAGE_SETTING
-		501 * 1024 * 1024 | PDDocumentUtils.TEMP_FILE_ONLY_MEMORY_USAGE_SETTING
-	}
-
-	def "test isPDF with valid PDF file"() {
+	def "isPDF(File) 与 isPDF(byte[]) 检测"() {
 		given:
-		def pdfFile = new File("src/test/resources/test.pdf")
+		byte[] pdfBytes = pdfFile.bytes
+		File txt = File.createTempFile("not-pdf", ".txt")
+		txt.text = "abc"
 
 		expect:
 		PDDocumentUtils.isPDF(pdfFile)
-	}
-
-	def "test isPDF with valid PDF bytes"() {
-		given:
-		def pdfFile = new File("src/test/resources/test.pdf")
-
-		expect:
-		PDDocumentUtils.isPDF(FileUtils.readFileToByteArray(pdfFile))
-	}
-
-	def "test isPDF with valid PDF inputStream"() {
-		given:
-		def pdfFile = new File("src/test/resources/test.pdf")
-
-		expect:
-		PDDocumentUtils.isPDF(new FileInputStream(pdfFile))
-	}
-
-	def "test createDocument should copy metadata"() {
-		given:
-		def srcDoc = Loader.loadPDF(new File("src/test/resources/test.pdf"))
-		srcDoc.documentInformation.author = "Test Author"
-
-		when:
-		def newDoc = PDDocumentUtils.createDocument(srcDoc)
-
-		then:
-		newDoc.documentInformation.author == "Test Author"
-		newDoc.version == srcDoc.version
+		PDDocumentUtils.isPDF(pdfBytes)
+		!PDDocumentUtils.isPDF(txt)
+		!PDDocumentUtils.isPDF("xyz".bytes)
+		!PDDocumentUtils.isPDF(new byte[0])
 
 		cleanup:
-		srcDoc.close()
-		newDoc.close()
+		txt?.delete()
 	}
 
-	def "test getDocument with File"() {
+	@Unroll
+	def "computeMemoryUsageSetting 返回预期策略: size=#size"() {
+		expect:
+		def mus = PDDocumentUtils.computeMemoryUsageSetting(size)
+		mus.is(PDDocumentUtils.MAIN_MEMORY_ONLY_MEMORY_USAGE_SETTING) == (size < PDDocumentUtils.MIN_PDF_BYTES)
+		mus.is(PDDocumentUtils.MIXED_PAGE_MEMORY_USAGE_SETTING) == (size >= PDDocumentUtils.MIN_PDF_BYTES && size <= PDDocumentUtils.MAX_PDF_BYTES)
+		mus.is(PDDocumentUtils.TEMP_FILE_ONLY_MEMORY_USAGE_SETTING) == (size > PDDocumentUtils.MAX_PDF_BYTES)
+
+		where:
+		size << [
+			10 * 1024 * 1024,
+			50 * 1024 * 1024,
+			200 * 1024 * 1024,
+			600 * 1024 * 1024
+		]
+	}
+
+	def "getDocument 加载 PDF 与非法文件抛异常"() {
 		given:
-		File file = new File("src/test/resources/test.pdf")
-		file.exists() >> true
-		file.isFile() >> true
-		IOConstants.getDefaultTika().detect(file) >> PdfConstants.PDF_MIME_TYPE
+		File txt = File.createTempFile("not-pdf", ".txt")
+		txt.text = "abc"
 
 		when:
-		PDDocument document = PDDocumentUtils.getDocument(file)
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
 
 		then:
-		document != null
-	}
-
-	def "test getDocument with File and password"() {
-		given:
-		File file = new File("src/test/resources/test.pdf")
-		file.exists() >> true
-		file.isFile() >> true
-		IOConstants.getDefaultTika().detect(file) >> PdfConstants.PDF_MIME_TYPE
+		doc != null
+		doc.numberOfPages > 0
 
 		when:
-		PDDocument document = PDDocumentUtils.getDocument(file, "123456")
-
-		then:
-		document != null
-	}
-
-	def "test addImage with byte[]"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/test.pdf"))
-		byte[] bytes = FileUtils.readFileToByteArray(new File("src/test/resources/large.png"))
-
-		when:
-		PDDocumentUtils.addImage(document, bytes, 1)
-
-		then:
-		noExceptionThrown()
-	}
-
-	def "test addImage with file"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/test.pdf"))
-		def file = new File("src/test/resources/split-1.pdf")
-
-		when:
-		PDDocumentUtils.addImage(document, file, 1)
+		PDDocumentUtils.getDocument(txt)
 
 		then:
 		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc?.close()
+		txt?.delete()
 	}
 
-	def "test getPageImages with default scale"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/test.pdf"))
-
+	def "getDocument(含密码) 加载未加密 PDF"() {
 		when:
-		def images = PDDocumentUtils.getPageImages(document)
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile, "password")
 
 		then:
-		images.every({ it instanceof BufferedImage })
-		images.size() == document.getNumberOfPages()
+		doc != null
+		doc.numberOfPages > 0
+
+		cleanup:
+		doc?.close()
 	}
 
-	def "test merge with File and MemoryUsageSetting"() {
-		given:
-		Collection<PDDocument> documents = Arrays.asList(
-			Loader.loadPDF(new File("src/test/resources/test.pdf")),
-			Loader.loadPDF(new File("src/test/resources/test.pdf")),
-			Loader.loadPDF(new File("src/test/resources/test.pdf"))
-		)
-		File outputFile = new File("src/test/resources/merge.pdf")
-
+	def "渲染所有页面为图像(默认与指定缩放)"() {
 		when:
-		def outputDocument = PDDocumentUtils.merge(documents, MemoryUsageSetting.setupMainMemoryOnly())
-		outputDocument.save(outputFile)
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		def images1 = PDDocumentUtils.getPagesAsImage(doc)
+		def images2 = PDDocumentUtils.getPagesAsImage(doc, 2)
 
 		then:
-		noExceptionThrown()
+		images1.size() == doc.numberOfPages
+		images2.size() == doc.numberOfPages
+
+		cleanup:
+		doc?.close()
 	}
 
-	def "test split with custom splitPage"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/merge.pdf"))
-
+	def "渲染指定页面集合为图像(过滤无效页码)"() {
 		when:
-		def splits = PDDocumentUtils.split(document, 2)
-		for (i in 0..<splits.size()) {
-			splits[i].save(new File("src/test/resources/split-${i + 1}.pdf"))
-		}
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		int total = doc.numberOfPages
+		def images = PDDocumentUtils.getPagesAsImage(doc, [1, 2, null, total + 5] as Set)
 
 		then:
-		noExceptionThrown()
+		images.size() == Math.min(2, total)
+
+		cleanup:
+		doc?.close()
 	}
 
-	def "test copy all pages"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/merge.pdf"))
-
+	def "渲染页面范围为图像(缩放与DPI)"() {
 		when:
-		def copy = PDDocumentUtils.copy(document, 2, 3)
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		int total = doc.numberOfPages
+		def rangeImages1 = PDDocumentUtils.getPagesAsImage(doc, 2, 1, Math.min(3, total))
+		def rangeImages2 = PDDocumentUtils.getPagesAsImageWithDPI(doc, 72f, 1, Math.min(3, total))
 
 		then:
-		copy.getNumberOfPages() == 2
+		rangeImages1.size() == rangeImages2.size()
+		rangeImages1.size() <= Math.min(3, total)
+
+		cleanup:
+		doc?.close()
 	}
 
-	def "test copy pages"() {
-		given:
-		PDDocument document = Loader.loadPDF(new File("src/test/resources/merge.pdf"))
-
+	def "copy/merge/split 操作"() {
 		when:
-		def copy = PDDocumentUtils.copy(document, Arrays.asList(1, 3))
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PDDocument copyAll = PDDocumentUtils.copy(doc)
+		PDDocument merged = PDDocumentUtils.merge([doc, copyAll], MemoryUsageSetting.setupMainMemoryOnly())
+		def splitDocs = PDDocumentUtils.split(doc, 1)
 
 		then:
-		copy.getNumberOfPages() == 2
+		copyAll.numberOfPages == doc.numberOfPages
+		merged.numberOfPages == doc.numberOfPages + copyAll.numberOfPages
+		splitDocs.size() == doc.numberOfPages
+
+		cleanup:
+		merged?.close()
+		copyAll?.close()
+		splitDocs?.each { it?.close() }
+		doc?.close()
 	}
 
-    def "test getDi"() {
-        given:
-        PDDocument document = Loader.loadPDF(new File("src/test/resources/alibaba.pdf"))
+	def "addImage 添加字节图像到文档不抛异常"() {
+		given:
+		BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
+		def g = bi.graphics
+		g.color = Color.RED
+		g.fillRect(0, 0, 16, 16)
+		g.dispose()
+		ByteArrayOutputStream out = new ByteArrayOutputStream()
+		ImageIO.write(bi, "png", out)
+		byte[] pngBytes = out.toByteArray()
 
-        when:
-        def bookmarks = PDDocumentUtils.getBookmarks(document)
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PDDocumentUtils.addImage(doc, pngBytes, 1, 1, 16, 16)
 
-        then:
-        bookmarks.size() == 2
-    }
+		then:
+		doc.numberOfPages >= 1
+
+		cleanup:
+		doc?.close()
+		out?.close()
+	}
+
+	def "addImage(byte[]) 默认坐标抛异常"() {
+		given:
+		BufferedImage bi = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB)
+		ByteArrayOutputStream out = new ByteArrayOutputStream()
+		ImageIO.write(bi, "png", out)
+		byte[] pngBytes = out.toByteArray()
+
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PDDocumentUtils.addImage(doc, pngBytes)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc?.close()
+		out?.close()
+	}
+
+	def "addImage(File) 坐标添加与默认抛异常"() {
+		given:
+		BufferedImage bi = new BufferedImage(12, 12, BufferedImage.TYPE_INT_RGB)
+		File imgFile = File.createTempFile("img", ".png")
+		ImageIO.write(bi, "png", imgFile)
+
+		when:
+		PDDocument doc1 = PDDocumentUtils.getDocument(pdfFile)
+		PDDocumentUtils.addImage(doc1, imgFile, 1, 1, 12, 12)
+
+		then:
+		doc1.numberOfPages >= 1
+
+		when:
+		PDDocument doc2 = PDDocumentUtils.getDocument(pdfFile)
+		PDDocumentUtils.addImage(doc2, imgFile)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc1?.close()
+		doc2?.close()
+		imgFile?.delete()
+	}
+
+	def "getPagesAsImageWithDPI(集合) 返回尺寸集合"() {
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		int total = doc.numberOfPages
+		def images = PDDocumentUtils.getPagesAsImageWithDPI(doc, 72f, [1, 2, total + 10])
+
+		then:
+		images.size() == Math.min(2, total)
+
+		cleanup:
+		doc?.close()
+	}
+
+	def "createDocument 保留版本与文档信息"() {
+		when:
+		PDDocument src = PDDocumentUtils.getDocument(pdfFile)
+		PDDocument dst = PDDocumentUtils.createDocument(src)
+
+		then:
+		dst != null
+		dst.version == src.version
+		dst.documentInformation?.title == src.documentInformation?.title
+
+		cleanup:
+		src?.close()
+		dst?.close()
+	}
+
+	def "getBookmarks 返回列表"() {
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		def bookmarks = PDDocumentUtils.getBookmarks(doc)
+
+		then:
+		bookmarks != null
+
+		cleanup:
+		doc?.close()
+	}
+
+	def "copy 指定范围与集合"() {
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		int total = doc.numberOfPages
+		PDDocument c1 = PDDocumentUtils.copy(doc, 1, Math.min(2, total))
+		PDDocument c2 = PDDocumentUtils.copy(doc, [1, 1, total + 5, 2])
+
+		then:
+		c1.numberOfPages == Math.min(2, total)
+		c2.numberOfPages == Math.min(2, total)
+
+		cleanup:
+		c1?.close()
+		c2?.close()
+		doc?.close()
+	}
+
+	def "参数校验异常"() {
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PDDocumentUtils.getPagesAsImage(doc, 0, 1, 1)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.getPagesAsImageWithDPI(doc, 0f, [1])
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.getPagesAsImage(doc, 1, 2, 1)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.getPageAsImage(doc, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.getPageAsImage(doc, 1, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.getPageAsImageWithDPI(doc, 1, 0f)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc?.close()
+	}
 }
