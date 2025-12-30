@@ -43,14 +43,17 @@ public class NotBlankElementsValidator implements ConstraintValidator<NotBlankEl
 		if (Objects.isNull(values) || values.isEmpty()) {
 			return true;
 		}
+
+		boolean anyValid = false;
 		for (CharSequence value : values) {
-			boolean result = StringUtils.isBlank(value.toString());
-			if (result && allMatch) {
+			boolean isValid = Objects.nonNull(value) && !StringUtils.isBlank(value.toString());
+			if (!isValid && allMatch) {
 				return false;
-			} else if (!result && !allMatch) {
-				return true;
+			}
+			if (isValid) {
+				anyValid = true;
 			}
 		}
-		return true;
+		return allMatch || anyValid;
 	}
 }

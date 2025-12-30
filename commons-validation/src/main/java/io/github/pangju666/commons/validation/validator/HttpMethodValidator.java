@@ -31,7 +31,8 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class HttpMethodValidator implements ConstraintValidator<HttpMethod, CharSequence> {
-	private static final Set<CharSequence> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "HEAD", "DELETE", "OPTIONS");
+	private static final Set<CharSequence> HTTP_METHODS = Set.of("GET", "POST", "PUT", "TRACE", "PATCH", "HEAD",
+		"DELETE", "OPTIONS");
 
 	@Override
 	public boolean isValid(CharSequence value, ConstraintValidatorContext constraintValidatorContext) {

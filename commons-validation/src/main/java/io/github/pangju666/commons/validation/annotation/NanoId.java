@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.validation.annotation;
 
-import io.github.pangju666.commons.validation.validator.XssValidator;
+import io.github.pangju666.commons.validation.validator.NanoIdValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -26,7 +26,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = {XssValidator.class})
+@Constraint(validatedBy = {NanoIdValidator.class})
 public @interface NanoId {
 	/**
 	 * 随机字符表

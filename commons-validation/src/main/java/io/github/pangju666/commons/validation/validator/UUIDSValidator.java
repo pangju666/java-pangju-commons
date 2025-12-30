@@ -103,15 +103,18 @@ public class UUIDSValidator implements ConstraintValidator<UUIDS, Collection<? e
 		if (Objects.isNull(values) || values.isEmpty()) {
 			return true;
 		}
+
+		boolean anyValid = false;
 		for (CharSequence value : values) {
-			boolean result = validate(value);
-			if (result && allMatch) {
+			boolean isValid = validate(value);
+			if (!isValid && allMatch) {
 				return false;
-			} else if (!result && !allMatch) {
-				return true;
+			}
+			if (isValid) {
+				anyValid = true;
 			}
 		}
-		return true;
+		return allMatch || anyValid;
 	}
 
 	private boolean validate(CharSequence value) {
