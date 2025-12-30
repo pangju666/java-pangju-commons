@@ -18,15 +18,15 @@ package io.github.pangju666.commons.lang.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import io.github.pangju666.commons.lang.gson.type.*;
+import io.github.pangju666.commons.lang.gson.type.BigDecimalTypeAdapter;
+import io.github.pangju666.commons.lang.gson.type.BigIntegerTypeAdapter;
+import io.github.pangju666.commons.lang.gson.type.DateTypeAdapter;
+import io.github.pangju666.commons.lang.gson.type.InstantTypeAdapter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -67,7 +67,6 @@ public class JsonUtils {
 	 * <ul>
 	 *   <li>Date / Instant 序列化为毫秒时间戳</li>
 	 *   <li>Date 反序列化支持 NULL、数字毫秒，以及字符串（由 {@link io.github.pangju666.commons.lang.utils.DateUtils#parseDate(String)} 支持的格式）；Instant 反序列化支持 NULL 与数字毫秒</li>
-	 *   <li>LocalDate / LocalDateTime / LocalTime 序列化为 ISO-8601 字符串；反序列化支持 NULL、ISO 字符串，以及数字毫秒（按系统默认时区转换为本地日期/时间）</li>
 	 *   <li>BigInteger 序列化为十进制字符串；反序列化支持 NULL、字符串（非法格式返回 {@code null}），以及数字（按 {@code long} 读取后转换）</li>
 	 *   <li>BigDecimal 序列化为十进制字符串（使用 {@code toPlainString()} 避免科学计数法）；反序列化支持 NULL、字符串（非法格式返回 {@code null}），以及数字（按 {@code double} 读取并 {@code BigDecimal.valueOf(double)} 转换，存在二进制浮点到十进制的精度差异）</li>
 	 * </ul>
@@ -80,17 +79,11 @@ public class JsonUtils {
 	 * @see io.github.pangju666.commons.lang.gson.type.BigDecimalTypeAdapter
 	 * @see io.github.pangju666.commons.lang.gson.type.DateTypeAdapter
 	 * @see io.github.pangju666.commons.lang.gson.type.InstantTypeAdapter
-	 * @see io.github.pangju666.commons.lang.gson.type.LocalDateTypeAdapter
-	 * @see io.github.pangju666.commons.lang.gson.type.LocalDateTimeTypeAdapter
-	 * @see io.github.pangju666.commons.lang.gson.type.LocalTimeTypeAdapter
 	 */
 	public static GsonBuilder createGsonBuilder() {
 		return new GsonBuilder()
 			.registerTypeAdapter(Date.class, new DateTypeAdapter())
 			.registerTypeAdapter(Instant.class, new InstantTypeAdapter())
-			.registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
-			.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
-			.registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
 			.registerTypeAdapter(BigInteger.class, new BigIntegerTypeAdapter())
 			.registerTypeAdapter(BigDecimal.class, new BigDecimalTypeAdapter());
 	}

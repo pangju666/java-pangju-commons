@@ -62,6 +62,22 @@ class RegExUtilsSpec extends Specification {
 		pattern  | input  | expected
 		"^a.b\$" | "aab"  | true
 		"^a.b\$" | "aabx" | false
+		"\\d+" | "123"  | true
+		"\\d+" | "12a3" | false
+	}
+
+	@Unroll
+	def "测试完全匹配验证(Pattern) - 模式: #regex 字符串: #input 预期: #expected"() {
+		given:
+		def p = Pattern.compile(regex)
+
+		expect:
+		RegExUtils.matches(p, input) == expected
+
+		where:
+		regex    | input  | expected
+		"^a.b\$" | "aab"  | true
+		"^a.b\$" | "aabx" | false
 		"\\d+"   | "123"  | true
 		"\\d+"   | "12a3" | false
 	}
@@ -93,7 +109,34 @@ class RegExUtilsSpec extends Specification {
 	def "测试空输入处理"() {
 		expect:
 		RegExUtils.find("\\d+", "") == []
-		RegExUtils.matches("^.*\$", "")
+		!RegExUtils.matches("^.*\$", "")
+	}
+
+	def "测试异常与边界处理"() {
+		when:
+		RegExUtils.compile(null as Pattern, Pattern.CASE_INSENSITIVE)
+		then:
+		thrown(NullPointerException)
+
+		when:
+		RegExUtils.compile("", 0, true, true)
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		RegExUtils.matches("", "abc")
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		RegExUtils.find("", "abc")
+		then:
+		thrown(IllegalArgumentException)
+
+		expect:
+		!RegExUtils.matches(Pattern.compile("^.*\$"), null)
+		!RegExUtils.matches("^.*\$", null)
+		RegExUtils.find(Pattern.compile("\\d+"), null) == []
 	}
 
 	int computeFlag(int ... flags) {

@@ -79,4 +79,32 @@ class StringUtilsSpec extends Specification {
 		then:
 		thrown(NullPointerException)
 	}
+
+	@Unroll
+	def "测试获取非空元素列表(数组) - 输入: #input 展开后: #desc"() {
+		expect:
+		StringUtils.getNotBlankElements(input) == expected
+
+		where:
+		input                            | desc               || expected
+		null as String[]                 | "null"             || []
+		[] as String[]                   | "空数组"           || []
+		["", "  ", null] as String[]     | "全空白"           || []
+		["a", "", "b", "  ", null]       | "混合空白与有效值" || ["a", "b"]
+		["  test  ", "trim"] as String[] | "保留原样不裁剪"   || ["  test  ", "trim"]
+	}
+
+	@Unroll
+	def "测试获取唯一非空元素列表(数组) - 输入: #input 展开后: #desc"() {
+		expect:
+		StringUtils.getUniqueNotBlankElements(input) == expected
+
+		where:
+		input                              | desc               || expected
+		null as String[]                   | "null"             || []
+		[] as String[]                     | "空数组"           || []
+		["a", "a", "", "A"] as String[]    | "区分大小写"       || ["a", "A"]
+		["test", " test ", "test"]         | "值相等但不同空白" || ["test", " test "]
+		["", "  ", null, null] as String[] | "全空白"           || []
+	}
 }

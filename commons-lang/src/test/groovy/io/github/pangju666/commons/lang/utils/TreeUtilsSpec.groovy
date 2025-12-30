@@ -72,7 +72,17 @@ class TreeUtilsSpec extends Specification {
 			new TestNode(5L, 2L, "子节点2-1"),
 			new TestNode(6L, 3L, "孙子节点1-1-1"),
 			new TestNode(7L, 99L, "孤立节点") // 不存在的父节点
-		]                                                             | null    | { it.name += "[已处理]" } | [[id: 1, name: "根节点1[已处理]", children: [[id: 3, name: "子节点1-1[已处理]"]]]] // 简化的验证结构
+		]                                         | null | { it.name += "[已处理]" } | [
+			[id: 1, name: "根节点1[已处理]", children: [
+				[id: 3, name: "子节点1-1[已处理]", children: [
+					[id: 6, name: "孙子节点1-1-1[已处理]"]
+				]],
+				[id: 4, name: "子节点1-2[已处理]"]
+			]],
+			[id: 2, name: "根节点2[已处理]", children: [
+				[id: 5, name: "子节点2-1[已处理]"]
+			]]
+		]
 		// 边界条件测试
 		"孤立节点处理"   | [[
 								new TestNode(1L, null, "根节点1"),
@@ -123,5 +133,46 @@ class TreeUtilsSpec extends Specification {
 
 		then:
 		result[0].childNodes[0].childNodes[0].childNodes[0].nodeKey == 4L
+	}
+
+	def "测试基础重载 toTree(Collection) 构建树"() {
+		given:
+		def nodes = [
+			new TestNode(1L, null, "根"),
+			new TestNode(2L, 1L, "子"),
+			new TestNode(3L, 2L, "孙")
+		]
+
+		when:
+		def result = TreeUtils.toTree(nodes)
+
+		then:
+		result*.nodeKey == [1L]
+		result[0].childNodes*.nodeKey == [2L]
+		result[0].childNodes[0].childNodes*.nodeKey == [3L]
+	}
+
+	def "测试重载 toTree(Collection, Consumer) 应用转换函数"() {
+		given:
+		def nodes = [
+			new TestNode(1L, null, "根"),
+			new TestNode(2L, 1L, "子")
+		]
+		def converter = { it.name = it.name + "-x" }
+
+		when:
+		def result = TreeUtils.toTree(nodes, converter)
+
+		then:
+		result[0].name == "根-x"
+		result[0].childNodes[0].name == "子-x"
+	}
+
+	def "测试空与null输入返回空列表"() {
+		expect:
+		TreeUtils.toTree(null as Collection<TestNode>) == []
+		TreeUtils.toTree([], null as Long) == []
+		TreeUtils.toTree([], { it }) == []
+		TreeUtils.toTree([], null as Long, { it }) == []
 	}
 }

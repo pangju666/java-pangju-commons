@@ -12,15 +12,14 @@ class IdCardUtilsSpec extends Specification {
 		IdCardUtils.validate(idCard) == expected
 
 		where:
-		idCard               | expected
-		// 合法18位身份证
-		"11010519900307233X" | false   // 正确校验码
-		"440308199901014032" | false   // 常规有效号码
-		// 非法18位
-		"11010519901307233X" | false  // 错误月份(13月)
-		"11010519900230233X" | false  // 错误日期(2月30日)
-		"110105199003072331" | false  // 校验码不匹配
-		"12345678901234567"  | false  // 长度不足
+		idCard                                                        | expected
+		buildId18("110105", "19900307", "233")                        | true
+		buildId18("440308", "20000229", "032")                        | true
+		buildId18("110105", "19191231", "233")                        | false
+		"11010519901307233X"                                          | false
+		"11010519900230233X"                                          | false
+		buildId18("110105", "19900307", "233").substring(0, 17) + "0" | false
+		"12345678901234567"                                           | false
 	}
 
 	@Unroll
@@ -29,14 +28,13 @@ class IdCardUtilsSpec extends Specification {
 		IdCardUtils.parseSex(idCard) == expected
 
 		where:
-		idCard               | expected
-		// 18位测试
-		"11010519900307233X" | "男"  // 第17位奇数
-		"440308199901014032" | "男"  // 第17位奇数
-		"110105199003072342" | "女"  // 第17位偶数
-		// 无效情况
-		"123"                | null  // 无效长度
-		null                 | null  // 空输入
+		idCard                                 | expected
+		buildId18("110105", "19900307", "233") | "男"
+		buildId18("110105", "19900307", "232") | "女"
+		"110105900307123"                      | "男"
+		"110105900307124"                      | "女"
+		"123"                                  | null
+		null                                   | null
 	}
 
 	@Unroll
@@ -46,20 +44,26 @@ class IdCardUtilsSpec extends Specification {
 		if (expected == null) {
 			assert actual == null
 		} else {
-			assert DateUtils.toLocalDate(actual) == expected
+			assert actual == expected
 		}
 
 		where:
-		idCard               | expected
-		// 18位日期解析
-		"11010519900307233X" | LocalDate.of(1990, 3, 7)
-		"44030820000229032X" | LocalDate.of(2000, 2, 29) // 闰年测试
-		// 无效情况
-		"invalid"            | null  // 无效格式
+		idCard                                 | expected
+		buildId18("110105", "19900307", "233") | LocalDate.of(1990, 3, 7)
+		buildId18("440308", "20000229", "032") | LocalDate.of(2000, 2, 29)
+		"110105900307123"                      | LocalDate.of(1990, 3, 7)
+		"invalid"                              | null
 	}
 
-	def "a"() {
-		setup:
-		println IdUtils.fastUUID().toString()
+	private static String buildId18(String area, String birthYYYYMMDD, String seq3) {
+		def base = area + birthYYYYMMDD + seq3
+		int[] w = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+		char[] vc = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
+		int sum = 0
+		for (int i = 0; i < 17; i++) {
+			sum += (((int) base.charAt(i)) - ((int) '0')) * w[i]
+		}
+		def code = vc[sum % 11]
+		return base + code
 	}
 }

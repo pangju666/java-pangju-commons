@@ -168,4 +168,107 @@ class DesensitizationUtilsSpec extends Specification {
 		DesensitizationUtils.hideChineseName("김첨지") == "*첨지"
 		DesensitizationUtils.hideChineseName("佐藤·美和子") == "****和子"
 	}
+
+	@Unroll
+	def "测试hideTelPhone方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideTelPhone(input) == expected
+
+		where:
+		input         | expected
+		"01012345678" | "010****5678"
+		"0201234"     | "0201234"
+		""            | ""
+	}
+
+	@Unroll
+	def "测试hideNickName方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideNickName(input) == expected
+
+		where:
+		input    | expected
+		"张三丰" | "张*丰"
+		"A"      | "A"
+		null     | null
+	}
+
+	@Unroll
+	def "测试hidePassportNumber方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hidePassportNumber(input) == expected
+
+		where:
+		input      | expected
+		"E1234567" | "E******7"
+		""         | ""
+	}
+
+	@Unroll
+	def "测试hideMilitaryIdNumber方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideMilitaryIdNumber(input) == expected
+
+		where:
+		input       | expected
+		"军1234567" | "军******7"
+		"军1"       | "军1"
+	}
+
+	@Unroll
+	def "测试hideMedicalCardNumber方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideMedicalCardNumber(input) == expected
+
+		where:
+		input        | expected
+		"C123456456" | "C123***456"
+		"123456789"  | "123***789"
+	}
+
+	@Unroll
+	def "测试hideVehicleEngineNumber方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideVehicleEngineNumber(input) == expected
+
+		where:
+		input   | expected
+		"A1234" | "A**34"
+		"12"    | "12"
+	}
+
+	@Unroll
+	def "测试hideBankCard方法 - 输入：#input => #expected"() {
+		expect:
+		DesensitizationUtils.hideBankCard(input) == expected
+
+		where:
+		input              | expected
+		"6228123412341234" | "6228********1234"
+		"1234"             | "1234"
+	}
+
+	@Unroll
+	def "测试hideRight方法 - 输入：#input 保留前#pre => #expected"() {
+		expect:
+		DesensitizationUtils.hideRight(input, pre) == expected
+
+		where:
+		input   | pre || expected
+		"ABCDE" | 2   || "AB***"
+		"ABCDE" | 0   || "*****"
+		"ABC"   | 3   || "ABC"
+	}
+
+	@Unroll
+	def "测试hideLeft方法 - 输入：#input 保留后#suf => #expected"() {
+		expect:
+		DesensitizationUtils.hideLeft(input, suf) == expected
+
+		where:
+		input   | suf || expected
+		"ABCDE" | 2   || "***DE"
+		"ABCDE" | 0   || "*****"
+		"ABC"   | 3   || "ABC"
+	}
 }
