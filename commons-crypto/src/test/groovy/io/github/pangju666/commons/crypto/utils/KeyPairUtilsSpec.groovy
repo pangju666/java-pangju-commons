@@ -1,123 +1,134 @@
 package io.github.pangju666.commons.crypto.utils
 
-import org.apache.commons.codec.binary.Base64
+import io.github.pangju666.commons.crypto.lang.CryptoConstants
 import spock.lang.Specification
+import spock.lang.Title
 import spock.lang.Unroll
 
+import java.security.KeyFactory
+import java.security.KeyPair
 import java.security.NoSuchAlgorithmException
-import java.security.spec.InvalidKeySpecException
+import java.security.SecureRandom
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 
+@Title("KeyPairUtils 单元测试")
 class KeyPairUtilsSpec extends Specification {
-	// 测试算法常量
-	private static final String RSA = "RSA"
-	private static final int RSA_KEY_SIZE = 2048
-	private static final String INVALID_ALGORITHM = "INVALID_ALG"
 
-	def "测试getKeyFactory方法"() {
-		when: "首次获取算法工厂"
-		def firstFactory = KeyPairUtils.getKeyFactory(RSA)
+	def "getKeyFactory 缓存返回同实例"() {
+		when:
+		KeyFactory f1 = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
+		KeyFactory f2 = KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
 
-		then: "工厂实例有效且被缓存"
-		firstFactory != null
-		KeyPairUtils.KEY_FACTORY_MAP.size() == 1
+		then:
+		f1.is(f2)
+	}
 
-		when: "再次获取相同算法工厂"
-		def cachedFactory = KeyPairUtils.getKeyFactory(RSA)
+	def "generateKeyPair 默认RSA长度为配置默认值"() {
+		when:
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM)
 
-		then: "应返回缓存实例"
-		cachedFactory.is(firstFactory)
+		then:
+		((RSAPublicKey) kp.public).modulus.bitLength() == CryptoConstants.RSA_DEFAULT_KEY_SIZE
+		((RSAPrivateKey) kp.private).modulus.bitLength() == CryptoConstants.RSA_DEFAULT_KEY_SIZE
 	}
 
 	@Unroll
-	def "测试generateKeyPair方法 - 算法: #algorithm, 密钥长度: #keySize"() {
-		when: "生成密钥对"
-		def keyPair = KeyPairUtils.generateKeyPair(algorithm, keySize)
+	def "generateKeyPair 指定长度: #keySize"() {
+		when:
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, keySize)
 
-		then: "验证密钥对有效性"
-		keyPair?.getPrivate()?.algorithm == algorithm
-		keyPair?.getPublic()?.algorithm == algorithm
+		then:
+		((RSAPublicKey) kp.public).modulus.bitLength() == keySize
+		((RSAPrivateKey) kp.private).modulus.bitLength() == keySize
 
 		where:
-		algorithm | keySize
-		RSA       | 1024
-		RSA       | 2048
-		"DSA"     | 1024
+		keySize << [1024, 2048, 4096]
 	}
 
-	def "测试generateKeyPair方法异常情况"() {
-		when: "使用无效算法生成密钥对"
-		KeyPairUtils.generateKeyPair(INVALID_ALGORITHM)
+	def "generateKeyPair 指定长度与随机源"() {
+		given:
+		def random = new SecureRandom(new byte[16])
 
-		then: "应抛出NoSuchAlgorithmException"
-		thrown(NoSuchAlgorithmException)
+		when:
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024, random)
+
+		then:
+		((RSAPublicKey) kp.public).modulus.bitLength() == 1024
+		((RSAPrivateKey) kp.private).modulus.bitLength() == 1024
 	}
 
-	def "测试PKCS8私钥编解码流程"() {
-		given: "生成RSA密钥对"
-		def keyPair = KeyPairUtils.generateKeyPair(RSA, RSA_KEY_SIZE)
-
-		when: "编码私钥为Base64"
-		def privateKeyBytes = keyPair.getPrivate().encoded
-		def base64Key = Base64.encodeBase64String(privateKeyBytes)
-
-		then: "解析Base64应得到相同私钥"
-		def parsedKey = KeyPairUtils.getPrivateKeyFromPKCS8Base64String(RSA, base64Key)
-		parsedKey.algorithm == RSA
-		parsedKey.encoded == privateKeyBytes
+	def "getPrivateKeyFromPKCS8Base64String 空返回null"() {
+		expect:
+		KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM, null) == null
+		KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM, "") == null
 	}
 
-	def "测试X509公钥编解码流程"() {
-		given: "生成RSA密钥对"
-		def keyPair = KeyPairUtils.generateKeyPair(RSA, RSA_KEY_SIZE)
+	def "getPrivateKeyFromPKCS8Base64String 支持PEM与纯Base64"() {
+		given:
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		String base64 = Base64.encoder.encodeToString(kp.private.encoded)
+		String pem = "-----BEGIN PRIVATE KEY-----\n${base64}\n-----END PRIVATE KEY-----"
 
-		when: "编码公钥为Base64"
-		def publicKeyBytes = keyPair.getPublic().encoded
-		def base64Key = Base64.encodeBase64String(publicKeyBytes)
-
-		then: "解析Base64应得到相同公钥"
-		def parsedKey = KeyPairUtils.getPublicKeyFromX509Base64String(RSA, base64Key)
-		parsedKey.algorithm == RSA
-		parsedKey.encoded == publicKeyBytes
+		expect:
+		KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM, base64) instanceof RSAPrivateKey
+		KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM, pem) instanceof RSAPrivateKey
 	}
 
-	def "测试空密钥处理"() {
-		when: "传入空值"
-		def privateKey = KeyPairUtils.getPrivateKeyFromPKCS8Base64String(RSA, null)
-		def publicKey = KeyPairUtils.getPublicKeyFromX509Base64String(RSA, "")
+	def "getPrivateKeyFromPKCS8EncodedKey 空字节抛异常"() {
+		when:
+		KeyPairUtils.getPrivateKeyFromPKCS8EncodedKey(CryptoConstants.RSA_ALGORITHM, new byte[0])
 
-		then: "应返回null"
-		privateKey == null
-		publicKey == null
-	}
-
-	def "测试无效密钥规格"() {
-		given: "构造无效密钥数据"
-		def invalidKeyBytes = "invalid".bytes
-
-		when: "尝试解析无效密钥"
-		KeyPairUtils.getPrivateKeyFromPKCS8RawBytes(RSA, invalidKeyBytes)
-
-		then: "应抛出InvalidKeySpecException"
-		thrown(InvalidKeySpecException)
-	}
-
-	def "测试参数校验"() {
-		when: "传入空算法参数"
-		KeyPairUtils.getKeyFactory("")
-
-		then: "应抛出IllegalArgumentException"
+		then:
 		thrown(IllegalArgumentException)
 	}
 
-	def "测试密钥工厂缓存清除"() {
-		given: "获取并缓存一个工厂"
-		KeyPairUtils.getKeyFactory(RSA)
-		int initialSize = KeyPairUtils.KEY_FACTORY_MAP.size()
+	def "getPublicKeyFromX509Base64String 空返回null"() {
+		expect:
+		KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM, null) == null
+		KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM, "") == null
+	}
 
-		when: "清除缓存"
-		KeyPairUtils.KEY_FACTORY_MAP.clear()
+	def "getPublicKeyFromX509Base64String 支持PEM与纯Base64"() {
+		given:
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		String base64 = Base64.encoder.encodeToString(kp.public.encoded)
+		String pem = "-----BEGIN PUBLIC KEY-----\n${base64}\n-----END PUBLIC KEY-----"
 
-		then: "缓存应被清空"
-		KeyPairUtils.KEY_FACTORY_MAP.size() == initialSize - 1
+		expect:
+		KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM, base64) instanceof RSAPublicKey
+		KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM, pem) instanceof RSAPublicKey
+	}
+
+	def "getPublicKeyFromX509EncodedKey 空字节抛异常"() {
+		when:
+		KeyPairUtils.getPublicKeyFromX509EncodedKey(CryptoConstants.RSA_ALGORITHM, new byte[0])
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "getKeyFactory 未知算法抛异常"() {
+		when:
+		KeyPairUtils.getKeyFactory("UNKNOWN")
+
+		then:
+		thrown(NoSuchAlgorithmException)
+	}
+
+	def "generateKeyPair 未知算法抛异常"() {
+		when:
+		KeyPairUtils.generateKeyPair("UNKNOWN")
+
+		then:
+		thrown(NoSuchAlgorithmException)
+	}
+
+	def "generateKeyPair 空算法抛异常"() {
+		when:
+		KeyPairUtils.generateKeyPair("")
+
+		then:
+		thrown(IllegalArgumentException)
 	}
 }

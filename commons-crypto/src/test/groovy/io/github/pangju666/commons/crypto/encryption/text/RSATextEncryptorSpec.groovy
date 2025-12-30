@@ -1,176 +1,180 @@
 package io.github.pangju666.commons.crypto.encryption.text
 
-import io.github.pangju666.commons.crypto.encryption.binary.RSABinaryEncryptor
-import io.github.pangju666.commons.crypto.key.RSAKey
+import io.github.pangju666.commons.crypto.key.RSAKeyPair
+import io.github.pangju666.commons.crypto.lang.CryptoConstants
 import io.github.pangju666.commons.crypto.transformation.impl.RSAOEAPWithSHA256Transformation
 import io.github.pangju666.commons.crypto.transformation.impl.RSAPKCS1PaddingTransformation
-import org.apache.commons.codec.binary.Base64
-import org.apache.commons.codec.binary.Hex
+import io.github.pangju666.commons.crypto.utils.KeyPairUtils
+import org.jasypt.exceptions.AlreadyInitializedException
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException
 import spock.lang.Specification
+import spock.lang.Title
+import spock.lang.Unroll
 
+import java.security.KeyPair
+import java.security.SecureRandom
+
+@Title("RSATextEncryptor 单元测试")
 class RSATextEncryptorSpec extends Specification {
-	RSATextEncryptor rsaTextEncryptor
-	RSAKey rsaKey
 
-	def setup() {
-		rsaKey = RSAKey.random() // 假设RSAKey可以生成密钥对
-		rsaTextEncryptor = new RSATextEncryptor()
-		rsaTextEncryptor.setKey(rsaKey)
-		rsaTextEncryptor.setTransformation(new RSAPKCS1PaddingTransformation())
+	def "默认配置加密/解密成功"() {
+		given:
+		def encryptor = new RSATextEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def input = "hello world"
+
+		expect:
+		encryptor.decrypt(encryptor.encrypt(input)) == input
 	}
 
-	def "测试默认构造函数"() {
+	def "指定方案构造为非空"() {
+		expect:
+		new RSATextEncryptor(new RSAOEAPWithSHA256Transformation()) != null
+		new RSATextEncryptor(new RSAPKCS1PaddingTransformation()) != null
+	}
+
+	def "指定方案构造传入null抛出异常"() {
 		when:
+		new RSATextEncryptor(null)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	@Unroll
+	def "encrypt 空输入返回空字符串: #label"() {
+		given:
 		def encryptor = new RSATextEncryptor()
 
-		then:
-		encryptor.binaryEncryptor != null
+		expect:
+		encryptor.encrypt(input) != null && encryptor.encrypt(input).length() == 0
+
+		where:
+		label  | input
+		"null" | null
+		"空"   | ""
 	}
 
-	def "测试自定义二进制加密器构造函数"() {
+	def "encrypt 未设置公钥抛出异常"() {
 		given:
-		def binaryEncryptor = new RSABinaryEncryptor()
+		def encryptor = new RSATextEncryptor()
 
 		when:
-		def encryptor = new RSATextEncryptor(binaryEncryptor)
-
-		then:
-		encryptor.binaryEncryptor == binaryEncryptor
-	}
-
-	def "测试设置加密方案"() {
-		given:
-		def transformation = new RSAOEAPWithSHA256Transformation()
-
-		when:
-		rsaTextEncryptor.setTransformation(transformation)
-
-		then:
-		rsaTextEncryptor.binaryEncryptor.transformation == transformation
-	}
-
-	def "测试设置RSA密钥对"() {
-		given:
-		def newKey = RSAKey.random()
-
-		when:
-		rsaTextEncryptor.setKey(newKey)
-
-		then:
-		rsaTextEncryptor.binaryEncryptor.key == newKey
-	}
-
-	def "测试Base64加密解密流程"() {
-		given:
-		def originalText = "Hello, RSA Encryption! 你好，RSA加密！"
-
-		when:
-		def encrypted = rsaTextEncryptor.encrypt(originalText)
-		def decrypted = rsaTextEncryptor.decrypt(encrypted)
-
-		then:
-		encrypted.size() > 0
-		Base64.isBase64(encrypted)
-		decrypted == originalText
-	}
-
-	def "测试Hex加密解密流程"() {
-		given:
-		def originalText = "Hex format encryption test"
-
-		when:
-		def encrypted = rsaTextEncryptor.encryptToHexString(originalText)
-		def decrypted = rsaTextEncryptor.decryptFromHexString(encrypted)
-
-		then:
-		encrypted.size() > 0
-		Hex.decodeHex(encrypted)
-		decrypted == originalText
-	}
-
-	def "测试空文本加密"() {
-		when:
-		def base64Result = rsaTextEncryptor.encrypt("")
-		def hexResult = rsaTextEncryptor.encryptToHexString("")
-
-		then:
-		base64Result == ""
-		hexResult == ""
-	}
-
-	def "测试空文本解密"() {
-		when:
-		def base64Result = rsaTextEncryptor.decrypt("")
-		def hexResult = rsaTextEncryptor.decryptFromHexString("")
-
-		then:
-		base64Result == ""
-		hexResult == ""
-	}
-
-	def "测试长文本加密解密"() {
-		given:
-		def longText = "Long text test. " * 100
-
-		when:
-		def base64Encrypted = rsaTextEncryptor.encrypt(longText)
-		def base64Decrypted = rsaTextEncryptor.decrypt(base64Encrypted)
-
-		def hexEncrypted = rsaTextEncryptor.encryptToHexString(longText)
-		def hexDecrypted = rsaTextEncryptor.decryptFromHexString(hexEncrypted)
-
-		then:
-		base64Decrypted == longText
-		hexDecrypted == longText
-	}
-
-	def "测试特殊字符加密解密"() {
-		given:
-		def specialChars = "!@#\$%^&*()_+{}[]:;'\"\\|,.<>/?\uD83D\uDE00"
-
-		when:
-		def base64Result = rsaTextEncryptor.encrypt(specialChars)
-		def hexResult = rsaTextEncryptor.encryptToHexString(specialChars)
-
-		then:
-		rsaTextEncryptor.decrypt(base64Result) == specialChars
-		rsaTextEncryptor.decryptFromHexString(hexResult) == specialChars
-	}
-
-	def "测试无效Hex解密"() {
-		when:
-		rsaTextEncryptor.decryptFromHexString("invalidHexString")
+		encryptor.encrypt("a")
 
 		then:
 		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试不同密钥加解密失败"() {
+	@Unroll
+	def "decrypt 空输入返回空字符串: #label"() {
 		given:
-		def newEncryptor = new RSATextEncryptor()
-		newEncryptor.setKey(RSAKey.random()) // 使用新密钥
-		def encrypted = newEncryptor.encrypt("test message")
+		def encryptor = new RSATextEncryptor()
+
+		expect:
+		encryptor.decrypt(input) != null && encryptor.decrypt(input).length() == 0
+
+		where:
+		label  | input
+		"null" | null
+		"空"   | ""
+	}
+
+	def "decrypt 未设置私钥抛出异常"() {
+		given:
+		def encryptor = new RSATextEncryptor()
 
 		when:
-		rsaTextEncryptor.decrypt(encrypted)
+		encryptor.decrypt("SGVsbG8=")
 
 		then:
 		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试多次加密结果不同"() {
+	def "initialize 后不可再设置密钥"() {
 		given:
-		def message = "Same message different encryption results"
+		def encryptor = new RSATextEncryptor()
+		encryptor.initialize()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
 
 		when:
-		def encrypted1 = rsaTextEncryptor.encrypt(message)
-		def encrypted2 = rsaTextEncryptor.encrypt(message)
+		encryptor.setKeyPair(pair)
 
 		then:
-		encrypted1 != encrypted2
-		rsaTextEncryptor.decrypt(encrypted1) == message
-		rsaTextEncryptor.decrypt(encrypted2) == message
+		thrown(AlreadyInitializedException)
+	}
+
+	def "加密触发惰性初始化，之后再设置密钥抛异常"() {
+		given:
+		def encryptor = new RSATextEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+
+		when:
+		def encrypted = encryptor.encrypt("lazy-init")
+		encryptor.setKeyPair(pair)
+
+		then:
+		encrypted.length() > 0
+		thrown(AlreadyInitializedException)
+	}
+
+	def "分段加密与解密保持一致（OAEP）"() {
+		given:
+		def encryptor = new RSATextEncryptor(new RSAOEAPWithSHA256Transformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def data = randomAscii(1500)
+
+		expect:
+		encryptor.decrypt(encryptor.encrypt(data)) == data
+	}
+
+	def "分段加密与解密保持一致（PKCS1）"() {
+		given:
+		def encryptor = new RSATextEncryptor(new RSAPKCS1PaddingTransformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def data = randomAscii(1500)
+
+		expect:
+		encryptor.decrypt(encryptor.encrypt(data)) == data
+	}
+
+	def "跨密钥解密失败抛异常"() {
+		given:
+		KeyPair kp1 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		KeyPair kp2 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair1 = RSAKeyPair.fromKeyPair(kp1)
+		def pair2 = RSAKeyPair.fromKeyPair(kp2)
+
+		def encryptor1 = new RSATextEncryptor()
+		encryptor1.setKeyPair(pair1)
+		def encrypted = encryptor1.encrypt("mismatch")
+
+		def decryptor2 = new RSATextEncryptor()
+		decryptor2.setPrivateKey(pair2.getPrivateKey())
+
+		when:
+		decryptor2.decrypt(encrypted)
+
+		then:
+		thrown(EncryptionOperationNotPossibleException)
+	}
+
+	private static String randomAscii(int len) {
+		def chars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+		def r = new SecureRandom()
+		def sb = new StringBuilder(len)
+		for (int i = 0; i < len; i++) {
+			sb.append(chars[r.nextInt(chars.size())])
+		}
+		return sb.toString()
 	}
 }
-

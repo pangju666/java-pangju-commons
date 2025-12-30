@@ -1,152 +1,154 @@
 package io.github.pangju666.commons.crypto.digest
 
-import io.github.pangju666.commons.crypto.key.RSAKey
+import io.github.pangju666.commons.crypto.enums.RSASignatureAlgorithm
+import io.github.pangju666.commons.crypto.key.RSAKeyPair
+import io.github.pangju666.commons.crypto.lang.CryptoConstants
+import io.github.pangju666.commons.crypto.utils.KeyPairUtils
 import org.apache.commons.codec.binary.Base64
-import org.apache.commons.codec.binary.Hex
+import org.jasypt.exceptions.AlreadyInitializedException
+import org.jasypt.exceptions.EncryptionInitializationException
 import spock.lang.Specification
+import spock.lang.Title
+import spock.lang.Unroll
 
+import java.security.KeyPair
+
+@Title("RSAStringDigester 单元测试")
 class RSAStringDigesterSpec extends Specification {
-	RSAStringDigester rsaStringDigester
-	RSAKey rsaKey
 
-	def setup() {
-		rsaKey = RSAKey.random() // 假设RSAKey可以生成密钥对
-		rsaStringDigester = new RSAStringDigester()
-		rsaStringDigester.setKey(rsaKey)
-		rsaStringDigester.setAlgorithm("SHA256withRSA")
-	}
-
-	def "测试默认构造函数"() {
-		when:
+	def "默认算法构造与签名/验签"() {
+		given:
 		def digester = new RSAStringDigester()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		digester.setKeyPair(pair)
+		def msg = "hello"
+
+		when:
+		def sig = digester.digest(msg)
 
 		then:
-		digester.byteDigester != null
+		sig != null && sig.length() > 0
+		digester.matches(msg, sig)
 	}
 
-	def "测试自定义字节摘要处理器构造函数"() {
+	def "指定算法构造为非空"() {
+		expect:
+		new RSAStringDigester(RSASignatureAlgorithm.SHA256_WITH_RSA) != null
+	}
+
+	def "指定算法构造传入null抛出异常"() {
+		when:
+		new RSAStringDigester(null)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "使用预配置的ByteDigester构造并签名/验签"() {
 		given:
 		def byteDigester = new RSAByteDigester()
-
-		when:
 		def digester = new RSAStringDigester(byteDigester)
-
-		then:
-		digester.byteDigester == byteDigester
-	}
-
-	def "测试设置RSA密钥对"() {
-		given:
-		def newKey = RSAKey.random()
-
-		when:
-		rsaStringDigester.setKey(newKey)
-
-		then:
-		rsaStringDigester.byteDigester.key == newKey
-	}
-
-	def "测试设置签名算法"() {
-		given:
-		def algorithm = "SHA512withRSA"
-
-		when:
-		rsaStringDigester.setAlgorithm(algorithm)
-
-		then:
-		rsaStringDigester.byteDigester.algorithm == algorithm
-	}
-
-	def "测试Base64签名生成与验证"() {
-		given:
-		def message = "Hello, RSA!"
-		def signature = rsaStringDigester.digest(message)
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		digester.setKeyPair(pair)
 
 		expect:
-		signature.size() > 0
-		Base64.isBase64(signature)
-		rsaStringDigester.matches(message, signature)
+		digester.matches("msg", digester.digest("msg"))
 	}
 
-	def "测试空消息Base64签名"() {
-		when:
-		def signature = rsaStringDigester.digest("")
-
-		then:
-		signature == ""
-	}
-
-	def "测试Base64签名不匹配场景"() {
+	@Unroll
+	def "digest 空输入返回空字符串: #label"() {
 		given:
-		def signature = rsaStringDigester.digest("Original Message")
-
-		when:
-		def result = rsaStringDigester.matches("Modified Message", signature)
-
-		then:
-		!result
-	}
-
-	def "测试Hex签名生成与验证"() {
-		given:
-		def message = "Hello, Hex!"
-		def signature = rsaStringDigester.digestToHexString(message)
+		def digester = new RSAStringDigester()
 
 		expect:
-		signature.size() > 0
-		Hex.decodeHex(signature)
-		rsaStringDigester.matchesFromHexString(message, signature)
+		digester.digest(input) != null && digester.digest(input).length() == 0
+
+		where:
+		label  | input
+		"null" | null
+		"空"   | ""
 	}
 
-	def "测试空消息Hex签名"() {
-		when:
-		def signature = rsaStringDigester.digestToHexString("")
-
-		then:
-		signature == ""
-	}
-
-	def "测试Hex签名不匹配场景"() {
+	def "digest 未设置私钥抛出初始化异常"() {
 		given:
-		def signature = rsaStringDigester.digestToHexString("Original Message")
+		def digester = new RSAStringDigester()
 
 		when:
-		def result = rsaStringDigester.matchesFromHexString("Modified Message", signature)
+		digester.digest("test")
 
 		then:
-		!result
+		thrown(EncryptionInitializationException)
 	}
 
-	def "测试无效Hex签名验证"() {
+	def "matches 消息为空时仅当签名也为空返回true"() {
 		given:
-		def invalidHex = "zzz" // 非十六进制字符
+		def digester = new RSAStringDigester()
 
-		when:
-		rsaStringDigester.matchesFromHexString("test", invalidHex)
-
-		then:
-		thrown(RuntimeException)
-	}
-
-	def "测试空签名验证逻辑"() {
 		expect:
-		!rsaStringDigester.matches("test", "")
-		rsaStringDigester.matches("", "")
-		!rsaStringDigester.matchesFromHexString("test", "")
-		rsaStringDigester.matchesFromHexString("", "")
+		digester.matches(null, null)
+		!digester.matches(null, "a")
+		!digester.matches("", "a")
+		digester.matches("", "")
 	}
 
-	def "测试不同密钥的验证失败"() {
+	def "matches 未设置公钥抛出初始化异常"() {
 		given:
-		RsaAlgorithm
-		def newDigester = new RSAStringDigester()
-		newDigester.setKey(RSAKey.random()) // 新密钥
-		def signature = newDigester.digest("message")
+		def digester = new RSAStringDigester()
 
 		when:
-		def result = rsaStringDigester.matches("message", signature)
+		digester.matches("msg", "c2ln")
 
 		then:
-		!result
+		thrown(EncryptionInitializationException)
+	}
+
+	def "matches 验证真实签名成功与篡改失败"() {
+		given:
+		def digester = new RSAStringDigester()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		digester.setKeyPair(pair)
+		def msg = "message"
+		def sig = digester.digest(msg)
+		byte[] sigBytes = Base64.decodeBase64(sig)
+		sigBytes[0] = (sigBytes[0] ^ 0x01) as byte
+		def tampered = Base64.encodeBase64String(sigBytes)
+
+		expect:
+		digester.matches(msg, sig)
+		!digester.matches("message2", sig)
+		!digester.matches(msg, tampered)
+	}
+
+	def "initialize 后不可再设置密钥"() {
+		given:
+		def digester = new RSAStringDigester()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		digester.initialize()
+
+		when:
+		digester.setKeyPair(pair)
+
+		then:
+		thrown(AlreadyInitializedException)
+	}
+
+	def "digest/匹配触发惰性初始化，之后再设置密钥抛异常"() {
+		given:
+		def digester = new RSAStringDigester()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		digester.setKeyPair(pair)
+
+		when:
+		def sig = digester.digest("lazy-init")
+		digester.setKeyPair(pair)
+
+		then:
+		sig.length() > 0
+		thrown(AlreadyInitializedException)
 	}
 }

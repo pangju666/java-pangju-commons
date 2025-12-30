@@ -1,169 +1,167 @@
 package io.github.pangju666.commons.crypto.encryption.numeric
 
-
-import io.github.pangju666.commons.crypto.key.RSAKey
+import io.github.pangju666.commons.crypto.key.RSAKeyPair
+import io.github.pangju666.commons.crypto.lang.CryptoConstants
 import io.github.pangju666.commons.crypto.transformation.impl.RSAOEAPWithSHA256Transformation
 import io.github.pangju666.commons.crypto.transformation.impl.RSAPKCS1PaddingTransformation
+import io.github.pangju666.commons.crypto.utils.KeyPairUtils
+import org.jasypt.exceptions.AlreadyInitializedException
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException
 import spock.lang.Specification
+import spock.lang.Title
 
+import java.security.KeyPair
+import java.security.SecureRandom
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
+
+@Title("RSAIntegerNumberEncryptor 单元测试")
 class RSAIntegerNumberEncryptorSpec extends Specification {
-	RSAIntegerNumberEncryptor encryptor
-	RSAKey keyPair
 
-	def setup() {
-		keyPair = RSAKey.random() // 假设RSAKey生成有效密钥对
-		encryptor = new RSAIntegerNumberEncryptor()
-		encryptor.setKey(keyPair)
-	}
-
-	def "测试默认构造函数初始化"() {
-		when: "创建默认加密器"
-		def defaultEncryptor = new RSAIntegerNumberEncryptor()
-
-		then: "应使用OAEPWithSHA256方案"
-		defaultEncryptor.binaryEncryptor.transformation instanceof RSAOEAPWithSHA256Transformation
-	}
-
-	def "测试加密解密基本流程"() {
-		given: "测试数值集合"
-		def testNumbers = [
-			BigInteger.valueOf(123456789),
-			BigInteger.valueOf(-987654321),
-			BigInteger.ZERO,
-			new BigInteger("999999999999999999999999999999")
-		]
-
-		expect: "加密后解密应得到原始值"
-		testNumbers.each { number ->
-			def encrypted = encryptor.encrypt(number)
-			def decrypted = encryptor.decrypt(encrypted)
-			decrypted == number
-		}
-	}
-
-	def "测试边界值处理"() {
-		given: "特殊边界值集合"
-		def edgeCases = [
+	def "默认配置加密/解密成功(含正负数)"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def nums = [
 			BigInteger.ZERO,
 			BigInteger.ONE,
-			BigInteger.TEN,
-			new BigInteger(Long.MAX_VALUE.toString()),
-			new BigInteger(Long.MIN_VALUE.toString())
+			BigInteger.valueOf(-1),
+			new BigInteger(1, randomBytes(512)),
+			new BigInteger(-1, randomBytes(512))
 		]
 
-		expect: "加密解密后保持值不变"
-		edgeCases.each { number ->
-			def encrypted = encryptor.encrypt(number)
-			def decrypted = encryptor.decrypt(encrypted)
-			decrypted == number
-		}
+		expect:
+		nums.every { encryptor.decrypt(encryptor.encrypt(it)) == it }
 	}
 
-	def "测试空值处理"() {
-		when: "加密null值"
-		def encryptedNull = encryptor.encrypt(null)
-
-		then: "应返回null"
-		encryptedNull == null
-
-		when: "解密null值"
-		def decryptedNull = encryptor.decrypt(null)
-
-		then: "应返回null"
-		decryptedNull == null
+	def "指定方案构造为非空"() {
+		expect:
+		new RSAIntegerNumberEncryptor(new RSAOEAPWithSHA256Transformation()) != null
+		new RSAIntegerNumberEncryptor(new RSAPKCS1PaddingTransformation()) != null
 	}
 
-	def "测试超大数值处理"() {
-		given: "200位大整数"
-		def hugeNumber = new BigInteger("9" * 200)
+	def "指定方案构造传入null抛出异常"() {
+		when:
+		new RSAIntegerNumberEncryptor(null)
 
-		when: "加密解密流程"
-		def encrypted = encryptor.encrypt(hugeNumber)
-		def decrypted = encryptor.decrypt(encrypted)
-
-		then: "应保持精确相等"
-		decrypted == hugeNumber
+		then:
+		thrown(NullPointerException)
 	}
 
-	def "测试密钥不匹配场景"() {
-		given: "使用不同密钥的加密器"
-		def anotherEncryptor = new RSAIntegerNumberEncryptor()
-		anotherEncryptor.setKey(RSAKey.random()) // 新密钥
+	def "encrypt null 返回 null"() {
+		expect:
+		new RSAIntegerNumberEncryptor().encrypt(null) == null
+	}
 
-		and: "原始加密数据"
-		def original = new BigInteger("123456789")
-		def encrypted = encryptor.encrypt(original)
+	def "decrypt null 返回 null"() {
+		expect:
+		new RSAIntegerNumberEncryptor().decrypt(null) == null
+	}
 
-		when: "用不同密钥解密"
-		anotherEncryptor.decrypt(encrypted)
+	def "encrypt 未设置公钥抛出异常"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor()
 
-		then: "应抛出解密失败异常"
+		when:
+		encryptor.encrypt(BigInteger.ONE)
+
+		then:
 		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试未初始化密钥场景"() {
-		given: "未设置密钥的加密器"
-		def uninitializedEncryptor = new RSAIntegerNumberEncryptor()
-		uninitializedEncryptor.setKey(new RSAKey(null, null))
+	def "decrypt 未设置私钥抛出异常"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		encryptor.setPublicKey((RSAPublicKey) kp.public)
 
-		when: "尝试加密操作"
-		uninitializedEncryptor.encrypt(BigInteger.TEN)
+		when:
+		encryptor.decrypt(BigInteger.ONE)
 
-		then: "应抛出初始化异常"
+		then:
 		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试加密方案兼容性"() {
-		given: "不同加密方案配置"
-		def transformations = [
-			new RSAPKCS1PaddingTransformation(),
-			new RSAOEAPWithSHA256Transformation()
-		]
+	def "initialize 后不可再设置密钥"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor()
+		encryptor.initialize()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
 
-		and: "测试数据"
-		def number = new BigInteger("314159265358979323846")
+		when:
+		encryptor.setKeyPair(pair)
 
-		expect: "相同方案加解密成功"
-		transformations.each { transformation ->
-			def newEncryptor = new RSAIntegerNumberEncryptor()
-			newEncryptor.setTransformation(transformation)
-			def encrypted = newEncryptor.encrypt(number)
-			newEncryptor.decrypt(encrypted) == number
-		}
-
-		and: "不同方案加密结果不兼容"
-		def results = transformations.collect {
-			def newEncryptor = new RSAIntegerNumberEncryptor()
-			newEncryptor.setTransformation(it)
-			newEncryptor.encrypt(number)
-		}
-		results.unique().size() == transformations.size()
+		then:
+		thrown(AlreadyInitializedException)
 	}
 
-	def "测试符号保留能力"() {
-		given: "正负数集合"
-		def numbers = [
-			new BigInteger("123456789"),
-			new BigInteger("-987654321")
-		]
+	def "加密触发惰性初始化，之后再设置密钥抛异常"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
 
-		expect: "加密解密后符号不变"
-		numbers.each { number ->
-			def encrypted = encryptor.encrypt(number)
-			def decrypted = encryptor.decrypt(encrypted)
-			decrypted.signum() == number.signum()
-		}
+		when:
+		def v = encryptor.encrypt(BigInteger.valueOf(123))
+		encryptor.setKeyPair(pair)
+
+		then:
+		v != null
+		thrown(AlreadyInitializedException)
 	}
 
-	def "测试非法输入处理"() {
-		given: "无效加密数据"
-		def invalidEncrypted = new BigInteger("123456")
+	def "分段加密与解密保持一致（OAEP）"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor(new RSAOEAPWithSHA256Transformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def n = new BigInteger(1, randomBytes(5000))
 
-		when: "尝试解密无效数据"
-		encryptor.decrypt(invalidEncrypted)
+		expect:
+		encryptor.decrypt(encryptor.encrypt(n)) == n
+	}
 
-		then: "应抛出解密异常"
+	def "分段加密与解密保持一致（PKCS1）"() {
+		given:
+		def encryptor = new RSAIntegerNumberEncryptor(new RSAPKCS1PaddingTransformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		def n = new BigInteger(1, randomBytes(5000))
+
+		expect:
+		encryptor.decrypt(encryptor.encrypt(n)) == n
+	}
+
+	def "跨密钥解密失败抛异常"() {
+		given:
+		KeyPair kp1 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		KeyPair kp2 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair1 = RSAKeyPair.fromKeyPair(kp1)
+		def pair2 = RSAKeyPair.fromKeyPair(kp2)
+
+		def encryptor1 = new RSAIntegerNumberEncryptor()
+		encryptor1.setKeyPair(pair1)
+		def encrypted = encryptor1.encrypt(BigInteger.valueOf(2024))
+
+		def decryptor2 = new RSAIntegerNumberEncryptor()
+		decryptor2.setPrivateKey((RSAPrivateKey) kp2.private)
+
+		when:
+		decryptor2.decrypt(encrypted)
+
+		then:
 		thrown(EncryptionOperationNotPossibleException)
+	}
+
+	private static byte[] randomBytes(int len) {
+		def b = new byte[len]
+		new SecureRandom().nextBytes(b)
+		return b
 	}
 }

@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.crypto.encryption.binary
 
-import io.github.pangju666.commons.crypto.key.RSAKey
+import io.github.pangju666.commons.crypto.key.RSAKeyPair
 import io.github.pangju666.commons.crypto.lang.CryptoConstants
 import io.github.pangju666.commons.crypto.transformation.impl.RSAOEAPWithSHA256Transformation
 import io.github.pangju666.commons.crypto.transformation.impl.RSAPKCS1PaddingTransformation
@@ -8,168 +8,176 @@ import io.github.pangju666.commons.crypto.utils.KeyPairUtils
 import org.jasypt.exceptions.AlreadyInitializedException
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException
 import spock.lang.Specification
+import spock.lang.Title
 import spock.lang.Unroll
 
-import java.security.spec.RSAPrivateKeySpec
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.security.KeyPair
+import java.security.SecureRandom
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 
+@Title("RSABinaryEncryptor 单元测试")
 class RSABinaryEncryptorSpec extends Specification {
-	// 测试数据配置
-	def "测试构造方法和基本功能"() {
-		given: "使用默认参数的加密器"
-		def encryptor = new RSABinaryEncryptor()
 
-		expect: "默认参数验证"
-		encryptor.key != null
-		encryptor.transformation instanceof RSAOEAPWithSHA256Transformation
+	def "默认配置加密/解密成功"() {
+		given:
+		def encryptor = new RSABinaryEncryptor()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		byte[] input = "hello world".bytes
+
+		when:
+		byte[] encrypted = encryptor.encrypt(input)
+		byte[] decrypted = encryptor.decrypt(encrypted)
+
+		then:
+		encrypted != null && encrypted.length > 0
+		new String(decrypted) == "hello world"
+	}
+
+	def "指定方案构造为非空"() {
+		expect:
+		new RSABinaryEncryptor(new RSAOEAPWithSHA256Transformation()) != null
+		new RSABinaryEncryptor(new RSAPKCS1PaddingTransformation()) != null
+	}
+
+	def "指定方案构造传入null抛出异常"() {
+		when:
+		new RSABinaryEncryptor(null)
+
+		then:
+		thrown(NullPointerException)
 	}
 
 	@Unroll
-	def "测试不同密钥长度构造方法 - 密钥长度: #keySize"() {
-		when: "使用指定密钥长度创建加密器"
-		def encryptor = new RSABinaryEncryptor(keySize)
+	def "encrypt 空输入返回空数组: #label"() {
+		given:
+		def encryptor = new RSABinaryEncryptor()
 
-		then: "验证密钥长度"
-		KeyPairUtils.getKeyFactory(CryptoConstants.RSA_ALGORITHM)
-			.getKeySpec(encryptor.key.privateKey(), RSAPrivateKeySpec.class).modulus.bitLength() == keySize
+		expect:
+		encryptor.encrypt(input) != null && encryptor.encrypt(input).length == 0
 
 		where:
-		keySize << [1024, 2048, 4096]
+		label  | input
+		"null" | null
+		"空"   | new byte[0]
 	}
 
-	def "测试设置加密方案在初始化后抛出异常"() {
-		given: "已初始化的加密器"
+	def "encrypt 未设置公钥抛出异常"() {
+		given:
 		def encryptor = new RSABinaryEncryptor()
-		encryptor.initialize()
 
-		when: "尝试修改加密方案"
-		encryptor.setTransformation(new RSAPKCS1PaddingTransformation())
+		when:
+		encryptor.encrypt("a".bytes)
 
-		then: "应抛出AlreadyInitializedException"
-		thrown(AlreadyInitializedException)
-	}
-
-	def "测试加密解密完整流程"() {
-		given: "初始化加密器"
-		def encryptor = new RSABinaryEncryptor(2048, new RSAPKCS1PaddingTransformation())
-		def originalData = "Hello, RSA加密测试!".bytes
-
-		when: "加密然后解密"
-		def encrypted = encryptor.encrypt(originalData)
-		def decrypted = encryptor.decrypt(encrypted)
-
-		then: "验证解密结果"
-		decrypted == originalData
-	}
-
-	@Unroll
-	def "测试不同数据长度加密解密 - 数据长度: #length"() {
-		given: "准备测试数据"
-		def encryptor = new RSABinaryEncryptor()
-		def data = new byte[length]
-		new Random().nextBytes(data)
-
-		when: "执行加密解密"
-		def encrypted = encryptor.encrypt(data)
-		def decrypted = encryptor.decrypt(encrypted)
-
-		then: "验证结果"
-		decrypted == data
-
-		where:
-		length << [0, 1, 245, 500] // 245是2048位密钥PKCS1填充的单块最大长度
-	}
-
-	def "测试未设置公钥时加密抛出异常"() {
-		given: "创建只有私钥的加密器"
-		def key = RSAKey.random(2048)
-		def encryptor = new RSABinaryEncryptor(key)
-		encryptor.setKey(new RSAKey(null, key.privateKey()))
-
-		when: "尝试加密"
-		encryptor.encrypt("test".bytes)
-
-		then: "应抛出异常"
+		then:
 		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试延迟初始化功能"() {
-		given: "未初始化的加密器"
+	@Unroll
+	def "decrypt 空输入返回空数组: #label"() {
+		given:
 		def encryptor = new RSABinaryEncryptor()
 
-		when: "首次加密操作"
-		def result = encryptor.encrypt("test".bytes)
-
-		then: "自动初始化并完成加密"
-		result != null
-		encryptor.initialized
-	}
-
-	@Unroll
-	def "测试不同填充方案兼容性 - 方案: #transformation.class.simpleName"() {
-		given: "使用不同填充方案"
-		def encryptor = new RSABinaryEncryptor(transformation)
-		def data = new byte[dataSize]
-		new Random().nextBytes(data)
-
-		when: "加密解密流程"
-		def encrypted = encryptor.encrypt(data)
-		def decrypted = encryptor.decrypt(encrypted)
-
-		then: "验证结果一致性"
-		decrypted == data
+		expect:
+		encryptor.decrypt(input) != null && encryptor.decrypt(input).length == 0
 
 		where:
-		transformation                        | dataSize
-		new RSAPKCS1PaddingTransformation()   | 200
-		new RSAOEAPWithSHA256Transformation() | 180
+		label  | input
+		"null" | null
+		"空"   | new byte[0]
 	}
 
-	def "测试多线程安全初始化"() {
-		given: "未初始化的加密器"
+	def "decrypt 未设置私钥抛出异常"() {
+		given:
 		def encryptor = new RSABinaryEncryptor()
-		def threadCount = 10
-		def executor = Executors.newFixedThreadPool(threadCount)
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		encryptor.setPublicKey((RSAPublicKey) kp.public)
 
-		when: "多线程同时触发初始化"
-		def futures = (1..threadCount).collect {
-			executor.submit({ encryptor.encrypt("test".bytes) } as Callable<byte[]>)
-		}
-		executor.shutdown()
-		executor.awaitTermination(10, TimeUnit.SECONDS)
-		def results = futures*.get()
+		when:
+		encryptor.decrypt("a".bytes)
 
-		then: "所有线程都应成功完成"
-		results.every { it != null && it.length > 0 }
-
-		cleanup:
-		executor?.shutdownNow()
+		then:
+		thrown(EncryptionOperationNotPossibleException)
 	}
 
-	def "测试空数据处理"() {
-		given: "初始化加密器"
+	def "initialize 后不可再设置密钥"() {
+		given:
 		def encryptor = new RSABinaryEncryptor()
+		encryptor.initialize()
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
 
-		when: "加密空数据"
-		def encrypted = encryptor.encrypt(new byte[0])
+		when:
+		encryptor.setKeyPair(pair)
 
-		then: "返回空数组"
-		encrypted.size() == 0
+		then:
+		thrown(AlreadyInitializedException)
 	}
 
-	def "测试超大文件加密(10MB)"() {
-		given: "准备10MB数据"
+	def "加密触发惰性初始化，之后再设置密钥抛异常"() {
+		given:
 		def encryptor = new RSABinaryEncryptor()
-		def largeData = new byte[10 * 1024 * 1024]
-		new Random().nextBytes(largeData)
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		byte[] data = "lazy-init".bytes
 
-		when: "执行加密解密"
-		def encrypted = encryptor.encrypt(largeData)
-		def decrypted = encryptor.decrypt(encrypted)
+		when:
+		byte[] encrypted = encryptor.encrypt(data)
+		encryptor.setKeyPair(pair)
 
-		then: "验证数据完整性"
-		decrypted == largeData
+		then:
+		encrypted.length > 0
+		thrown(AlreadyInitializedException)
+	}
+
+	def "分段加密与解密保持一致（OAEP）"() {
+		given:
+		def encryptor = new RSABinaryEncryptor(new RSAOEAPWithSHA256Transformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		byte[] data = new byte[500]
+		new SecureRandom().nextBytes(data)
+
+		expect:
+		new String(encryptor.decrypt(encryptor.encrypt(data))) == new String(data)
+	}
+
+	def "分段加密与解密保持一致（PKCS1）"() {
+		given:
+		def encryptor = new RSABinaryEncryptor(new RSAPKCS1PaddingTransformation())
+		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair = RSAKeyPair.fromKeyPair(kp)
+		encryptor.setKeyPair(pair)
+		byte[] data = new byte[500]
+		new SecureRandom().nextBytes(data)
+
+		expect:
+		new String(encryptor.decrypt(encryptor.encrypt(data))) == new String(data)
+	}
+
+	def "跨密钥解密失败抛异常"() {
+		given:
+		KeyPair kp1 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		KeyPair kp2 = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024)
+		def pair1 = RSAKeyPair.fromKeyPair(kp1)
+		def pair2 = RSAKeyPair.fromKeyPair(kp2)
+
+		def encryptor1 = new RSABinaryEncryptor()
+		encryptor1.setKeyPair(pair1)
+		byte[] data = "mismatch".bytes
+		byte[] encrypted = encryptor1.encrypt(data)
+
+		def decryptor2 = new RSABinaryEncryptor()
+		decryptor2.setPrivateKey((RSAPrivateKey) kp2.private)
+
+		when:
+		decryptor2.decrypt(encrypted)
+
+		then:
+		thrown(EncryptionOperationNotPossibleException)
 	}
 }
