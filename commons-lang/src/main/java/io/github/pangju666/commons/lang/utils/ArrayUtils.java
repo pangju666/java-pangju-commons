@@ -65,8 +65,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			boolean[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new boolean[remainder] : new boolean[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			boolean[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new boolean[remainder] :
+				new boolean[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -100,8 +102,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			byte[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new byte[remainder] : new byte[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			byte[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new byte[remainder] :
+				new byte[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -135,8 +139,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			char[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new char[remainder] : new char[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			char[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new char[remainder] :
+				new char[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -170,8 +176,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			double[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new double[remainder] : new double[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			double[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new double[remainder] :
+				new double[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -205,8 +213,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			float[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new float[remainder] : new float[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			float[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new float[remainder] :
+				new float[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -240,8 +250,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			int[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new int[remainder] : new int[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			int[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new int[remainder] :
+				new int[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -275,8 +287,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			long[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new long[remainder] : new long[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			long[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new long[remainder] :
+				new long[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -310,8 +324,10 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		int startIndex = 0;
 		int endIndex = size - 1;
 		while (arrayNum < arrayCount) {
-			short[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new short[remainder] : new short[size];
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			short[] partition = arrayNum == arrayCount - 1 && remainder > 0 ? new short[remainder] :
+				new short[Math.min(size, array.length)];
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
@@ -354,7 +370,8 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 		while (arrayNum < arrayCount) {
 			T[] partition = (T[]) (arrayNum == arrayCount - 1 && remainder > 0 ?
 				Array.newInstance(type, remainder) : Array.newInstance(type, size));
-			System.arraycopy(array, startIndex, partition, 0, endIndex - startIndex + 1);
+			int length = endIndex - startIndex + 1;
+			System.arraycopy(array, startIndex, partition, 0, Math.min(length, array.length));
 			partitions.add(arrayNum, partition);
 
 			startIndex = endIndex + 1;
