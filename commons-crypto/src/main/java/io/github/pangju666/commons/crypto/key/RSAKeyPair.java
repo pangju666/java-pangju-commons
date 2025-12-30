@@ -197,7 +197,7 @@ public class RSAKeyPair {
 			}
 
 			RSAPrivateKey rsaPrivateKey = null;
-			if (ArrayUtils.isNotEmpty(publicKeyBytes)) {
+			if (ArrayUtils.isNotEmpty(privateKeyBytes)) {
 				PrivateKey privateKey = KeyPairUtils.getPrivateKeyFromPKCS8EncodedKey(CryptoConstants.RSA_ALGORITHM,
 					privateKeyBytes);
 				if (privateKey instanceof RSAPrivateKey) {
