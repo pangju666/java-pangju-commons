@@ -153,7 +153,6 @@ public class XZUtils {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
-				compressorOutputStream.finish();
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
@@ -166,7 +165,6 @@ public class XZUtils {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
-				compressorOutputStream.finish();
 			}
 		}
 	}
@@ -199,14 +197,12 @@ public class XZUtils {
 			try (XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(outputStream);
 				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
-				compressorOutputStream.finish();
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 				 XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
 				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
-				compressorOutputStream.finish();
 			}
 		}
 	}
@@ -232,7 +228,6 @@ public class XZUtils {
 			 XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
 			 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			bufferedInputStream.transferTo(compressorOutputStream);
-			compressorOutputStream.finish();
 		}
 	}
 
@@ -259,7 +254,7 @@ public class XZUtils {
 				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -269,7 +264,7 @@ public class XZUtils {
 					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -281,7 +276,7 @@ public class XZUtils {
 					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -310,7 +305,7 @@ public class XZUtils {
 				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}

@@ -105,7 +105,13 @@ public class CompressUtils {
 	public static void compress(File inputFile, File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 
-		String format = FilenameUtils.getExtension(outputFile.getName()).toLowerCase();
+		String format;
+		String filename = outputFile.getName();
+		if (filename.endsWith(".tar.gz")) {
+			format = "tar.gz";
+		} else {
+			format = FilenameUtils.getExtension(filename).toLowerCase();
+		}
 		switch (format) {
 			case "gz":
 				GZipUtils.compress(inputFile, outputFile);
@@ -127,7 +133,8 @@ public class CompressUtils {
 				FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 				FileUtils.forceMkdirParent(outputFile);
 
-				File tarFile = new File(outputFile.getParentFile(), FilenameUtils.getBaseName(outputFile.getName()));
+				String baseName = FilenameUtils.getBaseName(filename);
+				File tarFile = new File(outputFile.getParentFile(), baseName + ".tmp.tar");
 				try (FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
 					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					TarUtils.compress(inputFile, bufferedOutputStream);
@@ -139,6 +146,7 @@ public class CompressUtils {
 				} finally {
 					FileUtils.forceDelete(tarFile);
 				}
+				break;
 			default:
 				throw new UnsupportedOperationException("不支持压缩为 " + format + " 格式");
 		}
@@ -167,7 +175,13 @@ public class CompressUtils {
 	public static void compress(Collection<File> inputFiles, File outputFile) throws IOException {
 		Validate.notNull(outputFile, "outputFile 不可为 null");
 
-		String format = FilenameUtils.getExtension(outputFile.getName()).toLowerCase();
+		String format;
+		String filename = outputFile.getName();
+		if (filename.endsWith(".tar.gz")) {
+			format = "tar.gz";
+		} else {
+			format = FilenameUtils.getExtension(filename).toLowerCase();
+		}
 		switch (format) {
 			case "7z":
 				SevenZUtils.compress(inputFiles, outputFile);
@@ -183,7 +197,8 @@ public class CompressUtils {
 				FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 				FileUtils.forceMkdirParent(outputFile);
 
-				File tarFile = new File(outputFile.getParentFile(), FilenameUtils.getBaseName(outputFile.getName()));
+				String baseName = FilenameUtils.getBaseName(filename);
+				File tarFile = new File(outputFile.getParentFile(), baseName + ".tmp.tar");
 				try (FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
 					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					TarUtils.compress(inputFiles, bufferedOutputStream);
@@ -195,6 +210,7 @@ public class CompressUtils {
 				} finally {
 					FileUtils.forceDelete(tarFile);
 				}
+				break;
 			default:
 				throw new UnsupportedOperationException("不支持压缩为 " + format + " 格式");
 		}
@@ -290,7 +306,13 @@ public class CompressUtils {
 	public static void uncompressToDir(File inputFile, File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 
-		String format = FilenameUtils.getExtension(inputFile.getName()).toLowerCase();
+		String format;
+		String filename = inputFile.getName();
+		if (filename.endsWith(".tar.gz")) {
+			format = "tar.gz";
+		} else {
+			format = FilenameUtils.getExtension(filename).toLowerCase();
+		}
 		switch (format) {
 			case "7z":
 				SevenZUtils.uncompress(inputFile, outputDir);
@@ -306,7 +328,8 @@ public class CompressUtils {
 				Validate.notNull(outputDir, "outputDir 不可为 null");
 				FileUtils.forceMkdir(outputDir);
 
-				File tarFile = new File(inputFile.getParentFile(), FilenameUtils.getBaseName(inputFile.getName()));
+				String baseName = FilenameUtils.getBaseName(filename);
+				File tarFile = new File(inputFile.getParentFile(), baseName + ".tmp.tar");
 				try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 					 FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
 					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
@@ -317,6 +340,7 @@ public class CompressUtils {
 				} finally {
 					FileUtils.forceDelete(tarFile);
 				}
+				break;
 			default:
 				throw new UnsupportedOperationException("不支持解压 " + format + " 格式到目录");
 		}
