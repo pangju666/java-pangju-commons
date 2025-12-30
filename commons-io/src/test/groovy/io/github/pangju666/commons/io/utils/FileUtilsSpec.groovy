@@ -1,5 +1,6 @@
 package io.github.pangju666.commons.io.utils
 
+import io.github.pangju666.commons.io.lang.IOConstants
 import org.apache.commons.io.FileExistsException
 import org.apache.commons.lang3.RandomUtils
 import spock.lang.Specification
@@ -65,10 +66,11 @@ class FileUtilsSpec extends Specification {
 		def encryptedFile = new File(tempDir.toString(), "encrypted.dat")
 		def decryptedFile = new File(tempDir.toString(), "decrypted.txt")
 		def password = RandomUtils.secure().randomBytes(16)
+		def iv = RandomUtils.secure().randomBytes(16)
 
 		when: "执行加密解密流程"
-		FileUtils.encryptFile(originalFile, encryptedFile, password)
-		FileUtils.decryptFile(encryptedFile, decryptedFile, password)
+		FileUtils.encryptFile(originalFile, encryptedFile, password, iv)
+		FileUtils.decryptFile(encryptedFile, decryptedFile, password, iv)
 
 		then: "验证解密后内容"
 		decryptedFile.text == "secret data"
@@ -79,11 +81,12 @@ class FileUtilsSpec extends Specification {
 		given: "准备加密文件"
 		def originalFile = createTestFile()
 		def password = RandomUtils.secure().randomBytes(16)
+		def iv = RandomUtils.secure().randomBytes(16)
 		def encryptedFile = new File(tempDir.toString(), "encrypted.dat")
-		FileUtils.encryptFile(originalFile, encryptedFile, password)
+		FileUtils.encryptFile(originalFile, encryptedFile, password, iv)
 
 		when: "使用错误密码解密"
-		FileUtils.decryptFile(encryptedFile, new File(tempDir.toString(), "output.txt"), "aaaaaaaaaaaaaaaa".getBytes())
+		FileUtils.decryptFile(encryptedFile, new File(tempDir.toString(), "output.txt"), "aaaaaaaaaaaaaaaa".getBytes(), iv)
 
 		then: "应抛出解密异常"
 		thrown(IOException)
@@ -126,7 +129,7 @@ class FileUtilsSpec extends Specification {
 		Files.write(exeFile.toPath(), [0x4D, 0x5A] as byte[]) // MZ头
 
 		expect: "验证应用类型检测"
-		FileUtils.isApplicationType(exeFile)
+		FileUtils.getMimeType(exeFile).startsWith(IOConstants.APPLICATION_MIME_TYPE_PREFIX)
 	}
 
 	@Unroll
@@ -213,73 +216,4 @@ class FileUtilsSpec extends Specification {
 		noExceptionThrown()
 	}
 
-	def "测试检查目录存在性"() {
-		given: "创建测试目录"
-		def dir = tempDir.resolve("testDir").toFile()
-		dir.mkdir()
-
-		when: "检查目录存在性（isFile=false）"
-		FileUtils.checkExists(dir, "目录检查", false)
-
-		then: "无异常抛出"
-		noExceptionThrown()
-	}
-
-	def "测试检查文件类型错误抛出异常"() {
-		given: "创建目录而不是文件"
-		def dir = tempDir.resolve("testDir").toFile()
-		dir.mkdir()
-
-		when: "检查文件类型（isFile=true）"
-		FileUtils.checkExists(dir, "类型检查", true)
-
-		then: "抛出FileNotFoundException"
-		thrown(FileNotFoundException)
-	}
-
-	def "测试读取超大文件"() {
-		setup:
-		def start = System.currentTimeMillis()
-		def inputStream =
-			FileUtils.openMemoryMappedFileInputStream(
-				new File("E:\\安装包\\办公\\Office 2019\\ProPlus2019Retail.img"));
-		while (inputStream.read() != -1);
-		def end = System.currentTimeMillis()
-		println "分块耗时：${end - start} ms"
-
-		def start2 = System.currentTimeMillis()
-		def inputStream2 =
-			FileUtils.openInputStream(
-				new File("E:\\安装包\\办公\\Office 2019\\ProPlus2019Retail.img"))
-		while (inputStream2.read() != -1);
-		def end2 = System.currentTimeMillis()
-		println "耗时：${end2 - start2} ms"
-	}
-
-	def "测试读取文件速度"() {
-		setup:
-		def start = System.currentTimeMillis()
-		def inputStream =
-			FileUtils.openBufferedFileChannelInputStream(
-				new File("src/test/resources/mime.types"));
-		while (inputStream.read() != -1);
-		def end = System.currentTimeMillis()
-		println "缓冲文件通道输入流耗时：${end - start} ms"
-
-		def start2 = System.currentTimeMillis()
-		def inputStream2 =
-			FileUtils.openMemoryMappedFileInputStream(
-				new File("src/test/resources/mime.types"))
-		while (inputStream2.read() != -1);
-		def end2 = System.currentTimeMillis()
-		println "内存映射输入流耗时：${end2 - start2} ms"
-
-		def start3 = System.currentTimeMillis()
-		def inputStream3 =
-			FileUtils.openUnsynchronizedBufferedInputStream(
-				new File("src/test/resources/mime.types"))
-		while (inputStream3.read() != -1);
-		def end3 = System.currentTimeMillis()
-		println "线程不安全缓冲区输入流耗时：${end3 - start3} ms"
-	}
 }

@@ -1,12 +1,11 @@
 package io.github.pangju666.commons.io.utils
 
-
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream
 import org.apache.commons.lang3.RandomUtils
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
 
-import javax.crypto.spec.IvParameterSpec
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -30,8 +29,8 @@ class IOUtilsSpec extends Specification {
 		Path decrypted = tempDir.resolve("decrypted.txt")
 
 		when: "执行完整加解密流程"
-		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16)
-		IOUtils.decrypt(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16)
+		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16, IV_16)
+		IOUtils.decrypt(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16, IV_16)
 
 		then: "验证解密结果"
 		Files.readAllBytes(decrypted) == TEST_TEXT.bytes
@@ -55,7 +54,7 @@ class IOUtilsSpec extends Specification {
 
 	def "测试非法密钥长度异常"() {
 		when: "使用非法长度密钥"
-		IOUtils.encrypt(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes())
+		IOUtils.encrypt(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes(), IV_16)
 
 		then: "抛出参数异常"
 		thrown(IllegalArgumentException)
@@ -88,8 +87,8 @@ class IOUtilsSpec extends Specification {
 		Path decrypted = tempDir.resolve("ctr_decrypted.txt")
 
 		when: "执行CTR加解密"
-		IOUtils.encryptByCtr(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16)
-		IOUtils.decryptByCtr(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16)
+		IOUtils.encryptByCtr(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16, IV_16)
+		IOUtils.decryptByCtr(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16, IV_16)
 
 		then: "验证结果正确"
 		Files.readAllBytes(decrypted) == TEST_TEXT.bytes
@@ -109,22 +108,6 @@ class IOUtilsSpec extends Specification {
 		Files.readAllBytes(decrypted) == TEST_TEXT.bytes
 	}
 
-	def "测试通用加解密接口参数校验"() {
-		given: "准备参数"
-		def iv = new IvParameterSpec(IV_16)
-		def transformation = "AES/CBC/PKCS5Padding"
-
-		when: "使用不匹配参数解密"
-		Path encrypted = encryptWithGenericParams(iv, transformation)
-		IOUtils.decrypt(Files.newInputStream(encrypted),
-			Files.newOutputStream(tempDir.resolve("wrong_decrypted.txt")),
-			PASSWORD_16,
-			new IvParameterSpec("a".padRight(15).bytes),
-			transformation)
-
-		then: "抛出解密异常"
-		thrown(IOException)
-	}
 
 	def "测试空数据流处理"() {
 		given: "空输入流"
@@ -132,11 +115,11 @@ class IOUtilsSpec extends Specification {
 
 		when: "加密并解密空数据"
 		def encrypted = new ByteArrayOutputStream().with {
-			IOUtils.encrypt(new ByteArrayInputStream(emptyData), it, PASSWORD_16)
+			IOUtils.encrypt(new ByteArrayInputStream(emptyData), it, PASSWORD_16, IV_16)
 			it.toByteArray()
 		}
 		def decrypted = new ByteArrayOutputStream().with {
-			IOUtils.decrypt(new ByteArrayInputStream(encrypted), it, PASSWORD_16)
+			IOUtils.decrypt(new ByteArrayInputStream(encrypted), it, PASSWORD_16, IV_16)
 			it.toByteArray()
 		}
 
@@ -165,18 +148,11 @@ class IOUtilsSpec extends Specification {
 		}
 	}
 
-	private Path encryptWithGenericParams(IvParameterSpec iv, String transformation) {
-		Path input = createTestFile("generic_test.txt")
-		Path encrypted = tempDir.resolve("generic_encrypted")
-		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted),
-			PASSWORD_16, iv, transformation)
-		return encrypted
-	}
 
 	// 新增测试用例
 	def "测试CTR非法密钥长度异常"() {
 		when: "使用非法长度密钥"
-		IOUtils.encryptByCtr(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes())
+		IOUtils.encryptByCtr(new ByteArrayInputStream(TEST_TEXT.bytes), new ByteArrayOutputStream(), "invalid".getBytes(), IV_16)
 
 		then: "抛出参数异常"
 		thrown(IllegalArgumentException)
@@ -184,7 +160,7 @@ class IOUtilsSpec extends Specification {
 
 	def "测试通用接口空参数异常"() {
 		when: "传入空参数"
-		IOUtils.encrypt(null, new ByteArrayOutputStream(), PASSWORD_16, new IvParameterSpec(IV_16), "AES/CBC/PKCS5Padding")
+		IOUtils.encrypt(null as InputStream, new ByteArrayOutputStream(), PASSWORD_16, IV_16)
 
 		then: "抛出空指针异常"
 		thrown(NullPointerException)
@@ -218,13 +194,146 @@ class IOUtilsSpec extends Specification {
 		Path decrypted = tempDir.resolve("big_decrypted.dat")
 
 		long encryptStart = System.currentTimeMillis()
-		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16)
+		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16, IV_16)
 		long encryptTime = System.currentTimeMillis() - encryptStart
 
 		long decryptStart = System.currentTimeMillis()
-		IOUtils.decrypt(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16)
+		IOUtils.decrypt(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16, IV_16)
 		long decryptTime = System.currentTimeMillis() - decryptStart
 
 		return [encryptTime, decryptTime]
+	}
+
+	@Unroll
+	def "getBufferSize 返回预期大小: total=#total -> buffer=#expected"() {
+		expect:
+		IOUtils.getBufferSize(total) == expected
+
+		where:
+		total                   | expected
+		0                       | 4 * 1024
+		200 * 1024              | 4 * 1024
+		300 * 1024              | 8 * 1024
+		2 * 1024 * 1024         | 32 * 1024
+		50 * 1024 * 1024        | 64 * 1024
+		200 * 1024 * 1024       | 128 * 1024
+		2L * 1024 * 1024 * 1024 | 256 * 1024
+	}
+
+	def "getBufferSize 负数抛异常"() {
+		when:
+		IOUtils.getBufferSize(-1)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "unsynchronizedBuffer 默认与自定义缓冲区"() {
+		given:
+		def data = "buffer-test".bytes
+		def inputStream = new ByteArrayInputStream(data)
+
+		when:
+		def bufDefault = IOUtils.unsynchronizedBuffer(inputStream)
+		def readDefault = new byte[data.length]
+		bufDefault.read(readDefault)
+
+		then:
+		readDefault == data
+
+		when:
+		def in2 = new ByteArrayInputStream(data)
+		def bufCustom = IOUtils.unsynchronizedBuffer(in2, 8192)
+		def readCustom = new byte[data.length]
+		bufCustom.read(readCustom)
+
+		then:
+		readCustom == data
+	}
+
+	def "unsynchronizedBuffer 已是目标类型返回同实例"() {
+		given:
+		def inputStream = new ByteArrayInputStream("x".bytes)
+		def wrapped = new UnsynchronizedBufferedInputStream.Builder()
+			.setBufferSize(1024)
+			.setInputStream(inputStream)
+			.get()
+
+		expect:
+		IOUtils.unsynchronizedBuffer(wrapped, 2048).is(wrapped)
+	}
+
+	def "unsynchronizedBuffer 非法缓冲区抛异常"() {
+		when:
+		IOUtils.unsynchronizedBuffer(new ByteArrayInputStream("x".bytes), 0)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "toUnsynchronizedByteArrayInputStream 空与非空"() {
+		expect:
+		IOUtils.toUnsynchronizedByteArrayInputStream(null).readAllBytes().length == 0
+		IOUtils.toUnsynchronizedByteArrayInputStream("abc".bytes).readAllBytes() == "abc".bytes
+	}
+
+	def "toUnsynchronizedByteArrayOutputStream 创建并写入"() {
+		when:
+		def out = IOUtils.toUnsynchronizedByteArrayOutputStream(1024)
+		out.write("abc".bytes)
+
+		then:
+		out.toByteArray() == "abc".bytes
+	}
+
+	def "toUnsynchronizedByteArrayOutputStream 非法缓冲区抛异常"() {
+		when:
+		IOUtils.toUnsynchronizedByteArrayOutputStream(0)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "toUnsynchronizedByteArrayOutputStream(InputStream) 读取正确"() {
+		expect:
+		IOUtils.toUnsynchronizedByteArrayOutputStream(new ByteArrayInputStream("xyz".bytes)).toByteArray() == "xyz".bytes
+	}
+
+	def "CBC 自定义缓冲区大小加解密"() {
+		given:
+		def iv = RandomUtils.secure().randomBytes(16)
+		Path input = createTestFile("cbc_custom_buf.txt")
+		Path encrypted = tempDir.resolve("cbc_custom_buf.enc")
+		Path decrypted = tempDir.resolve("cbc_custom_buf.dec")
+
+		when:
+		IOUtils.encrypt(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16, iv, 8192)
+		IOUtils.decrypt(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16, iv, 8192)
+
+		then:
+		Files.readAllBytes(decrypted) == TEST_TEXT.bytes
+	}
+
+	def "CTR 自定义缓冲区大小加解密"() {
+		given:
+		def iv = RandomUtils.secure().randomBytes(16)
+		Path input = createTestFile("ctr_custom_buf.txt")
+		Path encrypted = tempDir.resolve("ctr_custom_buf.enc")
+		Path decrypted = tempDir.resolve("ctr_custom_buf.dec")
+
+		when:
+		IOUtils.encryptByCtr(Files.newInputStream(input), Files.newOutputStream(encrypted), PASSWORD_16, iv, 4096)
+		IOUtils.decryptByCtr(Files.newInputStream(encrypted), Files.newOutputStream(decrypted), PASSWORD_16, iv, 4096)
+
+		then:
+		Files.readAllBytes(decrypted) == TEST_TEXT.bytes
+	}
+
+	def "encryptByCtr 空输入流抛异常"() {
+		when:
+		IOUtils.encryptByCtr(null, new ByteArrayOutputStream(), PASSWORD_16, IV_16)
+
+		then:
+		thrown(NullPointerException)
 	}
 }

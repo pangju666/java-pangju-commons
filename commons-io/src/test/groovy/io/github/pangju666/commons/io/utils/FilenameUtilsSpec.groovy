@@ -1,113 +1,108 @@
 package io.github.pangju666.commons.io.utils
 
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Title
 import spock.lang.Unroll
 
+@Title("FilenameUtils 单元测试")
 class FilenameUtilsSpec extends Specification {
-	@Shared
-	def imageFiles = ["test.jpg", "photo.png", "image.webp"]
-	@Shared
-	def textFiles = ["readme.md", "data.csv", "notes.txt"]
-	@Shared
-	def videoFiles = ["movie.mp4", "clip.avi", "video.mov"]
 
-	// getMimeType 测试
-	def "测试获取MIME类型"() {
-		when:
-		def result = FilenameUtils.getMimeType(filename)
-
-		then:
-		result == expectedMimeType
-
-		where:
-		filename       | expectedMimeType
-		"image.png"    | "image/png"
-		"document.pdf" | "application/pdf"
-		"data.json"    | "application/json" // 注意：MimetypesFileTypeMap的默认行为
-	}
-
-	// 类型检测方法测试
 	@Unroll
-	def "测试文件类型检测：#method -> #filename 应返回 #expected"() {
+	def "getMimeType 返回预期类型: #name -> #expected"() {
 		expect:
-		FilenameUtils."$method"(filename) == expected
+		FilenameUtils.getMimeType(name) == expected
 
 		where:
-		method              | filename       | expected
-		"isImageType"       | "photo.jpg"    | true
-		"isImageType"       | "data.txt"     | false
-		"isTextType"        | "readme.md"    | true
-		"isTextType"        | "movie.mp4"    | false
-		"isVideoType"       | "clip.avi"     | true
-		"isVideoType"       | "image.png"    | false
-		"isAudioType"       | "music.mp3"    | true
-		"isAudioType"       | "document.pdf" | false
-		"isApplicationType" | "app.exe"      | true
-		"isApplicationType" | "video.mp4"    | false
+		name            | expected
+		null            | null
+		""              | null
+		"image.png"     | "image/png"
+		"readme.txt"    | "text/plain"
+		"document.pdf"  | "application/pdf"
+		"unknown.zzzzz" | "application/octet-stream"
 	}
 
-	// 路径类型判断测试
 	@Unroll
-	def "测试路径类型判断：路径 '#path' 是目录路径应返回 #isDir，是文件路径应返回 #isFile"() {
+	def "图片/文本/视频/音频类型判断"() {
 		expect:
-		FilenameUtils.isDirectoryPath(path) == isDir
-		FilenameUtils.isFilePath(path) == isFile
-
-		where:
-		path                 | isDir | isFile
-		"C:\\logs\\"         | true  | false
-		"/var/log/"          | true  | false
-		"file.txt"           | false | true
-		"D:/data/report.pdf" | false | true
-		""                   | false | false
+		FilenameUtils.isImageType("photo.png")
+		!FilenameUtils.isImageType("")
+		FilenameUtils.isTextType("readme.txt")
+		!FilenameUtils.isTextType(null)
+		FilenameUtils.isVideoType("movie.mp4")
+		FilenameUtils.isVideoType("playlist.m3u8")
+		!FilenameUtils.isVideoType("photo.png")
+		FilenameUtils.isAudioType("music.mp3")
+		!FilenameUtils.isAudioType("image.jpg")
 	}
 
-	// 文件名操作测试
+	def "模型类型判断对非模型返回false"() {
+		expect:
+		!FilenameUtils.isModelType("document.pdf")
+	}
+
 	@Unroll
-	def "测试文件名重构：原始文件 '#original' 使用参数 '#param' 调用方法 '#method' 应得到 '#expected'"() {
+	def "isMimeType 精确匹配与不匹配"() {
 		expect:
-		FilenameUtils."$method"(original, param) == expected
-
-		where:
-		method             | original           | param        | expected
-		"rename"           | "/path/to/old.txt" | "newfile"    | "/path/to/newfile"
-		"rename"           | "data.csv"         | "backup.zip" | "backup.zip"
-		"replaceBaseName"  | "document.pdf"     | "report"     | "report.pdf"
-		"replaceBaseName"  | "/tmp/image.jpg"   | "thumbnail"  | "/tmp/thumbnail.jpg"
-		"replaceExtension" | "file"             | "txt"        | "file.txt"
-		"replaceExtension" | "photo.png"        | "jpg"        | "photo.jpg"
-		"replaceExtension" | "config"           | ".xml"       | "config.xml"
+		FilenameUtils.isMimeType("image.png", "image/png")
+		!FilenameUtils.isMimeType("image.png", "image/jpeg")
+		!FilenameUtils.isMimeType("image.png", "")
+		!FilenameUtils.isMimeType("", "image/png")
 	}
 
-	// 异常测试
-	def "测试参数校验异常"() {
-		when:
-		FilenameUtils.getMimeType(null)
-
-		then:
-		thrown(NullPointerException)
-
-		when:
-		FilenameUtils.rename("valid.txt", "")
-
-		then:
-		thrown(IllegalArgumentException)
+	def "isAnyMimeType(数组) 任一匹配与空数组"() {
+		expect:
+		FilenameUtils.isAnyMimeType("image.png", "application/pdf", "image/jpeg", "image/png")
+		!FilenameUtils.isAnyMimeType("image.png" as String, new String[0])
+		// 忽略大小写
+		FilenameUtils.isAnyMimeType("image.png", "IMAGE/PNG")
 	}
 
-	// 批量MIME类型匹配测试
-	def "测试批量MIME类型匹配"() {
-		setup:
-		def allowedTypes = ["image/png", "image/jpeg", "application/pdf"]
+	def "isAnyMimeType(集合) 任一匹配与空集合"() {
+		given:
+		def set = ["application/pdf", "image/png"] as Set
+		def empty = [] as Set
 
 		expect:
-		FilenameUtils.isAnyMimeType(filename, allowedTypes as String[]) == expected
+		FilenameUtils.isAnyMimeType("image.png", set)
+		!FilenameUtils.isAnyMimeType("image.png", empty)
+	}
+
+	@Unroll
+	def "rename 完全替换文件名"() {
+		expect:
+		FilenameUtils.rename(input, newName) == output
 
 		where:
-		filename       | expected
-		"test.png"     | true
-		"photo.jpg"    | true
-		"document.pdf" | true
-		"video.mp4"    | false
+		input              | newName          | output
+		"data.csv"         | "backup"         | "backup"
+		"/var/log/app.log" | "error_2023.log" | "/var/log/error_2023.log"
+		"a/b/file.txt"     | "new.bin"        | "a/b/new.bin"
+	}
+
+	@Unroll
+	def "replaceBaseName 仅替换基名保留扩展名与路径"() {
+		expect:
+		FilenameUtils.replaceBaseName(input, newBase) == output
+
+		where:
+		input              | newBase | output
+		"file.txt"         | "new"   | "new.txt"
+		"/path/to/old.jpg" | "photo" | "/path/to/photo.jpg"
+		"config.bak"       | "set"   | "set.bak"
+		"/dir/noext"       | "base"  | "/dir/base"
+	}
+
+	@Unroll
+	def "replaceExtension 替换或移除扩展名"() {
+		expect:
+		FilenameUtils.replaceExtension(input, ext) == output
+
+		where:
+		input               | ext    | output
+		"file.txt"          | "csv"  | "file.csv"
+		"/path/to/data.old" | "json" | "/path/to/data.json"
+		"config"            | ".xml" | "config.xml"
+		"/dir/file.ext"     | ""     | "/dir/file"
 	}
 }
