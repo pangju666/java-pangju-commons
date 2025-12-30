@@ -1,5 +1,6 @@
 package io.github.pangju666.commons.pdf.utils
 
+
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.pdmodel.PDDocument
 import spock.lang.Specification
@@ -264,6 +265,101 @@ class PDDocumentUtilsSpec extends Specification {
 		cleanup:
 		c1?.close()
 		c2?.close()
+		doc?.close()
+	}
+
+	def "getDocument(byte[]) 加载 PDF 与非法内容抛异常"() {
+		given:
+		byte[] pdfBytes = pdfFile.bytes
+		byte[] invalidBytes = "invalid".bytes
+
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfBytes)
+
+		then:
+		doc != null
+		doc.numberOfPages > 0
+
+		when:
+		PDDocumentUtils.getDocument(invalidBytes)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc?.close()
+	}
+
+	def "getDocument(byte[], String) 加载 PDF"() {
+		given:
+		byte[] pdfBytes = pdfFile.bytes
+
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfBytes, "password")
+
+		then:
+		doc != null
+		doc.numberOfPages > 0
+
+		cleanup:
+		doc?.close()
+	}
+
+	def "getDocument(InputStream) 加载 PDF"() {
+		given:
+		InputStream inputStream = new ByteArrayInputStream(pdfFile.bytes)
+		InputStream invalidStream = new ByteArrayInputStream("invalid".bytes)
+
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(inputStream)
+
+		then:
+		doc != null
+		doc.numberOfPages > 0
+
+		when:
+		PDDocumentUtils.getDocument(invalidStream)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		doc?.close()
+		inputStream?.close()
+		invalidStream?.close()
+	}
+
+	def "getDocument(InputStream, String) 加载 PDF"() {
+		given:
+		InputStream inputStream = new ByteArrayInputStream(pdfFile.bytes)
+
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(inputStream, "password")
+
+		then:
+		doc != null
+		doc.numberOfPages > 0
+
+		cleanup:
+		doc?.close()
+		inputStream?.close()
+	}
+
+	def "getPageAsImage 单页渲染"() {
+		when:
+		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		def image1 = PDDocumentUtils.getPageAsImage(doc, 1)
+		def image2 = PDDocumentUtils.getPageAsImage(doc, 1, 2)
+		def image3 = PDDocumentUtils.getPageAsImageWithDPI(doc, 1, 72f)
+
+		then:
+		image1 != null
+		image2 != null
+		image3 != null
+		image1.width > 0
+		image2.width > image1.width
+
+		cleanup:
 		doc?.close()
 	}
 

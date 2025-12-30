@@ -18,8 +18,10 @@ package io.github.pangju666.commons.pdf.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.pdf.lang.PdfConstants;
 import io.github.pangju666.commons.pdf.model.Bookmark;
+import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.pdfbox.Loader;
@@ -40,17 +42,14 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * PDF文档高级操作工具类
  * <p>
- * 基于Apache PDFBox 3.x封装的高阶PDF文档处理工具，提供线程安全的静态方法集。
+ * 基于Apache PDFBox 封装的高阶PDF文档处理工具，提供线程安全的静态方法集。
  * 本工具类针对常见PDF操作场景进行了优化封装，简化了原生API的使用复杂度。
  * </p>
  *
@@ -338,6 +337,148 @@ public class PDDocumentUtils {
 			throw new IllegalArgumentException("不是一个 PDF 文件");
 		}
 		return Loader.loadPDF(file, password, computeMemoryUsageSetting(file.length()).streamCache);
+	}
+
+	/**
+	 * 从字节数组加载PDF文档
+	 * <p>
+	 * 此方法会：
+	 * <ol>
+	 *   <li>验证字节数组不为空</li>
+	 *   <li>检测内容MIME类型确保是有效的PDF文档</li>
+	 *   <li>根据数据大小自动选择最优内存处理策略</li>
+	 *   <li>加载并返回PDDocument实例</li>
+	 * </ol>
+	 * 注意：调用方负责关闭返回的PDDocument对象。
+	 * </p>
+	 *
+	 * @param bytes 包含PDF内容的字节数组，不可为null或空
+	 * @return 加载成功的PDDocument实例，不会返回null
+	 * @throws IllegalArgumentException 当字节数组为空或不是有效的PDF文档时抛出
+	 * @throws IOException              当PDF解析错误时抛出
+	 * @see #computeMemoryUsageSetting(long)
+	 * @see Loader#loadPDF(byte[])
+	 * @since 1.0.0
+	 */
+	public static PDDocument getDocument(final byte[] bytes) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
+			throw new IllegalArgumentException("不是一个 PDF 文件");
+		}
+
+		return Loader.loadPDF(bytes, "", null, null,
+			computeMemoryUsageSetting(bytes.length).streamCache);
+	}
+
+	/**
+	 * 从加密的字节数组加载PDF文档
+	 * <p>
+	 * 此方法会：
+	 * <ol>
+	 *   <li>验证字节数组不为空</li>
+	 *   <li>检测内容MIME类型确保是有效的PDF文档</li>
+	 *   <li>根据数据大小自动选择最优内存处理策略</li>
+	 *   <li>使用提供的密码解密并加载文档</li>
+	 * </ol>
+	 * 注意：调用方负责关闭返回的PDDocument对象。
+	 * </p>
+	 *
+	 * @param bytes    包含加密PDF内容的字节数组，不可为null或空
+	 * @param password 文档解密密码，不可为null或空字符串
+	 * @return 解密并加载成功的PDDocument实例，不会返回null
+	 * @throws IllegalArgumentException 当字节数组为空、不是有效的PDF文档或密码无效时抛出
+	 * @throws IOException              当PDF解析错误或密码错误时抛出
+	 * @see #computeMemoryUsageSetting(long)
+	 * @see Loader#loadPDF(byte[], String)
+	 * @since 1.0.0
+	 */
+	public static PDDocument getDocument(final byte[] bytes, final String password) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
+			throw new IllegalArgumentException("不是一个 PDF 文件");
+		}
+
+		return Loader.loadPDF(bytes, password, null, null,
+			computeMemoryUsageSetting(bytes.length).streamCache);
+	}
+
+	/**
+	 * 从输入流加载PDF文档
+	 * <p>
+	 * 此方法会将输入流中的所有字节读入内存，然后进行加载。
+	 * </p>
+	 * <p>
+	 * 为了提高读取效率，如果输入流未缓冲，会自动使用缓冲流进行包装。
+	 * </p>
+	 * <p>
+	 * 适用于无法直接获取文件或字节数组的场景。
+	 * </p>
+	 * <p>
+	 * 注意：
+	 * <ul>
+	 *   <li>此方法会消耗整个输入流</li>
+	 *   <li>调用方负责关闭输入流</li>
+	 *   <li>调用方负责关闭返回的PDDocument对象</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param inputStream 包含PDF内容的输入流，不可为null
+	 * @return 加载成功的PDDocument实例，不会返回null
+	 * @throws IllegalArgumentException 当输入流为null或内容不是有效的PDF文档时抛出
+	 * @throws IOException              当流读取失败或PDF解析错误时抛出
+	 * @see #getDocument(byte[])
+	 * @since 1.0.0
+	 */
+	public static PDDocument getDocument(final InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+
+		if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
+			return getDocument(inputStream.readAllBytes());
+		} else {
+			try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+				return getDocument(bufferedInputStream.readAllBytes());
+			}
+		}
+	}
+
+	/**
+	 * 从加密的输入流加载PDF文档
+	 * <p>
+	 * 此方法会将输入流中的所有字节读入内存，然后使用密码进行解密和加载。
+	 * </p>
+	 * <p>
+	 * 为了提高读取效率，如果输入流未缓冲，会自动使用缓冲流进行包装。
+	 * </p>
+	 * <p>
+	 * 适用于无法直接获取文件或字节数组的场景。
+	 * </p>
+	 * <p>
+	 * 注意：
+	 * <ul>
+	 *   <li>此方法会消耗整个输入流</li>
+	 *   <li>调用方负责关闭输入流</li>
+	 *   <li>调用方负责关闭返回的PDDocument对象</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param inputStream 包含加密PDF内容的输入流，不可为null
+	 * @param password    文档解密密码，不可为null或空字符串
+	 * @return 解密并加载成功的PDDocument实例，不会返回null
+	 * @throws IllegalArgumentException 当输入流为null、内容不是有效的PDF文档或密码无效时抛出
+	 * @throws IOException              当流读取失败、PDF解析错误或密码错误时抛出
+	 * @see #getDocument(byte[], String)
+	 * @since 1.0.0
+	 */
+	public static PDDocument getDocument(final InputStream inputStream, final String password) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+
+		if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
+			return getDocument(inputStream.readAllBytes(), password);
+		} else {
+			try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+				return getDocument(bufferedInputStream.readAllBytes(), password);
+			}
+		}
 	}
 
 	/**
