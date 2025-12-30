@@ -27,23 +27,31 @@ import java.util.Objects;
 
 /**
  * 基于拼音的字符串比较器（不可变实现）
- * <p>实现规则：
- * <ol>
- *   <li>null值具有最高优先级</li>
- *   <li>空字符串""次之</li>
- *   <li>空白字符串" "再次之</li>
- *   <li>其他字符串按拼音顺序</li>
- * </ol>
+ * <p>比较优先级与规则：</p>
+ * <ul>
+ *   <li><b>null：</b> 优先级最高（排在最前）</li>
+ *   <li><b>空字符串：</b> 次高（仅次于 null）</li>
+ *   <li><b>空白字符串：</b> 再次之；当两者均为空白时按长度升序比较，长度相同视为相等</li>
+ *   <li><b>其他字符串：</b>
+ *     <ul>
+ *       <li>若为 ASCII 可打印字符，按字典序比较</li>
+ *       <li>否则使用 HanLP 转为无音调拼音字符串，并以分隔符连接后按字典序比较</li>
+ *     </ul>
+ *   </li>
+ * </ul>
  *
- * <p>示例：
+ * <p>示例：</p>
  * <pre>
- * 排序前：["天气如何", null, " ", ""]
- * 排序后：[null, "", " ", "天气如何"]
+ * 排序前：["天气如何", null, " ", "", "  "]
+ * 排序后：[null, "", " ", "  ", "天气如何"]
  * </pre>
  *
- * <p>
- *   也可以使用 {@code Collator.getInstance(Locale.CHINA)} 代替
- * </p>
+ * <p>说明：</p>
+ * <ul>
+ *   <li>分隔符用于连接多音字或多字的拼音结果，例如 "-" 或空格</li>
+ *   <li>该比较器不可变且线程安全；不要求与 equals 一致</li>
+ *   <li>可考虑 {@code Collator.getInstance(Locale.CHINA)} 进行区域化比较，但与拼音规则可能存在差异</li>
+ * </ul>
  *
  * @author pangju666
  * @see com.hankcs.hanlp.HanLP#convertToPinyinString
@@ -127,12 +135,18 @@ public final class PinyinComparator implements Comparator<String> {
 	 *
 	 * @param o1 第一个字符串
 	 * @param o2 第二个字符串
-	 * @return 比较结果：
-	 * <ul>
-	 *   <li>负数：o1排在o2前面</li>
-	 *   <li>正数：o1排在o2后面</li>
-	 *   <li>0：两者相等</li>
-	 * </ul>
+	 * @return 比较结果（负数：o1 在前；正数：o1 在后；0：相等）。比较遵循以下顺序：
+	 * <ol>
+	 *   <li>null 优先；o1 为 null 则在前，o2 为 null 则在后</li>
+	 *   <li>空字符串 "" 次之；o1 为空串则在前，o2 为空串则在后</li>
+	 *   <li>空白字符串再次之；若两者均为空白，按长度升序比较（长度相同视为相等）</li>
+	 *   <li>其他字符串：
+	 *     <ul>
+	 *       <li>ASCII 可打印字符按字典序比较</li>
+	 *       <li>非 ASCII 字符使用 HanLP 转为拼音并按字典序比较</li>
+	 *     </ul>
+	 *   </li>
+	 * </ol>
 	 */
 	@Override
 	public int compare(String o1, String o2) {
@@ -141,7 +155,7 @@ public final class PinyinComparator implements Comparator<String> {
 			return 0;
 		}
 
-		// 判断是否为null
+		// 判断是否为 null
 		if (Objects.isNull(o1)) {
 			return -1;
 		}
@@ -157,15 +171,20 @@ public final class PinyinComparator implements Comparator<String> {
 			return 1;
 		}
 
-		// 判断是否为空白字符串
-		if (StringUtils.isBlank(o1)) {
+		// 判断是否为空白字符串；若两者均为空白，按长度升序比较（长度相同视为相等）
+		boolean o1Blank = o1.isBlank();
+		boolean o2Blank = o2.isBlank();
+		if (o1Blank && o2Blank) {
+			return o1.length() - o2.length();
+		}
+		if (o1Blank) {
 			return -1;
 		}
-		if (StringUtils.isBlank(o2)) {
+		if (o2Blank) {
 			return 1;
 		}
 
-		// 判断是否为ascii可打印字符，不是则获取其拼音字符串表示
+		// 判断是否为Ascii可打印字符，不是则获取其拼音字符串表示
 		String o1PinYin = StringUtils.isAsciiPrintable(o1) ? o1 :
 			HanLP.convertToPinyinString(o1, separator, false);
 		String o2PinYin = StringUtils.isAsciiPrintable(o2) ? o2 :

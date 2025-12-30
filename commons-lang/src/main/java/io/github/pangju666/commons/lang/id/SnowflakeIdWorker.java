@@ -5,7 +5,7 @@ import io.github.pangju666.commons.lang.concurrent.SystemClock;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * <h1>SnowflakeIdWorker</h1>
+ * <h1>SnowflakeIdWorker（使用 ChatGpt 生成的）</h1>
  * <p>
  * 基于 Twitter Snowflake 算法的高性能、分布式全局唯一 ID 生成器。<br>
  * 生成的 ID 为 64 位 long 型整数，按时间递增且在全局范围内唯一。
@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * System.out.println(id);
  * }</pre>
  *
- * @author Chat Gpt
  * @since 1.0.0
  */
 public final class SnowflakeIdWorker {
@@ -148,37 +147,45 @@ public final class SnowflakeIdWorker {
 			long last = lastTimestamp.get();
 
 			if (current < last) {
+				// 可选：增加小回拨容忍，避免测试失败
 				long offset = last - current;
 				if (offset <= 5) {
-					// 小幅回拨，等待恢复
+					// 等待回拨恢复
 					try {
 						Thread.sleep(offset);
-						continue;
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
-				} else {
-					throw new RuntimeException(
-						String.format("时钟向后移动。拒绝为 %dms 生成 ID", offset));
+					continue;
 				}
+				throw new RuntimeException("时钟向后移动。拒绝为 " + offset + "ms 生成 ID");
 			}
 
 			if (current == last) {
-				long seq = (sequence.incrementAndGet()) & SEQUENCE_MASK;
+				long seq = sequence.incrementAndGet() & SEQUENCE_MASK;
 				if (seq == 0) {
-					// 当前毫秒内序列溢出 -> 等待下一毫秒
+					// 序列号用尽，等待下一毫秒
 					current = waitNextMillis(last);
-					sequence.set(0);
+					// 不在此处重置 sequence！
 				}
+				// 尝试锁定这个时间戳
 				if (lastTimestamp.compareAndSet(last, current)) {
-					return buildId(current, seq);
+					if (seq == 0) {
+						// 只有在这里才安全重置 sequence
+						sequence.set(0);
+						return buildId(current, 0);
+					} else {
+						return buildId(current, seq);
+					}
 				}
+				// CAS 失败，重试
 			} else {
-				// 新毫秒重置序列号
+				// 新毫秒
 				if (lastTimestamp.compareAndSet(last, current)) {
 					sequence.set(0);
 					return buildId(current, 0);
 				}
+				// CAS 失败，重试
 			}
 		}
 	}
