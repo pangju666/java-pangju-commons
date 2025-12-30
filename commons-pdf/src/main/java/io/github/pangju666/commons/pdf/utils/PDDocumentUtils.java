@@ -304,10 +304,8 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final File file) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
-
-		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
-			throw new IllegalArgumentException("不是一个pdf文件");
+		if (!FileUtils.isMimeType(file, PdfConstants.PDF_MIME_TYPE)) {
+			throw new IllegalArgumentException("不是一个 PDF 文件");
 		}
 		return Loader.loadPDF(file, computeMemoryUsageSetting(file.length()).streamCache);
 	}
@@ -336,10 +334,8 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final File file, final String password) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
-
-		if (!PdfConstants.PDF_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(file))) {
-			throw new IllegalArgumentException("不是一个pdf文件");
+		if (!FileUtils.isMimeType(file, PdfConstants.PDF_MIME_TYPE)) {
+			throw new IllegalArgumentException("不是一个 PDF 文件");
 		}
 		return Loader.loadPDF(file, password, computeMemoryUsageSetting(file.length()).streamCache);
 	}
