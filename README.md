@@ -18,6 +18,8 @@
 
 模块化的 Java 工具库集合，涵盖压缩、加密、地理、图像、IO、语言工具、PDF、POI、校验等能力，支持按需引入。
 
+## [文档](https://pangju666.github.io/pangju-java-doc/commons/getting-started.html)
+
 ## 快速开始
 
 1. 引入 BOM（推荐）
