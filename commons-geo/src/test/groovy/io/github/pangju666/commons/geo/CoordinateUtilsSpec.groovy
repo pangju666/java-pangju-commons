@@ -59,8 +59,8 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate result = CoordinateUtils."$method"(input)
 
 		then:
-		result.longitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLng)
-		result.latitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLat)
+		result.getLongitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLng)
+		result.getLatitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLat)
 
 		where:
 		scenario                      | method         | lng       | lat     | expectedLng  | expectedLat
@@ -95,11 +95,11 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate input = new Coordinate(116.39151234, 39.90421234)
 
 		when:
-		String dms = CoordinateUtils.toLongitudeDms(input.longitude())
+		String dms = CoordinateUtils.toLongitudeDms(input.getLongitude())
 		BigDecimal decimal = CoordinateUtils.fromDMS(dms)
 
 		then:
-		decimal.subtract(input.longitude()).abs() < new BigDecimal("0.00001")
+		decimal.subtract(input.getLongitude()).abs() < new BigDecimal("0.00001")
 	}
 
 	// 测试误差范围
@@ -112,8 +112,8 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate convertedBack = CoordinateUtils.GCJ02ToWGS84(gcj02)
 
 		then:
-		(convertedBack.longitude() - wgs84.longitude()).abs() < new BigDecimal("0.000833") // ~50米误差
-		(convertedBack.latitude() - wgs84.latitude()).abs() < new BigDecimal("0.000833")
+		(convertedBack.getLongitude() - wgs84.getLongitude()).abs() < new BigDecimal("0.000833") // ~50米误差
+		(convertedBack.getLatitude() - wgs84.getLatitude()).abs() < new BigDecimal("0.000833")
 	}
 
 	// 辅助方法测试（需要反射访问protected方法）
@@ -172,9 +172,187 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate coord = new Coordinate(179.9999, 45.0)
 
 		when:
-		String dms = CoordinateUtils.toLongitudeDms(coord.longitude())
+		String dms = CoordinateUtils.toLongitudeDms(coord.getLongitude())
 
 		then:
 		dms.contains("179°59'59.64\"E")
+	}
+
+	// 距离计算：同一点应为0
+	def "测试距离计算 - 同一点为0米"() {
+		given:
+		Coordinate a = new Coordinate(0.0, 0.0)
+		Coordinate b = new Coordinate(0.0, 0.0)
+
+		expect:
+		CoordinateUtils.calculateDistance(a, b) == 0.0d
+	}
+
+	// 距离计算：赤道附近纬度相差1度约110.6km
+	def "测试距离计算 - 赤道纬度相差1度"() {
+		given:
+		Coordinate start = new Coordinate(0.0, 0.0)    // (lng, lat)
+		Coordinate end = new Coordinate(0.0, 1.0)
+
+		when:
+		double distance = CoordinateUtils.calculateDistance(start, end)
+
+		then:
+		distance > 110_000 && distance < 111_000
+	}
+
+	// 距离计算：北京到上海直线距离合理范围
+	def "测试距离计算 - 北京到上海"() {
+		given:
+		Coordinate beijing = new Coordinate(116.4074, 39.9042)
+		Coordinate shanghai = new Coordinate(121.4737, 31.2304)
+
+		when:
+		double distance = CoordinateUtils.calculateDistance(beijing, shanghai)
+
+		then:
+		distance > 1_040_000 && distance < 1_120_000
+	}
+
+	// 面积计算：赤道附近 0.1° x 0.1° 矩形
+	def "测试多边形面积计算 - 0.1度方形赤道附近"() {
+		given:
+		List<Coordinate> polygon = [
+			new Coordinate(0.0, 0.0),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.0, 0.1)
+		]
+
+		when:
+		BigDecimal area = CoordinateUtils.calculateArea(polygon)
+
+		then:
+		area.doubleValue() > 100_000_000d && area.doubleValue() < 135_000_000d
+	}
+
+	// 面积计算：自动闭合与顺序无关（结果取绝对值）
+	def "测试多边形面积计算 - 顺序与闭合"() {
+		given:
+		List<Coordinate> ccw = [
+			new Coordinate(0.0, 0.0),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.0, 0.1)
+		]
+		List<Coordinate> cw = [
+			new Coordinate(0.0, 0.1),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.0, 0.0)
+		]
+
+		expect:
+		CoordinateUtils.calculateArea(ccw).setScale(0, RoundingMode.DOWN) ==
+			CoordinateUtils.calculateArea(cw).setScale(0, RoundingMode.DOWN)
+	}
+
+	// 面积计算：非法输入（不足3个有效点）
+	def "测试多边形面积计算 - 非法输入抛异常"() {
+		given:
+		List<Coordinate> invalid = [new Coordinate(0.0, 0.0), null]
+
+		when:
+		CoordinateUtils.calculateArea(invalid)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "测试多边形周长计算 - 0.1度方形赤道附近"() {
+		given:
+		List<Coordinate> polygon = [
+			new Coordinate(0.0, 0.0),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.0, 0.1)
+		]
+
+		when:
+		BigDecimal perimeter = CoordinateUtils.calculatePerimeter(polygon)
+
+		then:
+		perimeter.doubleValue() > 44_000d && perimeter.doubleValue() < 45_500d
+	}
+
+	def "测试多边形周长计算 - 顺序与闭合"() {
+		given:
+		List<Coordinate> ccw = [
+			new Coordinate(0.0, 0.0),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.0, 0.1)
+		]
+		List<Coordinate> notClosedCw = [
+			new Coordinate(0.0, 0.1),
+			new Coordinate(0.1, 0.1),
+			new Coordinate(0.1, 0.0),
+			new Coordinate(0.0, 0.0)
+		]
+
+		expect:
+		CoordinateUtils.calculatePerimeter(ccw).setScale(0, RoundingMode.DOWN) ==
+			CoordinateUtils.calculatePerimeter(notClosedCw).setScale(0, RoundingMode.DOWN)
+	}
+
+	def "测试多边形周长计算 - 非法输入抛异常"() {
+		given:
+		List<Coordinate> invalid = [new Coordinate(0.0, 0.0), null]
+
+		when:
+		CoordinateUtils.calculatePerimeter(invalid)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "测试点在多边形内判定 - 简单矩形"() {
+		given:
+		List<Coordinate> rect = [
+			new Coordinate(0.0, 0.0),
+			new Coordinate(0.2, 0.0),
+			new Coordinate(0.2, 0.2),
+			new Coordinate(0.0, 0.2)
+		]
+		Coordinate inside = new Coordinate(0.1, 0.1)
+		Coordinate outside = new Coordinate(0.3, 0.3)
+		Coordinate boundary = new Coordinate(0.2, 0.1)
+
+		expect:
+		CoordinateUtils.isPointInPolygon(inside, rect)
+		!CoordinateUtils.isPointInPolygon(outside, rect)
+		CoordinateUtils.isPointInPolygon(boundary, rect)
+	}
+
+	def "测试点在多边形内判定 - 跨越180度经线"() {
+		given:
+		List<Coordinate> polygon = [
+			new Coordinate(179.5, 10.0),
+			new Coordinate(-179.5, 10.0),
+			new Coordinate(-179.5, 11.0),
+			new Coordinate(179.5, 11.0)
+		]
+		Coordinate inside = new Coordinate(179.9, 10.5)
+		Coordinate outside = new Coordinate(179.9, 9.0)
+
+		expect:
+		CoordinateUtils.isPointInPolygon(inside, polygon)
+		!CoordinateUtils.isPointInPolygon(outside, polygon)
+	}
+
+	def "测试点在多边形内判定 - 非法输入抛异常"() {
+		given:
+		List<Coordinate> invalidPolygon = [new Coordinate(0.0, 0.0), null]
+
+		when:
+		CoordinateUtils.isPointInPolygon(null, invalidPolygon)
+
+		then:
+		thrown(IllegalArgumentException)
 	}
 }
