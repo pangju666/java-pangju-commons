@@ -106,11 +106,8 @@ public class XWPFDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static XWPFDocument getDocument(final File file) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
-
-		String mimeType = IOConstants.getDefaultTika().detect(file);
-		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是docx文件");
+		if (!FileUtils.isMimeType(file, PoiConstants.DOCX_MIME_TYPE)) {
+			throw new IllegalArgumentException("不是 DOCX 文件");
 		}
 		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			return new XWPFDocument(inputStream);
@@ -129,9 +126,8 @@ public class XWPFDocumentUtils {
 	public static XWPFDocument getDocument(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
-		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!PoiConstants.DOCX_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是docx文件");
+		if (!PoiConstants.DOCX_MIME_TYPE.equals(IOConstants.getDefaultTika().detect(bytes))) {
+			throw new IllegalArgumentException("不是 DOCX 文件字节数组");
 		}
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return new XWPFDocument(inputStream);

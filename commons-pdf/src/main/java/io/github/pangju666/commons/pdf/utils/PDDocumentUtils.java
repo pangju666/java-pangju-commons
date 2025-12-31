@@ -363,7 +363,7 @@ public class PDDocumentUtils {
 	public static PDDocument getDocument(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件");
+			throw new IllegalArgumentException("不是一个 PDF 文件字节数组");
 		}
 
 		return Loader.loadPDF(bytes, "", null, null,
@@ -395,7 +395,7 @@ public class PDDocumentUtils {
 	public static PDDocument getDocument(final byte[] bytes, final String password) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件");
+			throw new IllegalArgumentException("不是一个 PDF 文件字节数组");
 		}
 
 		return Loader.loadPDF(bytes, password, null, null,
