@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  *   <tr><td>坐标系转换</td><td>WGS84ToGCJ02/GCJ02ToWGS84</td><td>中国境内 ±50–500 米</td></tr>
  *   <tr><td>格式转换</td><td>toLatitudeDMS/toLongitudeDms/fromDMS</td><td>DMS 精度 0.01″</td></tr>
  *   <tr><td>距离/周长</td><td>calculateDistance/calculatePerimeter</td><td>WGS84 椭球大地线</td></tr>
- *   <tr><td>面积计算</td><td>calculateArea</td><td>球面近似，误差通常 <0.1%</td></tr>
+ *   <tr><td>面积计算</td><td>calculateArea</td><td>球面近似，误差通常 &lt;0.1%</td></tr>
  *   <tr><td>点内判定</td><td>isPointInPolygon</td><td>射线交叉法，支持 ±180° 经线跨越</td></tr>
  * </table>
  *
@@ -362,7 +362,7 @@ public class CoordinateUtils {
 	 *
 	 * @param coordinates 多边形顶点列表，至少包含 3 个非空坐标点
 	 * @return 周长（米），以 {@link MathContext#DECIMAL32} 精度返回
-	 * @throws IllegalArgumentException 如果输入为空、有效点数不足（<3）或包含 {@code null} 坐标
+	 * @throws IllegalArgumentException 如果输入为空、有效点数不足（&lt;3）或包含 {@code null} 坐标
 	 * @since 1.0.0
 	 */
 	public static BigDecimal calculatePerimeter(final Collection<Coordinate> coordinates) {
@@ -421,7 +421,7 @@ public class CoordinateUtils {
 	 *
 	 * @param coordinates 多边形顶点列表，至少包含 3 个非空坐标点
 	 * @return 面积（平方米），以 {@link MathContext#DECIMAL32} 精度返回，结果为非负数
-	 * @throws IllegalArgumentException 如果输入为空、有效点数不足（<3）或包含 {@code null} 坐标
+	 * @throws IllegalArgumentException 如果输入为空、有效点数不足（&lt;3）或包含 {@code null} 坐标
 	 * @since 1.0.0
 	 */
 	public static BigDecimal calculateArea(final Collection<Coordinate> coordinates) {
@@ -477,7 +477,7 @@ public class CoordinateUtils {
 	 *   <li>通过 {@link #adjustLongitude(double, double)} 将多边形与测试点的经度相对参考经度标准化，避免跨越国际日期变更线导致的射线法失效</li>
 	 *   <li>在标准化后的坐标上，使用水平向右的射线与边相交次数奇偶判断点是否在多边形内</li>
 	 *   <li>边界判定通过 {@link #isPointOnSegment(double, double, double, double, double, double)} 完成，边界上的点视为“内部”</li>
-	 *   <li>为增强数值稳定性，跳过近似水平的边（|Δy| < 1e-12）</li>
+	 *   <li>为增强数值稳定性，跳过近似水平的边（|Δy| &lt; 1e-12）</li>
 	 * </ul>
 	 * </p>
 	 * <p>
