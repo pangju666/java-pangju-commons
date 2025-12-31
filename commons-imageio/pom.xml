@@ -18,7 +18,6 @@
 	</licenses>
 
 	<properties>
-		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<maven.site.skip>true</maven.site.skip>
 		<maven.site.attach>false</maven.site.attach>
 	</properties>

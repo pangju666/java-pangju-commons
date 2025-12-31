@@ -293,7 +293,7 @@ public class RegExPool {
 	 */
 	public static final String LINUX_FILE_PATH = "\\/(?:[^\\/]+\\/)*[^\\/]+";
 	/**
-	 * Windows目录路径（支持 \ 或 / 作为分隔符，排除保留字符：< > : " | ? * / \）
+	 * Windows目录路径（支持 \ 或 / 作为分隔符，排除保留字符：&lt; &gt; : " | ? * / \）
 	 *
 	 * <p>示例：C:\Windows\、C:/Program Files/、D:\\Data\\Project、E:/mixed/allowed</p>
 	 *

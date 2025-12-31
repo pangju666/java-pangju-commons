@@ -1360,7 +1360,7 @@ public class WorkbookUtils {
 	 * </p>
 	 *
 	 * @param sheet Excel工作表对象，不可为null
-	 * @return 行跨度（>= 0），若工作表无任何行则返回 0
+	 * @return 行跨度（&gt;= 0），若工作表无任何行则返回 0
 	 * @throws IllegalArgumentException 当 sheet 为 null
 	 * @see Sheet#getFirstRowNum()
 	 * @see Sheet#getLastRowNum()
@@ -1392,7 +1392,7 @@ public class WorkbookUtils {
 	 * </p>
 	 *
 	 * @param row Excel 行对象，不可为 null
-	 * @return 列跨度（>= 0），表示从第 0 列到最后一列的逻辑宽度
+	 * @return 列跨度（&gt;= 0），表示从第 0 列到最后一列的逻辑宽度
 	 * @throws IllegalArgumentException 当 row 为 null 时抛出
 	 * @see Row#getLastCellNum()
 	 * @see Row#getPhysicalNumberOfCells()
