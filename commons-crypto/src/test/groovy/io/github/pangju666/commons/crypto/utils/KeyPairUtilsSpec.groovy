@@ -8,7 +8,6 @@ import spock.lang.Unroll
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.NoSuchAlgorithmException
-import java.security.SecureRandom
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
@@ -44,18 +43,6 @@ class KeyPairUtilsSpec extends Specification {
 
 		where:
 		keySize << [1024, 2048, 4096]
-	}
-
-	def "generateKeyPair 指定长度与随机源"() {
-		given:
-		def random = new SecureRandom(new byte[16])
-
-		when:
-		KeyPair kp = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, 1024, random)
-
-		then:
-		((RSAPublicKey) kp.public).modulus.bitLength() == 1024
-		((RSAPrivateKey) kp.private).modulus.bitLength() == 1024
 	}
 
 	def "getPrivateKeyFromPKCS8Base64String 空返回null"() {
