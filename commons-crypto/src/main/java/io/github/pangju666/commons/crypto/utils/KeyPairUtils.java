@@ -16,7 +16,6 @@
 
 package io.github.pangju666.commons.crypto.utils;
 
-import io.github.pangju666.commons.crypto.lang.CryptoConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -94,26 +92,6 @@ public class KeyPairUtils {
 	 */
 	protected static final Map<String, KeyPairGenerator> KEY_PAIR_GENERATOR_MAP = new ConcurrentHashMap<>(4);
 
-	// 预缓存RSA算法密钥工厂和密钥生成器
-	static {
-		try {
-			KEY_FACTORY_MAP.put(CryptoConstants.RSA_ALGORITHM, KeyFactory.getInstance(CryptoConstants.RSA_ALGORITHM));
-			for (Integer keySize : CryptoConstants.RSA_KEY_SIZE_SET) {
-				String mapKey = CryptoConstants.RSA_ALGORITHM + "-" + keySize;
-				KeyPairGenerator generator = KeyPairGenerator.getInstance(CryptoConstants.RSA_ALGORITHM);
-				generator.initialize(keySize);
-				KEY_PAIR_GENERATOR_MAP.put(mapKey, generator);
-
-				if (keySize == CryptoConstants.RSA_DEFAULT_KEY_SIZE) {
-					KEY_PAIR_GENERATOR_MAP.put(CryptoConstants.RSA_ALGORITHM, generator);
-				}
-			}
-		} catch (NoSuchAlgorithmException e) {
-			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
-			throw ExceptionUtils.asRuntimeException(e);
-		}
-	}
-
 	protected KeyPairUtils() {
 	}
 
@@ -121,11 +99,8 @@ public class KeyPairUtils {
 	 * 获取指定算法的 KeyFactory（带缓存）
 	 * <p>若缓存中不存在则创建并加入缓存。</p>
 	 *
-	 * <h3>并发行为</h3>
-	 * <ul>
-	 *   <li>使用 ConcurrentHashMap 保证检索与更新的线程安全</li>
-	 *   <li>可能发生并发创建，但最终缓存中的实例可正确工作</li>
-	 * </ul>
+	 * <h3>并发说明</h3>
+	 * KeyFactory 为线程安全对象，缓存实例可被多线程共享。
 	 *
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @return 对应算法的 KeyFactory 实例
@@ -134,39 +109,41 @@ public class KeyPairUtils {
 	 * @since 1.0.0
 	 */
 	public static KeyFactory getKeyFactory(final String algorithm) throws NoSuchAlgorithmException {
-		Validate.notBlank(algorithm, "algorithm不可为空");
-		KeyFactory keyFactory = KEY_FACTORY_MAP.get(algorithm);
-		if (Objects.nonNull(keyFactory)) {
-			return keyFactory;
-		}
-		keyFactory = KeyFactory.getInstance(algorithm);
-		KEY_FACTORY_MAP.putIfAbsent(algorithm, keyFactory);
-		return keyFactory;
+		Validate.notBlank(algorithm, "algorithm 不可为空");
+		return KEY_FACTORY_MAP.computeIfAbsent(algorithm, alg -> {
+			try {
+				return KeyFactory.getInstance(alg);
+			} catch (NoSuchAlgorithmException e) {
+				throw ExceptionUtils.asRuntimeException(e);
+			}
+		});
 	}
 
 	/**
 	 * 生成指定算法的密钥对（使用 Provider 默认参数）
-	 * <p>密钥长度与其他初始化参数由 Provider 决定，可能因实现不同而差异。</p>
+	 * <p>密钥长度与其他初始化参数由 Provider 决定。</p>
 	 *
 	 * <h3>建议</h3>
 	 * <ul>
-	 *   <li>为安全性与可预期性，推荐使用显式 keySize 的重载</li>
-	 *   <li>RSA 场景建议 ≥ 2048 位；EC 场景建议使用安全曲线与合适参数</li>
+	 *   <li>为确保安全性，推荐使用 {@link #generateKeyPair(String, int)} 显式指定密钥长度</li>
+	 *   <li>RSA 建议 ≥ 2048 位；EC 建议选择适用的安全曲线</li>
 	 * </ul>
 	 *
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @return 新生成的密钥对（不返回 null）
+	 * @return 新生成的密钥对
 	 * @throws NoSuchAlgorithmException 当指定算法不可用时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
 	public static KeyPair generateKeyPair(final String algorithm) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
-		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.get(algorithm);
-		if (Objects.isNull(generator)) {
-			generator = KeyPairGenerator.getInstance(algorithm);
-			KEY_PAIR_GENERATOR_MAP.putIfAbsent(algorithm, generator);
-		}
+		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.computeIfAbsent(algorithm, alg -> {
+			try {
+				return KeyPairGenerator.getInstance(algorithm);
+			} catch (NoSuchAlgorithmException e) {
+				throw ExceptionUtils.asRuntimeException(e);
+			}
+		});
 		return generator.generateKeyPair();
 	}
 
@@ -192,38 +169,15 @@ public class KeyPairUtils {
 	public static KeyPair generateKeyPair(final String algorithm, final int keySize) throws NoSuchAlgorithmException {
 		Validate.notBlank(algorithm, "algorithm不可为空");
 		String mapKey = algorithm + "-" + keySize;
-		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.get(mapKey);
-		if (Objects.isNull(generator)) {
-			generator = KeyPairGenerator.getInstance(algorithm);
-			generator.initialize(keySize);
-			KEY_PAIR_GENERATOR_MAP.putIfAbsent(mapKey, generator);
-		}
-		return generator.generateKeyPair();
-	}
-
-	/**
-	 * 生成指定算法、密钥长度与随机源的密钥对
-	 * <p>使用自定义 SecureRandom 初始化生成器。</p>
-	 *
-	 * <h3>随机源选择</h3>
-	 * <ul>
-	 *   <li>强随机源：{@code SecureRandom.getInstanceStrong()}</li>
-	 *   <li>通用性能：{@code new SecureRandom()}</li>
-	 *   <li>测试用途：固定种子 {@code SecureRandom}</li>
-	 * </ul>
-	 *
-	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param keySize 密钥长度（单位：bit），需符合算法与 Provider 要求
-	 * @param secureRandom 安全随机数生成器，不可为 null
-	 * @return 新生成的密钥对（不返回 null）
-	 * @throws NoSuchAlgorithmException 当指定算法不可用时抛出
-	 * @throws IllegalArgumentException 当任何参数为空或无效时抛出
-	 * @since 1.0.0
-	 */
-	public static KeyPair generateKeyPair(final String algorithm, final int keySize, final SecureRandom secureRandom) throws NoSuchAlgorithmException {
-		Validate.notBlank(algorithm, "algorithm不可为空");
-		KeyPairGenerator generator = KeyPairGenerator.getInstance(algorithm);
-		generator.initialize(keySize, secureRandom);
+		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.computeIfAbsent(mapKey, alg -> {
+			try {
+				KeyPairGenerator newGenerator = KeyPairGenerator.getInstance(algorithm);
+				newGenerator.initialize(keySize);
+				return newGenerator;
+			} catch (NoSuchAlgorithmException e) {
+				throw ExceptionUtils.asRuntimeException(e);
+			}
+		});
 		return generator.generateKeyPair();
 	}
 
@@ -251,7 +205,8 @@ public class KeyPairUtils {
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKeyFromPKCS8Base64String(final String algorithm, final String pkcs8Key) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKeyFromPKCS8Base64String(final String algorithm, final String pkcs8Key)
+		throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (StringUtils.isBlank(pkcs8Key)) {
 			return null;
 		}
@@ -263,19 +218,25 @@ public class KeyPairUtils {
 	}
 
 	/**
-	 * 从 PKCS#8 原始字节解析未加密私钥
-	 * <p>仅支持未加密的 PKCS#8 {@code PrivateKeyInfo}；加密的 PKCS#8（{@code EncryptedPrivateKeyInfo}）需先解密。</p>
+	 * 从 PKCS#8 格式的字节数组解析未加密私钥
+	 * <p>注意：此方法仅接受已解码的 DER 格式字节数据。</p>
+	 *
+	 * <h3>使用说明</h3>
+	 * 若您持有 PEM 格式（带头尾标记如 {@code -----BEGIN PRIVATE KEY-----}）的 Base64 字符串，
+	 * 请先自行去除头尾标记与换行符，并进行 Base64 解码后传入，或直接使用 {@link #getPrivateKeyFromPKCS8Base64String(String, String)}。
 	 *
 	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param encodedKey 未加密 PKCS#8 原始字节，必须非空
+	 * @param encodedKey PKCS#8 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PrivateKey
 	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
 	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.PKCS8EncodedKeySpec
+	 * @see #getPrivateKeyFromPKCS8Base64String(String, String)
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKeyFromPKCS8EncodedKey(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKeyFromPKCS8EncodedKey(final String algorithm, final byte[] encodedKey)
+		throws InvalidKeySpecException, NoSuchAlgorithmException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
 
 		KeySpec keySpec = new PKCS8EncodedKeySpec(encodedKey);
@@ -306,7 +267,8 @@ public class KeyPairUtils {
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKeyFromX509Base64String(final String algorithm, final String x509Key) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKeyFromX509Base64String(final String algorithm, final String x509Key)
+		throws InvalidKeySpecException, NoSuchAlgorithmException {
 		if (StringUtils.isBlank(x509Key)) {
 			return null;
 		}
@@ -318,19 +280,25 @@ public class KeyPairUtils {
 	}
 
 	/**
-	 * 从 X.509 原始字节解析公钥
-	 * <p>使用 {@code X509EncodedKeySpec} 解析 SubjectPublicKeyInfo 结构。</p>
+	 * 从 X.509 格式的字节数组解析公钥
+	 * <p>注意：此方法仅接受已解码的 DER 格式字节数据。</p>
+	 *
+	 * <h3>使用说明</h3>
+	 * 若您持有 PEM 格式（带头尾标记如 {@code -----BEGIN PUBLIC KEY-----}）的 Base64 字符串，
+	 * 请先自行去除头尾标记与换行符，并进行 Base64 解码后传入，或直接使用 {@link #getPublicKeyFromX509Base64String(String, String)}。
 	 *
 	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param encodedKey X.509 原始字节，必须非空
+	 * @param encodedKey X.509 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PublicKey
 	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
 	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.X509EncodedKeySpec
+	 * @see #getPublicKeyFromX509Base64String(String, String)
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKeyFromX509EncodedKey(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKeyFromX509EncodedKey(final String algorithm, final byte[] encodedKey)
+		throws InvalidKeySpecException, NoSuchAlgorithmException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
 
 		KeySpec keySpec = new X509EncodedKeySpec(encodedKey);
