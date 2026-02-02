@@ -135,8 +135,7 @@ public class GZipUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (outputStream instanceof GzipCompressorOutputStream) {
-			GzipCompressorOutputStream compressorOutputStream = (GzipCompressorOutputStream) outputStream;
+		if (outputStream instanceof GzipCompressorOutputStream compressorOutputStream) {
 			if (inputStream instanceof BufferedInputStream ||
 				inputStream instanceof UnsynchronizedBufferedInputStream) {
 				inputStream.transferTo(compressorOutputStream);
@@ -192,8 +191,7 @@ public class GZipUtils {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (outputStream instanceof GzipCompressorOutputStream) {
-			GzipCompressorOutputStream compressorOutputStream = (GzipCompressorOutputStream) outputStream;
+		if (outputStream instanceof GzipCompressorOutputStream compressorOutputStream) {
 			try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
@@ -256,23 +254,20 @@ public class GZipUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (inputStream instanceof GzipCompressorInputStream) {
-			GzipCompressorInputStream compressorInputStream = (GzipCompressorInputStream) inputStream;
-			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+		if (inputStream instanceof GzipCompressorInputStream compressorInputStream) {
+			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}
 		} else if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 			try (GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(inputStream)) {
-				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -280,11 +275,10 @@ public class GZipUtils {
 		} else {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				 GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
-				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -309,11 +303,10 @@ public class GZipUtils {
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
-			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}

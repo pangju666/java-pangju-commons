@@ -132,8 +132,7 @@ public class XZUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (outputStream instanceof XZCompressorOutputStream) {
-			XZCompressorOutputStream compressorOutputStream = (XZCompressorOutputStream) outputStream;
+		if (outputStream instanceof XZCompressorOutputStream compressorOutputStream) {
 			if (inputStream instanceof BufferedInputStream ||
 				inputStream instanceof UnsynchronizedBufferedInputStream) {
 				inputStream.transferTo(compressorOutputStream);
@@ -187,8 +186,7 @@ public class XZUtils {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (outputStream instanceof XZCompressorOutputStream) {
-			XZCompressorOutputStream compressorOutputStream = (XZCompressorOutputStream) outputStream;
+		if (outputStream instanceof XZCompressorOutputStream compressorOutputStream) {
 			try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
@@ -248,10 +246,8 @@ public class XZUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (inputStream instanceof XZCompressorInputStream) {
-			XZCompressorInputStream compressorInputStream = (XZCompressorInputStream) inputStream;
-			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+		if (inputStream instanceof XZCompressorInputStream compressorInputStream) {
+			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
 				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
@@ -260,8 +256,7 @@ public class XZUtils {
 			}
 		} else if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 			try (XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(inputStream)) {
-				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
 					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
@@ -272,8 +267,7 @@ public class XZUtils {
 		} else {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
-				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
 					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
@@ -301,8 +295,7 @@ public class XZUtils {
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
-			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
+			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
 				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {

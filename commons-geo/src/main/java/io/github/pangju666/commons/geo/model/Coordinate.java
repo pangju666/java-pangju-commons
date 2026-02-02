@@ -46,25 +46,14 @@ import java.math.BigDecimal;
  *   <li>地理围栏判断</li>
  * </ul>
  *
+ * @param longitude 经度
+ * @param latitude  纬度
  * @author pangju666
- * @since 1.0.0
  * @see GeoConstants
  * @see CoordinateUtils
+ * @since 1.0.0
  */
-public class Coordinate {
-	/**
-	 * 经度
-	 *
-	 * @since 1.0.0
-	 */
-	private final BigDecimal longitude;
-	/**
-	 * 纬度
-	 *
-	 * @since 1.0.0
-	 */
-	private final BigDecimal latitude;
-
+public record Coordinate(BigDecimal longitude, BigDecimal latitude) {
 	/**
 	 * 主构造方法
 	 * <p>
@@ -81,22 +70,19 @@ public class Coordinate {
 	 *                    <li>非null</li>
 	 *                    <li>在有效范围内</li>
 	 *                  </ul>
-	 * @param latitude 纬度值，必须满足：
-	 *                 <ul>
-	 *                   <li>非null</li>
-	 *                   <li>在有效范围内</li>
-	 *                 </ul>
+	 * @param latitude  纬度值，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>在有效范围内</li>
+	 *                  </ul>
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	public Coordinate(BigDecimal longitude, BigDecimal latitude) {
+	public Coordinate {
 		Validate.notNull(longitude, "longitude 不可为null");
 		Validate.notNull(latitude, "latitude 不可为null");
 		Validate.inclusiveBetween(GeoConstants.MIN_LONGITUDE, GeoConstants.MAX_LONGITUDE, longitude.doubleValue());
 		Validate.inclusiveBetween(GeoConstants.MIN_LATITUDE, GeoConstants.MAX_LATITUDE, latitude.doubleValue());
-
-		this.longitude = longitude;
-		this.latitude = latitude;
 	}
 
 	/**
@@ -107,7 +93,7 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @param longitude 经度（十进制度数），示例：116.404
-	 * @param latitude 纬度（十进制度数），示例：39.915
+	 * @param latitude  纬度（十进制度数），示例：39.915
 	 * @see #Coordinate(BigDecimal, BigDecimal)
 	 * @since 1.0.0
 	 */
@@ -123,21 +109,13 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @param longitude 经度字符串，示例：116°23'29.34"E
-	 * @param latitude 纬度字符串，示例：39°54'15.12"N
+	 * @param latitude  纬度字符串，示例：39°54'15.12"N
 	 * @throws NumberFormatException 当格式不符合规范时抛出
 	 * @see CoordinateUtils#fromDMS(String)
 	 * @since 1.0.0
 	 */
 	public Coordinate(String longitude, String latitude) {
 		this(CoordinateUtils.fromDMS(longitude), CoordinateUtils.fromDMS(latitude));
-	}
-
-	public BigDecimal getLongitude() {
-		return longitude;
-	}
-
-	public BigDecimal getLatitude() {
-		return latitude;
 	}
 
 	/**
@@ -148,10 +126,10 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @return 判断结果：
-	 *         <ul>
-	 *           <li>true - 境外或边界上</li>
-	 *           <li>false - 境内</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>true - 境外或边界上</li>
+	 *   <li>false - 境内</li>
+	 * </ul>
 	 * @see GeoConstants#CHINA_MIN_LONGITUDE
 	 * @see GeoConstants#CHINA_MAX_LONGITUDE
 	 * @see GeoConstants#CHINA_MIN_LATITUDE

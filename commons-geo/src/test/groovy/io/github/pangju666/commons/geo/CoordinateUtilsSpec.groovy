@@ -59,8 +59,8 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate result = CoordinateUtils."$method"(input)
 
 		then:
-		result.getLongitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLng)
-		result.getLatitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLat)
+		result.longitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLng)
+		result.latitude().setScale(6, RoundingMode.HALF_UP) == new BigDecimal(expectedLat)
 
 		where:
 		scenario                      | method         | lng       | lat     | expectedLng  | expectedLat
@@ -95,11 +95,11 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate input = new Coordinate(116.39151234, 39.90421234)
 
 		when:
-		String dms = CoordinateUtils.toLongitudeDms(input.getLongitude())
+		String dms = CoordinateUtils.toLongitudeDms(input.longitude())
 		BigDecimal decimal = CoordinateUtils.fromDMS(dms)
 
 		then:
-		decimal.subtract(input.getLongitude()).abs() < new BigDecimal("0.00001")
+		decimal.subtract(input.longitude()).abs() < new BigDecimal("0.00001")
 	}
 
 	// 测试误差范围
@@ -112,8 +112,8 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate convertedBack = CoordinateUtils.GCJ02ToWGS84(gcj02)
 
 		then:
-		(convertedBack.getLongitude() - wgs84.getLongitude()).abs() < new BigDecimal("0.000833") // ~50米误差
-		(convertedBack.getLatitude() - wgs84.getLatitude()).abs() < new BigDecimal("0.000833")
+		(convertedBack.longitude() - wgs84.longitude()).abs() < new BigDecimal("0.000833") // ~50米误差
+		(convertedBack.latitude() - wgs84.latitude()).abs() < new BigDecimal("0.000833")
 	}
 
 	// 辅助方法测试（需要反射访问protected方法）
@@ -172,7 +172,7 @@ class CoordinateUtilsSpec extends Specification {
 		Coordinate coord = new Coordinate(179.9999, 45.0)
 
 		when:
-		String dms = CoordinateUtils.toLongitudeDms(coord.getLongitude())
+		String dms = CoordinateUtils.toLongitudeDms(coord.longitude())
 
 		then:
 		dms.contains("179°59'59.64\"E")

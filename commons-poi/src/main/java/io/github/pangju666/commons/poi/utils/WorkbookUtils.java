@@ -238,14 +238,11 @@ public class WorkbookUtils {
 		}
 
 		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
-			switch (mimeType) {
-				case PoiConstants.XLS_MIME_TYPE:
-					return new HSSFWorkbook(inputStream);
-				case PoiConstants.XLSX_MIME_TYPE:
-					return new XSSFWorkbook(inputStream);
-				default:
-					return null;
-			}
+			return switch (mimeType) {
+				case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
+				case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);
+				default -> null;
+			};
 		}
 	}
 
@@ -271,14 +268,11 @@ public class WorkbookUtils {
 		}
 
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-		switch (mimeType) {
-			case PoiConstants.XLS_MIME_TYPE:
-				return new HSSFWorkbook(inputStream);
-			case PoiConstants.XLSX_MIME_TYPE:
-				return new XSSFWorkbook(inputStream);
-			default:
-				return null;
-		}
+		return switch (mimeType) {
+			case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
+			case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);
+			default -> null;
+		};
 	}
 
 	/**
@@ -809,16 +803,12 @@ public class WorkbookUtils {
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
-		switch (cell.getCellType()) {
-			case NUMERIC:
-				return String.valueOf(cell.getNumericCellValue());
-			case STRING:
-				return Objects.toString(cell.getStringCellValue(), defaultValue);
-			case BOOLEAN:
-				return BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
-			default:
-				return defaultValue;
-		}
+		return switch (cell.getCellType()) {
+			case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+			case STRING -> Objects.toString(cell.getStringCellValue(), defaultValue);
+			case BOOLEAN -> BooleanUtils.toStringTrueFalse(cell.getBooleanCellValue());
+			default -> defaultValue;
+		};
 	}
 
 	/**
@@ -912,16 +902,12 @@ public class WorkbookUtils {
 		if (Objects.isNull(cellValue)) {
 			return defaultValue;
 		}
-		switch (cellValue.getCellType()) {
-			case NUMERIC:
-				return String.valueOf(cellValue.getNumberValue());
-			case STRING:
-				return Objects.toString(cellValue.getStringValue(), defaultValue);
-			case BOOLEAN:
-				return BooleanUtils.toStringTrueFalse(cellValue.getBooleanValue());
-			default:
-				return defaultValue;
-		}
+		return switch (cellValue.getCellType()) {
+			case NUMERIC -> String.valueOf(cellValue.getNumberValue());
+			case STRING -> Objects.toString(cellValue.getStringValue(), defaultValue);
+			case BOOLEAN -> BooleanUtils.toStringTrueFalse(cellValue.getBooleanValue());
+			default -> defaultValue;
+		};
 	}
 
 	/**
@@ -1131,16 +1117,12 @@ public class WorkbookUtils {
 		if (isEmptyCell(cell)) {
 			return defaultValue;
 		}
-		switch (cell.getCellType()) {
-			case NUMERIC:
-				return cell.getNumericCellValue() > 0;
-			case STRING:
-				return BooleanUtils.toBoolean(cell.getStringCellValue());
-			case BOOLEAN:
-				return cell.getBooleanCellValue();
-			default:
-				return defaultValue;
-		}
+		return switch (cell.getCellType()) {
+			case NUMERIC -> cell.getNumericCellValue() > 0;
+			case STRING -> BooleanUtils.toBoolean(cell.getStringCellValue());
+			case BOOLEAN -> cell.getBooleanCellValue();
+			default -> defaultValue;
+		};
 	}
 
 	/**
@@ -1228,16 +1210,12 @@ public class WorkbookUtils {
 		if (Objects.isNull(cellValue)) {
 			return defaultValue;
 		}
-		switch (cellValue.getCellType()) {
-			case NUMERIC:
-				return cellValue.getNumberValue() > 0;
-			case STRING:
-				return BooleanUtils.toBoolean(cellValue.getStringValue());
-			case BOOLEAN:
-				return cellValue.getBooleanValue();
-			default:
-				return defaultValue;
-		}
+		return switch (cellValue.getCellType()) {
+			case NUMERIC -> cellValue.getNumberValue() > 0;
+			case STRING -> BooleanUtils.toBoolean(cellValue.getStringValue());
+			case BOOLEAN -> cellValue.getBooleanValue();
+			default -> defaultValue;
+		};
 	}
 
 	/**
@@ -1328,14 +1306,11 @@ public class WorkbookUtils {
 			return defaultValue;
 		}
 		try {
-			switch (cell.getCellType()) {
-				case NUMERIC:
-					return cell.getDateCellValue();
-				case STRING:
-					return DateUtils.parseDateOrDefault(cell.getStringCellValue(), defaultValue, parsePatterns);
-				default:
-					return defaultValue;
-			}
+			return switch (cell.getCellType()) {
+				case NUMERIC -> cell.getDateCellValue();
+				case STRING -> DateUtils.parseDateOrDefault(cell.getStringCellValue(), defaultValue, parsePatterns);
+				default -> defaultValue;
+			};
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
@@ -2187,8 +2162,7 @@ public class WorkbookUtils {
 			cell.setCellValue((RichTextString) value);
 		} else if (value instanceof Hyperlink) {
 			cell.setHyperlink((Hyperlink) value);
-		} else if (value instanceof URI) {
-			URI uri = (URI) value;
+		} else if (value instanceof URI uri) {
 			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
 			Hyperlink hyperlink;
 			if (Strings.CS.equals(uri.getScheme(), "file")) {
@@ -2205,8 +2179,7 @@ public class WorkbookUtils {
 			hyperlink.setLabel(uri.toString());
 			cell.setHyperlink(hyperlink);
 			cell.setCellValue(uri.toString());
-		} else if (value instanceof URL) {
-			URL url = (URL) value;
+		} else if (value instanceof URL url) {
 			CreationHelper creationHelper = row.getSheet().getWorkbook().getCreationHelper();
 			Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
 			hyperlink.setLabel(url.toString());

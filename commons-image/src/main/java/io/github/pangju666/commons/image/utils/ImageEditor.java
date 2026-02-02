@@ -1272,17 +1272,11 @@ public class ImageEditor {
 			if (outputImage.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
 				imageType = BufferedImage.TYPE_BYTE_GRAY;
 			} else {
-				switch (imageType) {
-					case BufferedImage.TYPE_4BYTE_ABGR:
-					case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-						imageType = BufferedImage.TYPE_3BYTE_BGR;
-						break;
-					case BufferedImage.TYPE_INT_ARGB:
-					case BufferedImage.TYPE_INT_ARGB_PRE:
-					default:
-						imageType = BufferedImage.TYPE_INT_RGB;
-						break;
-				}
+				imageType = switch (imageType) {
+					case BufferedImage.TYPE_4BYTE_ABGR, BufferedImage.TYPE_4BYTE_ABGR_PRE ->
+						BufferedImage.TYPE_3BYTE_BGR;
+					default -> BufferedImage.TYPE_INT_RGB;
+				};
 			}
 			return ImageUtil.toBuffered(outputImage, imageType);
 		}
@@ -1358,44 +1352,44 @@ public class ImageEditor {
 		int waterX = x;
 		int waterY = y;
 		if (Objects.nonNull(direction)) {
-			switch (direction) {
-				case TOP:
+			waterY = switch (direction) {
+				case TOP -> {
 					waterX = (outputImageSize.getWidth() - watermarkImageSize.getWidth()) / 2;
-					waterY = 10;
-					break;
-				case BOTTOM:
+					yield 10;
+				}
+				case BOTTOM -> {
 					waterX = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
-					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
-					break;
-				case TOP_LEFT:
+					yield outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+				}
+				case TOP_LEFT -> {
 					waterX = 10;
-					waterY = 10;
-					break;
-				case TOP_RIGHT:
+					yield 10;
+				}
+				case TOP_RIGHT -> {
 					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
-					waterY = 10;
-					break;
-				case BOTTOM_LEFT:
+					yield 10;
+				}
+				case BOTTOM_LEFT -> {
 					waterX = 10;
-					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
-					break;
-				case BOTTOM_RIGHT:
+					yield outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+				}
+				case BOTTOM_RIGHT -> {
 					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
-					waterY = outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
-					break;
-				case LEFT:
+					yield outputImageSize.getHeight() - watermarkImageSize.getHeight() - 10;
+				}
+				case LEFT -> {
 					waterX = 10;
-					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
-					break;
-				case RIGHT:
+					yield (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+				}
+				case RIGHT -> {
 					waterX = outputImageSize.getWidth() - watermarkImageSize.getWidth() - 10;
-					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
-					break;
-				case CENTER:
+					yield (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+				}
+				case CENTER -> {
 					waterX = (outputImageSize.getWidth() - watermarkImageSize.getWidth()) / 2;
-					waterY = (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
-					break;
-			}
+					yield (outputImageSize.getHeight() - watermarkImageSize.getHeight()) / 2;
+				}
+			};
 		}
 
 		graphics.drawImage(watermarkImage, waterX, waterY, watermarkImageSize.getWidth(),
@@ -1447,44 +1441,44 @@ public class ImageEditor {
 		int waterX = x;
 		int waterY = y;
 		if (Objects.nonNull(direction)) {
-			switch (direction) {
-				case TOP:
+			waterY = switch (direction) {
+				case TOP -> {
 					waterX = (outputImageSize.getWidth() - textWidth) / 2;
-					waterY = 20 + textHeight;
-					break;
-				case BOTTOM:
+					yield 20 + textHeight;
+				}
+				case BOTTOM -> {
 					waterX = (outputImageSize.getHeight() + textHeight) / 2;
-					waterY = outputImageSize.getHeight() - 20;
-					break;
-				case TOP_LEFT:
+					yield outputImageSize.getHeight() - 20;
+				}
+				case TOP_LEFT -> {
 					waterX = 20;
-					waterY = 20 + textHeight;
-					break;
-				case TOP_RIGHT:
+					yield 20 + textHeight;
+				}
+				case TOP_RIGHT -> {
 					waterX = outputImageSize.getWidth() - textWidth - 20;
-					waterY = 20 + textHeight;
-					break;
-				case BOTTOM_LEFT:
+					yield 20 + textHeight;
+				}
+				case BOTTOM_LEFT -> {
 					waterX = 20;
-					waterY = outputImageSize.getHeight() - 20;
-					break;
-				case BOTTOM_RIGHT:
+					yield outputImageSize.getHeight() - 20;
+				}
+				case BOTTOM_RIGHT -> {
 					waterX = outputImageSize.getWidth() - textWidth - 20;
-					waterY = outputImageSize.getHeight() - 20;
-					break;
-				case LEFT:
+					yield outputImageSize.getHeight() - 20;
+				}
+				case LEFT -> {
 					waterX = 20;
-					waterY = (outputImageSize.getHeight() + textHeight) / 2;
-					break;
-				case RIGHT:
+					yield (outputImageSize.getHeight() + textHeight) / 2;
+				}
+				case RIGHT -> {
 					waterX = outputImageSize.getWidth() - textWidth - 20;
-					waterY = (outputImageSize.getHeight() + textHeight) / 2;
-					break;
-				case CENTER:
+					yield (outputImageSize.getHeight() + textHeight) / 2;
+				}
+				case CENTER -> {
 					waterX = (outputImageSize.getWidth() - textWidth) / 2;
-					waterY = (outputImageSize.getHeight() + textHeight) / 2;
-					break;
-			}
+					yield (outputImageSize.getHeight() + textHeight) / 2;
+				}
+			};
 		}
 
 		// 创建 GlyphVector（文字轮廓）

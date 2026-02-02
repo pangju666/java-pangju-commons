@@ -225,7 +225,7 @@ public class MoneyUtils {
 				}
 				result.insert(0, sectionChinese);
 			} else {
-				if (result.length() > 0 && !result.toString().startsWith(CN_NUMBERS[0])) {
+				if (!result.isEmpty() && !result.toString().startsWith(CN_NUMBERS[0])) {
 					needZero = true;
 				}
 			}
@@ -255,7 +255,7 @@ public class MoneyUtils {
 		while (section > 0) {
 			int digit = section % 10;
 			if (digit == 0) {
-				if (!zero && sectionStr.length() > 0) {
+				if (!zero && !sectionStr.isEmpty()) {
 					sectionStr.insert(0, CN_NUMBERS[0]);
 					zero = true;
 				}

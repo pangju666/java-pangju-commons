@@ -1004,72 +1004,63 @@ public class ImageUtils {
 
 		if (ObjectUtils.anyNull(imageWidth, imageHeight)) {
 			for (Directory directory : metadata.getDirectories()) {
-				if (directory instanceof BmpHeaderDirectory) {
-					BmpHeaderDirectory bmpHeaderDirectory = (BmpHeaderDirectory) directory;
+				if (directory instanceof BmpHeaderDirectory bmpHeaderDirectory) {
 					if (bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
 						bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof EpsDirectory) {
-					EpsDirectory epsDirectory = (EpsDirectory) directory;
+				} else if (directory instanceof EpsDirectory epsDirectory) {
 					if (epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_WIDTH) &&
 						epsDirectory.containsTag(EpsDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = epsDirectory.getInteger(EpsDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof GifImageDirectory) {
-					GifImageDirectory gifImageDirectory = (GifImageDirectory) directory;
+				} else if (directory instanceof GifImageDirectory gifImageDirectory) {
 					if (gifImageDirectory.containsTag(GifImageDirectory.TAG_WIDTH) &&
 						gifImageDirectory.containsTag(GifImageDirectory.TAG_HEIGHT)) {
 						imageWidth = gifImageDirectory.getInteger(GifImageDirectory.TAG_WIDTH);
 						imageHeight = gifImageDirectory.getInteger(GifImageDirectory.TAG_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof HeifDirectory) {
-					HeifDirectory heifDirectory = (HeifDirectory) directory;
+				} else if (directory instanceof HeifDirectory heifDirectory) {
 					if (heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_WIDTH) &&
 						heifDirectory.containsTag(HeifDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = heifDirectory.getInteger(HeifDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof IcoDirectory) {
-					IcoDirectory icoDirectory = (IcoDirectory) directory;
+				} else if (directory instanceof IcoDirectory icoDirectory) {
 					if (icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
 						icoDirectory.containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = icoDirectory.getInteger(IcoDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof JpegDirectory) {
-					JpegDirectory jpegDirectory = (JpegDirectory) directory;
+				} else if (directory instanceof JpegDirectory jpegDirectory) {
 					if (jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
 						jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof PsdHeaderDirectory) {
-					PsdHeaderDirectory exifDirectory = (PsdHeaderDirectory) directory;
+				} else if (directory instanceof PsdHeaderDirectory exifDirectory) {
 					if (exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
 						exifDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = exifDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof PngDirectory) {
-					PngDirectory pngDirectory = (PngDirectory) directory;
+				} else if (directory instanceof PngDirectory pngDirectory) {
 					if (pngDirectory.containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
 						pngDirectory.containsTag(PngDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_WIDTH);
 						imageHeight = pngDirectory.getInteger(PngDirectory.TAG_IMAGE_HEIGHT);
 					}
 					break;
-				} else if (directory instanceof WebpDirectory) {
-					WebpDirectory webpDirectory = (WebpDirectory) directory;
+				} else if (directory instanceof WebpDirectory webpDirectory) {
 					if (webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
 						webpDirectory.containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)) {
 						imageWidth = webpDirectory.getInteger(WebpDirectory.TAG_IMAGE_WIDTH);

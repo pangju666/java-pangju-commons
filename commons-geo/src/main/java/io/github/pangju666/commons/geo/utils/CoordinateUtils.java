@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 地理坐标与几何运算工具类
@@ -274,8 +273,8 @@ public class CoordinateUtils {
 			return coordinate;
 		} else {
 			Coordinate deltaCoordinate = computeGcj02Delta(coordinate);
-			return new Coordinate(coordinate.getLongitude().subtract(deltaCoordinate.getLongitude()),
-				coordinate.getLatitude().subtract(deltaCoordinate.getLatitude()));
+			return new Coordinate(coordinate.longitude().subtract(deltaCoordinate.longitude()),
+				coordinate.latitude().subtract(deltaCoordinate.latitude()));
 		}
 	}
 
@@ -312,8 +311,8 @@ public class CoordinateUtils {
 			return coordinate;
 		} else {
 			Coordinate deltaCoordinate = computeGcj02Delta(coordinate);
-			return new Coordinate(coordinate.getLongitude().add(deltaCoordinate.getLongitude()),
-				coordinate.getLatitude().add(deltaCoordinate.getLatitude()));
+			return new Coordinate(coordinate.longitude().add(deltaCoordinate.longitude()),
+				coordinate.latitude().add(deltaCoordinate.latitude()));
 		}
 	}
 
@@ -335,9 +334,9 @@ public class CoordinateUtils {
 		Validate.notNull(end, "end 不可为null");
 
 		GlobalCoordinates startGlobalCoordinates = new GlobalCoordinates(
-			start.getLatitude().doubleValue(), start.getLongitude().doubleValue());
+			start.latitude().doubleValue(), start.longitude().doubleValue());
 		GlobalCoordinates endGlobalCoordinates = new GlobalCoordinates(
-			end.getLatitude().doubleValue(), end.getLongitude().doubleValue());
+			end.latitude().doubleValue(), end.longitude().doubleValue());
 		return GEODETIC_CALCULATOR.calculateGeodeticCurve(Ellipsoid.WGS84, startGlobalCoordinates,
 			endGlobalCoordinates).getEllipsoidalDistance(); // 单位：米
 	}
@@ -372,7 +371,7 @@ public class CoordinateUtils {
 
 		List<Coordinate> validCoordinates = coordinates.stream()
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 		if (validCoordinates.size() < 3) {
 			throw new IllegalArgumentException("至少需要 3 个有效坐标才能计算周长，但只有：" + validCoordinates.size() + "个");
 		}
@@ -381,8 +380,8 @@ public class CoordinateUtils {
 		List<Coordinate> closed = new ArrayList<>(validCoordinates);
 		Coordinate first = validCoordinates.get(0);
 		Coordinate last = validCoordinates.get(validCoordinates.size() - 1);
-		if (first.getLatitude().compareTo(last.getLatitude()) != 0 ||
-			first.getLongitude().compareTo(last.getLongitude()) != 0) {
+		if (first.latitude().compareTo(last.latitude()) != 0 ||
+			first.longitude().compareTo(last.longitude()) != 0) {
 			closed.add(first);
 		}
 
@@ -431,7 +430,7 @@ public class CoordinateUtils {
 
 		List<Coordinate> validCoordinates = coordinates.stream()
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 		if (validCoordinates.size() < 3) {
 			throw new IllegalArgumentException("至少需要 3 个有效坐标才能计算面积，但只有：" + validCoordinates.size() + "个");
 		}
@@ -440,26 +439,26 @@ public class CoordinateUtils {
 		List<Coordinate> closedCoordinates = new ArrayList<>(validCoordinates);
 		Coordinate first = validCoordinates.get(0);
 		Coordinate last = validCoordinates.get(validCoordinates.size() - 1);
-		if (first.getLatitude().compareTo(last.getLatitude()) != 0 ||
-			first.getLongitude().compareTo(last.getLongitude()) != 0) {
+		if (first.latitude().compareTo(last.latitude()) != 0 ||
+			first.longitude().compareTo(last.longitude()) != 0) {
 			closedCoordinates.add(first);
 		}
 
 		BigDecimal totalArea = BigDecimal.ZERO;
 		Coordinate originCoordinate = closedCoordinates.get(0);
-		GlobalCoordinates origin = new GlobalCoordinates(originCoordinate.getLatitude().doubleValue(),
-			originCoordinate.getLongitude().doubleValue());
+		GlobalCoordinates origin = new GlobalCoordinates(originCoordinate.latitude().doubleValue(),
+			originCoordinate.longitude().doubleValue());
 
 		// 以第一个点为公共顶点，三角剖分：[0, i, i+1]
 		int n = closedCoordinates.size();
 		for (int i = 1; i < n - 1; i++) {
 			Coordinate closedCoordinate1 = closedCoordinates.get(i);
-			GlobalCoordinates p1 = new GlobalCoordinates(closedCoordinate1.getLatitude().doubleValue(),
-				closedCoordinate1.getLongitude().doubleValue());
+			GlobalCoordinates p1 = new GlobalCoordinates(closedCoordinate1.latitude().doubleValue(),
+				closedCoordinate1.longitude().doubleValue());
 
 			Coordinate closedCoordinate2 = closedCoordinates.get(i + 1);
-			GlobalCoordinates p2 = new GlobalCoordinates(closedCoordinate2.getLatitude().doubleValue(),
-				closedCoordinate2.getLongitude().doubleValue());
+			GlobalCoordinates p2 = new GlobalCoordinates(closedCoordinate2.latitude().doubleValue(),
+				closedCoordinate2.longitude().doubleValue());
 
 			// 计算三角形 (origin, p1, p2) 的球面面积
 			BigDecimal triangleArea = calculateTriangleArea(origin, p1, p2);
@@ -513,7 +512,7 @@ public class CoordinateUtils {
 
 		List<Coordinate> validCoordinates = polygon.stream()
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 		if (validCoordinates.size() < 3) {
 			throw new IllegalArgumentException("多边形至少需要 3 个有效顶点，但只有：" + validCoordinates.size() + "个");
 		}
@@ -521,20 +520,20 @@ public class CoordinateUtils {
 		int n = validCoordinates.size();
 
 		// 参考经度
-		double refLongitude = validCoordinates.get(0).getLongitude().doubleValue();
+		double refLongitude = validCoordinates.get(0).longitude().doubleValue();
 
 		// 调整多边形所有点
 		List<double[]> adjustedPoly = new ArrayList<>();
 		for (Coordinate c : validCoordinates) {
-			double lat = c.getLatitude().doubleValue();
-			double lon = c.getLongitude().doubleValue();
+			double lat = c.latitude().doubleValue();
+			double lon = c.longitude().doubleValue();
 			double adjustedLon = adjustLongitude(lon, refLongitude);
 			adjustedPoly.add(new double[]{lat, adjustedLon});
 		}
 
 		// 调整测试点
-		double testLat = point.getLatitude().doubleValue();
-		double testLon = point.getLongitude().doubleValue();
+		double testLat = point.latitude().doubleValue();
+		double testLon = point.longitude().doubleValue();
 		double adjustedTestLon = adjustLongitude(testLon, refLongitude);
 
 		// === 在调整后的坐标上运行射线法 ===
@@ -711,7 +710,7 @@ public class CoordinateUtils {
 	 */
 	protected static Coordinate computeGcj02Delta(final Coordinate coordinate) {
 		// latitude / 180.0 * PI
-		BigDecimal radiusLatitude = coordinate.getLatitude().divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32)
+		BigDecimal radiusLatitude = coordinate.latitude().divide(ONE_HUNDRED_AND_EIGHTY, MathContext.DECIMAL32)
 			.multiply(PI);
 		// 1 - EE * (sin(radiusLatitude))²
 		BigDecimal magic = BigDecimal.ONE.subtract(EE.multiply(BigDecimalMath.sin(
@@ -720,15 +719,15 @@ public class CoordinateUtils {
 		BigDecimal sqrtMagic = magic.sqrt(MathContext.DECIMAL32);
 
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI)
-		BigDecimal deltaLatitude = transformLatitude(coordinate.getLongitude().subtract(ONE_HUNDRED_AND_FIVE),
-			coordinate.getLatitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
+		BigDecimal deltaLatitude = transformLatitude(coordinate.longitude().subtract(ONE_HUNDRED_AND_FIVE),
+			coordinate.latitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
 			.divide(A.multiply(BigDecimal.ONE.subtract(EE))
 				.divide(magic.multiply(sqrtMagic), MathContext.DECIMAL32)
 				.multiply(PI), MathContext.DECIMAL32);
 
 		// (transformLat(longitude - 105.0, latitude - 35.0) * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI)
-		BigDecimal deltaLongitude = transformLongitude(coordinate.getLongitude().subtract(ONE_HUNDRED_AND_FIVE),
-			coordinate.getLatitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
+		BigDecimal deltaLongitude = transformLongitude(coordinate.longitude().subtract(ONE_HUNDRED_AND_FIVE),
+			coordinate.latitude().subtract(THIRTY_FIVE)).multiply(ONE_HUNDRED_AND_EIGHTY)
 			.divide(A.divide(sqrtMagic, MathContext.DECIMAL32)
 				.multiply(BigDecimalMath.cos(radiusLatitude, MathContext.DECIMAL32))
 				.multiply(PI), MathContext.DECIMAL32);

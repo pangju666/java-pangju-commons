@@ -198,8 +198,8 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			throw new AlreadyInitializedException();
 		}
 		if (Objects.nonNull(keyPair)) {
-			this.privateKey = keyPair.getPrivateKey();
-			this.publicKey = keyPair.getPublicKey();
+			this.privateKey = keyPair.privateKey();
+			this.publicKey = keyPair.publicKey();
 		} else {
 			this.privateKey = null;
 			this.publicKey = null;

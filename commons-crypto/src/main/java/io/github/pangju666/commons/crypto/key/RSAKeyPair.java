@@ -43,7 +43,7 @@ import java.security.spec.InvalidKeySpecException;
  * <ul>
  *   <li><b>不可变设计</b>：所有字段均为 final</li>
  *   <li><b>多来源支持</b>：随机生成、KeyPair、X.509/PKCS#8 字节与 Base64</li>
- *   <li><b>类型约束</b>：公钥为 {@link java.security.interfaces.RSAPublicKey}，私钥为 {@link java.security.interfaces.RSAPrivateKey}</li>
+ *   <li><b>类型约束</b>：公钥为 {@link RSAPublicKey}，私钥为 {@link RSAPrivateKey}</li>
  *   <li><b>空值策略</b>：容器可持有任一为空；但构造与工厂方法要求至少提供其一</li>
  *   <li><b>标准兼容</b>：遵循 X.509（公钥 SubjectPublicKeyInfo）与 PKCS#8（未加密私钥）</li>
  * </ul>
@@ -54,26 +54,15 @@ import java.security.spec.InvalidKeySpecException;
  *   <li>若私钥为加密的 PKCS#8（EncryptedPrivateKeyInfo），需先解密后再解析</li>
  * </ul>
  *
+ * @param publicKey  RSA公钥对象，符合X.509标准，可能为null（仅解密场景）
+ * @param privateKey RSA私钥对象，符合PKCS#8标准，可能为null（仅加密场景）
  * @author pangju666
- * @see java.security.PublicKey
- * @see java.security.PrivateKey
- * @see java.security.KeyPair
+ * @see PublicKey
+ * @see PrivateKey
+ * @see KeyPair
  * @since 1.0.0
  */
-public class RSAKeyPair {
-	/**
-	 * RSA公钥对象，符合X.509标准，可能为null（仅解密场景）
-	 *
-	 * @since 1.0.0
-	 */
-	private final RSAPublicKey publicKey;
-	/**
-	 * RSA私钥对象，符合PKCS#8标准，可能为null（仅加密场景）
-	 *
-	 * @since 1.0.0
-	 */
-	private final RSAPrivateKey privateKey;
-
+public record RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 	/**
 	 * 构造方法
 	 * <p>至少需要提供公钥或私钥中的任意一个，允许另一个为 null。</p>
@@ -83,11 +72,8 @@ public class RSAKeyPair {
 	 * @throws IllegalArgumentException 当同时未提供公钥与私钥时抛出
 	 * @since 1.0.0
 	 */
-	public RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
+	public RSAKeyPair {
 		Validate.isTrue(ObjectUtils.anyNotNull(privateKey, publicKey), "至少需要设置公钥或私钥");
-
-		this.publicKey = publicKey;
-		this.privateKey = privateKey;
 	}
 
 	/**
@@ -141,12 +127,12 @@ public class RSAKeyPair {
 
 	/**
 	 * 从现有 KeyPair 构建 RSAKey
-	 * <p>将标准 {@link java.security.KeyPair} 转换为类型安全的 RSAKey。</p>
+	 * <p>将标准 {@link KeyPair} 转换为类型安全的 RSAKey。</p>
 	 *
 	 * <h3>转换要求</h3>
 	 * <ul>
-	 *   <li>公钥必须为 {@link java.security.interfaces.RSAPublicKey}</li>
-	 *   <li>私钥必须为 {@link java.security.interfaces.RSAPrivateKey}</li>
+	 *   <li>公钥必须为 {@link RSAPublicKey}</li>
+	 *   <li>私钥必须为 {@link RSAPrivateKey}</li>
 	 * </ul>
 	 *
 	 * @param keyPair 标准密钥对对象，不能为 null
@@ -269,7 +255,8 @@ public class RSAKeyPair {
 	 * @return 当前公钥，可能为 null
 	 * @since 1.0.0
 	 */
-	public RSAPublicKey getPublicKey() {
+	@Override
+	public RSAPublicKey publicKey() {
 		return publicKey;
 	}
 
@@ -279,7 +266,8 @@ public class RSAKeyPair {
 	 * @return 当前私钥，可能为 null
 	 * @since 1.0.0
 	 */
-	public RSAPrivateKey getPrivateKey() {
+	@Override
+	public RSAPrivateKey privateKey() {
 		return privateKey;
 	}
 }

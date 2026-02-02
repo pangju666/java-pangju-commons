@@ -159,7 +159,7 @@ class RSATextEncryptorSpec extends Specification {
 		def encrypted = encryptor1.encrypt("mismatch")
 
 		def decryptor2 = new RSATextEncryptor()
-		decryptor2.setPrivateKey(pair2.getPrivateKey())
+		decryptor2.setPrivateKey(pair2.privateKey())
 
 		when:
 		decryptor2.decrypt(encrypted)
