@@ -720,6 +720,7 @@ model/vnd.dwfx+xps                      dwfx
 model/vnd.gdl                           gdl
 model/vnd.gtw                           gtw
 model/vnd.mts                           mts
+model/vnd.usd+zip                       usdz
 model/vnd.vtu                           vtu
 model/vrml                              vrml  wrl
 model/x.stl-binary                      stl

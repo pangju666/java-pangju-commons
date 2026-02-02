@@ -262,7 +262,7 @@ public class GZipUtils {
 				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -272,7 +272,7 @@ public class GZipUtils {
 					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -284,7 +284,7 @@ public class GZipUtils {
 					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -313,7 +313,7 @@ public class GZipUtils {
 				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);) {
+				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}
