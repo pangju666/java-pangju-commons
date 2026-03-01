@@ -942,7 +942,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
-		return Strings.CI.equalsAny(getMimeType(file), mimeTypes);
+		return Strings.CS.equalsAny(getMimeType(file), mimeTypes);
 	}
 
 	/**
