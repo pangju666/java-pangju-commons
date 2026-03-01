@@ -159,7 +159,7 @@ public class ImageSize {
 		if (this.visual) {
 			return this;
 		}
-		int effectiveOrientation = ObjectUtils.getIfNull(orientation, ImageConstants.NORMAL_EXIF_ORIENTATION);
+		int effectiveOrientation = ObjectUtils.defaultIfNull(orientation, ImageConstants.NORMAL_EXIF_ORIENTATION);
 		return effectiveOrientation >= 5 ? new ImageSize(height, width, effectiveOrientation, true) :
 			new ImageSize(width, height, effectiveOrientation, true);
 	}

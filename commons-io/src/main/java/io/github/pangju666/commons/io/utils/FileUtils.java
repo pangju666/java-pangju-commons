@@ -24,7 +24,6 @@ import org.apache.commons.io.input.MemoryMappedFileInputStream;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tika.metadata.Metadata;
@@ -942,7 +941,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		if (ArrayUtils.isEmpty(mimeTypes)) {
 			return false;
 		}
-		return Strings.CI.equalsAny(getMimeType(file), mimeTypes);
+		return StringUtils.equalsAny(getMimeType(file), mimeTypes);
 	}
 
 	/**
@@ -979,7 +978,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			return false;
 		}
 		String fileMimeType = getMimeType(file);
-		return mimeTypes.stream().anyMatch(mimeType -> Strings.CS.equals(fileMimeType, mimeType));
+		return mimeTypes.stream().anyMatch(mimeType -> StringUtils.equals(fileMimeType, mimeType));
 	}
 
 	/**

@@ -21,7 +21,6 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import jakarta.activation.MimetypesFileTypeMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Collection;
@@ -357,7 +356,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 			return false;
 		}
 		String fileMimeType = MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase());
-		return Strings.CI.equalsAny(fileMimeType, mimeTypes);
+		return StringUtils.equalsAnyIgnoreCase(fileMimeType, mimeTypes);
 	}
 
 	/**
@@ -395,7 +394,7 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 			return false;
 		}
 		String fileMimeType = MIME_TYPE_MAP.getContentType(getName(filename).toLowerCase());
-		return mimeTypes.stream().anyMatch(mimeType -> Strings.CI.equals(fileMimeType, mimeType));
+		return mimeTypes.stream().anyMatch(mimeType -> StringUtils.equalsIgnoreCase(fileMimeType, mimeType));
 	}
 
 	/**

@@ -1497,13 +1497,13 @@ public class ImageEditor {
 
 		// 绘制描边
 		if (option.isStroke()) {
-			graphics.setColor(getColor(ObjectUtils.getIfNull(option.getStrokeColor(), Color.BLACK),
+			graphics.setColor(getColor(ObjectUtils.defaultIfNull(option.getStrokeColor(), Color.BLACK),
 				option.getOpacity()));
 			graphics.setStroke(new BasicStroke(option.getStrokeWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			graphics.draw(shape);
 		}
 		// 绘制填充
-		graphics.setColor(getColor(ObjectUtils.getIfNull(option.getFillColor(), Color.WHITE),
+		graphics.setColor(getColor(ObjectUtils.defaultIfNull(option.getFillColor(), Color.WHITE),
 			option.getOpacity()));
 		graphics.fill(shape);
 
