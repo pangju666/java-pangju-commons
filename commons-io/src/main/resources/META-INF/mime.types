@@ -8,6 +8,7 @@ application/bizagi-modeler              bpm
 application/cbor                        cbor
 application/ccxml+xml                   ccxml
 application/cu-seeme                    cu
+application/dash+xml                    mpd
 application/davmount+xml                davmount
 application/dif+xml                     dif
 application/dita+xml;format=map         ditamap
@@ -578,7 +579,7 @@ audio/flac                              flac
 audio/midi                              rmi  kar  midi  mid
 audio/mp4                               mp4a  m4a  m4b
 audio/mpeg                              mp2  mp2a  mp3  m3a  m2a  mpga
-audio/ogg                               oga
+audio/ogg                               oga ogg
 audio/opus                              opus
 audio/speex                             spx
 audio/vnd.adobe.soundbooth              asnd
