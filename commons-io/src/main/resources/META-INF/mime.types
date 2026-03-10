@@ -34,7 +34,6 @@ application/mathematica                 nb  ma  mb
 application/mathml+xml                  mathml
 application/mbox                        mbox
 application/mediaservercontrol+xml      mscml
-application/vnd.apple.mpegurl           m3u8
 application/msword                      doc  dot
 application/mxf                         mxf
 application/oda                         oda
@@ -486,6 +485,7 @@ application/x-killustrator              kil
 application/x-latex                     latex
 application/x-matlab-data               mat
 application/x-mobipocket-ebook          mobi  prc
+application/x-mpegURL                   m3u8
 application/x-ms-application            application
 application/x-ms-installer              mst  msp  msi
 application/x-ms-wmd                    wmd
