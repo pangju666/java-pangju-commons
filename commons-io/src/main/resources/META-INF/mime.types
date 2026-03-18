@@ -108,6 +108,7 @@ application/vnd.anser-web-funds-transfer-initiation             fti
 application/vnd.antix.game-component    atx
 application/vnd.apple.installer+xml     mpkg
 application/vnd.apple.keynote           key
+application/vnd.apple.mpegurl           m3u8
 application/vnd.apple.numbers           numbers
 application/vnd.apple.pages             pages
 application/vnd.arastra.swi             swi
@@ -485,7 +486,6 @@ application/x-killustrator              kil
 application/x-latex                     latex
 application/x-matlab-data               mat
 application/x-mobipocket-ebook          mobi  prc
-application/vnd.apple.mpegurl           m3u8
 application/x-ms-application            application
 application/x-ms-installer              mst  msp  msi
 application/x-ms-wmd                    wmd
