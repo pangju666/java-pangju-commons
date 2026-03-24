@@ -8,7 +8,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-geo</artifactId>
-	<description>geo工具类库</description>
+	<description>地理坐标转换与空间计算工具库</description>
 
 	<licenses>
 		<license>

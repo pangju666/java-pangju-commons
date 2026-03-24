@@ -13,7 +13,7 @@
 	<version>2.0.0</version>
 	<packaging>pom</packaging>
 	<name>pangju-commons</name>
-	<description>公共工具类库父级</description>
+	<description>公共工具类库父项目</description>
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>

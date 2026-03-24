@@ -8,7 +8,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-poi</artifactId>
-	<description>POI工具库（基于poi 和 poi-tl）</description>
+	<description>基于 Apache POI 和 poi-tl 的 Office 文档处理工具库</description>
 
 	<licenses>
 		<license>
