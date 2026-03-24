@@ -30,7 +30,7 @@
 
 | 模块名称                 | 描述                                                   |
 |:---------------------|:-----------------------------------------------------|
-| `commons-lang`       | 基础工具库                                                |
+| `commons-lang`       | 基础工具库，包含字符串、日期、集合、JSON、树结构等常用辅助开发工具类                 |
 | `commons-io`         | 基于 Apache Tika 和 Commons IO 的 IO 处理与文件类型识别工具库        |
 | `commons-crypto`     | 基于 Jasypt 的加解密与安全处理工具库                               |
 | `commons-validation` | 基于 Jakarta Validation 的公共校验工具库                       |
