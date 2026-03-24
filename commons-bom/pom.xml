@@ -7,8 +7,9 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-bom</artifactId>
-	<description>公共工具类库依赖清单（BOM）</description>
 	<packaging>pom</packaging>
+	<name>commons-bom</name>
+	<description>公共工具类库依赖清单（BOM）</description>
 
 	<licenses>
 		<license>

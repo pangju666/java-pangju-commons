@@ -8,6 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-validation</artifactId>
+	<name>commons-validation</name>
 	<description>基于 Jakarta Validation 的公共校验工具库</description>
 
 	<licenses>

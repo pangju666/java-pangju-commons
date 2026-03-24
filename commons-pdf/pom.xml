@@ -8,6 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-pdf</artifactId>
+	<name>commons-pdf</name>
 	<description>基于 Apache PDFBox 的 PDF 处理工具库</description>
 
 	<licenses>

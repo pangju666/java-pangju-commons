@@ -8,6 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-imageio</artifactId>
+	<name>commons-imageio</name>
 	<description>ImageIO 扩展解析库，集成多种图像格式支持</description>
 
 	<licenses>
