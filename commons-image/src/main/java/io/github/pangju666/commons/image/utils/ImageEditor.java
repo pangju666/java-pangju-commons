@@ -259,7 +259,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	protected ImageSize inputImageSize;
+	protected final ImageSize inputImageSize;
 
 	/**
 	 * 处理后的输出图像

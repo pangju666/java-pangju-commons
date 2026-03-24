@@ -104,11 +104,10 @@ public class KeyPairUtils {
 	 *
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @return 对应算法的 KeyFactory 实例
-	 * @throws NoSuchAlgorithmException 当指定算法不可用时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static KeyFactory getKeyFactory(final String algorithm) throws NoSuchAlgorithmException {
+	public static KeyFactory getKeyFactory(final String algorithm) {
 		Validate.notBlank(algorithm, "algorithm 不可为空");
 		return KEY_FACTORY_MAP.computeIfAbsent(algorithm, alg -> {
 			try {
@@ -131,11 +130,10 @@ public class KeyPairUtils {
 	 *
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @return 新生成的密钥对
-	 * @throws NoSuchAlgorithmException 当指定算法不可用时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static KeyPair generateKeyPair(final String algorithm) throws NoSuchAlgorithmException {
+	public static KeyPair generateKeyPair(final String algorithm) {
 		Validate.notBlank(algorithm, "algorithm不可为空");
 		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.computeIfAbsent(algorithm, alg -> {
 			try {
@@ -162,11 +160,10 @@ public class KeyPairUtils {
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @param keySize 密钥长度（单位：bit），需符合算法与 Provider 要求
 	 * @return 新生成的密钥对
-	 * @throws NoSuchAlgorithmException 当指定算法不可用时抛出
 	 * @throws IllegalArgumentException 当参数为空或 keySize 非法时抛出
 	 * @since 1.0.0
 	 */
-	public static KeyPair generateKeyPair(final String algorithm, final int keySize) throws NoSuchAlgorithmException {
+	public static KeyPair generateKeyPair(final String algorithm, final int keySize) {
 		Validate.notBlank(algorithm, "algorithm不可为空");
 		String mapKey = algorithm + "-" + keySize;
 		KeyPairGenerator generator = KEY_PAIR_GENERATOR_MAP.computeIfAbsent(mapKey, alg -> {
@@ -201,12 +198,10 @@ public class KeyPairUtils {
 	 *                 </ul>
 	 * @return 解析得到的 PrivateKey，或 null（当输入为空）
 	 * @throws InvalidKeySpecException 当密钥数据不符合未加密 PKCS#8 格式时抛出
-	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKeyFromPKCS8Base64String(final String algorithm, final String pkcs8Key)
-		throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKeyFromPKCS8Base64String(final String algorithm, final String pkcs8Key) throws InvalidKeySpecException {
 		if (StringUtils.isBlank(pkcs8Key)) {
 			return null;
 		}
@@ -229,14 +224,12 @@ public class KeyPairUtils {
 	 * @param encodedKey PKCS#8 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PrivateKey
 	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
-	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.PKCS8EncodedKeySpec
 	 * @see #getPrivateKeyFromPKCS8Base64String(String, String)
 	 * @since 1.0.0
 	 */
-	public static PrivateKey getPrivateKeyFromPKCS8EncodedKey(final String algorithm, final byte[] encodedKey)
-		throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PrivateKey getPrivateKeyFromPKCS8EncodedKey(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
 
 		KeySpec keySpec = new PKCS8EncodedKeySpec(encodedKey);
@@ -263,12 +256,10 @@ public class KeyPairUtils {
 	 *                </ul>
 	 * @return 解析得到的 PublicKey，或 null（当输入为空）
 	 * @throws InvalidKeySpecException 当密钥数据格式不正确时抛出
-	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKeyFromX509Base64String(final String algorithm, final String x509Key)
-		throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKeyFromX509Base64String(final String algorithm, final String x509Key) throws InvalidKeySpecException {
 		if (StringUtils.isBlank(x509Key)) {
 			return null;
 		}
@@ -291,14 +282,12 @@ public class KeyPairUtils {
 	 * @param encodedKey X.509 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PublicKey
 	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
-	 * @throws NoSuchAlgorithmException 当指定算法不被支持时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.X509EncodedKeySpec
 	 * @see #getPublicKeyFromX509Base64String(String, String)
 	 * @since 1.0.0
 	 */
-	public static PublicKey getPublicKeyFromX509EncodedKey(final String algorithm, final byte[] encodedKey)
-		throws InvalidKeySpecException, NoSuchAlgorithmException {
+	public static PublicKey getPublicKeyFromX509EncodedKey(final String algorithm, final byte[] encodedKey) throws InvalidKeySpecException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(encodedKey), "encodedKey 不可为空");
 
 		KeySpec keySpec = new X509EncodedKeySpec(encodedKey);
