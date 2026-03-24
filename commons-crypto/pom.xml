@@ -8,7 +8,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-crypto</artifactId>
-	<description>加解密工具类库（基于jasypt）</description>
+	<description>基于 Jasypt 的加解密与安全处理工具库</description>
 
 	<licenses>
 		<license>

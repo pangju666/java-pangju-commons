@@ -7,7 +7,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>commons-all</artifactId>
-	<description>java 公共库集成模块</description>
+	<description>公共工具类库全量集成模块</description>
 
 	<licenses>
 		<license>
