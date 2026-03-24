@@ -8,6 +8,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-image</artifactId>
+	<name>commons-image</name>
 	<description>基于 Metadata Extractor 和 TwelveMonkeys 的图像处理与元数据提取工具库</description>
 
 	<licenses>

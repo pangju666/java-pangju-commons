@@ -8,6 +8,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-lang</artifactId>
+	<name>commons-lang</name>
 	<description>基础工具库，包含字符串、日期、集合、JSON、树结构等常用辅助开发工具类。</description>
 
 	<licenses>

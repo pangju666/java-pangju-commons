@@ -8,6 +8,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-io</artifactId>
+	<name>commons-io</name>
 	<description>基于 Apache Tika 和 Commons IO 的 IO 处理与文件类型识别工具库</description>
 
 	<licenses>

@@ -7,6 +7,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-bom</artifactId>
+	<name>commons-bom</name>
 	<description>公共工具类库依赖清单（BOM）</description>
 	<packaging>pom</packaging>
 

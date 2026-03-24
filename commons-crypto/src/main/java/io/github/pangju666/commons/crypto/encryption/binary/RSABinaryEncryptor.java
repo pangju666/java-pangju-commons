@@ -265,7 +265,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 						.getKeySpec(privateKey, RSAPrivateKeySpec.class);
 					this.decryptBlockSize = this.transformation.getDecryptBlockSize(privateKeySpec);
 				}
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			} catch (InvalidKeySpecException e) {
 				throw new EncryptionInitializationException(e);
 			}
 			initialized = true;

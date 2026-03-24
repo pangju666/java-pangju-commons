@@ -22,10 +22,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
@@ -87,14 +85,9 @@ public record RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 	 * @since 1.0.0
 	 */
 	public static RSAKeyPair random() {
-		try {
-			KeyPair keyPair = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM);
-			// RSA算法生成的KeyPair不会为null，因为Java 平台的每个实现都必须支持RSA算法
-			return new RSAKeyPair((RSAPublicKey) keyPair.getPublic(), (RSAPrivateKey) keyPair.getPrivate());
-		} catch (NoSuchAlgorithmException e) {
-			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
-			throw ExceptionUtils.asRuntimeException(e);
-		}
+		KeyPair keyPair = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM);
+		// RSA算法生成的KeyPair不会为null，因为Java 平台的每个实现都必须支持RSA算法
+		return new RSAKeyPair((RSAPublicKey) keyPair.getPublic(), (RSAPrivateKey) keyPair.getPrivate());
 	}
 
 	/**
@@ -115,14 +108,9 @@ public record RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 	 */
 	public static RSAKeyPair random(final int keySize) {
 		Validate.isTrue(CryptoConstants.RSA_KEY_SIZE_SET.contains(keySize), "keySize 必须为 1024/2048/4096");
-		try {
-			KeyPair keyPair = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, keySize);
-			// RSA算法生成的KeyPair不会为null，因为Java 平台的每个实现都必须支持RSA算法
-			return new RSAKeyPair((RSAPublicKey) keyPair.getPublic(), (RSAPrivateKey) keyPair.getPrivate());
-		} catch (NoSuchAlgorithmException e) {
-			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
-			throw ExceptionUtils.asRuntimeException(e);
-		}
+		KeyPair keyPair = KeyPairUtils.generateKeyPair(CryptoConstants.RSA_ALGORITHM, keySize);
+		// RSA算法生成的KeyPair不会为null，因为Java 平台的每个实现都必须支持RSA算法
+		return new RSAKeyPair((RSAPublicKey) keyPair.getPublic(), (RSAPrivateKey) keyPair.getPrivate());
 	}
 
 	/**
@@ -170,34 +158,29 @@ public record RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 	 * @since 1.0.0
 	 */
 	public static RSAKeyPair fromBytes(final byte[] publicKeyBytes, final byte[] privateKeyBytes) throws InvalidKeySpecException {
-		try {
-			RSAPublicKey rsaPublicKey = null;
-			if (ArrayUtils.isNotEmpty(publicKeyBytes)) {
-				PublicKey publicKey = KeyPairUtils.getPublicKeyFromX509EncodedKey(CryptoConstants.RSA_ALGORITHM,
-					publicKeyBytes);
-				if (publicKey instanceof RSAPublicKey) {
-					rsaPublicKey = (RSAPublicKey) publicKey;
-				} else {
-					throw new IllegalArgumentException("必须为RSA类型的密钥对");
-				}
+		RSAPublicKey rsaPublicKey = null;
+		if (ArrayUtils.isNotEmpty(publicKeyBytes)) {
+			PublicKey publicKey = KeyPairUtils.getPublicKeyFromX509EncodedKey(CryptoConstants.RSA_ALGORITHM,
+				publicKeyBytes);
+			if (publicKey instanceof RSAPublicKey) {
+				rsaPublicKey = (RSAPublicKey) publicKey;
+			} else {
+				throw new IllegalArgumentException("必须为RSA类型的密钥对");
 			}
-
-			RSAPrivateKey rsaPrivateKey = null;
-			if (ArrayUtils.isNotEmpty(privateKeyBytes)) {
-				PrivateKey privateKey = KeyPairUtils.getPrivateKeyFromPKCS8EncodedKey(CryptoConstants.RSA_ALGORITHM,
-					privateKeyBytes);
-				if (privateKey instanceof RSAPrivateKey) {
-					rsaPrivateKey = (RSAPrivateKey) privateKey;
-				} else {
-					throw new IllegalArgumentException("必须为RSA类型的密钥对");
-				}
-			}
-
-			return new RSAKeyPair(rsaPublicKey, rsaPrivateKey);
-		} catch (NoSuchAlgorithmException e) {
-			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
-			throw ExceptionUtils.asRuntimeException(e);
 		}
+
+		RSAPrivateKey rsaPrivateKey = null;
+		if (ArrayUtils.isNotEmpty(privateKeyBytes)) {
+			PrivateKey privateKey = KeyPairUtils.getPrivateKeyFromPKCS8EncodedKey(CryptoConstants.RSA_ALGORITHM,
+				privateKeyBytes);
+			if (privateKey instanceof RSAPrivateKey) {
+				rsaPrivateKey = (RSAPrivateKey) privateKey;
+			} else {
+				throw new IllegalArgumentException("必须为RSA类型的密钥对");
+			}
+		}
+
+		return new RSAKeyPair(rsaPublicKey, rsaPrivateKey);
 	}
 
 	/**
@@ -219,34 +202,29 @@ public record RSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 	 * @since 1.0.0
 	 */
 	public static RSAKeyPair fromBase64String(final String publicKeyString, final String privateKeyString) throws InvalidKeySpecException {
-		try {
-			RSAPublicKey rsaPublicKey = null;
-			if (StringUtils.isNotBlank(publicKeyString)) {
-				PublicKey publicKey = KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM,
-					publicKeyString);
-				if (publicKey instanceof RSAPublicKey) {
-					rsaPublicKey = (RSAPublicKey) publicKey;
-				} else {
-					throw new IllegalArgumentException("必须为RSA类型的密钥对");
-				}
+		RSAPublicKey rsaPublicKey = null;
+		if (StringUtils.isNotBlank(publicKeyString)) {
+			PublicKey publicKey = KeyPairUtils.getPublicKeyFromX509Base64String(CryptoConstants.RSA_ALGORITHM,
+				publicKeyString);
+			if (publicKey instanceof RSAPublicKey) {
+				rsaPublicKey = (RSAPublicKey) publicKey;
+			} else {
+				throw new IllegalArgumentException("必须为RSA类型的密钥对");
 			}
-
-			RSAPrivateKey rsaPrivateKey = null;
-			if (StringUtils.isNotBlank(privateKeyString)) {
-				PrivateKey privateKey = KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM,
-					privateKeyString);
-				if (privateKey instanceof RSAPrivateKey) {
-					rsaPrivateKey = (RSAPrivateKey) privateKey;
-				} else {
-					throw new IllegalArgumentException("必须为RSA类型的密钥对");
-				}
-			}
-
-			return new RSAKeyPair(rsaPublicKey, rsaPrivateKey);
-		} catch (NoSuchAlgorithmException e) {
-			// 正常不会抛出，因为Java 平台的每个实现都必须支持RSA算法
-			throw ExceptionUtils.asRuntimeException(e);
 		}
+
+		RSAPrivateKey rsaPrivateKey = null;
+		if (StringUtils.isNotBlank(privateKeyString)) {
+			PrivateKey privateKey = KeyPairUtils.getPrivateKeyFromPKCS8Base64String(CryptoConstants.RSA_ALGORITHM,
+				privateKeyString);
+			if (privateKey instanceof RSAPrivateKey) {
+				rsaPrivateKey = (RSAPrivateKey) privateKey;
+			} else {
+				throw new IllegalArgumentException("必须为RSA类型的密钥对");
+			}
+		}
+
+		return new RSAKeyPair(rsaPublicKey, rsaPrivateKey);
 	}
 
 	/**

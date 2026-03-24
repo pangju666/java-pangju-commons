@@ -9,6 +9,7 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>commons-compress</artifactId>
+	<name>commons-compress</name>
 	<description>基于 Apache Commons Compress 的压缩与解压工具库</description>
 
 	<licenses>
