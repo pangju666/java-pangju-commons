@@ -100,7 +100,7 @@
 ## 文档
 
 详细的 API
-文档请访问：[Pangju Commons Documentation](https://pangju666.github.io/pangju-java-doc/commons/getting-started.html)
+文档请访问：[Pangju Commons Documentation](https://pangju666.github.io/pangju-java-doc/v1/commons/getting-started.html)
 
 ## 📄 许可证
 
