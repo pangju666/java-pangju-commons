@@ -55,7 +55,7 @@
         <dependency>
             <groupId>io.github.pangju666.commons</groupId>
             <artifactId>commons-bom</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -92,7 +92,7 @@
     <dependency>
         <groupId>io.github.pangju666.commons</groupId>
         <artifactId>commons-all</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
     </dependency>
 </dependencies>
 ```
