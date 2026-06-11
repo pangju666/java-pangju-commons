@@ -27,6 +27,8 @@
 		<module>commons-pdf</module>
 		<module>commons-poi</module>
 		<module>commons-validation</module>
+		<module>commons-ffmpeg</module>
+		<module>commons-tesseract</module>
 		<module>commons-bom</module>
 		<module>commons-all</module>
 	</modules>
@@ -58,6 +60,24 @@
 	</scm>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.gmavenplus</groupId>
+					<artifactId>gmavenplus-plugin</artifactId>
+					<executions>
+						<execution>
+							<goals>
+								<goal>compileTests</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<skipTests>true</skipTests>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<testSourceDirectory>src/test/groovy</testSourceDirectory>
 		<plugins>
 			<plugin>
@@ -78,20 +98,6 @@
 				<!--<configuration>
 					<skip>true</skip>
 				</configuration>-->
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.gmavenplus</groupId>
-				<artifactId>gmavenplus-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compileTests</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<skipTests>true</skipTests>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
