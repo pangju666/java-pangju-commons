@@ -57,6 +57,22 @@ import java.util.UUID;
  *     <li>音频变速底层自动多级拼接 atempo 滤镜，突破单级 0.5 ~ 2.0 速度限制</li>
  *     <li>混音功能自动将背景音乐标准化为 WAV 格式并对齐主音频参数，保证混音效果</li>
  * </ul>
+ * <h3>使用示例</h3>
+ * <pre>{@code
+ * // 示例1：音频转码为 MP3 格式
+ * MediaResource resource = new MediaResource(new File("input.wav"));
+ * AudioUtils.transcode(resource, new File("output.mp3"), "mp3");
+ *
+ * // 示例2：裁剪音频前10秒
+ * AudioUtils.cut(resource, new File("output.mp3"), Duration.ofSeconds(10));
+ *
+ * // 示例3：音频混音（背景音乐音量0.4）
+ * MediaResource bgm = new MediaResource(new File("bgm.mp3"));
+ * AudioUtils.remix(resource, bgm, new File("remix.mp3"), 0.4f);
+ *
+ * // 示例4：音频变速（2倍速）
+ * AudioUtils.adjustSpeed(resource, new File("output_speed.mp3"), 2.0f);
+ * }</pre>
  *
  * @author pangju666
  * @see org.bytedeco.javacv.FFmpegFrameGrabber
@@ -100,12 +116,15 @@ public class AudioUtils {
 
 	/**
 	 * 音频转码（指定输出文件和格式）
+	 * <p>
+	 * 将源音频转码为指定格式，保留原音频的采样率、声道数和码率。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile   输出文件（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile   输出文件（不可为 null，将自动覆盖已有文件）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac、aac，不可为空）
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void transcode(MediaResource resource, File outputFile, String outputFormat) throws IOException {
@@ -121,12 +140,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频转码（指定输出流和格式）
+	 * <p>
+	 * 将源音频转码为指定格式，保留原音频的采样率、声道数和码率，直接写入输出流。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac、aac，不可为空）
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void transcode(MediaResource resource, OutputStream outputStream, String outputFormat) throws IOException {
@@ -140,12 +163,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频转码（指定输出文件和音频参数）
+	 * <p>
+	 * 将源音频转码为指定格式和参数，可自定义采样率、声道数和码率。
+	 * 参数值小于等于0时将沿用原音频配置。
+	 * </p>
 	 *
-	 * @param resource    音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile  输出文件（不可为 null）
+	 * @param resource    音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile  输出文件（不可为 null，将自动覆盖已有文件）
 	 * @param outputAudio 输出音频参数（采样率、声道数、比特率等，不可为 null）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void transcode(MediaResource resource, File outputFile, Audio outputAudio) throws IOException {
@@ -161,12 +188,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频转码（指定输出流和音频参数）
+	 * <p>
+	 * 将源音频转码为指定格式和参数，可自定义采样率、声道数和码率，直接写入输出流。
+	 * 参数值小于等于0时将沿用原音频配置，输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param outputAudio  输出音频参数（采样率、声道数、比特率等，不可为 null）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void transcode(MediaResource resource, OutputStream outputStream, Audio outputAudio) throws IOException {
@@ -180,12 +211,15 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，保留原音频格式。
+	 * </p>
 	 *
-	 * @param resource   音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile 输出文件（不可为 null）
-	 * @param duration   裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource   音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile 输出文件（不可为 null，将自动覆盖已有文件）
+	 * @param duration   裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, Duration duration) throws IOException {
@@ -194,12 +228,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，保留原音频格式，直接写入输出流。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
-	 * @param duration     裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @param duration     裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, Duration duration) throws IOException {
@@ -210,13 +248,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定起始和结束时间）
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾。
+	 * 保留原音频格式。
+	 * </p>
 	 *
-	 * @param resource   音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile 输出文件（不可为 null）
-	 * @param start      起始时间（不可为 null）
-	 * @param end        裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource   音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile 输出文件（不可为 null，将自动覆盖已有文件）
+	 * @param start      起始时间（不可为 null，必须小于音频总时长）
+	 * @param end        裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, Duration start, Duration end) throws IOException {
@@ -235,13 +277,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定起始和结束时间）
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾，
+	 * 直接写入输出流。输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
-	 * @param start        起始时间（不可为 null）
-	 * @param end          裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @param start        起始时间（不可为 null，必须小于音频总时长）
+	 * @param end          裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, Duration start, Duration end) throws IOException {
@@ -258,13 +304,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出格式+从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，同时转码为指定格式。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile   输出文件（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @param duration     裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile   输出文件（不可为 null，将自动覆盖已有文件）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac，不可为空）
+	 * @param duration     裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, String outputFormat, Duration duration) throws IOException {
@@ -273,13 +322,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出格式+从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，同时转码为指定格式，直接写入输出流。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @param duration     裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac，不可为空）
+	 * @param duration     裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, String outputFormat, Duration duration) throws IOException {
@@ -290,14 +343,18 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出格式+起始/结束时间）
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾，
+	 * 同时转码为指定格式。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile   输出文件（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @param start        起始时间（不可为 null）
-	 * @param end          裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile   输出文件（不可为 null，将自动覆盖已有文件）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac，不可为空）
+	 * @param start        起始时间（不可为 null，必须小于音频总时长）
+	 * @param end          裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, String outputFormat, Duration start, Duration end) throws IOException {
@@ -317,14 +374,18 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出格式+起始/结束时间）
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾，
+	 * 同时转码为指定格式，直接写入输出流。输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
-	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @param start        起始时间（不可为 null）
-	 * @param end          裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @param outputFormat 输出格式（如 mp3、wav、flac，不可为空）
+	 * @param start        起始时间（不可为 null，必须小于音频总时长）
+	 * @param end          裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, String outputFormat, Duration start, Duration end) throws IOException {
@@ -342,13 +403,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出音频参数+从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，同时按指定音频参数进行转码。
+	 * 参数值小于等于0时将沿用原音频配置。
+	 * </p>
 	 *
-	 * @param resource    音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile  输出文件（不可为 null）
+	 * @param resource    音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile  输出文件（不可为 null，将自动覆盖已有文件）
 	 * @param outputAudio 输出音频参数（采样率、声道数等，不可为 null）
-	 * @param duration    裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param duration    裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, Audio outputAudio, Duration duration) throws IOException {
@@ -359,13 +424,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出音频参数+从起始位置[0]裁剪指定时长）
+	 * <p>
+	 * 从音频开头截取指定时长的片段，同时按指定音频参数进行转码，直接写入输出流。
+	 * 参数值小于等于0时将沿用原音频配置，输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param outputAudio  输出音频参数（采样率、声道数等，不可为 null）
-	 * @param duration     裁剪时长（不可为 null，需大于0）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param duration     裁剪时长（不可为 null，需大于0，超过音频总时长则截取到音频末尾）
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时长无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, Audio outputAudio, Duration duration) throws IOException {
@@ -376,14 +445,18 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出音频参数+起始/结束时间）
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾，
+	 * 同时按指定音频参数进行转码。参数值小于等于0时将沿用原音频配置。
+	 * </p>
 	 *
-	 * @param resource    音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputFile  输出文件（不可为 null）
+	 * @param resource    音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputFile  输出文件（不可为 null，将自动覆盖已有文件）
 	 * @param outputAudio 输出音频参数（采样率、声道数等，不可为 null）
-	 * @param start       起始时间（不可为 null）
-	 * @param end         裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param start       起始时间（不可为 null，必须小于音频总时长）
+	 * @param end         裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, File outputFile, Audio outputAudio, Duration start, Duration end) throws IOException {
@@ -403,15 +476,19 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪（指定输出音频参数+起始/结束时间）
-	 * <p>支持裁剪音频指定时间段，结束时间可传空，为空时裁剪至音频末尾。</p>
+	 * <p>
+	 * 截取音频指定时间段的片段，结束时间为 null 时截取到音频末尾，
+	 * 同时按指定音频参数进行转码，直接写入输出流。
+	 * 参数值小于等于0时将沿用原音频配置，输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
-	 * @param resource     音频资源（需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param resource     音频资源（需为 audio/* 类型 MediaResource，不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param outputAudio  输出音频参数（采样率、声道数等，不可为 null）
-	 * @param start        起始时间（不可为 null）
-	 * @param end          裁剪结束时间，可为 null；非空时必须大于起始时间
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param start        起始时间（不可为 null，必须小于音频总时长）
+	 * @param end          裁剪结束时间，可为 null（表示截取到末尾）；非空时必须大于起始时间
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、时间无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void cut(MediaResource resource, OutputStream outputStream, Audio outputAudio, Duration start, Duration end) throws IOException {
@@ -429,12 +506,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频拼接（多音频合并，指定输出文件和格式）
+	 * <p>
+	 * 将多个音频资源按顺序合并为单个音频，使用第一个音频的采样率和声道数作为基准。
+	 * 非音频类型的资源将被自动跳过。
+	 * </p>
 	 *
 	 * @param resources    音频资源列表（不可为空，元素需为 audio/* 类型 MediaResource）
-	 * @param outputFile   输出文件（不可为 null）
+	 * @param outputFile   输出文件（不可为 null，将自动覆盖已有文件）
 	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、资源列表为空）
 	 * @since 1.1.0
 	 */
 	public static void concat(List<MediaResource> resources, File outputFile, String outputFormat) throws IOException {
@@ -449,12 +530,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频拼接（多音频合并，指定输出流和格式）
+	 * <p>
+	 * 将多个音频资源按顺序合并为单个音频，使用第一个音频的采样率和声道数作为基准，
+	 * 同时转码为指定格式，直接写入输出流。非音频类型的资源将被自动跳过。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
 	 * @param resources    音频资源列表（不可为空，元素需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param outputFormat 输出格式（如 mp3、wav，不可为空）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、格式为空、资源列表为空）
 	 * @since 1.1.0
 	 */
 	public static void concat(List<MediaResource> resources, OutputStream outputStream, String outputFormat) throws IOException {
@@ -465,12 +551,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频拼接（多音频合并，指定输出文件和音频参数）
+	 * <p>
+	 * 将多个音频资源按顺序合并为单个音频，按指定音频参数进行转码。
+	 * 非音频类型的资源将被自动跳过。参数值小于等于0时将沿用原音频配置。
+	 * </p>
 	 *
 	 * @param resources   音频资源列表（不可为空，元素需为 audio/* 类型 MediaResource）
-	 * @param outputFile  输出文件（不可为 null）
+	 * @param outputFile  输出文件（不可为 null，将自动覆盖已有文件）
 	 * @param outputAudio 输出音频参数（采样率、声道数等，不可为 null）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件不存在、权限不足、解析失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、资源列表为空）
 	 * @since 1.1.0
 	 */
 	public static void concat(List<MediaResource> resources, File outputFile, Audio outputAudio) throws IOException {
@@ -485,12 +575,17 @@ public class AudioUtils {
 
 	/**
 	 * 音频拼接（多音频合并，指定输出流和音频参数）
+	 * <p>
+	 * 将多个音频资源按顺序合并为单个音频，按指定音频参数进行转码，直接写入输出流。
+	 * 非音频类型的资源将被自动跳过。参数值小于等于0时将沿用原音频配置。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
 	 * @param resources    音频资源列表（不可为空，元素需为 audio/* 类型 MediaResource）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param outputAudio  输出音频参数（采样率、声道数等，不可为 null）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、资源列表为空）
 	 * @since 1.1.0
 	 */
 	public static void concat(List<MediaResource> resources, OutputStream outputStream, Audio outputAudio) throws IOException {
@@ -563,19 +658,21 @@ public class AudioUtils {
 	}
 
 	/**
-	 * 音频混音（主音频+背景音乐，默认音量0.4，输出到流）
+	 * 音频混音（主音频+背景音乐，默认音量{@value MAX_BGM_VOLUME}，输出到流）
 	 * <p>
-	 * 自动标准化背景音乐格式为 WAV，匹配主音频的采样率/声道数
+	 * 自动标准化背景音乐格式为 WAV，匹配主音频的采样率/声道数，直接写入输出流。
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
 	 * @param mainResource 主音频资源（需为 audio/* 类型 MediaResource，不可为 null）
 	 * @param bgmResource  背景音乐资源（需为 audio/* 类型 MediaResource，不可为 null）
-	 * @param outputStream 输出流（不可为 null）
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void remix(MediaResource mainResource, MediaResource bgmResource, OutputStream outputStream) throws IOException {
-		remix(mainResource, bgmResource, outputStream, 0.4f);
+		remix(mainResource, bgmResource, outputStream, MAX_BGM_VOLUME);
 	}
 
 	/**
@@ -588,14 +685,16 @@ public class AudioUtils {
 	 *   <li>逐采样点混合主音频与背景音乐（浮点运算避免溢出）</li>
 	 *   <li>限制混合后采样值在合法范围（Short.MIN~MAX 或 -1.0~1.0）</li>
 	 * </ol>
+	 * 输出流不会被自动关闭，需要调用方管理。
+	 * </p>
 	 *
 	 * @param mainResource 主音频资源（需为 audio/* 类型 MediaResource，不可为 null）
 	 * @param bgmResource  背景音乐资源（需为 audio/* 类型 MediaResource，不可为 null）
-	 * @param outputStream 输出流（不可为 null）
+	 * @param outputStream 输出流（不可为 null，不会被自动关闭）
 	 * @param bgmVolume    背景音乐线性音量系数：最小值 0，上限参考 {@link #MAX_BGM_VOLUME}；
 	 *                     解说/旁白推荐 0.3~0.5，K歌演唱推荐 0.5~0.7，原始音量为 1.0
-	 * @throws IOException              IO异常/音频处理异常
-	 * @throws IllegalArgumentException 入参校验失败时抛出
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 入参校验失败时抛出（参数为 null、音量无效、非音频类型）
 	 * @since 1.1.0
 	 */
 	public static void remix(MediaResource mainResource, MediaResource bgmResource, OutputStream outputStream, float bgmVolume) throws IOException {
@@ -768,10 +867,11 @@ public class AudioUtils {
 	 * <p>
 	 * 基于 FFmpeg atempo 滤镜实现；单级滤镜有效区间 0.5 ~ 2.0，超出区间会自动多级叠加滤镜。
 	 * 速度小于 1.0 为慢放，等于 1.0 为原速，大于 1.0 为快放。
+	 * 输出流不会被自动关闭，需要调用方管理。
 	 * </p>
 	 *
 	 * @param resource     源音频资源，不可为 null，必须为 audio 类型媒体
-	 * @param outputStream 音频输出流，不可为 null
+	 * @param outputStream 音频输出流，不可为 null，不会被自动关闭
 	 * @param speed        变速倍率，合法范围：0.1 ~ 10.0
 	 * @throws IOException              音频读取、滤镜处理、写入发生IO异常时抛出
 	 * @throws IllegalArgumentException 入参为空、非音频类型、变速倍率非法时抛出
@@ -809,12 +909,14 @@ public class AudioUtils {
 	 * 通用链路：读取音频帧 → 经过 FFmpeg 音频滤镜处理 → 写入输出流；
 	 * 适用于音频变速、音效处理等各类音频滤镜场景。
 	 * <br><b>注意</b>：代码内部先通过抓取器获取真实声道/采样率再赋值给滤镜，规避构造传 0 导致滤镜失效问题。
+	 * 输出流不会被自动关闭，需要调用方管理。
 	 * </p>
 	 *
 	 * @param resource     源音频资源，不可为 null，必须为音频类型
-	 * @param outputStream 音频输出流，不可为 null
+	 * @param outputStream 音频输出流，不可为 null，不会被自动关闭
 	 * @param audioFilters FFmpeg 音频滤镜表达式，不可为空字符串
-	 * @throws IOException 音频读取、滤镜处理、流读写过程中发生IO异常时抛出
+	 * @throws IOException              音频读取、滤镜处理、流读写过程中发生IO异常时抛出
+	 * @throws IllegalArgumentException 入参为空、非音频类型、滤镜表达式为空时抛出
 	 * @since 1.1.0
 	 */
 	public static void applyFilter(MediaResource resource, OutputStream outputStream, String audioFilters) throws IOException {
@@ -935,14 +1037,19 @@ public class AudioUtils {
 
 	/**
 	 * 音频裁剪核心实现
+	 * <p>
+	 * 内部方法，用于实现音频裁剪的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
+	 * 支持指定起始和结束时间截取音频片段，可以自定义输出格式和音频参数。
+	 * </p>
 	 *
-	 * @param resource     音频资源
-	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频参数（可为 null，null 则沿用原参数）
+	 * @param resource     音频资源，不可为 null，必须为音频类型
+	 * @param outputStream 输出流，不可为 null，不会被自动关闭
+	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
 	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
-	 * @param start        起始时间
+	 * @param start        起始时间，不可为 null
 	 * @param end          裁剪结束时间，可为 null；为 null 时裁剪至音频末尾
-	 * @throws IOException IO异常/音频处理异常
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 时间参数无效时抛出
 	 * @since 1.1.0
 	 */
 	protected static void cut(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat,
@@ -965,12 +1072,16 @@ public class AudioUtils {
 
 	/**
 	 * 音频转码核心实现
+	 * <p>
+	 * 内部方法，用于实现音频转码的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
+	 * 再通过 FFmpegFrameRecorder 写入到输出流，期间可以指定输出格式和音频参数。
+	 * </p>
 	 *
-	 * @param resource     音频资源
-	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频参数（可为 null，null 则沿用原参数）
+	 * @param resource     音频资源，不可为 null，必须为音频类型
+	 * @param outputStream 输出流，不可为 null
+	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
 	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
-	 * @throws IOException IO异常/音频处理异常
+	 * @throws IOException IO异常/音频处理异常（文件解析、写入失败等）
 	 * @since 1.1.0
 	 */
 	protected static void transcode(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat) throws IOException {
@@ -985,15 +1096,20 @@ public class AudioUtils {
 
 	/**
 	 * 获取背景音乐采样值（支持缓存/实时读取）
+	 * <p>
+	 * 辅助方法，用于混音功能中获取背景音乐的采样值。
+	 * 支持两种模式：缓存模式（适用于背景音乐较短，循环播放）和实时模式（适用于长背景音乐）。
+	 * 返回值为归一化后的采样值，范围在 -1.0 到 1.0 之间。
+	 * </p>
 	 *
-	 * @param useCache          是否使用缓存的PCM数据
-	 * @param pageCache         PCM缓存页列表
-	 * @param grabber           背景音乐帧抓取器
-	 * @param liveHolder        实时帧持有者（用于存储当前读取的帧）
-	 * @param pageIndex         缓存页索引
-	 * @param cacheSampleOffset 缓存采样偏移量
-	 * @param channelIndex      声道索引
-	 * @return 归一化后的采样值（-1.0 ~ 1.0）
+	 * @param useCache          是否使用缓存的PCM数据（true表示缓存模式，false表示实时读取）
+	 * @param pageCache         PCM缓存页列表（缓存模式下使用）
+	 * @param grabber           背景音乐帧抓取器（不可为 null）
+	 * @param liveHolder        实时帧持有者（用于存储当前读取的帧，数组长度为1）
+	 * @param pageIndex         缓存页索引（缓存模式下使用）
+	 * @param cacheSampleOffset 缓存采样偏移量（缓存模式下使用）
+	 * @param channelIndex      声道索引（从0开始）
+	 * @return 归一化后的采样值（-1.0 ~ 1.0），当音频读取完毕时返回 0.0
 	 * @throws IOException 读取帧异常
 	 * @since 1.1.0
 	 */

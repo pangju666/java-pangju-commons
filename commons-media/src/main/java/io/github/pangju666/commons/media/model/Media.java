@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 媒体文件抽象基类，定义音视频媒体的通用属性和构建器规范
@@ -242,18 +243,23 @@ public abstract class Media {
 		}
 
 		/**
-		 * 从FFmpegFrameGrabber解析媒体信息并填充
-		 * <p>要求grabber已调用start()方法启动，否则无法解析有效信息
-		 * <p>该方法是所有解析方法的核心，parse(File/byte[]/InputStream)最终都会调用此方法
+		 * 从 FFmpegFrameGrabber 解析媒体信息并填充
+		 * <p>如果抓取器尚未启动（FormatContext 为空或 null），会自动启动抓取器，
+		 * 然后从抓取器中读取媒体格式和元数据信息。
+		 * </p>
 		 *
-		 * @param grabber FFmpeg帧抓取器（已启动），用于解析媒体流信息
+		 * @param grabber FFmpeg 帧抓取器，不可为 null
 		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException 当grabber为null时抛出
+		 * @throws FFmpegFrameGrabber.Exception 当抓取器启动或读取媒体信息失败时抛出
+		 * @throws IllegalArgumentException 当 grabber 为 null 时抛出
 		 * @since 1.1.0
 		 */
-		public T parse(FFmpegFrameGrabber grabber) {
+		public T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
+			if (Objects.isNull(grabber.getFormatContext()) || grabber.getFormatContext().isNull()) {
+				grabber.start();
+			}
 			this.format = grabber.getFormat();
 			this.metadata = grabber.getMetadata();
 			return self();
@@ -337,15 +343,16 @@ public abstract class Media {
 
 		/**
 		 * 设置媒体元数据
-		 * <p>传入的Map会用于设置媒体元数据
+		 * <p>传入的元数据会直接用于设置媒体的元数据信息。
+		 * </p>
 		 *
-		 * @param metadata 元数据键值对，不可为空
+		 * @param metadata 元数据键值对，不可为 null
 		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException 当metadata为null或空时抛出
+		 * @throws IllegalArgumentException 当 metadata 为 null 时抛出
 		 * @since 1.1.0
 		 */
 		public T metadata(Map<String, String> metadata) {
-			Validate.notEmpty(metadata, "metadata 不可为空");
+			Validate.notNull(metadata, "metadata 不可为 null");
 
 			this.metadata = metadata;
 			return self();
