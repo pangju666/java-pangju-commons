@@ -258,6 +258,7 @@ public class MediaResource {
 			return tempFile;
 		} else if (source instanceof InputStream inputStream) {
 			File tempFile = File.createTempFile(TMP_FILE_PREFIX + UUID.randomUUID(), null);
+			inputStream.reset();
 			FileUtils.copyInputStreamToFile(inputStream, tempFile);
 			return tempFile;
 		} else {
@@ -317,7 +318,9 @@ public class MediaResource {
 		} else if (source instanceof byte[] bytes) {
 			return bytes;
 		} else if (source instanceof InputStream inputStream) {
-			return inputStream.readAllBytes();
+			byte[] bytes = inputStream.readAllBytes();
+			inputStream.reset();
+			return bytes;
 		} else {
 			return null;
 		}
