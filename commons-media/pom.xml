@@ -18,16 +18,6 @@
 		</license>
 	</licenses>
 
-	<properties>
-		<!-- 指定目标平台：windows-x86_64 -->
-		<javacpp.platform>windows-x86_64</javacpp.platform>
-		<!-- 其他可选平台：
-		<javacpp.platform>linux-x86_64</javacpp.platform>
-		<javacpp.platform>macosx-x86_64</javacpp.platform>
-		<javacpp.platform>linux-arm64</javacpp.platform>
-		-->
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>io.github.pangju666.commons</groupId>
@@ -42,11 +32,13 @@
 			<groupId>org.bytedeco</groupId>
 			<artifactId>ffmpeg-platform</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-audiovideo-module</artifactId>
 			<version>${tika.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>

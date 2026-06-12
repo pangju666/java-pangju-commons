@@ -452,7 +452,7 @@ public class Audio extends Media {
 		 * @since 1.1.0
 		 */
 		@Override
-		public Builder parse(FFmpegFrameGrabber grabber) {
+		public Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
 			super.parse(grabber);
