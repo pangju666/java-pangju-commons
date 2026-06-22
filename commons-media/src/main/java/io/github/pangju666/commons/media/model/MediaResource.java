@@ -26,6 +26,7 @@ import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 
 import java.io.*;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -368,5 +369,9 @@ public class MediaResource {
 	 */
 	public boolean isVideo() {
 		return Strings.CS.startsWith(mimeType, "video/");
+	}
+
+	public boolean isFile() {
+		return Objects.nonNull(source) && source instanceof File;
 	}
 }

@@ -601,7 +601,8 @@ public class AudioUtils {
 					continue;
 				}
 
-				try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource.getInputStream())) {
+				try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
+					new FFmpegFrameGrabber(resource.getInputStream()))) {
 					grabber.start();
 
 					recordSamples(recorder, grabber, null);
@@ -702,16 +703,20 @@ public class AudioUtils {
 		Validate.notNull(bgmResource, "bgmResource 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.isTrue(bgmVolume > 0, "bgmVolume 必须大于0");
+		Validate.isTrue(mainResource.isAudio(), "不是音频类型 MediaResource");
+		Validate.isTrue(bgmResource.isAudio(), "不是音频类型 MediaResource");
 
 		File tmpFile = null;
 		FFmpegFrameGrabber bgmGrabber;
 		Frame[] liveBgmHolder = new Frame[1];
 
-		try (FFmpegFrameGrabber mainGrabber = new FFmpegFrameGrabber(mainResource.getInputStream())) {
+		try (FFmpegFrameGrabber mainGrabber = (mainResource.isFile() ? new FFmpegFrameGrabber(mainResource.getFile()) :
+			new FFmpegFrameGrabber(mainResource.getInputStream()))) {
 			mainGrabber.start();
 			Audio mainAudio = Audio.builder().parse(mainGrabber).build();
 
-			bgmGrabber = new FFmpegFrameGrabber(bgmResource.getInputStream());
+			bgmGrabber = bgmResource.isFile() ? new FFmpegFrameGrabber(bgmResource.getFile()) :
+				new FFmpegFrameGrabber(bgmResource.getInputStream());
 			bgmGrabber.start();
 
 			// 判断是否需要转临时标准化wav
@@ -920,7 +925,8 @@ public class AudioUtils {
 	 * @since 1.1.0
 	 */
 	public static void applyFilter(MediaResource resource, OutputStream outputStream, String audioFilters) throws IOException {
-		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource.getInputStream());
+		try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
+			new FFmpegFrameGrabber(resource.getInputStream()));
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0);
 		     FFmpegFrameFilter filter = new FFmpegFrameFilter(audioFilters, 0)) {
 			grabber.start();
@@ -960,6 +966,67 @@ public class AudioUtils {
 					recorder.record(filterFrame);
 				}
 			}
+		}
+	}
+
+	/**
+	 * 音频裁剪核心实现
+	 * <p>
+	 * 内部方法，用于实现音频裁剪的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
+	 * 支持指定起始和结束时间截取音频片段，可以自定义输出格式和音频参数。
+	 * </p>
+	 *
+	 * @param resource     音频资源，不可为 null，必须为音频类型
+	 * @param outputStream 输出流，不可为 null，不会被自动关闭
+	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
+	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
+	 * @param start        起始时间，不可为 null
+	 * @param end          裁剪结束时间，可为 null；为 null 时裁剪至音频末尾
+	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
+	 * @throws IllegalArgumentException 时间参数无效时抛出
+	 * @since 1.1.0
+	 */
+	protected static void cut(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat,
+	                          Duration start, Duration end) throws IOException {
+		try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
+			new FFmpegFrameGrabber(resource.getInputStream()))) {
+			long startTimestamp = start.toNanos() / 1000;
+			long endTimestamp = Objects.isNull(end) ? grabber.getLengthInTime() : Math.min(end.toNanos() / 1000, grabber.getLengthInTime());
+
+			Validate.isTrue(startTimestamp < grabber.getLengthInTime(), "start 必须小于音频总时长");
+
+			grabber.setTimestamp(startTimestamp);
+			grabber.start();
+
+			try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0)) {
+				initRecorder(recorder, grabber, outputAudio, outputFormat);
+				recordSamples(recorder, grabber, endTimestamp);
+			}
+		}
+	}
+
+	/**
+	 * 音频转码核心实现
+	 * <p>
+	 * 内部方法，用于实现音频转码的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
+	 * 再通过 FFmpegFrameRecorder 写入到输出流，期间可以指定输出格式和音频参数。
+	 * </p>
+	 *
+	 * @param resource     音频资源，不可为 null，必须为音频类型
+	 * @param outputStream 输出流，不可为 null
+	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
+	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
+	 * @throws IOException IO异常/音频处理异常（文件解析、写入失败等）
+	 * @since 1.1.0
+	 */
+	protected static void transcode(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat) throws IOException {
+		try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
+			new FFmpegFrameGrabber(resource.getInputStream()));
+		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0)) {
+			grabber.start();
+
+			initRecorder(recorder, grabber, outputAudio, outputFormat);
+			recordSamples(recorder, grabber, null);
 		}
 	}
 
@@ -1033,65 +1100,6 @@ public class AudioUtils {
 		}
 
 		recorder.start();
-	}
-
-	/**
-	 * 音频裁剪核心实现
-	 * <p>
-	 * 内部方法，用于实现音频裁剪的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
-	 * 支持指定起始和结束时间截取音频片段，可以自定义输出格式和音频参数。
-	 * </p>
-	 *
-	 * @param resource     音频资源，不可为 null，必须为音频类型
-	 * @param outputStream 输出流，不可为 null，不会被自动关闭
-	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
-	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
-	 * @param start        起始时间，不可为 null
-	 * @param end          裁剪结束时间，可为 null；为 null 时裁剪至音频末尾
-	 * @throws IOException              IO异常/音频处理异常（文件解析、写入失败等）
-	 * @throws IllegalArgumentException 时间参数无效时抛出
-	 * @since 1.1.0
-	 */
-	protected static void cut(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat,
-	                          Duration start, Duration end) throws IOException {
-		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource.getInputStream())) {
-			long startTimestamp = start.toNanos() / 1000;
-			long endTimestamp = Objects.isNull(end) ? grabber.getLengthInTime() : Math.min(end.toNanos() / 1000, grabber.getLengthInTime());
-
-			Validate.isTrue(startTimestamp < grabber.getLengthInTime(), "start 必须小于音频总时长");
-
-			grabber.setTimestamp(startTimestamp);
-			grabber.start();
-
-			try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0)) {
-				initRecorder(recorder, grabber, outputAudio, outputFormat);
-				recordSamples(recorder, grabber, endTimestamp);
-			}
-		}
-	}
-
-	/**
-	 * 音频转码核心实现
-	 * <p>
-	 * 内部方法，用于实现音频转码的具体逻辑。通过 FFmpegFrameGrabber 读取源音频，
-	 * 再通过 FFmpegFrameRecorder 写入到输出流，期间可以指定输出格式和音频参数。
-	 * </p>
-	 *
-	 * @param resource     音频资源，不可为 null，必须为音频类型
-	 * @param outputStream 输出流，不可为 null
-	 * @param outputAudio  输出音频参数（可为 null，null 则完全沿用原参数）
-	 * @param outputFormat 输出格式（可为 null，null 则沿用原格式）
-	 * @throws IOException IO异常/音频处理异常（文件解析、写入失败等）
-	 * @since 1.1.0
-	 */
-	protected static void transcode(MediaResource resource, OutputStream outputStream, Audio outputAudio, String outputFormat) throws IOException {
-		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource.getInputStream());
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0)) {
-			grabber.start();
-
-			initRecorder(recorder, grabber, outputAudio, outputFormat);
-			recordSamples(recorder, grabber, null);
-		}
 	}
 
 	/**
