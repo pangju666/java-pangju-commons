@@ -75,7 +75,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.github.pangju666.commons</groupId>
-			<artifactId>commons-tesseract</artifactId>
+			<artifactId>commons-ocr</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

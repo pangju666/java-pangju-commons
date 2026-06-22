@@ -28,13 +28,14 @@
 		<module>commons-poi</module>
 		<module>commons-validation</module>
 		<module>commons-media</module>
-		<module>commons-tesseract</module>
+		<module>commons-ocr</module>
 		<module>commons-bom</module>
 		<module>commons-all</module>
 	</modules>
 
 	<properties>
 		<skipTests>true</skipTests>
+		<javacpp.platform>windows-x86_64</javacpp.platform>
 	</properties>
 
 	<licenses>
