@@ -16,15 +16,12 @@
 
 package io.github.pangju666.commons.media.model;
 
-import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.avcodec.AVCodec;
+import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -152,6 +149,10 @@ public abstract class Media {
 		return codecId;
 	}
 
+	public void initRecoder(FFmpegFrameRecorder recorder) {
+		recorder.setFormat(this.format);
+	}
+
 	/**
 	 * 媒体对象构建器抽象类，定义通用的构建逻辑
 	 * <p>
@@ -210,16 +211,9 @@ public abstract class Media {
 		 */
 		protected int codecId;
 
-		/**
-		 * 受保护的构造函数
-		 * <p>
-		 * 仅用于子类继承，初始化构建器的默认值。
-		 * </p>
-		 *
-		 * @since 1.1.0
-		 */
 		protected Builder() {
-			initDefaultValue();
+			this.metadata = Collections.emptyMap();
+			this.codecId = avcodec.AV_CODEC_ID_NONE;
 		}
 
 		/**
@@ -242,19 +236,7 @@ public abstract class Media {
 			this.metadata = media.getMetadata();
 		}
 
-		/**
-		 * 从 FFmpegFrameGrabber 解析媒体信息并填充
-		 * <p>如果抓取器尚未启动（FormatContext 为空或 null），会自动启动抓取器，
-		 * 然后从抓取器中读取媒体格式和元数据信息。
-		 * </p>
-		 *
-		 * @param grabber FFmpeg 帧抓取器，不可为 null
-		 * @return 构建器自身，用于链式调用
-		 * @throws FFmpegFrameGrabber.Exception 当抓取器启动或读取媒体信息失败时抛出
-		 * @throws IllegalArgumentException 当 grabber 为 null 时抛出
-		 * @since 1.1.0
-		 */
-		public T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		protected T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
 			if (Objects.isNull(grabber.getFormatContext()) || grabber.getFormatContext().isNull()) {
@@ -263,66 +245,6 @@ public abstract class Media {
 			this.format = grabber.getFormat();
 			this.metadata = grabber.getMetadata();
 			return self();
-		}
-
-		/**
-		 * 从文件解析媒体信息并填充
-		 * <p>内部会自动创建FFmpegFrameGrabber并启动，解析完成后自动关闭资源</p>
-		 *
-		 * @param file 媒体文件，不可为null且需存在（文件路径需合法）
-		 * @return 构建器自身，用于链式调用
-		 * @throws IOException              当文件不存在、无读取权限或FFmpeg解析失败时抛出
-		 * @throws IllegalArgumentException 当file为null或不是有效文件时抛出
-		 * @since 1.1.0
-		 */
-		public T parse(File file) throws IOException {
-			FileUtils.checkFile(file, "file 不可为 null");
-
-			try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
-				grabber.start();
-				parse(grabber);
-				return self();
-			}
-		}
-
-		/**
-		 * 从字节数组解析媒体信息并填充
-		 * <p>字节数组需为完整的媒体文件数据，内部会转换为输入流并自动管理资源</p>
-		 *
-		 * @param bytes 媒体文件字节数组，不可为null（空数组会导致解析失败）
-		 * @return 构建器自身，用于链式调用
-		 * @throws IOException              当FFmpeg无法解析字节数组中的媒体格式时抛出
-		 * @throws IllegalArgumentException 当bytes为null时抛出
-		 * @since 1.1.0
-		 */
-		public T parse(byte[] bytes) throws IOException {
-			Validate.notNull(bytes, "bytes 不可为 null");
-
-			try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
-				grabber.start();
-				parse(grabber);
-				return self();
-			}
-		}
-
-		/**
-		 * 从输入流解析媒体信息并填充
-		 * <p>输入流会被内部创建的FFmpegFrameGrabber完全消费，解析完成后自动关闭</p>
-		 *
-		 * @param inputStream 媒体文件输入流，不可为null
-		 * @return 构建器自身，用于链式调用
-		 * @throws IOException              当流读取异常、FFmpeg解析失败或流关闭失败时抛出
-		 * @throws IllegalArgumentException 当inputStream为null时抛出
-		 * @since 1.1.0
-		 */
-		public T parse(InputStream inputStream) throws IOException {
-			Validate.notNull(inputStream, "媒体输入流不可为 null");
-
-			try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputStream)) {
-				grabber.start();
-				parse(grabber);
-				return self();
-			}
 		}
 
 		/**
@@ -392,18 +314,6 @@ public abstract class Media {
 		}
 
 		/**
-		 * 重置构建器为初始状态
-		 * <p>清空所有已设置的属性，恢复到构建器创建时的初始状态</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
-		 */
-		public T reset() {
-			initDefaultValue();
-			return self();
-		}
-
-		/**
 		 * 构建媒体对象
 		 * <p>返回最终构建完成的媒体对象，后续构建器的修改不会影响该对象</p>
 		 *
@@ -422,19 +332,6 @@ public abstract class Media {
 		@SuppressWarnings("unchecked")
 		protected T self() {
 			return (T) this;
-		}
-
-		/**
-		 * 初始化媒体对象默认值
-		 * <p>将所有属性重置为初始状态</p>
-		 *
-		 * @since 1.1.0
-		 */
-		protected void initDefaultValue() {
-			this.format = null;
-			this.metadata = Collections.emptyMap();
-			this.codecId = 0;
-			this.codecName = null;
 		}
 	}
 }

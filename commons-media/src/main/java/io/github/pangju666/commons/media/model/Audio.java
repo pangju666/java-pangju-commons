@@ -16,15 +16,20 @@
 
 package io.github.pangju666.commons.media.model;
 
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.media.lang.MediaConstants;
 import org.apache.commons.lang3.Validate;
+import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 音频媒体对象，封装了音频文件的核心信息
@@ -67,33 +72,43 @@ import java.util.Objects;
  * @since 1.1.0
  */
 public class Audio extends Media {
-	/**
-	 * 默认音频格式：WAV（无损音频格式）
-	 *
-	 * @since 1.1.0
-	 */
-	public static final String DEFAULT_FORMAT = "wav";
+	public static final Audio WAV = Audio.builder()
+		.wav()
+		.build();
 
-	/**
-	 * 默认采样率：44100 Hz（CD音质标准）
-	 *
-	 * @since 1.1.0
-	 */
-	public static final int DEFAULT_SAMPLE_RATE = 44100;
+	public static final Audio FLAC = Audio.builder()
+		.flac()
+		.build();
 
-	/**
-	 * 默认声道数：2（立体声）
-	 *
-	 * @since 1.1.0
-	 */
-	public static final int DEFAULT_CHANNELS = 2;
+	public static final Audio MP3 = Audio.builder()
+		.mp3()
+		.bitrate(128_000)
+		.build();
 
-	/**
-	 * 默认比特率：64000 bps（64 kbps）
-	 *
-	 * @since 1.1.0
-	 */
-	public static final int DEFAULT_BITRATE = 64000;
+	public static final Audio MP3_HIGH = Audio.builder()
+		.mp3()
+		.bitrate(192_000)
+		.build();
+
+	public static final Audio OPUS = Audio.builder()
+		.opus()
+		.bitrate(96_000)
+		.build();
+
+	public static final Audio OPUS_HIGH = Audio.builder()
+		.opus()
+		.bitrate(192_000)
+		.build();
+
+	public static final Audio AAC = Audio.builder()
+		.aac()
+		.bitrate(128_000)
+		.build();
+
+	public static final Audio AAC_HIGH = Audio.builder()
+		.aac()
+		.bitrate(256_000)
+		.build();
 
 	/**
 	 * 音频时长
@@ -145,13 +160,6 @@ public class Audio extends Media {
 		this.bitrate = bitrate;
 	}
 
-	/**
-	 * 创建一个新的 Audio 构建器
-	 * <p>构建器会被初始化为默认值</p>
-	 *
-	 * @return 新的 Audio.Builder 实例
-	 * @since 1.1.0
-	 */
 	public static Audio.Builder builder() {
 		return new Audio.Builder();
 	}
@@ -167,6 +175,37 @@ public class Audio extends Media {
 	 */
 	public static Audio.Builder builder(Audio audio) {
 		return new Audio.Builder(audio);
+	}
+
+	public static Audio.Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		return new Audio.Builder().parse(grabber);
+	}
+
+	public static Audio.Builder builder(File file) throws IOException {
+		FileUtils.checkFile(file, "file 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
+			grabber.start();
+			return new Audio.Builder().parse(grabber);
+		}
+	}
+
+	public static Audio.Builder builder(byte[] bytes) throws IOException {
+		Validate.notNull(bytes, "bytes 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
+			grabber.start();
+			return new Audio.Builder().parse(grabber);
+		}
+	}
+
+	public static Audio.Builder builder(InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputStream)) {
+			grabber.start();
+			return new Audio.Builder().parse(grabber);
+		}
 	}
 
 	/**
@@ -230,17 +269,6 @@ public class Audio extends Media {
 	}
 
 	/**
-	 * 获取音频总秒数
-	 * <p>如果时长为 null，则返回 0</p>
-	 *
-	 * @return 音频总秒数，时长为 null 时返回 0
-	 * @since 1.1.0
-	 */
-	public long getTotalSeconds() {
-		return Objects.isNull(duration) ? 0 : duration.toSeconds();
-	}
-
-	/**
 	 * 判断是否有时长信息
 	 * <p>检查 duration 是否不为 null 且不为零时长</p>
 	 *
@@ -249,6 +277,18 @@ public class Audio extends Media {
 	 */
 	public boolean hasDuration() {
 		return duration != null && !duration.isZero();
+	}
+
+	@Override
+	public void initRecoder(FFmpegFrameRecorder recorder) {
+		super.initRecoder(recorder);
+
+		recorder.setSampleRate(this.sampleRate);
+		recorder.setAudioCodec(this.codecId);
+		recorder.setAudioCodecName(this.codecName);
+		recorder.setAudioBitrate(this.bitrate);
+		recorder.setAudioChannels(this.channels);
+		recorder.setAudioMetadata(this.metadata);
 	}
 
 	/**
@@ -260,7 +300,6 @@ public class Audio extends Media {
 	 * <ul>
 	 *     <li><b>新建音频对象</b>：使用 {@link #Builder()} 创建空白构建器，设置属性后调用 {@link #build()}</li>
 	 *     <li><b>修改现有音频</b>：使用 {@link #Builder(Audio)} 基于现有音频创建构建器，修改属性后调用 {@link #build()}</li>
-	 *     <li><b>解析音频文件</b>：使用 {@link #parse(File)}、{@link #parse(byte[])} 或 {@link #parse(InputStream)} 从不同来源解析</li>
 	 * </ul>
 	 * <h3>主要方法</h3>
 	 * <ul>
@@ -325,13 +364,12 @@ public class Audio extends Media {
 		 */
 		protected int bitrate;
 
-		/**
-		 * 创建空白构建器，初始化为默认值
-		 *
-		 * @since 1.1.0
-		 */
 		public Builder() {
 			super();
+			this.duration = Duration.ZERO;
+			this.sampleRate = MediaConstants.AUDIO_STANDARD_SAMPLE_RATE;
+			this.channels = MediaConstants.DEFAULT_AUDIO_CHANNELS;
+			this.bitrate = 0;
 		}
 
 		/**
@@ -348,6 +386,36 @@ public class Audio extends Media {
 			this.sampleRate = audio.sampleRate;
 			this.channels = audio.channels;
 			this.bitrate = audio.bitrate;
+		}
+
+		public Builder wav() {
+			this.format = MediaConstants.AUDIO_WAV_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_PCM_S16LE;
+			return this;
+		}
+
+		public Builder flac() {
+			this.format = MediaConstants.AUDIO_FLAC_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_FLAC;
+			return this;
+		}
+
+		public Builder mp3() {
+			this.format = MediaConstants.AUDIO_MP3_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_MP3;
+			return this;
+		}
+
+		public Builder opus() {
+			this.format = MediaConstants.AUDIO_OPUS_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_OPUS;
+			return this;
+		}
+
+		public Builder aac() {
+			this.format = MediaConstants.AUDIO_AAC_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_AAC;
+			return this;
 		}
 
 		/**
@@ -425,7 +493,7 @@ public class Audio extends Media {
 		 * @since 1.1.0
 		 */
 		public Builder bitrate(int bitrate) {
-			Validate.isTrue(bitrate > 0, "bitrate 必须大于 0");
+			Validate.isTrue(bitrate >= 0, "bitrate 必须为非负数");
 			this.bitrate = bitrate;
 			return this;
 		}
@@ -452,7 +520,7 @@ public class Audio extends Media {
 		 * @since 1.1.0
 		 */
 		@Override
-		public Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		protected Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
 			super.parse(grabber);
@@ -468,22 +536,6 @@ public class Audio extends Media {
 			}
 
 			return this;
-		}
-
-		/**
-		 * 初始化构建器默认值
-		 * <p>设置音频特有的默认值：WAV 格式、44100Hz 采样率、2 声道、64kbps 比特率</p>
-		 *
-		 * @since 1.1.0
-		 */
-		@Override
-		protected void initDefaultValue() {
-			super.initDefaultValue();
-			this.format = DEFAULT_FORMAT;
-			this.sampleRate = DEFAULT_SAMPLE_RATE;
-			this.channels = DEFAULT_CHANNELS;
-			this.bitrate = DEFAULT_BITRATE;
-			this.duration = Duration.ZERO;
 		}
 	}
 }

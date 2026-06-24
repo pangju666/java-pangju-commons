@@ -16,10 +16,20 @@
 
 package io.github.pangju666.commons.media.model;
 
+import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.media.lang.MediaConstants;
 import org.apache.commons.lang3.Validate;
+import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -64,29 +74,445 @@ import java.util.Objects;
  * @since 1.1.0
  */
 public class Video extends Media {
-	/**
-	 * 默认视频封装格式：AVI
-	 * <p>通用容器格式，广泛用于视频编辑、转码中间载体</p>
-	 *
-	 * @since 1.1.0
-	 */
-	public static final String DEFAULT_FORMAT = "avi";
+	public static final Audio AAC_480P = Audio.builder()
+		.aac()
+		.bitrate(96_000)
+		.build();
 
-	/**
-	 * 默认视频帧率：30 fps
-	 * <p>标准视频帧率，适合大多数场景</p>
-	 *
-	 * @since 1.1.0
-	 */
-	public static final int DEFAULT_FRAME_RATE = 30;
+	public static final Audio AAC_720P = Audio.builder()
+		.aac().bitrate(128_000)
+		.build();
 
-	/**
-	 * 默认视频码率：400000 bps（400kbps）
-	 * <p>适合低清晰度视频；高清视频建议使用 2000000bps 及以上</p>
-	 *
-	 * @since 1.1.0
-	 */
-	public static final int DEFAULT_BITRATE = 400000;
+	public static final Audio AAC_1080P = Audio.builder()
+		.aac()
+		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
+		.bitrate(192_000)
+		.build();
+
+	public static final Audio AAC_2K = Audio.builder()
+		.aac()
+		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
+		.bitrate(256_000)
+		.build();
+
+	public static final Audio OPUS_480P = Audio.builder()
+		.opus()
+		.bitrate(80_000)
+		.build();
+
+	public static final Audio OPUS_720P = Audio.builder()
+		.opus()
+		.bitrate(96_000)
+		.build();
+
+	public static final Audio OPUS_1080P = Audio.builder()
+		.opus()
+		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
+		.bitrate(128_000)
+		.build();
+
+	public static final Audio OPUS_2K = Audio.builder()
+		.opus()
+		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
+		.bitrate(192_000)
+		.build();
+
+	public static final Audio FLAC = Audio.builder()
+		.flac()
+		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
+		.build();
+
+	public static final Video MP4_480P = Video.builder()
+		.mp4WithH264()
+		.resolution480p()
+		.bitrate(1500_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P = Video.builder()
+		.mp4WithH264()
+		.resolution720p()
+		.bitrate(3000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P = Video.builder()
+		.mp4WithH264()
+		.resolution1080p()
+		.bitrate(6000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K = Video.builder()
+		.mp4WithH264()
+		.resolution2k()
+		.bitrate(12000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MP4_480P_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution480pVertical()
+		.bitrate(1500_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution720pVertical()
+		.bitrate(3000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution1080pVertical()
+		.bitrate(6000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution2kVertical()
+		.bitrate(12000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MP4_480P_LOW = Video.builder()
+		.mp4WithH264()
+		.resolution480p()
+		.bitrate(1000_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P_LOW = Video.builder()
+		.mp4WithH264()
+		.resolution720p()
+		.bitrate(2000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P_LOW = Video.builder()
+		.mp4WithH264()
+		.resolution1080p()
+		.bitrate(4000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K_LOW = Video.builder()
+		.mp4WithH264()
+		.resolution2k()
+		.bitrate(8000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MP4_480P_LOW_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution480pVertical()
+		.bitrate(1000_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P_LOW_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution720pVertical()
+		.bitrate(2000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P_LOW_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution1080pVertical()
+		.bitrate(4000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K_LOW_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution2kVertical()
+		.bitrate(8000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MP4_480P_HIGH = Video.builder()
+		.mp4WithH264()
+		.resolution480p()
+		.bitrate(2000_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P_HIGH = Video.builder()
+		.mp4WithH264()
+		.resolution720p()
+		.bitrate(4000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P_HIGH = Video.builder()
+		.mp4WithH264()
+		.resolution1080p()
+		.bitrate(8000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K_HIGH = Video.builder()
+		.mp4WithH264()
+		.resolution2k()
+		.bitrate(16000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MP4_480P_HIGH_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution480pVertical()
+		.bitrate(2000_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MP4_720P_HIGH_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution720pVertical()
+		.bitrate(4000_000)
+		.audio(AAC_720P)
+		.build();
+
+	public static final Video MP4_1080P_HIGH_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution1080pVertical()
+		.bitrate(8000_000)
+		.audio(AAC_1080P)
+		.build();
+
+	public static final Video MP4_2K_HIGH_VERTICAL = Video.builder()
+		.mp4WithH264()
+		.resolution2kVertical()
+		.bitrate(16000_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video WEBM_480P = Video.builder()
+		.webmWithVP9()
+		.resolution480p()
+		.bitrate(1300_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P = Video.builder()
+		.webmWithVP9()
+		.resolution720p()
+		.bitrate(2600_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P = Video.builder()
+		.webmWithVP9()
+		.resolution1080p()
+		.bitrate(5200_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K = Video.builder()
+		.webmWithVP9()
+		.resolution2k()
+		.bitrate(10500_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video WEBM_480P_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution480pVertical()
+		.bitrate(1300_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution720pVertical()
+		.bitrate(2600_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution1080pVertical()
+		.bitrate(5200_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution2kVertical()
+		.bitrate(10500_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video WEBM_480P_LOW = Video.builder()
+		.webmWithVP9()
+		.resolution480p()
+		.bitrate(750_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P_LOW = Video.builder()
+		.webmWithVP9()
+		.resolution720p()
+		.bitrate(1500_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P_LOW = Video.builder()
+		.webmWithVP9()
+		.resolution1080p()
+		.bitrate(3000_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K_LOW = Video.builder()
+		.webmWithVP9()
+		.resolution2k()
+		.bitrate(6000_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video WEBM_480P_LOW_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution480pVertical()
+		.bitrate(750_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P_LOW_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution720pVertical()
+		.bitrate(1500_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P_LOW_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution1080pVertical()
+		.bitrate(3000_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K_LOW_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution2kVertical()
+		.bitrate(6000_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video WEBM_480P_HIGH = Video.builder()
+		.webmWithVP9()
+		.resolution480p()
+		.bitrate(1800_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P_HIGH = Video.builder()
+		.webmWithVP9()
+		.resolution720p()
+		.bitrate(3500_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P_HIGH = Video.builder()
+		.webmWithVP9()
+		.resolution1080p()
+		.bitrate(7000_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K_HIGH = Video.builder()
+		.webmWithVP9()
+		.resolution2k()
+		.bitrate(14000_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video WEBM_480P_HIGH_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution480pVertical()
+		.bitrate(1800_000)
+		.audio(OPUS_480P)
+		.build();
+
+	public static final Video WEBM_720P_HIGH_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution720pVertical()
+		.bitrate(3500_000)
+		.audio(OPUS_720P)
+		.build();
+
+	public static final Video WEBM_1080P_HIGH_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution1080pVertical()
+		.bitrate(7000_000)
+		.audio(OPUS_1080P)
+		.build();
+
+	public static final Video WEBM_2K_HIGH_VERTICAL = Video.builder()
+		.webmWithVP9()
+		.resolution2kVertical()
+		.bitrate(14000_000)
+		.audio(OPUS_2K)
+		.build();
+
+	public static final Video MKV_480P = Video.builder()
+		.mkvWithH264()
+		.resolution480p()
+		.bitrate(900_000)
+		.audio(AAC_480P)
+		.build();
+
+	public static final Video MKV_720P = Video.builder()
+		.mkvWithH264()
+		.resolution720p()
+		.bitrate(1800_000)
+		.audio(Audio.FLAC)
+		.build();
+
+	public static final Video MKV_1080P = Video.builder()
+		.mkvWithH264()
+		.resolution1080p()
+		.bitrate(3600_000)
+		.audio(Audio.FLAC)
+		.build();
+
+	public static final Video MKV_2K = Video.builder()
+		.mkvWithH264()
+		.resolution2k()
+		.bitrate(7200_000)
+		.audio(AAC_2K)
+		.build();
+
+	public static final Video MKV_480P_VERTICAL = Video.builder()
+		.mkvWithH264()
+		.resolution480pVertical()
+		.bitrate(900_000)
+		.audio(Audio.FLAC)
+		.build();
+
+	public static final Video MKV_720P_VERTICAL = Video.builder()
+		.mkvWithH264()
+		.resolution720pVertical()
+		.bitrate(1800_000)
+		.audio(Audio.FLAC)
+		.build();
+
+	public static final Video MKV_1080P_VERTICAL = Video.builder()
+		.mkvWithH264()
+		.resolution1080pVertical()
+		.bitrate(3600_000)
+		.audio(FLAC)
+		.build();
+
+	public static final Video MKV_2K_VERTICAL = Video.builder()
+		.mkvWithH264()
+		.resolution2kVertical()
+		.bitrate(7200_000)
+		.audio(FLAC)
+		.build();
 
 	/**
 	 * 视频总播放时长
@@ -184,6 +610,37 @@ public class Video extends Media {
 		return new Video.Builder(video);
 	}
 
+	public static Video.Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		return new Video.Builder().parse(grabber);
+	}
+
+	public static Video.Builder builder(File file) throws IOException {
+		FileUtils.checkFile(file, "file 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
+			grabber.start();
+			return new Video.Builder().parse(grabber);
+		}
+	}
+
+	public static Video.Builder builder(byte[] bytes) throws IOException {
+		Validate.notNull(bytes, "bytes 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
+			grabber.start();
+			return new Video.Builder().parse(grabber);
+		}
+	}
+
+	public static Video.Builder builder(InputStream inputStream) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputStream)) {
+			grabber.start();
+			return new Video.Builder().parse(grabber);
+		}
+	}
+
 	/**
 	 * 获取视频总时长
 	 *
@@ -245,19 +702,6 @@ public class Video extends Media {
 	}
 
 	/**
-	 * 获取视频总秒数
-	 *
-	 * @return 总时长（秒）；无有效时长返回 0
-	 * @since 1.1.0
-	 */
-	public long getTotalSeconds() {
-		if (Objects.isNull(duration)) {
-			return 0;
-		}
-		return duration.toSeconds();
-	}
-
-	/**
 	 * 判断视频是否包含音频轨道
 	 *
 	 * @return true = 有音频，false = 无音频
@@ -275,6 +719,36 @@ public class Video extends Media {
 	 */
 	public boolean hasDuration() {
 		return duration != null && !duration.isZero();
+	}
+
+	public boolean isVertical() {
+		return height > width;
+	}
+
+	public boolean isSquare() {
+		return width == height;
+	}
+
+	@Override
+	public void initRecoder(FFmpegFrameRecorder recorder) {
+		super.initRecoder(recorder);
+
+		recorder.setFrameRate(this.frameRate);
+		recorder.setVideoBitrate(this.bitrate);
+		recorder.setVideoCodec(this.codecId);
+		recorder.setVideoCodecName(this.codecName);
+		recorder.setImageWidth(this.width);
+		recorder.setImageHeight(this.height);
+		recorder.setVideoMetadata(new HashMap<>(this.metadata));
+
+		if (Objects.nonNull(this.audio)) {
+			recorder.setSampleRate(this.audio.sampleRate);
+			recorder.setAudioCodec(this.audio.codecId);
+			recorder.setAudioCodecName(this.audio.codecName);
+			recorder.setAudioBitrate(this.audio.bitrate);
+			recorder.setAudioChannels(this.audio.channels);
+			recorder.setAudioMetadata(new HashMap<>(this.audio.metadata));
+		}
 	}
 
 	/**
@@ -365,6 +839,11 @@ public class Video extends Media {
 		 */
 		public Builder() {
 			super();
+			this.duration = Duration.ZERO;
+			this.frameRate = MediaConstants.DEFAULT_VIDEO_FRAME_RATE;
+			this.width = 0;
+			this.height = 0;
+			this.bitrate = 0;
 		}
 
 		/**
@@ -383,6 +862,73 @@ public class Video extends Media {
 			this.audio = video.audio;
 		}
 
+		public Builder mp4WithH264() {
+			this.format = MediaConstants.VIDEO_MP4_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_H264;
+			return this;
+		}
+
+		public Builder webmWithVP9() {
+			this.format = MediaConstants.VIDEO_WEBM_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_VP9;
+			return this;
+		}
+
+		public Builder mkvWithH264() {
+			this.format = MediaConstants.VIDEO_MKV_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_H264;
+			return this;
+		}
+
+		public Builder resolution2k() {
+			return resolution(2560, 1440);
+		}
+
+		public Builder resolution1080p() {
+			return resolution(1920, 1080);
+		}
+
+		public Builder resolution720p() {
+			return resolution(1280, 720);
+		}
+
+		public Builder resolution480p() {
+			return resolution(640, 480);
+		}
+
+		public Builder resolution2kVertical() {
+			return resolution(1440, 2560);
+		}
+
+		public Builder resolution1080pVertical() {
+			return resolution(1080, 1920);
+		}
+
+		public Builder resolution720pVertical() {
+			return resolution(720, 1280);
+		}
+
+		public Builder resolution480pVertical() {
+			return resolution(480, 640);
+		}
+
+		/**
+		 * 设置视频分辨率
+		 *
+		 * @param width  视频宽度，必须大于 0
+		 * @param height 视频高度，必须大于 0
+		 * @return 当前构建器，支持链式调用
+		 * @throws IllegalArgumentException 当 width 或 height 小于等于 0 时抛出
+		 * @since 1.1.0
+		 */
+		public Builder resolution(int width, int height) {
+			Validate.isTrue(width > 0, "width 必须大于 0");
+			Validate.isTrue(height > 0, "height 必须大于 0");
+			this.height = height;
+			this.width = width;
+			return this;
+		}
+
 		/**
 		 * 设置视频时长
 		 *
@@ -391,7 +937,7 @@ public class Video extends Media {
 		 * @throws IllegalArgumentException 当 duration 为 null 或为负数时抛出
 		 * @since 1.1.0
 		 */
-		public Video.Builder duration(Duration duration) {
+		public Builder duration(Duration duration) {
 			Validate.notNull(duration, "duration 不可为 null");
 			Validate.isTrue(!duration.isNegative() && !duration.isZero(), "duration 必须为正数");
 
@@ -414,23 +960,6 @@ public class Video extends Media {
 		}
 
 		/**
-		 * 设置视频分辨率
-		 *
-		 * @param width  视频宽度，必须大于 0
-		 * @param height 视频高度，必须大于 0
-		 * @return 当前构建器，支持链式调用
-		 * @throws IllegalArgumentException 当 width 或 height 小于等于 0 时抛出
-		 * @since 1.1.0
-		 */
-		public Builder resolution(int width, int height) {
-			Validate.isTrue(width > 0, "width 必须大于 0");
-			Validate.isTrue(height > 0, "height 必须大于 0");
-			this.height = height;
-			this.width = width;
-			return this;
-		}
-
-		/**
 		 * 设置视频码率
 		 *
 		 * @param bitrate 码率（bps），<b>必须大于 0</b>
@@ -439,7 +968,7 @@ public class Video extends Media {
 		 * @since 1.1.0
 		 */
 		public Builder bitrate(int bitrate) {
-			Validate.isTrue(bitrate > 0, "bitrate 必须大于 0");
+			Validate.isTrue(bitrate >= 0, "bitrate 必须为非负数");
 			this.bitrate = bitrate;
 			return this;
 		}
@@ -485,36 +1014,21 @@ public class Video extends Media {
 
 			super.parse(grabber);
 			if (grabber.hasVideo()) {
+				this.metadata = Collections.unmodifiableMap(grabber.getVideoMetadata());
+				this.codecName = grabber.getVideoCodecName();
+				this.codecId = grabber.getVideoCodec();
 				// 微秒 → 纳秒：1 微秒 = 1000 纳秒
 				this.duration = Duration.ofNanos(grabber.getLengthInTime() * 1000);
 				this.frameRate = grabber.getVideoFrameRate();
+				this.bitrate = grabber.getVideoBitrate();
 				this.width = grabber.getImageWidth();
 				this.height = grabber.getImageHeight();
-				this.frameRate = grabber.getVideoFrameRate();
-				this.bitrate = grabber.getVideoBitrate();
 			}
 			if (grabber.hasAudio()) {
-				this.audio = Audio.builder().parse(grabber).build();
+				this.audio = Audio.builder(grabber).build();
 			}
 
 			return this;
-		}
-
-		/**
-		 * 重置为全局默认视频参数
-		 * <p>使用 Video 类中定义的默认值（AVI 格式、30fps、400kbps 等）</p>
-		 *
-		 * @since 1.1.0
-		 */
-		@Override
-		protected void initDefaultValue() {
-			super.initDefaultValue();
-			this.format = DEFAULT_FORMAT;
-			this.width = 0;
-			this.height = 0;
-			this.frameRate = DEFAULT_FRAME_RATE;
-			this.bitrate = DEFAULT_BITRATE;
-			this.duration = Duration.ZERO;
 		}
 	}
 }

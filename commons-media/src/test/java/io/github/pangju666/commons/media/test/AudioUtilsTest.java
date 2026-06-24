@@ -18,8 +18,7 @@ public class AudioUtilsTest {
 	@Test
 	void testTranscode() throws IOException {
 		AudioUtils.transcode(MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
-			new File("F:\\IDMDownload\\convert_output.mp3"),
-			Audio.builder().format("mp3").build());
+			new File("F:\\IDMDownload\\convert_output.mp3"), Audio.MP3);
 	}
 
 	@Test
@@ -34,7 +33,7 @@ public class AudioUtilsTest {
 		AudioUtils.concat(List.of(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
 				MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.flac"))),
 			new File("F:\\IDMDownload\\concat_output.mp3"),
-			"mp3");
+			Audio.MP3);
 	}
 
 	@Test
