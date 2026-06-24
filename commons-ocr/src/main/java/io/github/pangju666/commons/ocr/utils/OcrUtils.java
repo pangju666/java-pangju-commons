@@ -67,6 +67,101 @@ public class OcrUtils {
 	}
 
 	/**
+	 * 从字节数组读取图片并进行 OCR 识别
+	 * <p>
+	 * 首先检测图片的 MIME 类型，确认是受支持的图片格式后，
+	 * 使用 Leptonica 库将字节数组转换为 PIX 图片对象，
+	 * 然后调用 TessBaseAPI 进行文字识别。
+	 * </p>
+	 *
+	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param imageData   图片字节数组，不可为 null 或空
+	 * @return 识别出的文字内容（UTF-8 编码）
+	 * @throws IOException              当解析图片或识别失败时抛出
+	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
+	 * @since 1.1.0
+	 */
+	public static String ocrImage(byte[] imageData) throws Exception {
+		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		try {
+			return ocrImage(tessBaseAPI, imageData);
+		} finally {
+			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+		}
+	}
+
+	/**
+	 * 从文件读取图片并进行 OCR 识别
+	 * <p>
+	 * 首先检测图片文件的 MIME 类型，确认是受支持的图片格式后，
+	 * 使用 Leptonica 库将文件读取为 PIX 图片对象，
+	 * 然后调用 TessBaseAPI 进行文字识别。
+	 * </p>
+	 *
+	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param imageFile   图片文件，不可为 null，必须存在且可读
+	 * @return 识别出的文字内容（UTF-8 编码）
+	 * @throws IOException              当读取文件或解析图片失败时抛出
+	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
+	 * @since 1.1.0
+	 */
+	public static String ocrImage(File imageFile) throws Exception {
+		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		try {
+			return ocrImage(tessBaseAPI, imageFile);
+		} finally {
+			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+		}
+	}
+
+	/**
+	 * 从 RenderedImage 读取图片并进行 OCR 识别
+	 * <p>
+	 * 将 RenderedImage 转换为 PNG 格式的字节数组，
+	 * 然后调用字节数组版本的 OCR 方法进行识别。
+	 * 使用 PNG 格式可以保持图片质量的同时控制文件大小。
+	 * </p>
+	 *
+	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param image       图片 RenderedImage 对象，不可为 null
+	 * @return 识别出的文字内容（UTF-8 编码）
+	 * @throws IOException              当转换 RenderedImage 或识别失败时抛出
+	 * @throws IllegalArgumentException 当参数为 null 时抛出
+	 * @since 1.1.0
+	 */
+	public static String ocrImage(RenderedImage image) throws Exception {
+		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		try {
+			return ocrImage(tessBaseAPI, image);
+		} finally {
+			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+		}
+	}
+
+	/**
+	 * 从输入流读取图片并进行 OCR 识别
+	 * <p>
+	 * 将输入流中的所有字节读取到内存中，然后调用字节数组版本的 OCR 方法进行识别。
+	 * 该方法会关闭输入流。
+	 * </p>
+	 *
+	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param inputStream 图片输入流，不可为 null
+	 * @return 识别出的文字内容（UTF-8 编码）
+	 * @throws IOException              当读取输入流或解析图片失败时抛出
+	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
+	 * @since 1.1.0
+	 */
+	public static String ocrImage(InputStream inputStream) throws Exception {
+		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		try {
+			return ocrImage(tessBaseAPI, inputStream);
+		} finally {
+			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+		}
+	}
+
+	/**
 	 * 从 RenderedImage 读取图片并进行 OCR 识别
 	 * <p>
 	 * 将 RenderedImage 转换为 PNG 格式的字节数组，

@@ -16,10 +16,15 @@
 
 package io.github.pangju666.commons.ocr.lang;
 
+import io.github.pangju666.commons.ocr.factory.TessBaseAPIFactory;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bytedeco.tesseract.TessBaseAPI;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -87,26 +92,49 @@ public class OcrConstants {
 	 */
 	public static final GenericObjectPoolConfig<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL_CONFIG = new GenericObjectPoolConfig<>();
 
+	private static volatile GenericObjectPool<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL;
+
 	static {
+		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
 		// 最大总实例数：CPU密集型OCR，常规服务器推荐8
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxTotal(8);
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxTotal(cpuCoreCount);
 		// 最大空闲实例数
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxIdle(4);
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxIdle(cpuCoreCount);
 		// 最小常驻空闲实例（服务预热）
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMinIdle(1);
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMinIdle(0);
 
 		// 无可用实例时，等待1分钟后超时（防止线程堆积）
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxWait(Duration.ofMinutes(1));
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMaxWait(Duration.ofSeconds(3));
 		// 空闲实例60分钟未使用则回收（常规内存管控）
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMinEvictableIdleDuration(Duration.ofHours(1));
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setMinEvictableIdleDuration(Duration.ofMinutes(5));
 		// 每30秒执行一次空闲实例扫描淘汰
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTimeBetweenEvictionRuns(Duration.ofSeconds(30));
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTimeBetweenEvictionRuns(Duration.ofMinutes(1));
+		// 关闭软空闲时间，只用固定时长驱逐
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setSoftMinEvictableIdleDuration(null);
 
 		// 借出前校验实例有效性
-		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTestOnBorrow(true);
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTestOnBorrow(false);
 		// 归还后不额外校验，提升性能
 		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTestOnReturn(false);
+		// 定时空闲校验，兜底失效实例，不影响主流程性能
+		DEFAULT_TESS_BASE_API_POOL_CONFIG.setTestWhileIdle(true);
 		// 池耗尽时阻塞请求（对象池默认行为）
 		DEFAULT_TESS_BASE_API_POOL_CONFIG.setBlockWhenExhausted(true);
+	}
+
+	public static GenericObjectPool<TessBaseAPI> getDefaultTessBaseApiPool() {
+		if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
+			synchronized (OcrConstants.class) {
+				if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
+					try {
+						DEFAULT_TESS_BASE_API_POOL = new GenericObjectPool<>(new TessBaseAPIFactory(),
+							OcrConstants.DEFAULT_TESS_BASE_API_POOL_CONFIG);
+					} catch (IOException e) {
+						throw ExceptionUtils.asRuntimeException(e);
+					}
+				}
+			}
+		}
+		return DEFAULT_TESS_BASE_API_POOL;
 	}
 }

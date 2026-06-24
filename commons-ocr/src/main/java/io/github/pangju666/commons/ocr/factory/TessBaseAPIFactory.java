@@ -16,11 +16,17 @@
 
 package io.github.pangju666.commons.ocr.factory;
 
+import io.github.pangju666.commons.io.utils.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.bytedeco.tesseract.TessBaseAPI;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -60,17 +66,38 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 */
 	private final String language;
 
-	/**
-	 * 使用指定的数据路径创建 TessBaseAPI 工厂
-	 * <p>默认使用中文简体+英文混合识别模式 ("chi_sim+eng")</p>
-	 *
-	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空
-	 * @throws NullPointerException 当 dataPath 为 null 时抛出
-	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
-	 * @since 1.1.0
-	 */
-	public TessBaseAPIFactory(String dataPath) {
-		this(dataPath, "chi_sim+eng");
+	public TessBaseAPIFactory() throws IOException {
+		File dataDir = new File(FilenameUtils.separatorsToUnix(FileUtils.getTempDirectoryPath()), "tesseract_data");
+
+		File englishFile = new File(dataDir, "eng.traineddata");
+		if (!englishFile.exists() || !englishFile.isFile()) {
+			try (InputStream inputStream = TessBaseAPIFactory.class.getResourceAsStream("/tesseract_data/eng.traineddata")) {
+				if (Objects.nonNull(inputStream)) {
+					FileUtils.copyInputStreamToFile(inputStream, englishFile);
+				}
+			}
+		}
+
+		File chineseDataFile = new File(dataDir, "chi_sim.traineddata");
+		if (!chineseDataFile.exists() || !chineseDataFile.isFile()) {
+			try (InputStream inputStream = TessBaseAPIFactory.class.getResourceAsStream("/tesseract_data/chi_sim.traineddata")) {
+				if (Objects.nonNull(inputStream)) {
+					FileUtils.copyInputStreamToFile(inputStream, chineseDataFile);
+				}
+			}
+		}
+
+		File chineseVertDataFile = new File(dataDir, "chi_sim_vert.traineddata");
+		if (!chineseVertDataFile.exists() || !chineseVertDataFile.isFile()) {
+			try (InputStream inputStream = TessBaseAPIFactory.class.getResourceAsStream("/tesseract_data/chi_sim_vert.traineddata")) {
+				if (Objects.nonNull(inputStream)) {
+					FileUtils.copyInputStreamToFile(inputStream, chineseVertDataFile);
+				}
+			}
+		}
+
+		this.dataPath = FilenameUtils.separatorsToUnix(dataDir.getAbsolutePath());
+		this.language = "chi_sim+eng";
 	}
 
 	/**
@@ -83,7 +110,14 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * @since 1.1.0
 	 */
 	public TessBaseAPIFactory(String dataPath, String language) {
-		this.dataPath = dataPath;
+		Validate.notBlank(language, "language 不能为空");
+		Validate.notBlank(dataPath, "dataPath 不能为空");
+
+		File dataDir = new File(dataPath);
+		Validate.isTrue(dataDir.exists(), "数据包路径不存在");
+		Validate.isTrue(dataDir.isDirectory(), "数据包路径不是一个目录");
+
+		this.dataPath = FilenameUtils.separatorsToUnix(dataPath);
 		this.language = language;
 	}
 
