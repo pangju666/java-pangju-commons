@@ -126,8 +126,8 @@ public enum FileType {
 	/**
 	 * 构造文件类型枚举实例
 	 *
-	 * @param label 类型中文名称，不可为空
-	 * @param types 具体MIME类型集合，当typePrefix为null时不可为空集合
+	 * @param label      类型中文名称，不可为空
+	 * @param types      具体MIME类型集合，当typePrefix为null时不可为空集合
 	 * @param typePrefix MIME类型前缀，当types为空集合时不可为null
 	 * @throws IllegalArgumentException 当label为空，或types和typePrefix同时为null时抛出
 	 * @since 1.0.0

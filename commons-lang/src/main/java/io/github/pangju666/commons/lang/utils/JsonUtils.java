@@ -74,11 +74,11 @@ public class JsonUtils {
 	 * </p>
 	 *
 	 * @return 预配置的 GsonBuilder 实例
-	 * @since 1.0.0
 	 * @see io.github.pangju666.commons.lang.gson.type.BigIntegerTypeAdapter
 	 * @see io.github.pangju666.commons.lang.gson.type.BigDecimalTypeAdapter
 	 * @see io.github.pangju666.commons.lang.gson.type.DateTypeAdapter
 	 * @see io.github.pangju666.commons.lang.gson.type.InstantTypeAdapter
+	 * @since 1.0.0
 	 */
 	public static GsonBuilder createGsonBuilder() {
 		return new GsonBuilder()

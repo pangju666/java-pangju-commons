@@ -208,7 +208,7 @@ public final class RSAByteDigester implements ByteDigester {
 	 *
 	 * @param message 待签名数据；null 或空返回空数组
 	 * @return 签名字节；非 null
-	 * @throws EncryptionInitializationException 未设置私钥
+	 * @throws EncryptionInitializationException       未设置私钥
 	 * @throws EncryptionOperationNotPossibleException 签名失败或算法不可用
 	 * @since 1.0.0
 	 */
@@ -245,9 +245,9 @@ public final class RSAByteDigester implements ByteDigester {
 	 * </ul>
 	 *
 	 * @param message 原始消息字节
-	 * @param digest 待验证的签名字节
+	 * @param digest  待验证的签名字节
 	 * @return 是否匹配
-	 * @throws EncryptionInitializationException 未设置公钥
+	 * @throws EncryptionInitializationException       未设置公钥
 	 * @throws EncryptionOperationNotPossibleException 验证失败或算法不可用
 	 * @since 1.0.0
 	 */

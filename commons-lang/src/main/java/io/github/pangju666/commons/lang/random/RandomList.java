@@ -342,7 +342,7 @@ public class RandomList {
 	 * @since 1.0.0
 	 */
 	protected <T> List<T> randomList(final T startInclusive, final T endExclusive, final int length, final boolean unique,
-									 final BiFunction<T, T, T> biFunction) {
+	                                 final BiFunction<T, T, T> biFunction) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 		List<T> values = new ArrayList<>(length);
 		for (int i = 0; i < length; i++) {

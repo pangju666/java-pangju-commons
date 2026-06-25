@@ -35,7 +35,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </p>
  *
  * <p>
- *     代码参考自{@link org.hibernate.validator.constraints.UUID}
+ * 代码参考自{@link org.hibernate.validator.constraints.UUID}
  * </p>
  *
  * @author pangju666
@@ -77,7 +77,7 @@ public @interface UUIDS {
 	/**
 	 * 接受 {@code [0; 2]} 范围内的数值。
 	 * <p>
-	 *     UUID 的变体由第 17 个十六进制数字的二进制表示决定({@code xxxxxxxx-xxxxxx-xxxxxx-Vxxxxx-xxxxxxxxxxxx} 其中 {@code V} 是变体数字)。
+	 * UUID 的变体由第 17 个十六进制数字的二进制表示决定({@code xxxxxxxx-xxxxxx-xxxxxx-Vxxxxx-xxxxxxxxxxxx} 其中 {@code V} 是变体数字)。
 	 * <p>
 	 * 目前，验证器只支持 {@code [0, 1, 2]} 变体：
 	 * <table>
@@ -132,7 +132,6 @@ public @interface UUIDS {
 	/**
 	 * @return 所需的字母大小写
 	 * 默认情况下只有小写字母有效
-	 *
 	 * @see UUID.LetterCase
 	 */
 	UUID.LetterCase letterCase() default UUID.LetterCase.LOWER_CASE;

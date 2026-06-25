@@ -135,7 +135,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 包含随机整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -174,7 +174,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 包含随机长整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -213,7 +213,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 包含随机单精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -252,7 +252,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 包含随机双精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -288,7 +288,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 元素唯一的随机整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -323,7 +323,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 元素唯一的随机长整数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -358,7 +358,7 @@ public class RandomArray {
 	 *
 	 * @param startInclusive 最小值（包含），必须是非负值
 	 * @param endExclusive   最大值（不包含）
-	 * @param length 数组长度（必须大于0）
+	 * @param length         数组长度（必须大于0）
 	 * @return 元素唯一的随机双精度浮点数值的数组
 	 * @throws IllegalArgumentException 当length不合法时抛出
 	 * @throws IllegalArgumentException 如果 {@code startInclusive > endExclusive} 或如果 {@code startInclusive} 是负数
@@ -385,7 +385,7 @@ public class RandomArray {
 	 * @since 1.0.0
 	 */
 	protected <T> Set<T> randomSet(final T startInclusive, final T endExclusive, final int length,
-								   final BiFunction<T, T, T> biFunction) {
+	                               final BiFunction<T, T, T> biFunction) {
 		Validate.isTrue(length > 0, "length 不能为负数");
 		Set<T> values = new HashSet<>(length);
 		for (int i = 0; i < length; i++) {

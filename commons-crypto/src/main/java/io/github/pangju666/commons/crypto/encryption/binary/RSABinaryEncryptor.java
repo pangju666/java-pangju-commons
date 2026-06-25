@@ -74,39 +74,13 @@ import java.util.Objects;
  *   <li>惰性初始化且幂等；首次加/解密时计算并缓存分块大小</li>
  * </ul>
  *
+ * @author pangju666
  * @see RSATransformation
  * @see RSAKeyPair
  * @see BinaryEncryptor
- * @author pangju666
  * @since 1.0.0
  */
 public final class RSABinaryEncryptor implements BinaryEncryptor {
-	/**
-	 * 加密分块大小（字节）
-	 * <p>根据公钥和加密方案计算得出，表示：</p>
-	 * <ul>
-	 *   <li>单次加密操作的最大数据量</li>
-	 *   <li>初始化后不可修改</li>
-	 * </ul>
-	 *
-	 * @see RSATransformation#getEncryptBlockSize(RSAPublicKeySpec)
-	 * @since 1.0.0
-	 */
-	private int encryptBlockSize;
-
-	/**
-	 * 解密分块大小（字节）
-	 * <p>根据私钥和加密方案计算得出，表示：</p>
-	 * <ul>
-	 *   <li>单次解密操作的最大数据量</li>
-	 *   <li>初始化后不可修改</li>
-	 * </ul>
-	 *
-	 * @see RSATransformation#getDecryptBlockSize(RSAPrivateKeySpec)
-	 * @since 1.0.0
-	 */
-	private int decryptBlockSize;
-
 	/**
 	 * RSA 加密方案
 	 * <p>定义算法与填充模式，影响 Cipher 名称与分块大小计算：</p>
@@ -120,6 +94,30 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @since 1.0.0
 	 */
 	private final RSATransformation transformation;
+	/**
+	 * 加密分块大小（字节）
+	 * <p>根据公钥和加密方案计算得出，表示：</p>
+	 * <ul>
+	 *   <li>单次加密操作的最大数据量</li>
+	 *   <li>初始化后不可修改</li>
+	 * </ul>
+	 *
+	 * @see RSATransformation#getEncryptBlockSize(RSAPublicKeySpec)
+	 * @since 1.0.0
+	 */
+	private int encryptBlockSize;
+	/**
+	 * 解密分块大小（字节）
+	 * <p>根据私钥和加密方案计算得出，表示：</p>
+	 * <ul>
+	 *   <li>单次解密操作的最大数据量</li>
+	 *   <li>初始化后不可修改</li>
+	 * </ul>
+	 *
+	 * @see RSATransformation#getDecryptBlockSize(RSAPrivateKeySpec)
+	 * @since 1.0.0
+	 */
+	private int decryptBlockSize;
 	/**
 	 * 当前 RSA 公钥
 	 * <p>用于加密与计算加密分块大小；可能为 null。</p
@@ -284,7 +282,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 *
 	 * @param binary 要加密的数据，允许为 null 或空数组（返回空数组）
 	 * @return 加密后的数据（非 null；空输入返回空数组）
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 未设置公钥或加密过程出现异常时抛出
 	 * @apiNote 若需提升大数据性能，建议配合对称加密采用混合方案
 	 * @since 1.0.0
@@ -305,7 +303,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			return doFinal(cipher, binary, this.encryptBlockSize);
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | NoSuchAlgorithmException |
-				 NoSuchPaddingException e) {
+		         NoSuchPaddingException e) {
 			throw new EncryptionOperationNotPossibleException(e);
 		}
 	}
@@ -322,7 +320,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 *
 	 * @param encryptedBinary 要解密的数据，允许为 null 或空数组（返回空数组）
 	 * @return 解密后的原始数据（非 null；空输入返回空数组）
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 未设置私钥或解密过程出现异常时抛出
 	 * @apiNote 若需提升大数据性能，建议配合对称加密采用混合方案
 	 * @since 1.0.0
@@ -343,7 +341,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
 			return doFinal(cipher, encryptedBinary, this.decryptBlockSize);
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | NoSuchAlgorithmException |
-				 NoSuchPaddingException e) {
+		         NoSuchPaddingException e) {
 			throw new EncryptionOperationNotPossibleException(e);
 		}
 	}
@@ -362,7 +360,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 	 * @param size   单次处理的最大字节数
 	 * @return 处理后的完整数据
 	 * @throws IllegalBlockSizeException 当数据块大小不符合要求时抛出
-	 * @throws BadPaddingException 当填充错误时抛出
+	 * @throws BadPaddingException       当填充错误时抛出
 	 * @since 1.0.0
 	 */
 	private byte[] doFinal(final Cipher cipher, final byte[] input, final int size) throws IllegalBlockSizeException, BadPaddingException {

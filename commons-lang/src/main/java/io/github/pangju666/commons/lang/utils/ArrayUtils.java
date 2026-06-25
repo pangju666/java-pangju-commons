@@ -49,7 +49,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -86,7 +86,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -123,7 +123,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的char数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -160,7 +160,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的double数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -197,7 +197,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的float数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -234,7 +234,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的int数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -271,7 +271,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的long数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -308,7 +308,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的short数组
-	 * @param size 每个子数组的大小
+	 * @param size  每个子数组的大小
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */
@@ -345,8 +345,8 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
 	 * </p>
 	 *
 	 * @param array 要分割的数组
-	 * @param size 每个子数组的大小
-	 * @param <T> 数组元素类型
+	 * @param size  每个子数组的大小
+	 * @param <T>   数组元素类型
 	 * @return 分割后的子数组列表，不会返回null
 	 * @since 1.0.0
 	 */

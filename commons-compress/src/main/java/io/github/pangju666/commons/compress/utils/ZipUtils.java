@@ -189,7 +189,7 @@ public class ZipUtils {
 			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
 		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
+		     ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			uncompress(zipArchiveInputStream, outputDir);
 		}
 	}
@@ -232,7 +232,7 @@ public class ZipUtils {
 			throw new IllegalArgumentException("不是zip类型文件");
 		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
+		     ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			uncompress(zipArchiveInputStream, outputDir);
 		}
 	}
@@ -268,7 +268,7 @@ public class ZipUtils {
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
-					 ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
+				     ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
 					uncompress(archiveInputStream, outputDir);
 				}
 			}
@@ -309,8 +309,8 @@ public class ZipUtils {
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
-					 InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
+				     InputStream inputStream = zipFile.getInputStream(zipEntry)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -321,7 +321,7 @@ public class ZipUtils {
 	 * 从ZipArchiveInputStream解压缩到指定目录
 	 *
 	 * @param tarArchiveInputStream 已初始化的ZIP输入流，必须处于可读取状态且不为null
-	 * @param outputDir          解压目标目录，会自动创建不存在的目录结构
+	 * @param outputDir             解压目标目录，会自动创建不存在的目录结构
 	 * @throws NullPointerException     当archiveInputStream或outputDir为null时抛出
 	 * @throws IllegalArgumentException 当出现以下情况时抛出：
 	 *                                  <ul>
@@ -350,7 +350,7 @@ public class ZipUtils {
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
+				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
 					tarArchiveInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -379,8 +379,8 @@ public class ZipUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFile, zipArchiveOutputStream);
 		}
 	}
@@ -407,7 +407,7 @@ public class ZipUtils {
 			compress(inputFile, (ZipArchiveOutputStream) outputStream);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-				 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
+			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFile, zipArchiveOutputStream);
 			}
 		}
@@ -464,8 +464,8 @@ public class ZipUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-			 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFiles, zipArchiveOutputStream);
 		}
 	}
@@ -491,7 +491,7 @@ public class ZipUtils {
 			compress(inputFiles, (ZipArchiveOutputStream) outputStream);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-				 ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
+			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFiles, zipArchiveOutputStream);
 			}
 		}

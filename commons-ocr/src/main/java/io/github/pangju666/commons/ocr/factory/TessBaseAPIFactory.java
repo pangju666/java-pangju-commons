@@ -116,7 +116,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 *
 	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空，必须是存在的目录
 	 * @param language OCR 识别语言，不可为 null 或空
-	 * @throws NullPointerException 当 dataPath 或 language 为 null 时抛出
+	 * @throws NullPointerException     当 dataPath 或 language 为 null 时抛出
 	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
 	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
 	 * @since 1.1.0

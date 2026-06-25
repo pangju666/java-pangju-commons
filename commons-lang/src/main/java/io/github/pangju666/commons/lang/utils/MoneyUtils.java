@@ -32,7 +32,8 @@ public class MoneyUtils {
 	 * @since 1.0.0
 	 */
 	protected static final String[] CN_NUMBERS = {"零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"};
-	/** 千位内单位（拾、佰、仟）
+	/**
+	 * 千位内单位（拾、佰、仟）
 	 *
 	 * @since 1.0.0
 	 */
@@ -43,17 +44,20 @@ public class MoneyUtils {
 	 * @since 1.0.0
 	 */
 	protected static final String[] CN_DECIMAL_UNITS = {"角", "分"};
-	/** 百（用于提取角、分）
+	/**
+	 * 百（用于提取角、分）
 	 *
 	 * @since 1.0.0
 	 */
 	protected static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
-	/** 常量：整
+	/**
+	 * 常量：整
 	 *
 	 * @since 1.0.0
 	 */
 	protected static final String ZHENG = "整";
-	/** 常量：负
+	/**
+	 * 常量：负
 	 *
 	 * @since 1.0.0
 	 */
@@ -72,7 +76,8 @@ public class MoneyUtils {
 	 */
 	protected static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT =
 		ThreadLocal.withInitial(() -> new DecimalFormat("#,##0.00"));
-	/** 大单位（万、亿）
+	/**
+	 * 大单位（万、亿）
 	 *
 	 * @since 1.0.0
 	 */
@@ -87,8 +92,8 @@ public class MoneyUtils {
 	 *
 	 * @param amount 金额（可为 {@code null}）
 	 * @return 格式化后的金额字符串，若输入为 {@code null} 返回空字符串
-	 * @since 1.0.0
 	 * @see #format(BigDecimal)
+	 * @since 1.0.0
 	 */
 	public static String format(final Double amount) {
 		if (Objects.isNull(amount)) {

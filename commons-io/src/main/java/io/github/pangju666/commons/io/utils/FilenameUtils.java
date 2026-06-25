@@ -63,8 +63,8 @@ import java.util.Collection;
  * }</pre>
  *
  * @author pangju666
- * @since 1.0.0
  * @see org.apache.commons.io.FilenameUtils
+ * @since 1.0.0
  */
 public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	/**
@@ -95,15 +95,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ol>
 	 *
 	 * @param filename 文件名（可包含路径），允许的格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："image.png"）</li>
-	 *                 <li>完整路径（如："C:/docs/report.pdf"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："image.png"）</li>
+	 *                   <li>完整路径（如："C:/docs/report.pdf"）</li>
+	 *                 </ul>
 	 * @return 对应的MIME类型字符串（如："image/png"），当：
-	 *         <ul>
-	 *           <li>filename为空时返回null</li>
-	 *           <li>无法识别的扩展名返回"application/octet-stream"</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>filename为空时返回null</li>
+	 *   <li>无法识别的扩展名返回"application/octet-stream"</li>
+	 * </ul>
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final String filename) {
@@ -127,15 +127,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："photo.jpg"）</li>
-	 *                 <li>完整路径（如："C:/images/avatar.png"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："photo.jpg"）</li>
+	 *                   <li>完整路径（如："C:/images/avatar.png"）</li>
+	 *                 </ul>
 	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"image/"开头</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名非空且有效</li>
+	 *   <li>文件扩展名对应的MIME类型以"image/"开头</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -161,15 +161,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："readme.txt"）</li>
-	 *                 <li>完整路径（如："D:/docs/config.xml"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："readme.txt"）</li>
+	 *                   <li>完整路径（如："D:/docs/config.xml"）</li>
+	 *                 </ul>
 	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"text/"开头</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名非空且有效</li>
+	 *   <li>文件扩展名对应的MIME类型以"text/"开头</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -195,15 +195,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："model.stl"）</li>
-	 *                 <li>完整路径（如："C:/models/car.obj"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："model.stl"）</li>
+	 *                   <li>完整路径（如："C:/models/car.obj"）</li>
+	 *                 </ul>
 	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"model/"开头</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名非空且有效</li>
+	 *   <li>文件扩展名对应的MIME类型以"model/"开头</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -229,15 +229,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："movie.mp4"）</li>
-	 *                 <li>完整路径（如："D:/videos/trailer.mov"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："movie.mp4"）</li>
+	 *                   <li>完整路径（如："D:/videos/trailer.mov"）</li>
+	 *                 </ul>
 	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"video/"开头</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名非空且有效</li>
+	 *   <li>文件扩展名对应的MIME类型以"video/"开头</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -263,15 +263,15 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："song.mp3"）</li>
-	 *                 <li>完整路径（如："C:/music/recording.wav"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："song.mp3"）</li>
+	 *                   <li>完整路径（如："C:/music/recording.wav"）</li>
+	 *                 </ul>
 	 * @return 检测结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名非空且有效</li>
-	 *           <li>文件扩展名对应的MIME类型以"audio/"开头</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名非空且有效</li>
+	 *   <li>文件扩展名对应的MIME类型以"audio/"开头</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -296,20 +296,20 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * }</pre>
 	 *
 	 * @param filename 待检测文件名，支持格式：
-	 *               <ul>
-	 *                 <li>纯文件名（如："data.json"）</li>
-	 *                 <li>完整路径（如："C:/data/report.pdf"）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>纯文件名（如："data.json"）</li>
+	 *                   <li>完整路径（如："C:/data/report.pdf"）</li>
+	 *                 </ul>
 	 * @param mimeType 目标MIME类型（如："application/pdf"），要求：
-	 *               <ul>
-	 *                 <li>非空字符串</li>
-	 *                 <li>标准MIME类型格式</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>非空字符串</li>
+	 *                   <li>标准MIME类型格式</li>
+	 *                 </ul>
 	 * @return 匹配结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名和mimeType参数均非空</li>
-	 *           <li>文件扩展名对应的MIME类型与目标类型完全匹配（忽略大小写）</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名和mimeType参数均非空</li>
+	 *   <li>文件扩展名对应的MIME类型与目标类型完全匹配（忽略大小写）</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -335,20 +335,20 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * }</pre>
 	 *
 	 * @param filename  待检测文件名，支持格式：
-	 *                <ul>
-	 *                  <li>纯文件名（如："data.json"）</li>
-	 *                  <li>完整路径（如："C:/data/report.pdf"）</li>
-	 *                </ul>
+	 *                  <ul>
+	 *                    <li>纯文件名（如："data.json"）</li>
+	 *                    <li>完整路径（如："C:/data/report.pdf"）</li>
+	 *                  </ul>
 	 * @param mimeTypes 允许的MIME类型数组，要求：
-	 *                <ul>
-	 *                  <li>非空数组</li>
-	 *                  <li>每个元素为标准MIME类型格式</li>
-	 *                </ul>
+	 *                  <ul>
+	 *                    <li>非空数组</li>
+	 *                    <li>每个元素为标准MIME类型格式</li>
+	 *                  </ul>
 	 * @return 匹配结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名和mimeTypes参数均非空</li>
-	 *           <li>文件扩展名对应的MIME类型与任一目标类型匹配（忽略大小写）</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名和mimeTypes参数均非空</li>
+	 *   <li>文件扩展名对应的MIME类型与任一目标类型匹配（忽略大小写）</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -373,20 +373,20 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename  待检测文件名，支持格式：
-	 *                <ul>
-	 *                  <li>纯文件名（如："data.json"）</li>
-	 *                  <li>完整路径（如："C:/data/report.pdf"）</li>
-	 *                </ul>
+	 *                  <ul>
+	 *                    <li>纯文件名（如："data.json"）</li>
+	 *                    <li>完整路径（如："C:/data/report.pdf"）</li>
+	 *                  </ul>
 	 * @param mimeTypes 允许的MIME类型集合，要求：
-	 *                <ul>
-	 *                  <li>非空集合</li>
-	 *                  <li>每个元素为标准MIME类型格式</li>
-	 *                </ul>
+	 *                  <ul>
+	 *                    <li>非空集合</li>
+	 *                    <li>每个元素为标准MIME类型格式</li>
+	 *                  </ul>
 	 * @return 匹配结果，当满足以下条件时返回true：
-	 *         <ul>
-	 *           <li>文件名和mimeTypes参数均非空</li>
-	 *           <li>文件扩展名对应的MIME类型与集合中任一目标类型匹配（忽略大小写）</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>文件名和mimeTypes参数均非空</li>
+	 *   <li>文件扩展名对应的MIME类型与集合中任一目标类型匹配（忽略大小写）</li>
+	 * </ul>
 	 * @see #getMimeType(String)
 	 * @since 1.0.0
 	 */
@@ -419,21 +419,21 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ol>
 	 *
 	 * @param filename    原始文件路径或文件名，支持格式：
-	 *                  <ul>
-	 *                    <li>纯文件名（如："data.txt"）</li>
-	 *                    <li>完整路径（如："C:/docs/report.pdf"）</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>纯文件名（如："data.txt"）</li>
+	 *                      <li>完整路径（如："C:/docs/report.pdf"）</li>
+	 *                    </ul>
 	 * @param newFilename 新的完整文件名，处理规则：
-	 *                  <ul>
-	 *                    <li>可包含扩展名（如："backup.zip"）</li>
-	 *                    <li>可不含扩展名（如："config"）</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>可包含扩展名（如："backup.zip"）</li>
+	 *                      <li>可不含扩展名（如："config"）</li>
+	 *                    </ul>
 	 * @return 处理后的完整路径，示例：
-	 *         <ul>
-	 *           <li>输入 ("data.csv", "backup") → "backup"</li>
-	 *           <li>输入 ("photo.jpg", "vacation.png") → "vacation.png"</li>
-	 *           <li>输入 ("/var/log/app.log", "error_2023.log") → "/var/log/error_2023.log"</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>输入 ("data.csv", "backup") → "backup"</li>
+	 *   <li>输入 ("photo.jpg", "vacation.png") → "vacation.png"</li>
+	 *   <li>输入 ("/var/log/app.log", "error_2023.log") → "/var/log/error_2023.log"</li>
+	 * </ul>
 	 * @throws IllegalArgumentException 当以下情况时抛出：
 	 *                                  <ul>
 	 *                                    <li>newFilename参数为空</li>
@@ -462,21 +462,21 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filename    原始文件名（包含路径），要求：
-	 *                  <ul>
-	 *                    <li>非空字符串</li>
-	 *                    <li>包含有效文件名（不能是纯目录路径）</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>非空字符串</li>
+	 *                      <li>包含有效文件名（不能是纯目录路径）</li>
+	 *                    </ul>
 	 * @param newBaseName 新基名，处理规则：
-	 *                  <ul>
-	 *                    <li>不应包含扩展名分隔符</li>
-	 *                    <li>不应包含路径分隔符</li>
-	 *                  </ul>
+	 *                    <ul>
+	 *                      <li>不应包含扩展名分隔符</li>
+	 *                      <li>不应包含路径分隔符</li>
+	 *                    </ul>
 	 * @return 包含路径的新文件名，示例：
-	 *         <ul>
-	 *           <li>输入 ("file.txt", "new") → "new.txt"</li>
-	 *           <li>输入 ("/path/to/old.jpg", "photo") → "/path/to/photo.jpg"</li>
-	 *           <li>输入 ("config.bak", "settings") → "settings.bak"</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>输入 ("file.txt", "new") → "new.txt"</li>
+	 *   <li>输入 ("/path/to/old.jpg", "photo") → "/path/to/photo.jpg"</li>
+	 *   <li>输入 ("config.bak", "settings") → "settings.bak"</li>
+	 * </ul>
 	 * @throws IllegalArgumentException 当以下情况时抛出：
 	 *                                  <ul>
 	 *                                    <li>newBaseName为空</li>
@@ -515,21 +515,21 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ol>
 	 *
 	 * @param filename     原始文件名，要求：
-	 *                   <ul>
-	 *                     <li>非空字符串</li>
-	 *                     <li>包含有效文件名（不能是纯目录路径）</li>
-	 *                   </ul>
+	 *                     <ul>
+	 *                       <li>非空字符串</li>
+	 *                       <li>包含有效文件名（不能是纯目录路径）</li>
+	 *                     </ul>
 	 * @param newExtension 新扩展名，处理规则：
-	 *                   <ul>
-	 *                     <li>可为空（表示移除扩展名）</li>
-	 *                     <li>自动处理分隔符（输入"pdf"或".pdf"效果相同）</li>
-	 *                   </ul>
+	 *                     <ul>
+	 *                       <li>可为空（表示移除扩展名）</li>
+	 *                       <li>自动处理分隔符（输入"pdf"或".pdf"效果相同）</li>
+	 *                     </ul>
 	 * @return 处理后的完整文件名，示例：
-	 *         <ul>
-	 *           <li>输入 ("file.txt", "csv") → "file.csv"</li>
-	 *           <li>输入 ("/path/to/data.old", "json") → "/path/to/data.json"</li>
-	 *           <li>输入 ("config", ".xml") → "config.xml"</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>输入 ("file.txt", "csv") → "file.csv"</li>
+	 *   <li>输入 ("/path/to/data.old", "json") → "/path/to/data.json"</li>
+	 *   <li>输入 ("config", ".xml") → "config.xml"</li>
+	 * </ul>
 	 * @throws IllegalArgumentException 当filename不包含有效文件名时抛出
 	 * @since 1.0.0
 	 */
@@ -564,17 +564,17 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param directoryPath 待检测的路径字符串，支持格式：
-	 *                    <ul>
-	 *                      <li>Unix风格路径（/home/user/）</li>
-	 *                      <li>Windows风格路径（C:\logs\）</li>
-	 *                      <li>相对路径（../docs/）</li>
-	 *                    </ul>
+	 *                      <ul>
+	 *                        <li>Unix风格路径（/home/user/）</li>
+	 *                        <li>Windows风格路径（C:\logs\）</li>
+	 *                        <li>相对路径（../docs/）</li>
+	 *                      </ul>
 	 * @return 当路径符合目录特征时返回true，特别情况：
-	 *         <ul>
-	 *           <li>空路径返回false</li>
-	 *           <li>文件路径返回false</li>
-	 *           <li>无效路径返回false</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>空路径返回false</li>
+	 *   <li>文件路径返回false</li>
+	 *   <li>无效路径返回false</li>
+	 * </ul>
 	 * @see #isFilePath(String)
 	 * @since 1.0.0
 	 */
@@ -599,16 +599,16 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	 * </ul>
 	 *
 	 * @param filePath 待检测的路径字符串，支持格式：
-	 *               <ul>
-	 *                 <li>Unix风格路径（/home/user/file.txt）</li>
-	 *                 <li>Windows风格路径（C:\Documents\data.csv）</li>
-	 *                 <li>相对路径（../docs/readme.md）</li>
-	 *               </ul>
+	 *                 <ul>
+	 *                   <li>Unix风格路径（/home/user/file.txt）</li>
+	 *                   <li>Windows风格路径（C:\Documents\data.csv）</li>
+	 *                   <li>相对路径（../docs/readme.md）</li>
+	 *                 </ul>
 	 * @return 当路径符合文件特征时返回true，特别情况：
-	 *         <ul>
-	 *           <li>空路径返回false</li>
-	 *           <li>纯目录路径返回false</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>空路径返回false</li>
+	 *   <li>纯目录路径返回false</li>
+	 * </ul>
 	 * @see #isDirectoryPath(String)
 	 * @since 1.0.0
 	 */

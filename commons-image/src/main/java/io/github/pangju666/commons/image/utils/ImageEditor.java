@@ -240,17 +240,6 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
-
-	/**
-	 * 原始输入图像
-	 * <p>
-	 * 存储从各种来源（文件、URL、流等）加载的原始图像数据。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected BufferedImage inputImage;
-
 	/**
 	 * 原始图像尺寸
 	 * <p>
@@ -260,7 +249,15 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected final ImageSize inputImageSize;
-
+	/**
+	 * 原始输入图像
+	 * <p>
+	 * 存储从各种来源（文件、URL、流等）加载的原始图像数据。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected BufferedImage inputImage;
 	/**
 	 * 处理后的输出图像
 	 * <p>
@@ -1317,7 +1314,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option,
-											WatermarkDirection direction, int x, int y) {
+	                                        WatermarkDirection direction, int x, int y) {
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 		Validate.notNull(option, "option 不可为 null");
 
@@ -1423,7 +1420,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
-										   int x, int y) {
+	                                       int x, int y) {
 		Validate.notBlank(text, "text 不可为空");
 		Validate.notNull(option, "option 不可为 null");
 

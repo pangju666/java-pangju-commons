@@ -159,7 +159,7 @@ public class GZipUtils {
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-				 GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream)) {
+			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream)) {
 				if (inputStream instanceof BufferedInputStream ||
 					inputStream instanceof UnsynchronizedBufferedInputStream) {
 					inputStream.transferTo(compressorOutputStream);
@@ -198,14 +198,14 @@ public class GZipUtils {
 			compressorOutputStream.finish();
 		} else if (outputStream instanceof BufferedOutputStream) {
 			try (GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream);
-				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 				compressorOutputStream.finish();
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-				 GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
-				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
+			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 				compressorOutputStream.finish();
 			}
@@ -229,9 +229,9 @@ public class GZipUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = new FileOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-			 GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
-			 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+		     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
+		     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			bufferedInputStream.transferTo(compressorOutputStream);
 			compressorOutputStream.finish();
 		}
@@ -274,7 +274,7 @@ public class GZipUtils {
 			}
 		} else {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
-				 GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
+			     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
 				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				} else {
@@ -302,7 +302,7 @@ public class GZipUtils {
 		checkInputFile(inputFile);
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
+		     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
 			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
 				compressorInputStream.transferTo(bufferedOutputStream);
 			} else {
@@ -330,9 +330,9 @@ public class GZipUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream);
-			 OutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+		     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream);
+		     OutputStream outputStream = FileUtils.openOutputStream(outputFile);
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 			compressorInputStream.transferTo(bufferedOutputStream);
 		}
 	}

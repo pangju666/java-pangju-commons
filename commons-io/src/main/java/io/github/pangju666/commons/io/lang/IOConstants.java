@@ -73,8 +73,8 @@ public class IOConstants {
 	/**
 	 * 默认Tika实例（双重校验锁实现线程安全单例）
 	 *
-	 * @since 1.0.0
 	 * @see Tika
+	 * @since 1.0.0
 	 */
 	private static volatile Tika DEFAULT_TIKA;
 

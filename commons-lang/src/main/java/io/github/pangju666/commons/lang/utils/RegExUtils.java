@@ -105,7 +105,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * 检查字符串是否完全匹配正则表达式
 	 *
 	 * @param regex 正则表达式字符串
-	 * @param str 要匹配的目标字符串
+	 * @param str   要匹配的目标字符串
 	 * @return 完全匹配时返回true
 	 * @since 1.0.0
 	 */
@@ -121,7 +121,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * 检查字符串是否完全匹配模式对象
 	 *
 	 * @param pattern 编译后的Pattern对象
-	 * @param str 要匹配的目标字符串
+	 * @param str     要匹配的目标字符串
 	 * @return 完全匹配时返回true
 	 * @since 1.0.0
 	 */
@@ -137,7 +137,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * 查找字符串中所有匹配正则表达式的子串
 	 *
 	 * @param regex 正则表达式字符串
-	 * @param str 要查找的目标字符串
+	 * @param str   要查找的目标字符串
 	 * @return 包含所有匹配子串的列表（可能为空列表）
 	 * @since 1.0.0
 	 */
@@ -150,7 +150,7 @@ public class RegExUtils extends org.apache.commons.lang3.RegExUtils {
 	 * 查找字符串中所有匹配模式对象的子串
 	 *
 	 * @param pattern 编译后的Pattern对象
-	 * @param str 要查找的目标字符串
+	 * @param str     要查找的目标字符串
 	 * @return 包含所有匹配子串的列表（可能为空列表）
 	 * @since 1.0.0
 	 */

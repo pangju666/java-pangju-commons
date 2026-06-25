@@ -94,7 +94,7 @@ public class TextFormatUtils {
 	/**
 	 * 转换为小驼峰格式（camelCase）支持自定义分隔符
 	 *
-	 * @param text       原始字符串
+	 * @param text      原始字符串
 	 * @param delimiter 自定义分隔符字符串（多个字符组合）
 	 * @return 转换后的小驼峰格式字符串
 	 * @since 1.0.0
@@ -135,7 +135,7 @@ public class TextFormatUtils {
 	/**
 	 * 转换为大驼峰格式（PascalCase）支持自定义分隔符
 	 *
-	 * @param text       原始字符串
+	 * @param text      原始字符串
 	 * @param delimiter 自定义分隔符字符串（多个字符组合）
 	 * @return 转换后的大驼峰格式字符串
 	 * @since 1.0.0
@@ -191,7 +191,7 @@ public class TextFormatUtils {
 	/**
 	 * 转换字符串为指定分隔符的小写格式
 	 *
-	 * @param text       原始字符串
+	 * @param text      原始字符串
 	 * @param delimiter 分隔符字符
 	 * @return 转换后的带分隔符小写字符串
 	 * @since 1.0.0

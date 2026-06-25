@@ -158,7 +158,7 @@ public class KeyPairUtils {
 	 * </table>
 	 *
 	 * @param algorithm 加密算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param keySize 密钥长度（单位：bit），需符合算法与 Provider 要求
+	 * @param keySize   密钥长度（单位：bit），需符合算法与 Provider 要求
 	 * @return 新生成的密钥对
 	 * @throws IllegalArgumentException 当参数为空或 keySize 非法时抛出
 	 * @since 1.0.0
@@ -190,14 +190,14 @@ public class KeyPairUtils {
 	 * </pre>
 	 *
 	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param pkcs8Key Base64 编码的未加密 PKCS#8 私钥，允许：
-	 *                 <ul>
-	 *                   <li>PEM（带 BEGIN/END 标记）</li>
-	 *                   <li>纯 Base64 字符串</li>
-	 *                   <li>null 或空字符串（返回 null）</li>
-	 *                 </ul>
+	 * @param pkcs8Key  Base64 编码的未加密 PKCS#8 私钥，允许：
+	 *                  <ul>
+	 *                    <li>PEM（带 BEGIN/END 标记）</li>
+	 *                    <li>纯 Base64 字符串</li>
+	 *                    <li>null 或空字符串（返回 null）</li>
+	 *                  </ul>
 	 * @return 解析得到的 PrivateKey，或 null（当输入为空）
-	 * @throws InvalidKeySpecException 当密钥数据不符合未加密 PKCS#8 格式时抛出
+	 * @throws InvalidKeySpecException  当密钥数据不符合未加密 PKCS#8 格式时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
@@ -220,10 +220,10 @@ public class KeyPairUtils {
 	 * 若您持有 PEM 格式（带头尾标记如 {@code -----BEGIN PRIVATE KEY-----}）的 Base64 字符串，
 	 * 请先自行去除头尾标记与换行符，并进行 Base64 解码后传入，或直接使用 {@link #getPrivateKeyFromPKCS8Base64String(String, String)}。
 	 *
-	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
+	 * @param algorithm  密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @param encodedKey PKCS#8 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PrivateKey
-	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
+	 * @throws InvalidKeySpecException  当密钥规格与算法不匹配时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.PKCS8EncodedKeySpec
 	 * @see #getPrivateKeyFromPKCS8Base64String(String, String)
@@ -248,14 +248,14 @@ public class KeyPairUtils {
 	 * </pre>
 	 *
 	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
-	 * @param x509Key Base64 编码的 X.509 公钥，允许：
-	 *                <ul>
-	 *                  <li>PEM（带 BEGIN/END 标记）</li>
-	 *                  <li>纯 Base64 字符串</li>
-	 *                  <li>null 或空字符串（返回 null）</li>
-	 *                </ul>
+	 * @param x509Key   Base64 编码的 X.509 公钥，允许：
+	 *                  <ul>
+	 *                    <li>PEM（带 BEGIN/END 标记）</li>
+	 *                    <li>纯 Base64 字符串</li>
+	 *                    <li>null 或空字符串（返回 null）</li>
+	 *                  </ul>
 	 * @return 解析得到的 PublicKey，或 null（当输入为空）
-	 * @throws InvalidKeySpecException 当密钥数据格式不正确时抛出
+	 * @throws InvalidKeySpecException  当密钥数据格式不正确时抛出
 	 * @throws IllegalArgumentException 当 algorithm 为空时抛出
 	 * @since 1.0.0
 	 */
@@ -278,10 +278,10 @@ public class KeyPairUtils {
 	 * 若您持有 PEM 格式（带头尾标记如 {@code -----BEGIN PUBLIC KEY-----}）的 Base64 字符串，
 	 * 请先自行去除头尾标记与换行符，并进行 Base64 解码后传入，或直接使用 {@link #getPublicKeyFromX509Base64String(String, String)}。
 	 *
-	 * @param algorithm 密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
+	 * @param algorithm  密钥算法名称（如 "RSA"、"DSA"、"EC"），不可为空
 	 * @param encodedKey X.509 格式的原始字节数据（DER 编码），必须非空
 	 * @return 解析得到的 PublicKey
-	 * @throws InvalidKeySpecException 当密钥规格与算法不匹配时抛出
+	 * @throws InvalidKeySpecException  当密钥规格与算法不匹配时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @see java.security.spec.X509EncodedKeySpec
 	 * @see #getPublicKeyFromX509Base64String(String, String)

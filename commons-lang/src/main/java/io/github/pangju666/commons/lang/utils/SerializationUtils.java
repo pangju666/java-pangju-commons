@@ -23,16 +23,16 @@ import java.util.Objects;
 
 /**
  * 使用静态实用程序进行序列化和反序列化
- <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/"
+ * <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/"
  * target="_blank">Java对象序列化</a>。
  *
- <p><strong>WARNING</strong>: 应谨慎使用这些实用程序。请参阅
+ * <p><strong>WARNING</strong>: 应谨慎使用这些实用程序。请参阅
  * <a href="https://www.oracle.com/java/technologies/javase/seccodeguide.html#8"
  * target="_blank">Java编程语言安全编码指南</a>。
  * 以了解详细信息。
  *
  * <p>
- *     代码来源于：org.springframework.util.SerializationUtils
+ * 代码来源于：org.springframework.util.SerializationUtils
  * </p>
  *
  * @author Dave Syer
@@ -67,10 +67,10 @@ public class SerializationUtils {
 
 	/**
 	 * 使用 Java Object Serialization 克隆给定对象。
-	 * @param object 克隆对象
-	 * @param <T> 要克隆对象的类型
-	 * @return 给定对象的克隆（深度复制）
 	 *
+	 * @param object 克隆对象
+	 * @param <T>    要克隆对象的类型
+	 * @return 给定对象的克隆（深度复制）
 	 * @since 1.0.0
 	 */
 	@SuppressWarnings("unchecked")

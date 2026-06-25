@@ -117,9 +117,6 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class ImageUtils {
-	protected ImageUtils() {
-	}
-
 	/**
 	 * 带 Alpha 的颜色十六进制格式模板
 	 * <p>
@@ -130,7 +127,6 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static final String ALPHA_COLOR_HEX_FORMAT = "#%02x%02x%02x%02x";
-
 	/**
 	 * 不带 Alpha 的颜色十六进制格式模板
 	 * <p>
@@ -141,6 +137,9 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static final String COLOR_HEX_FORMAT = "#%02x%02x%02x";
+
+	protected ImageUtils() {
+	}
 
 	/**
 	 * 将 Color 转换为 #AARRGGBB 格式的十六进制字符串
@@ -629,7 +628,7 @@ public class ImageUtils {
 		} catch (ImageProcessingException | IOException ignored) {
 		}
 		try (InputStream tmpInputStream = outputStream.toInputStream();
-			 ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream)) {
+		     ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;
 			}
@@ -865,13 +864,13 @@ public class ImageUtils {
 	 *   <li>对于超大文件或确定无 EXIF 信息的图像，禁用元数据可提高性能</li>
 	 * </ul>
 	 *
-	 * @param inputStream 输入流，必须满足：
-	 *                    <ul>
-	 *                      <li>非 null</li>
-	 *                      <li>是{@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream} 中的一种</li>
-	 *                    </ul>
+	 * @param inputStream  输入流，必须满足：
+	 *                     <ul>
+	 *                       <li>非 null</li>
+	 *                       <li>是{@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream} 中的一种</li>
+	 *                     </ul>
 	 * @param streamLength 输入流内容长度
-	 * @param useMetadata 是否优先尝试从元数据获取尺寸
+	 * @param useMetadata  是否优先尝试从元数据获取尺寸
 	 * @return 图像尺寸对象，解析失败或无法识别格式时返回 null
 	 * @throws IOException 当发生 I/O 错误或流重置失败时抛出
 	 * @see InputStream#markSupported()
@@ -879,7 +878,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final long streamLength,
-															   final boolean useMetadata) throws IOException {
+	                                                           final boolean useMetadata) throws IOException {
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 				if (Objects.isNull(imageInputStream)) {
@@ -944,7 +943,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByImageInputStream(final ImageInputStream imageInputStream,
-														   final Integer orientation) throws IOException {
+	                                                       final Integer orientation) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
 
 		int width;

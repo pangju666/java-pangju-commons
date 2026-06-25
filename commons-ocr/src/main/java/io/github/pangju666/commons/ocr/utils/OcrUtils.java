@@ -81,7 +81,7 @@ public class OcrUtils {
 	 *
 	 * @param imageData 图片字节数组，不可为 null 或空
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception              当解析图片、识别失败或对象池操作失败时抛出
+	 * @throws Exception                当解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
@@ -105,7 +105,7 @@ public class OcrUtils {
 	 *
 	 * @param imageFile 图片文件，不可为 null，必须存在且可读
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception              当读取文件、解析图片、识别失败或对象池操作失败时抛出
+	 * @throws Exception                当读取文件、解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
@@ -129,7 +129,7 @@ public class OcrUtils {
 	 *
 	 * @param image 图片 RenderedImage 对象，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception              当转换 RenderedImage、识别失败或对象池操作失败时抛出
+	 * @throws Exception                当转换 RenderedImage、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
@@ -152,7 +152,7 @@ public class OcrUtils {
 	 *
 	 * @param inputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception              当读取输入流、解析图片、识别失败或对象池操作失败时抛出
+	 * @throws Exception                当读取输入流、解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
 	 * @since 1.1.0
 	 */

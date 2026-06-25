@@ -146,7 +146,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		byte[] tail = new byte[SAMPLE_SIZE];
 
 		try (RandomAccessFile raf = new RandomAccessFile(file, "r");
-			 FileChannel channel = raf.getChannel()) {
+		     FileChannel channel = raf.getChannel()) {
 
 			// 读取开头
 			readFully(channel, 0, head);
@@ -360,8 +360,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -386,13 +386,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
-								   final int bufferSize) throws IOException {
+	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -426,8 +426,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -453,13 +453,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
-								   final int bufferSize) throws IOException {
+	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -492,8 +492,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -518,13 +518,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
-										final int bufferSize) throws IOException {
+	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -557,8 +557,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -583,13 +583,13 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
-										final int bufferSize) throws IOException {
+	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-			 UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
 			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}

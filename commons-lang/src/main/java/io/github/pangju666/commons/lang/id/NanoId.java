@@ -25,10 +25,13 @@ import java.util.Random;
  */
 public final class NanoId {
 	/**
+	 * 默认长度
+	 */
+	public static final int DEFAULT_SIZE = 21;
+	/**
 	 * 默认随机数生成器，使用{@link SecureRandom}确保健壮性
 	 */
 	private static final SecureRandom DEFAULT_NUMBER_GENERATOR = new SecureRandom();
-
 	/**
 	 * 默认随机字符表，使用URL安全的Base64字符
 	 */
@@ -36,11 +39,6 @@ public final class NanoId {
 		'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
 		'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
 		'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-
-	/**
-	 * 默认长度
-	 */
-	public static final int DEFAULT_SIZE = 21;
 
 	/**
 	 * 生成伪随机的NanoId字符串，长度为默认的{@link #DEFAULT_SIZE}，使用密码安全的伪随机生成器

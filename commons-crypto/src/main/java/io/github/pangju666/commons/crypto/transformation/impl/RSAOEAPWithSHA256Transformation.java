@@ -96,7 +96,7 @@ public class RSAOEAPWithSHA256Transformation implements RSATransformation {
 	 *
 	 * @param keySpec 包含模数和公钥指数的RSA公钥规格
 	 * @return 单次加密允许的最大数据字节数
-	 * @throws NullPointerException 当keySpec为null时抛出
+	 * @throws NullPointerException     当keySpec为null时抛出
 	 * @throws IllegalArgumentException 当模数长度不足时抛出
 	 * @since 1.0.0
 	 */

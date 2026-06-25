@@ -530,7 +530,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static void addImage(final PDDocument document, final byte[] bytes, final int x, final int y,
-								final int width, final int height) throws IOException {
+	                            final int width, final int height) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 
 		addImage(document, bytes, document.getNumberOfPages() + 1, x, y, width, height);
@@ -595,7 +595,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static void addImage(final PDDocument document, final byte[] bytes, final int page,
-								final int x, final int y, final int width, final int height) throws IOException {
+	                            final int x, final int y, final int width, final int height) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
@@ -652,7 +652,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static void addImage(final PDDocument document, final File imageFile, final int x, final int y,
-								final int width, final int height) throws IOException {
+	                            final int width, final int height) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 
 		addImage(document, imageFile, document.getNumberOfPages() + 1, x, y, width, height);
@@ -717,7 +717,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static void addImage(final PDDocument document, final File imageFile, final int page,
-								final int x, final int y, final int width, final int height) throws IOException {
+	                            final int x, final int y, final int width, final int height) throws IOException {
 		FileUtils.checkFile(imageFile, "imageFile 不可为 null");
 
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
@@ -775,7 +775,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale,
-													  final Collection<Integer> pages) throws IOException {
+	                                                  final Collection<Integer> pages) throws IOException {
 		Validate.isTrue(scale > 0, "dpi 不可为小于等于0");
 		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
 			return Collections.emptyList();
@@ -820,7 +820,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
-															 final Collection<Integer> pages) throws IOException {
+	                                                         final Collection<Integer> pages) throws IOException {
 		Validate.isTrue(dpi > 0, "dpi 不可为小于等于0");
 		if (Objects.isNull(document) || Objects.isNull(pages) || pages.isEmpty()) {
 			return Collections.emptyList();
@@ -941,7 +941,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
-															 final int startPage, final int endPage) throws IOException {
+	                                                         final int startPage, final int endPage) throws IOException {
 		if (Objects.isNull(document)) {
 			return Collections.emptyList();
 		}
@@ -1414,7 +1414,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	protected static void parseOutline(final String parentId, final PDOutlineNode node,
-									   final Collection<Bookmark> bookmarks) throws IOException {
+	                                   final Collection<Bookmark> bookmarks) throws IOException {
 		PDOutlineItem item = node.getFirstChild();
 		while (Objects.nonNull(item)) {
 			int pageIndex = getPageIndex(item);
@@ -1495,7 +1495,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addImageToDocument(final PDDocument document, final PDImageXObject imageXObject, final int page,
-											 final int x, final int y, final int width, final int height) throws IOException {
+	                                         final int x, final int y, final int width, final int height) throws IOException {
 		checkArgs(page, x, y, width, height);
 
 		PDPage newPage = new PDPage(new PDRectangle(width, height));

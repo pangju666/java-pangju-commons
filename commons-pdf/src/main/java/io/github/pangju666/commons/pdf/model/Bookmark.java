@@ -91,7 +91,7 @@ public class Bookmark implements TreeNode<String, Bookmark> {
 	/**
 	 * 构造书签对象
 	 *
-	 * @param name 书签名称，不允许为null
+	 * @param name      书签名称，不允许为null
 	 * @param pageIndex 关联的0-based页码，允许为null表示无关联页面
 	 */
 	public Bookmark(String name, Integer pageIndex) {

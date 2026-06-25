@@ -42,9 +42,9 @@ import java.security.spec.RSAPublicKeySpec;
  * </ol>
  *
  * @author pangju666
- * @since 1.0.0
  * @see java.security.spec.RSAPublicKeySpec
  * @see java.security.spec.RSAPrivateKeySpec
+ * @since 1.0.0
  */
 public interface RSATransformation {
 	/**
@@ -62,10 +62,10 @@ public interface RSATransformation {
 	 * </ul>
 	 *
 	 * @return 标准算法转换名称，格式示例：
-	 *         <ul>
-	 *           <li>"RSA/ECB/PKCS1Padding"</li>
-	 *           <li>"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>"RSA/ECB/PKCS1Padding"</li>
+	 *   <li>"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"</li>
+	 * </ul>
 	 * @since 1.0.0
 	 */
 	String getName();
