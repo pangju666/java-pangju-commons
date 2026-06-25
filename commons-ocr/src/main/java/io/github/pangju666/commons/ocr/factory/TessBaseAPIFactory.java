@@ -40,7 +40,7 @@ import java.util.Objects;
  * <ul>
  *   <li>创建并初始化 TessBaseAPI 实例</li>
  *   <li>包装对象以供对象池管理</li>
- *   <li>钝化对象（清理和关闭资源）</li>
+ *   <li>钝化对象（清理和释放资源）</li>
  *   <li>验证对象有效性</li>
  *   <li>销毁对象（释放资源）</li>
  * </ul>
@@ -66,6 +66,17 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 */
 	private final String language;
 
+	/**
+	 * 使用默认配置创建 TessBaseAPI 工厂
+	 * <p>
+	 * 自动从类路径复制内置的语言数据包到临时目录，
+	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
+	 * 默认使用 "chi_sim+eng" 混合语言识别模式。
+	 * </p>
+	 *
+	 * @throws IOException 当复制语言数据包文件失败时抛出
+	 * @since 1.1.0
+	 */
 	public TessBaseAPIFactory() throws IOException {
 		File dataDir = new File(FilenameUtils.separatorsToUnix(FileUtils.getTempDirectoryPath()), "tesseract_data");
 
@@ -101,11 +112,12 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	}
 
 	/**
-	 * 使用指定的数据路径和语言创建 TessBaseAPI 工厂
+	 * 使用指定的数据路径和语言创建 {@link TessBaseAPI} 工厂
 	 *
-	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空
+	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空，必须是存在的目录
 	 * @param language OCR 识别语言，不可为 null 或空
 	 * @throws NullPointerException 当 dataPath 或 language 为 null 时抛出
+	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
 	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
 	 * @since 1.1.0
 	 */
@@ -142,7 +154,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 
 	/**
 	 * 将 TessBaseAPI 对象包装为 PooledObject
-	 * <p>将原始对象包装为 DefaultPooledObject，以供对象池管理。</p>
+	 * <p>将原始对象包装为 {@link DefaultPooledObject}，以供对象池管理。</p>
 	 *
 	 * @param obj 要包装的 TessBaseAPI 对象
 	 * @return 包装后的 PooledObject 对象
@@ -156,7 +168,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	/**
 	 * 钝化 TessBaseAPI 对象
 	 * <p>在对象归还到池之前调用，用于清理对象状态并释放临时资源。
-	 * 调用 Clear() 清除识别数据，调用 releaseReference() 释放引用。</p>
+	 * 调用 {@link TessBaseAPI#Clear()} 清除识别数据，调用 {@link TessBaseAPI#releaseReference()} 释放引用。</p>
 	 *
 	 * @param object 要钝化的 PooledObject 对象
 	 * @since 1.1.0
@@ -186,7 +198,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	/**
 	 * 销毁 TessBaseAPI 对象
 	 * <p>在对象从池中移除时调用，用于释放对象占用的资源。
-	 * 调用 End() 方法完全销毁 TessBaseAPI 实例。</p>
+	 * 调用 {@link TessBaseAPI#End()} 方法完全销毁 TessBaseAPI 实例。</p>
 	 *
 	 * @param object 要销毁的 PooledObject 对象
 	 * @since 1.1.0

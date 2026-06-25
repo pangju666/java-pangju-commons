@@ -51,7 +51,11 @@ import java.util.Objects;
  * </ul>
  * </p>
  * <p>
- * 使用前需要确保 TessBaseAPI 已正确初始化，通常配合对象池使用。
+ * 该工具类提供两种使用方式：
+ * <ul>
+ *   <li>便捷方式：直接调用不需要 tessBaseAPI 参数的方法，会自动从对象池获取和归还对象</li>
+ *   <li>手动管理：调用需要 tessBaseAPI 参数的方法，自行管理对象生命周期</li>
+ * </ul>
  * </p>
  *
  * @author pangju666
@@ -69,15 +73,15 @@ public class OcrUtils {
 	/**
 	 * 从字节数组读取图片并进行 OCR 识别
 	 * <p>
+	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
 	 * 首先检测图片的 MIME 类型，确认是受支持的图片格式后，
 	 * 使用 Leptonica 库将字节数组转换为 PIX 图片对象，
 	 * 然后调用 TessBaseAPI 进行文字识别。
 	 * </p>
 	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
-	 * @param imageData   图片字节数组，不可为 null 或空
+	 * @param imageData 图片字节数组，不可为 null 或空
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws IOException              当解析图片或识别失败时抛出
+	 * @throws Exception              当解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
@@ -93,15 +97,15 @@ public class OcrUtils {
 	/**
 	 * 从文件读取图片并进行 OCR 识别
 	 * <p>
+	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
 	 * 首先检测图片文件的 MIME 类型，确认是受支持的图片格式后，
 	 * 使用 Leptonica 库将文件读取为 PIX 图片对象，
 	 * 然后调用 TessBaseAPI 进行文字识别。
 	 * </p>
 	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
-	 * @param imageFile   图片文件，不可为 null，必须存在且可读
+	 * @param imageFile 图片文件，不可为 null，必须存在且可读
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws IOException              当读取文件或解析图片失败时抛出
+	 * @throws Exception              当读取文件、解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
@@ -117,15 +121,15 @@ public class OcrUtils {
 	/**
 	 * 从 RenderedImage 读取图片并进行 OCR 识别
 	 * <p>
+	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
 	 * 将 RenderedImage 转换为 PNG 格式的字节数组，
 	 * 然后调用字节数组版本的 OCR 方法进行识别。
 	 * 使用 PNG 格式可以保持图片质量的同时控制文件大小。
 	 * </p>
 	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
-	 * @param image       图片 RenderedImage 对象，不可为 null
+	 * @param image 图片 RenderedImage 对象，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws IOException              当转换 RenderedImage 或识别失败时抛出
+	 * @throws Exception              当转换 RenderedImage、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
@@ -141,14 +145,14 @@ public class OcrUtils {
 	/**
 	 * 从输入流读取图片并进行 OCR 识别
 	 * <p>
+	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
 	 * 将输入流中的所有字节读取到内存中，然后调用字节数组版本的 OCR 方法进行识别。
 	 * 该方法会关闭输入流。
 	 * </p>
 	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
 	 * @param inputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws IOException              当读取输入流或解析图片失败时抛出
+	 * @throws Exception              当读取输入流、解析图片、识别失败或对象池操作失败时抛出
 	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
 	 * @since 1.1.0
 	 */

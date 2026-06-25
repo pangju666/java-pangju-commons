@@ -34,6 +34,7 @@ import java.util.Set;
  * <ul>
  *   <li>Tesseract支持的图片类型和文件格式</li>
  *   <li>TessBaseAPI 对象池的默认配置</li>
+ *   <li>单例的 TessBaseAPI 对象池</li>
  * </ul>
  * </p>
  *
@@ -69,21 +70,23 @@ public class OcrConstants {
 	);
 
 	/**
-	 * TessBaseAPI 对象池的默认配置
+	 * {@link TessBaseAPI} 对象池的默认配置
 	 * <p>
 	 * 基于 Apache Commons Pool2 的 GenericObjectPoolConfig 实现，
 	 * 为 TessBaseAPI 对象池提供优化的默认配置参数。
+	 * 配置基于可用 CPU 核心数自动调整，最大总实例数和最大空闲实例数都等于 CPU 核心数。
 	 * <p>
 	 * 主要配置包括：
 	 * <ul>
-	 *   <li>最大总实例数：8（CPU密集型OCR，常规服务器推荐）</li>
-	 *   <li>最大空闲实例数：4</li>
-	 *   <li>最小常驻空闲实例：1（服务预热）</li>
-	 *   <li>无可用实例时等待时间：1分钟（防止线程堆积）</li>
-	 *   <li>空闲实例回收时间：60分钟未使用（常规内存管控）</li>
-	 *   <li>空闲实例扫描间隔：30秒</li>
-	 *   <li>借出前校验实例有效性：true</li>
+	 *   <li>最大总实例数：等于CPU核心数（CPU密集型OCR优化）</li>
+	 *   <li>最大空闲实例数：等于CPU核心数</li>
+	 *   <li>最小常驻空闲实例：0（减少资源占用）</li>
+	 *   <li>无可用实例时等待时间：3秒（快速失败，避免长时间等待）</li>
+	 *   <li>空闲实例回收时间：5分钟未使用（内存管控）</li>
+	 *   <li>空闲实例扫描间隔：1分钟</li>
+	 *   <li>借出前校验实例有效性：false（提升性能）</li>
 	 *   <li>归还后校验实例有效性：false（提升性能）</li>
+	 *   <li>定时空闲校验：true（兜底失效实例，不影响主流程性能）</li>
 	 *   <li>池耗尽时阻塞请求：true（对象池默认行为）</li>
 	 * </ul>
 	 * </p>
@@ -92,6 +95,16 @@ public class OcrConstants {
 	 */
 	public static final GenericObjectPoolConfig<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL_CONFIG = new GenericObjectPoolConfig<>();
 
+	/**
+	 * 单例的 {@link TessBaseAPI} 对象池
+	 * <p>
+	 * 使用双重检查锁定模式实现的线程安全单例对象池，
+	 * 基于 {@link DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
+	 * 该对象池会在首次调用 {@link #getDefaultTessBaseApiPool} 方法时初始化。
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
 	private static volatile GenericObjectPool<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL;
 
 	static {
@@ -122,6 +135,18 @@ public class OcrConstants {
 		DEFAULT_TESS_BASE_API_POOL_CONFIG.setBlockWhenExhausted(true);
 	}
 
+	/**
+	 * 获取默认的 {@link TessBaseAPI} 对象池
+	 * <p>
+	 * 使用双重检查锁定模式实现的线程安全单例方法，
+	 * 首次调用时初始化对象池，后续调用直接返回已初始化的对象池。
+	 * 对象池基于 {@link DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
+	 * </p>
+	 *
+	 * @return 初始化后的 TessBaseAPI 对象池单例
+	 * @throws RuntimeException 当对象池初始化失败时抛出，原因为 IOException
+	 * @since 1.1.0
+	 */
 	public static GenericObjectPool<TessBaseAPI> getDefaultTessBaseApiPool() {
 		if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
 			synchronized (OcrConstants.class) {
