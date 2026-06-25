@@ -72,6 +72,14 @@ import java.util.Objects;
  * @since 1.1.0
  */
 public class VideoUtils {
+	/**
+	 * 受保护的构造函数，防止实例化
+	 *
+	 * @since 1.1.0
+	 */
+	protected VideoUtils() {
+	}
+
 	public static void transcode(MediaResource resource, File outputFile, Video outputVideo) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notNull(outputVideo, "outputVideo 不可为 null");
@@ -140,7 +148,7 @@ public class VideoUtils {
 
 	protected static void initRecorder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber, Video outputVideo) throws FFmpegFrameRecorder.Exception {
 		if (Objects.nonNull(outputVideo)) {
-			outputVideo.initRecoder(recorder);
+			outputVideo.initRecorder(recorder);
 		} else {
 			recorder.setFormat(grabber.getFormat());
 

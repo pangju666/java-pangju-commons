@@ -149,7 +149,16 @@ public abstract class Media {
 		return codecId;
 	}
 
-	public void initRecoder(FFmpegFrameRecorder recorder) {
+	/**
+	 * 初始化 FFmpegFrameRecorder 的媒体格式
+	 * <p>将当前媒体对象的格式设置到 FFmpegFrameRecorder 中，用于后续的录制操作</p>
+	 *
+	 * @param recorder FFmpegFrameRecorder 实例，不可为 null
+	 * @throws IllegalArgumentException 当 recorder 为 null 时抛出
+	 * @since 1.1.0
+	 */
+	public void initRecorder(FFmpegFrameRecorder recorder) {
+		Validate.notNull(recorder, "recorder 不可为 null");
 		recorder.setFormat(this.format);
 	}
 
@@ -211,6 +220,14 @@ public abstract class Media {
 		 */
 		protected int codecId;
 
+		/**
+		 * 空构建器构造函数
+		 * <p>
+		 * 创建一个空白的构建器，所有属性设置为默认值，用于全新构建媒体对象。
+		 * </p>
+		 *
+		 * @since 1.1.0
+		 */
 		protected Builder() {
 			this.metadata = Collections.emptyMap();
 			this.codecId = avcodec.AV_CODEC_ID_NONE;
@@ -236,6 +253,18 @@ public abstract class Media {
 			this.metadata = media.getMetadata();
 		}
 
+		/**
+		 * 从 FFmpegFrameGrabber 解析媒体信息
+		 * <p>
+		 * 自动启动 grabber（如果未启动），并从中提取媒体格式和元数据信息。
+		 * </p>
+		 *
+		 * @param grabber FFmpegFrameGrabber 实例，不可为 null
+		 * @return 构建器自身，用于链式调用
+		 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
+		 * @throws FFmpegFrameGrabber.Exception 当 grabber 操作失败时抛出
+		 * @since 1.1.0
+		 */
 		protected T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
@@ -290,7 +319,7 @@ public abstract class Media {
 		 * @since 1.1.0
 		 */
 		public T codec(AVCodec codec) {
-			Validate.notNull(codec, "avCodec 不可为 null");
+			Validate.notNull(codec, "codec 不可为 null");
 
 			this.codecId = codec.id();
 			this.codecName = codec.name().getString();

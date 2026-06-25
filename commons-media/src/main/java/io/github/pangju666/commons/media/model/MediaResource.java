@@ -41,7 +41,7 @@ import java.util.UUID;
  *     <li>基于 Apache Tika 自动识别媒体 MIME 类型（audio/* / video/* 等）</li>
  *     <li>支持 File / 字节数组 / 输入流 三种格式互相转换</li>
  *     <li>临时文件自动命名，建议使用后手动删除避免磁盘冗余</li>
- *     <li>支持音频/视频类型快速判断</li>
+ *     <li>支持音频/视频/文件来源快速判断</li>
  * </ul>
  *
  * <h3>使用示例</h3>
@@ -78,7 +78,7 @@ public class MediaResource {
 	/**
 	 * 临时文件前缀，用于区分程序生成的媒体临时文件
 	 * <p>
-	 * 格式：media-resource-{UUID}，可通过此前缀统一清理临时文件。
+	 * 格式：media-resource-加上UUID，可通过此前缀统一清理临时文件。
 	 * </p>
 	 *
 	 * @since 1.1.0
@@ -371,6 +371,12 @@ public class MediaResource {
 		return Strings.CS.startsWith(mimeType, "video/");
 	}
 
+	/**
+	 * 判断媒体资源是否来自本地文件
+	 *
+	 * @return true = 本地文件来源，false = 字节数组或输入流来源
+	 * @since 1.1.0
+	 */
 	public boolean isFile() {
 		return Objects.nonNull(source) && source instanceof File;
 	}

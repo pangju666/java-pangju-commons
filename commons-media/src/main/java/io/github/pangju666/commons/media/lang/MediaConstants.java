@@ -17,48 +17,34 @@
 package io.github.pangju666.commons.media.lang;
 
 /**
- * 媒体相关常量类，定义FFmpeg支持的音频、视频、字幕文件格式集合
+ * 媒体相关常量类，提供常用的媒体格式标识和默认参数值
  * <p>
- * 该类包含音频、视频、字幕三类媒体的完整格式支持，涵盖读取和写入两个维度，
- * 同时提供两种格式集合：FFmpeg格式标识和文件扩展名后缀。
+ * 该类包含音频、视频常用格式的单个常量，以及媒体处理的默认参数值，
+ * 方便在媒体处理操作中统一引用标准配置。
  * <p>
- * <h3>FFmpeg格式标识集合</h3>
+ * <h3>单个格式常量</h3>
  * <ul>
- *   <li><b>音频格式</b>：{@link #SUPPORTED_READ_AUDIO_FORMATS}、{@link #SUPPORTED_WRITE_AUDIO_FORMATS}</li>
- *   <li><b>视频格式</b>：{@link #SUPPORTED_READ_VIDEO_FORMATS}、{@link #SUPPORTED_WRITE_VIDEO_FORMATS}</li>
- *   <li><b>字幕格式</b>：{@link #SUPPORTED_READ_SUBTITLE_FORMATS}、{@link #SUPPORTED_WRITE_SUBTITLE_FORMATS}</li>
+ *   <li><b>音频格式</b>：{@link #AUDIO_WAV_FORMAT}、{@link #AUDIO_FLAC_FORMAT}、{@link #AUDIO_MP3_FORMAT}、{@link #AUDIO_OPUS_FORMAT}、{@link #AUDIO_AAC_FORMAT}</li>
+ *   <li><b>视频格式</b>：{@link #VIDEO_MP4_FORMAT}、{@link #VIDEO_WEBM_FORMAT}、{@link #VIDEO_MKV_FORMAT}</li>
  * </ul>
  * <p>
- * <h3>文件扩展名后缀集合</h3>
+ * <h3>默认参数值</h3>
  * <ul>
- *   <li><b>音频后缀</b>：{@link #SUPPORTED_READ_AUDIO_FILE_FORMATS}、{@link #SUPPORTED_WRITE_AUDIO_FILE_FORMATS}</li>
- *   <li><b>视频后缀</b>：{@link #SUPPORTED_READ_VIDEO_FILE_FORMATS}、{@link #SUPPORTED_WRITE_VIDEO_FILE_FORMATS}</li>
- *   <li><b>字幕后缀</b>：{@link #SUPPORTED_READ_SUBTITLE_FILE_FORMATS}、{@link #SUPPORTED_WRITE_SUBTITLE_FILE_FORMATS}</li>
- * </ul>
- * <p>
- * <h3>格式命名规范</h3>
- * <ul>
- *   <li>FFmpeg格式标识采用原生短名称（如"mp3"、"mp4"、"srt"）</li>
- *   <li>文件扩展名后缀用于匹配文件名，均为小写</li>
- *   <li>裸码流格式区分字节序（大端be/小端le）、位深、编码类型</li>
- *   <li>游戏/专业格式针对特定场景设计，名称与FFmpeg保持一致</li>
+ *   <li>{@link #DEFAULT_VIDEO_FRAME_RATE}：默认视频帧率</li>
+ *   <li>{@link #DEFAULT_AUDIO_CHANNELS}：默认音频声道数</li>
+ *   <li>{@link #AUDIO_STANDARD_SAMPLE_RATE}：音频标准采样率</li>
+ *   <li>{@link #VIDEO_STANDARD_SAMPLE_RATE}：视频标准采样率</li>
  * </ul>
  * <h3>使用示例</h3>
  * <pre>{@code
- * // 检查是否支持读取某FFmpeg音频格式
- * if (MediaConstants.SUPPORTED_READ_AUDIO_FORMATS.contains("mp3")) {
- *     // 可以读取
- * }
+ * // 使用单个格式常量
+ * String audioFormat = MediaConstants.AUDIO_MP3_FORMAT;
+ * String videoFormat = MediaConstants.VIDEO_MP4_FORMAT;
  *
- * // 检查文件扩展名是否为支持的视频格式
- * if (MediaConstants.SUPPORTED_READ_VIDEO_FILE_FORMATS.contains("mp4")) {
- *     // 可以读取
- * }
- *
- * // 检查是否支持写入某字幕格式
- * if (MediaConstants.SUPPORTED_WRITE_SUBTITLE_FILE_FORMATS.contains("srt")) {
- *     // 可以写入
- * }
+ * // 使用默认参数值
+ * int frameRate = MediaConstants.DEFAULT_VIDEO_FRAME_RATE;
+ * int channels = MediaConstants.DEFAULT_AUDIO_CHANNELS;
+ * int sampleRate = MediaConstants.AUDIO_STANDARD_SAMPLE_RATE;
  * }</pre>
  *
  * @author pangju666
@@ -66,27 +52,99 @@ package io.github.pangju666.commons.media.lang;
  * @since 1.1.0
  */
 public class MediaConstants {
+	/**
+	 * WAV 音频格式标识
+	 * <p>无损音频格式，标准 PCM 波形音频文件</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String AUDIO_WAV_FORMAT = "wav";
 
+	/**
+	 * FLAC 音频格式标识
+	 * <p>无损音频压缩格式，文件体积较小，音质无损</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String AUDIO_FLAC_FORMAT = "flac";
 
+	/**
+	 * MP3 音频格式标识
+	 * <p>有损音频压缩格式，兼容性广泛，文件体积小</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String AUDIO_MP3_FORMAT = "mp3";
 
+	/**
+	 * Opus 音频格式标识
+	 * <p>有损音频压缩格式，适合网络传输，音质优秀</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String AUDIO_OPUS_FORMAT = "opus";
 
+	/**
+	 * AAC 音频格式标识
+	 * <p>有损音频压缩格式，广泛用于流媒体和移动设备</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String AUDIO_AAC_FORMAT = "aac";
 
+	/**
+	 * MP4 视频格式标识
+	 * <p>通用视频容器格式，支持多种编码，兼容性广泛</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String VIDEO_MP4_FORMAT = "mp4";
 
+	/**
+	 * WebM 视频格式标识
+	 * <p>开源视频容器格式，适合网络流媒体</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String VIDEO_WEBM_FORMAT = "webm";
 
+	/**
+	 * Matroska (MKV) 视频格式标识
+	 * <p>开源视频容器格式，支持多种音视频编码</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String VIDEO_MKV_FORMAT = "matroska";
 
+	/**
+	 * 默认视频帧率
+	 * <p>30 FPS，标准视频帧率</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final int DEFAULT_VIDEO_FRAME_RATE = 30;
 
+	/**
+	 * 默认音频声道数
+	 * <p>2 声道，立体声</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final int DEFAULT_AUDIO_CHANNELS = 2;
 
+	/**
+	 * 音频标准采样率
+	 * <p>44100 Hz，CD 音质标准</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final int AUDIO_STANDARD_SAMPLE_RATE = 44100;
 
+	/**
+	 * 视频标准采样率
+	 * <p>48000 Hz，专业视频音频标准</p>
+	 *
+	 * @since 1.1.0
+	 */
 	public static final int VIDEO_STANDARD_SAMPLE_RATE = 48000;
 }
