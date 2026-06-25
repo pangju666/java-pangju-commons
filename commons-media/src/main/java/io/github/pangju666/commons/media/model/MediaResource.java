@@ -25,7 +25,10 @@ import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -98,7 +101,7 @@ public class MediaResource {
 	 *
 	 * @since 1.1.0
 	 */
-	protected Object source;
+	protected final Object source;
 
 	/**
 	 * 媒体资源总大小（单位：字节）
@@ -108,7 +111,7 @@ public class MediaResource {
 	 *
 	 * @since 1.1.0
 	 */
-	protected long size;
+	protected final long size;
 
 	/**
 	 * 媒体 MIME 类型
@@ -124,18 +127,21 @@ public class MediaResource {
 	 *
 	 * @since 1.1.0
 	 */
-	protected String mimeType;
+	protected final String mimeType;
 
 	/**
-	 * 受保护的无参构造函数
-	 * <p>
-	 * 仅用于子类继承和静态工厂方法（{@link #of(File)}、{@link #of(byte[])}、{@link #of(InputStream)}）内部实例化，
-	 * 不对外暴露直接构造能力，确保实例化过程的一致性和安全性。
-	 * </p>
+	 * 私有构造函数，内部专用
+	 * <p>直接通过原始源对象、资源大小和 MIME 类型创建实例，主要供工厂方法调用</p>
 	 *
+	 * @param source 媒体源对象（仅支持 File、byte[]、InputStream 类型）
+	 * @param size 资源大小（单位：字节）
+	 * @param mimeType 媒体 MIME 类型
 	 * @since 1.1.0
 	 */
-	protected MediaResource() {
+	protected MediaResource(Object source, long size, String mimeType) {
+		this.source = source;
+		this.size = size;
+		this.mimeType = mimeType;
 	}
 
 	/**
@@ -151,14 +157,10 @@ public class MediaResource {
 	 * @throws IllegalArgumentException 入参为空/非有效文件时抛出
 	 * @since 1.1.0
 	 */
-	public static MediaResource of(File file) throws IOException {
+	public static MediaResource of(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
 
-		MediaResource resource = new MediaResource();
-		resource.source = file;
-		resource.size = file.length();
-		resource.mimeType = FileUtils.getMimeType(file);
-		return resource;
+		return new MediaResource(file, file.length(), FileUtils.getMimeType(file));
 	}
 
 	/**
@@ -173,61 +175,51 @@ public class MediaResource {
 	 * @throws IllegalArgumentException 入参为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static MediaResource of(byte[] bytes) {
+	public static MediaResource of(final byte[] bytes) {
 		Validate.notNull(bytes, "bytes 不可为 null");
 
-		MediaResource resource = new MediaResource();
-		resource.source = bytes;
-		resource.size = bytes.length;
-		resource.mimeType = IOConstants.getDefaultTika().detect(bytes);
-		return resource;
+		return new MediaResource(bytes, bytes.length, IOConstants.getDefaultTika().detect(bytes));
 	}
 
 	/**
 	 * 从输入流创建媒体资源实例
 	 * <p>
-	 * 自动做流兼容处理，保证资源可重复读取：
+	 * 自动对流进行处理，确保返回的媒体资源支持重复读取：
 	 * <ol>
-	 *     <li>原生可重置流（{@link ByteArrayInputStream} / {@link UnsynchronizedByteArrayInputStream}）：直接复用并重置指针</li>
-	 *     <li>{@link BufferedInputStream} / {@link UnsynchronizedBufferedInputStream}：完全缓冲为内存字节流</li>
-	 *     <li>其他流：先包装为缓冲流，再完全缓冲为内存字节流</li>
+	 *     <li><strong>原生可重置流</strong>：{@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream}，直接复用并重置流指针</li>
+	 *     <li><strong>其他流</strong>：先包装为缓冲流，再完全缓冲为内存字节流</li>
 	 * </ol>
-	 * <b>重要：原始输入流会被本方法完全消费并自动关闭，如需保留原流请提前拷贝</b>
+	 * </p>
+	 * <p>
+	 * <strong>重要提示</strong>：原始输入流会被本方法完全消费；仅当流为非原生可重置流时，流会被自动关闭。如需保留原流，请提前对其进行拷贝。
 	 * </p>
 	 *
 	 * @param inputStream 媒体输入流，<b>不可为 null</b>
-	 * @return 封装后的 MediaResource 实例
-	 * @throws IOException              流读取、缓冲、MIME 检测失败时抛出
+	 * @return 封装后的 MediaResource 实例，内部包含可重复读取的流
+	 * @throws IOException              流读取、缓冲、MIME 类型检测失败时抛出
 	 * @throws IllegalArgumentException 入参为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static MediaResource of(InputStream inputStream) throws IOException {
+	public static MediaResource of(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		MediaResource resource = new MediaResource();
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
-			resource.source = inputStream;
-			resource.size = inputStream.available();
-			resource.mimeType = IOConstants.getDefaultTika().detect(inputStream);
+			MediaResource resource = new MediaResource(inputStream, inputStream.available(),
+				IOConstants.getDefaultTika().detect(inputStream));
+
 			inputStream.reset();
 			return resource;
 		}
 
-		if (inputStream instanceof BufferedInputStream ||
-			inputStream instanceof UnsynchronizedBufferedInputStream) {
-			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-			resource.source = outputStream.toInputStream();
-			resource.size = outputStream.size();
-			resource.mimeType = IOConstants.getDefaultTika().detect(outputStream.toInputStream());
+		try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(bufferedInputStream);
+			InputStream tmpInputStream = outputStream.toInputStream();
+
+			MediaResource resource = new MediaResource(tmpInputStream, outputStream.size(),
+				IOConstants.getDefaultTika().detect(tmpInputStream));
+
+			tmpInputStream.reset();
 			return resource;
-		} else {
-			try (UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
-				UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(bufferedInputStream);
-				resource.source = outputStream.toInputStream();
-				resource.size = outputStream.size();
-				resource.mimeType = IOConstants.getDefaultTika().detect(outputStream.toInputStream());
-				return resource;
-			}
 		}
 	}
 

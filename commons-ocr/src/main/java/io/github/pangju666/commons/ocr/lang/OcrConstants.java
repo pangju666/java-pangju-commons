@@ -99,7 +99,7 @@ public class OcrConstants {
 	 * 单例的 {@link TessBaseAPI} 对象池
 	 * <p>
 	 * 使用双重检查锁定模式实现的线程安全单例对象池，
-	 * 基于 {@link DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
+	 * 基于 {@link #DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
 	 * 该对象池会在首次调用 {@link #getDefaultTessBaseApiPool} 方法时初始化。
 	 * </p>
 	 *
@@ -140,7 +140,7 @@ public class OcrConstants {
 	 * <p>
 	 * 使用双重检查锁定模式实现的线程安全单例方法，
 	 * 首次调用时初始化对象池，后续调用直接返回已初始化的对象池。
-	 * 对象池基于 {@link DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
+	 * 对象池基于 {@link #DEFAULT_TESS_BASE_API_POOL_CONFIG} 配置创建。
 	 * </p>
 	 *
 	 * @return 初始化后的 TessBaseAPI 对象池单例

@@ -80,7 +80,7 @@ public class VideoUtils {
 	protected VideoUtils() {
 	}
 
-	public static void transcode(MediaResource resource, File outputFile, Video outputVideo) throws IOException {
+	public static void transcode(final MediaResource resource, final File outputFile, final Video outputVideo) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notNull(outputVideo, "outputVideo 不可为 null");
 		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
@@ -91,7 +91,7 @@ public class VideoUtils {
 		}
 	}
 
-	public static void transcode(MediaResource resource, OutputStream outputStream, Video outputVideo) throws IOException {
+	public static void transcode(final MediaResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
 		Validate.notNull(outputVideo, "outputVideo 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
