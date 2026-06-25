@@ -85,7 +85,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(byte[] imageData) throws Exception {
+	public static String ocrImage(final byte[] imageData) throws Exception {
 		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, imageData);
@@ -109,7 +109,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(File imageFile) throws Exception {
+	public static String ocrImage(final File imageFile) throws Exception {
 		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, imageFile);
@@ -133,7 +133,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(RenderedImage image) throws Exception {
+	public static String ocrImage(final RenderedImage image) throws Exception {
 		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, image);
@@ -156,7 +156,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(InputStream inputStream) throws Exception {
+	public static String ocrImage(final InputStream inputStream) throws Exception {
 		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, inputStream);
@@ -180,7 +180,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(TessBaseAPI tessBaseAPI, RenderedImage image) throws IOException {
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final RenderedImage image) throws IOException {
 		Validate.notNull(image, "image 不可为 null");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 
@@ -206,7 +206,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(TessBaseAPI tessBaseAPI, InputStream inputStream) throws IOException {
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		return ocrImage(tessBaseAPI, inputStream.readAllBytes());
@@ -227,7 +227,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(TessBaseAPI tessBaseAPI, byte[] imageData) throws IOException {
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final byte[] imageData) throws IOException {
 		Validate.notNull(imageData, "imageData 不可为 null");
 		Validate.isTrue(imageData.length > 0, "imageData 不可为空");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
@@ -258,7 +258,7 @@ public class OcrUtils {
 	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(TessBaseAPI tessBaseAPI, File imageFile) throws IOException {
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final File imageFile) throws IOException {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 		String mimeType = FileUtils.getMimeType(imageFile);
 		Validate.isTrue(OcrConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
