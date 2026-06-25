@@ -808,12 +808,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 480P视频配置
-	 * <p>MKV容器+H264编码，640×480，900kbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，640×480，900kbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_480P = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution480p()
 		.bitrate(900_000)
 		.audio(Audio.FLAC)
@@ -821,12 +821,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 720P视频配置
-	 * <p>MKV容器+H264编码，1280×720，1.8Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，1280×720，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_720P = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution720p()
 		.bitrate(1800_000)
 		.audio(Audio.FLAC)
@@ -834,12 +834,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 1080P视频配置
-	 * <p>MKV容器+H264编码，1920×1080，3.6Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，1920×1080，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_1080P = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution1080p()
 		.bitrate(3600_000)
 		.audio(AUDIO_FLAC_VIDEO)
@@ -847,12 +847,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 2K视频配置
-	 * <p>MKV容器+H264编码，2560×1440，7.2Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，2560×1440，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_2K = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution2k()
 		.bitrate(7200_000)
 		.audio(AUDIO_FLAC_VIDEO)
@@ -860,12 +860,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 480P竖屏视频配置
-	 * <p>MKV容器+H264编码，480×640，900kbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，480×640，900kbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_480P_VERTICAL = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution480pVertical()
 		.bitrate(900_000)
 		.audio(Audio.FLAC)
@@ -873,12 +873,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 720P竖屏视频配置
-	 * <p>MKV容器+H264编码，720×1280，1.8Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，720×1280，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_720P_VERTICAL = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution720pVertical()
 		.bitrate(1800_000)
 		.audio(Audio.FLAC)
@@ -886,12 +886,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 1080P竖屏视频配置
-	 * <p>MKV容器+H264编码，1080×1920，3.6Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，1080×1920，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_1080P_VERTICAL = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution1080pVertical()
 		.bitrate(3600_000)
 		.audio(AUDIO_FLAC_VIDEO)
@@ -899,12 +899,12 @@ public class Video extends Media {
 
 	/**
 	 * 标准MKV 2K竖屏视频配置
-	 * <p>MKV容器+H264编码，1440×2560，7.2Mbps，30fps，配FLAC无损音频</p>
+	 * <p>MKV容器+H265编码，1440×2560，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_2K_VERTICAL = Video.builder()
-		.mkvWithH264()
+		.mkvWithH265()
 		.resolution2kVertical()
 		.bitrate(7200_000)
 		.audio(AUDIO_FLAC_VIDEO)
@@ -1228,7 +1228,7 @@ public class Video extends Media {
 	 *   <li>{@link #resolution480p()} / {@link #resolution720p()} / {@link #resolution1080p()} / {@link #resolution2k()}：快捷设置横屏分辨率</li>
 	 *   <li>{@link #resolution480pVertical()} / {@link #resolution720pVertical()} / {@link #resolution1080pVertical()} / {@link #resolution2kVertical()}：快捷设置竖屏分辨率</li>
 	 *   <li>{@link #frameRate24()} / {@link #frameRate25()} / {@link #frameRate30()} / {@link #frameRate60()}：快捷设置标准帧率</li>
-	 *   <li>{@link #mp4WithH264()} / {@link #webmWithVP9()} / {@link #mkvWithH264()}：快捷设置格式和编码</li>
+	 *   <li>{@link #mp4WithH264()} / {@link #mp4WithH265()} / {@link #webmWithVP9()} / {@link #mkvWithH264()} / {@link #mkvWithH265()}：快捷设置格式和编码</li>
 	 *   <li>{@link #frameRate(double)}：设置帧率</li>
 	 *   <li>{@link #bitrate(int)}：设置码率</li>
 	 *   <li>{@link #audio(Audio)}：设置音频</li>
@@ -1347,6 +1347,18 @@ public class Video extends Media {
 		}
 
 		/**
+		 * 设置为MP4格式+H265编码
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder mp4WithH265() {
+			this.format = MediaConstants.VIDEO_MP4_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_H265;
+			return this;
+		}
+
+		/**
 		 * 设置为WEBM格式+VP9编码
 		 *
 		 * @return 构建器自身，用于链式调用
@@ -1367,6 +1379,18 @@ public class Video extends Media {
 		public Builder mkvWithH264() {
 			this.format = MediaConstants.VIDEO_MKV_FORMAT;
 			this.codecId = avcodec.AV_CODEC_ID_H264;
+			return this;
+		}
+
+		/**
+		 * 设置为MKV格式+H265编码
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder mkvWithH265() {
+			this.format = MediaConstants.VIDEO_MKV_FORMAT;
+			this.codecId = avcodec.AV_CODEC_ID_H265;
 			return this;
 		}
 
