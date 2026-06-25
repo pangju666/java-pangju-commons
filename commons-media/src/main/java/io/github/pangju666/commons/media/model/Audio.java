@@ -39,12 +39,12 @@ import java.util.Map;
  * </p>
  * <h3>核心特性</h3>
  * <ul>
- *     <li>支持解析自多种来源（File/byte[]/InputStream/FFmpegFrameGrabber）</li>
+ *     <li>支持解析自多种来源（{@link File}/byte[]/{@link InputStream}/{@link FFmpegFrameGrabber}）</li>
  *     <li>不可变对象设计，线程安全</li>
  *     <li>提供 Fluent Builder 模式，支持链式调用</li>
  *     <li>内置音频格式判断（单声道/立体声等）</li>
- *     <li>提供预定义标准音频配置常量（WAV、MP3、FLAC、OPUS、AAC）</li>
- *     <li>提供默认值，便于快速创建标准音频配置</li>
+ *     <li>提供预定义标准音频配置常量（{@link #WAV}、{@link #FLAC}、{@link #MP3}、{@link #MP3_HIGH}、
+ *     {@link #OPUS}、{@link #OPUS_HIGH}、{@link #AAC}、{@link #AAC_HIGH}）</li>
  * </ul>
  * <h3>使用示例</h3>
  * <pre>{@code
@@ -56,10 +56,9 @@ import java.util.Map;
  *
  * // 手动构建标准音频
  * Audio customAudio = Audio.builder()
- *     .format("mp3")
- *     .codecId(avcodec.AV_CODEC_ID_MP3)
- *     .channels(2)
- *     .sampleRate(44100)
+ *     .mp3()
+ *     .stereo()
+ *     .cd()
  *     .bitrate(128000)
  *     .build();
  *
@@ -367,13 +366,13 @@ public class Audio extends Media {
 
 	/**
 	 * 判断是否有时长信息
-	 * <p>检查 duration 是否不为 null 且不为零时长</p>
+	 * <p>检查 duration 是否不为 null、不为零时长且不为负数</p>
 	 *
 	 * @return true 表示有有效时长，false 表示无有效时长
 	 * @since 1.1.0
 	 */
 	public boolean hasDuration() {
-		return duration != null && !duration.isZero();
+		return duration != null && !duration.isZero() && !duration.isNegative();
 	}
 
 	/**
@@ -409,11 +408,11 @@ public class Audio extends Media {
 	 * <h3>主要方法</h3>
 	 * <ul>
 	 *     <li>{@link #mono()} / {@link #stereo()}：快速设置声道数</li>
+	 *     <li>{@link #cd()} / {@link #film()}：快速设置采样率</li>
+	 *     <li>{@link #wav()} / {@link #flac()} / {@link #mp3()} / {@link #opus()} / {@link #aac()}：快捷设置容器和编码器</li>
 	 *     <li>{@link #sampleRate(int)}：设置采样率</li>
 	 *     <li>{@link #bitrate(int)}：设置比特率</li>
-	 *     <li>{@link #duration(Duration)}：设置时长</li>
 	 *     <li>{@link #channels(int)}：设置声道数</li>
-	 *     <li>{@link #wav()} / {@link #flac()} / {@link #mp3()} / {@link #opus()} / {@link #aac()}：快捷设置音频格式</li>
 	 * </ul>
 	 * <h3>使用示例</h3>
 	 * <pre>{@code
@@ -430,6 +429,7 @@ public class Audio extends Media {
 	 * Audio wavAudio = new Audio.Builder()
 	 *     .wav()
 	 *     .stereo()
+	 *     .cd()
 	 *     .build();
 	 *
 	 * // 修改现有音频
@@ -480,7 +480,6 @@ public class Audio extends Media {
 		 */
 		public Builder() {
 			super();
-			this.duration = Duration.ZERO;
 			this.sampleRate = MediaConstants.AUDIO_STANDARD_SAMPLE_RATE;
 			this.channels = MediaConstants.DEFAULT_AUDIO_CHANNELS;
 			this.bitrate = 0;
@@ -568,6 +567,28 @@ public class Audio extends Media {
 		}
 
 		/**
+		 * 设置CD标准44100Hz采样率（通用音乐标准）
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder cd() {
+			this.sampleRate = MediaConstants.AUDIO_STANDARD_SAMPLE_RATE;
+			return this;
+		}
+
+		/**
+		 * 设置影视标准48000Hz音频采样率，适配视频、短视频、影视配乐场景
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder film() {
+			this.sampleRate = MediaConstants.VIDEO_STANDARD_SAMPLE_RATE;
+			return this;
+		}
+
+		/**
 		 * 设置为单声道
 		 * <p>快捷方法，等效于调用 channels(1)</p>
 		 *
@@ -587,22 +608,6 @@ public class Audio extends Media {
 		 */
 		public Builder stereo() {
 			return channels(2);
-		}
-
-		/**
-		 * 设置音频时长
-		 *
-		 * @param duration 音频时长，不可为 null 且必须为正数
-		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException 当 duration 为 null 或为负数时抛出
-		 * @since 1.1.0
-		 */
-		public Builder duration(Duration duration) {
-			Validate.notNull(duration, "duration 不可为 null");
-			Validate.isTrue(!duration.isNegative() && !duration.isZero(), "duration 必须为正数");
-
-			this.duration = duration;
-			return this;
 		}
 
 		/**

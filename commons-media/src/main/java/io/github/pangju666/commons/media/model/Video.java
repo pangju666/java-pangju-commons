@@ -35,8 +35,10 @@ import java.util.Objects;
 
 /**
  * 视频媒体对象，封装了视频文件的核心信息
- * <p>该类继承自 {@link Media}，专门用于表示视频文件，包含视频特有属性如帧率、分辨率、码率、时长，以及内置音频轨道信息。
- * 采用不可变对象设计，所有属性为 final，确保线程安全。</p>
+ * <p>
+ * 该类继承自{@link Media}，专门用于表示视频文件，包含视频特有属性如帧率、分辨率、码率、时长，以及内置音频轨道信息。
+ * 采用不可变对象设计，所有属性为 final，确保线程安全。
+ * </p>
  * <h3>核心特性</h3>
  * <ul>
  *   <li>支持从多种来源解析视频信息（File、byte[]、InputStream、FFmpegFrameGrabber）</li>
@@ -60,7 +62,7 @@ import java.util.Objects;
  *     .resolution1080p()
  *     .frameRate(30)
  *     .bitrate(6000000)
- *     .audio(AUDIO_AAC_1080P)
+ *     .audio(Video.AUDIO_AAC_1080P)
  *     .build();
  *
  * // 基于现有视频修改
@@ -175,7 +177,7 @@ public class Video extends Media {
 	 *
 	 * @since 1.1.0
 	 */
-	public static final Audio AUDIO_FLAC = Audio.builder()
+	public static final Audio AUDIO_FLAC_VIDEO = Audio.builder()
 		.flac()
 		.sampleRate(MediaConstants.VIDEO_STANDARD_SAMPLE_RATE)
 		.build();
@@ -840,7 +842,7 @@ public class Video extends Media {
 		.mkvWithH264()
 		.resolution1080p()
 		.bitrate(3600_000)
-		.audio(AUDIO_FLAC)
+		.audio(AUDIO_FLAC_VIDEO)
 		.build();
 
 	/**
@@ -853,7 +855,7 @@ public class Video extends Media {
 		.mkvWithH264()
 		.resolution2k()
 		.bitrate(7200_000)
-		.audio(AUDIO_FLAC)
+		.audio(AUDIO_FLAC_VIDEO)
 		.build();
 
 	/**
@@ -892,7 +894,7 @@ public class Video extends Media {
 		.mkvWithH264()
 		.resolution1080pVertical()
 		.bitrate(3600_000)
-		.audio(AUDIO_FLAC)
+		.audio(AUDIO_FLAC_VIDEO)
 		.build();
 
 	/**
@@ -905,7 +907,7 @@ public class Video extends Media {
 		.mkvWithH264()
 		.resolution2kVertical()
 		.bitrate(7200_000)
-		.audio(AUDIO_FLAC)
+		.audio(AUDIO_FLAC_VIDEO)
 		.build();
 
 	/**
@@ -1148,12 +1150,13 @@ public class Video extends Media {
 
 	/**
 	 * 判断是否存在有效播放时长
+	 * <p>检查 duration 是否不为 null、不为零时长且不为负数</p>
 	 *
-	 * @return true = 非空且时长不为 0；false = 无有效时长
+	 * @return true = 非空且时长不为 0 且不为负数；false = 无有效时长
 	 * @since 1.1.0
 	 */
 	public boolean hasDuration() {
-		return duration != null && !duration.isZero();
+		return duration != null && !duration.isZero() && !duration.isNegative();
 	}
 
 	/**
@@ -1211,7 +1214,9 @@ public class Video extends Media {
 
 	/**
 	 * Video对象的构建器，提供Fluent API链式调用
-	 * <p>继承自{@link Media.Builder}，增加了视频特有的属性设置方法，以及快捷格式和分辨率设置。</p>
+	 * <p>
+	 * 继承自{@link Media.Builder}，增加了视频特有的属性设置方法，以及快捷格式和分辨率设置。
+	 * </p>
 	 * <h3>使用方式</h3>
 	 * <ul>
 	 *   <li><b>新建视频对象</b>：使用{@link #Builder()}创建空白构建器，设置属性后调用{@link #build()}</li>
@@ -1222,11 +1227,11 @@ public class Video extends Media {
 	 *   <li>{@link #resolution(int, int)}：设置视频分辨率</li>
 	 *   <li>{@link #resolution480p()} / {@link #resolution720p()} / {@link #resolution1080p()} / {@link #resolution2k()}：快捷设置横屏分辨率</li>
 	 *   <li>{@link #resolution480pVertical()} / {@link #resolution720pVertical()} / {@link #resolution1080pVertical()} / {@link #resolution2kVertical()}：快捷设置竖屏分辨率</li>
+	 *   <li>{@link #frameRate24()} / {@link #frameRate25()} / {@link #frameRate30()} / {@link #frameRate60()}：快捷设置标准帧率</li>
+	 *   <li>{@link #mp4WithH264()} / {@link #webmWithVP9()} / {@link #mkvWithH264()}：快捷设置格式和编码</li>
 	 *   <li>{@link #frameRate(double)}：设置帧率</li>
 	 *   <li>{@link #bitrate(int)}：设置码率</li>
-	 *   <li>{@link #duration(Duration)}：设置时长</li>
 	 *   <li>{@link #audio(Audio)}：设置音频</li>
-	 *   <li>{@link #mp4WithH264()} / {@link #webmWithVP9()} / {@link #mkvWithH264()}：快捷设置格式和编码</li>
 	 * </ul>
 	 * <h3>使用示例</h3>
 	 * <pre>{@code
@@ -1234,7 +1239,7 @@ public class Video extends Media {
 	 * Video video = new Video.Builder()
 	 *     .mp4WithH264()
 	 *     .resolution1080p()
-	 *     .frameRate(30)
+	 *     .frameRate30()
 	 *     .bitrate(6000000)
 	 *     .audio(Video.AUDIO_AAC_1080P)
 	 *     .build();
@@ -1463,19 +1468,43 @@ public class Video extends Media {
 		}
 
 		/**
-		 * 设置视频时长
+		 * 设置电影标准帧率 24fps（影视胶片制式）
 		 *
-		 * @param duration 视频时长，不可为 null 且必须为正数
 		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException 当 duration 为 null 或为负数时抛出
 		 * @since 1.1.0
 		 */
-		public Builder duration(Duration duration) {
-			Validate.notNull(duration, "duration 不可为 null");
-			Validate.isTrue(!duration.isNegative() && !duration.isZero(), "duration 必须为正数");
+		public Builder frameRate24() {
+			return frameRate(24);
+		}
 
-			this.duration = duration;
-			return this;
+		/**
+		 * 设置PAL电视标准帧率 25fps（国内广电、短视频通用）
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder frameRate25() {
+			return frameRate(25);
+		}
+
+		/**
+		 * 设置通用短视频/直播标准帧率 30fps（互联网视频主流）
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder frameRate30() {
+			return frameRate(30);
+		}
+
+		/**
+		 * 设置高刷高清帧率 60fps（游戏、高清短视频、慢动作）
+		 *
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
+		public Builder frameRate60() {
+			return frameRate(60);
 		}
 
 		/**
@@ -1516,7 +1545,7 @@ public class Video extends Media {
 		 */
 		public Builder audio(Audio audio) {
 			Validate.notNull(audio, "audio 不可为 null");
-			this.audio = Audio.builder(audio).build();
+			this.audio = audio;
 			return this;
 		}
 
@@ -1542,7 +1571,7 @@ public class Video extends Media {
 		 * @since 1.1.0
 		 */
 		@Override
-		public Video.Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		protected Video.Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
 			super.parse(grabber);
