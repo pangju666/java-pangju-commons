@@ -51,12 +51,6 @@
 			<artifactId>spock-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parser-miscoffice-module</artifactId>
-			<version>${tika.version}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
