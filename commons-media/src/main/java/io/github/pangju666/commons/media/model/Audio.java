@@ -21,9 +21,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.media.lang.MediaConstants;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
 
 import java.io.File;
 import java.io.IOException;
@@ -374,32 +372,6 @@ public class Audio extends Media {
 	 */
 	public boolean hasDuration() {
 		return duration != null && !duration.isZero() && !duration.isNegative();
-	}
-
-	/**
-	 * 初始化 FFmpegFrameRecorder 的音频配置
-	 * <p>设置采样率、音频编码器、比特率、声道数和音频元数据等</p>
-	 *
-	 * @param recorder FFmpegFrameRecorder 实例，不可为 null
-	 * @throws IllegalArgumentException 当 recorder 为 null 时抛出
-	 * @since 1.1.0
-	 */
-	@Override
-	public void initRecorder(FFmpegFrameRecorder recorder) {
-		super.initRecorder(recorder);
-
-		recorder.setSampleRate(this.sampleRate);
-		recorder.setAudioCodec(this.codecId);
-		recorder.setAudioCodecName(this.codecName);
-		recorder.setAudioBitrate(this.bitrate);
-		recorder.setAudioChannels(this.channels);
-		recorder.setAudioMetadata(this.metadata);
-	}
-
-	@Override
-	public void initFilter(FFmpegFrameFilter filter) {
-		filter.setSampleRate(this.sampleRate);
-		filter.setAudioChannels(this.channels);
 	}
 
 	/**

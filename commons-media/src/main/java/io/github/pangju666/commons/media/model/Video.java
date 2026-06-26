@@ -21,16 +21,13 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.media.lang.MediaConstants;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -1180,49 +1177,6 @@ public class Video extends Media {
 	 */
 	public boolean isSquare() {
 		return width == height;
-	}
-
-	/**
-	 * 初始化FFmpegFrameRecorder的视频和音频配置
-	 * <p>设置视频格式、帧率、码率、分辨率、编码器，以及音频配置（如果有音频）</p>
-	 *
-	 * @param recorder FFmpegFrameRecorder实例，不可为null
-	 * @throws IllegalArgumentException 当recorder为null时抛出
-	 * @since 1.1.0
-	 */
-	@Override
-	public void initRecorder(FFmpegFrameRecorder recorder) {
-		Validate.notNull(recorder, "recorder 不可为 null");
-		super.initRecorder(recorder);
-
-		recorder.setFrameRate(this.frameRate);
-		recorder.setVideoBitrate(this.bitrate);
-		recorder.setVideoCodec(this.codecId);
-		recorder.setVideoCodecName(this.codecName);
-		recorder.setImageWidth(this.width);
-		recorder.setImageHeight(this.height);
-		recorder.setVideoMetadata(new HashMap<>(this.metadata));
-
-		if (Objects.nonNull(this.audio)) {
-			recorder.setSampleRate(this.audio.sampleRate);
-			recorder.setAudioCodec(this.audio.codecId);
-			recorder.setAudioCodecName(this.audio.codecName);
-			recorder.setAudioBitrate(this.audio.bitrate);
-			recorder.setAudioChannels(this.audio.channels);
-			recorder.setAudioMetadata(new HashMap<>(this.audio.metadata));
-		}
-	}
-
-	@Override
-	public void initFilter(FFmpegFrameFilter filter) {
-		filter.setFrameRate(this.frameRate);
-		filter.setImageWidth(this.width);
-		filter.setImageHeight(this.height);
-
-		if (Objects.nonNull(this.audio)) {
-			filter.setSampleRate(this.audio.sampleRate);
-			filter.setAudioChannels(this.audio.channels);
-		}
 	}
 
 	/**

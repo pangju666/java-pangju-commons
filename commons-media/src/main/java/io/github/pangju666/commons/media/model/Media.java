@@ -19,9 +19,7 @@ package io.github.pangju666.commons.media.model;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.avcodec.AVCodec;
 import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
 
 import java.util.Collections;
 import java.util.Map;
@@ -149,21 +147,6 @@ public abstract class Media {
 	public int getCodecId() {
 		return codecId;
 	}
-
-	/**
-	 * 初始化 FFmpegFrameRecorder 的媒体格式
-	 * <p>将当前媒体对象的格式设置到 FFmpegFrameRecorder 中，用于后续的录制操作</p>
-	 *
-	 * @param recorder FFmpegFrameRecorder 实例，不可为 null
-	 * @throws IllegalArgumentException 当 recorder 为 null 时抛出
-	 * @since 1.1.0
-	 */
-	public void initRecorder(FFmpegFrameRecorder recorder) {
-		Validate.notNull(recorder, "recorder 不可为 null");
-		recorder.setFormat(this.format);
-	}
-
-	public abstract void initFilter(FFmpegFrameFilter filter);
 
 	/**
 	 * 媒体对象构建器抽象类，定义通用的构建逻辑
