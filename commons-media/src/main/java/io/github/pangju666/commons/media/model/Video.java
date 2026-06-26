@@ -21,6 +21,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.media.lang.MediaConstants;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.global.avcodec;
+import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 
@@ -1209,6 +1210,18 @@ public class Video extends Media {
 			recorder.setAudioBitrate(this.audio.bitrate);
 			recorder.setAudioChannels(this.audio.channels);
 			recorder.setAudioMetadata(new HashMap<>(this.audio.metadata));
+		}
+	}
+
+	@Override
+	public void initFilter(FFmpegFrameFilter filter) {
+		filter.setFrameRate(this.frameRate);
+		filter.setImageWidth(this.width);
+		filter.setImageHeight(this.height);
+
+		if (Objects.nonNull(this.audio)) {
+			filter.setSampleRate(this.audio.sampleRate);
+			filter.setAudioChannels(this.audio.channels);
 		}
 	}
 

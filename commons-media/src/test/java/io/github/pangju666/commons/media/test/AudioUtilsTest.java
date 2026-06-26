@@ -18,41 +18,39 @@ public class AudioUtilsTest {
 	@Test
 	void testTranscode() throws IOException {
 		AudioUtils.transcode(MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
-			new File("F:\\IDMDownload\\convert_output.mp3"), Audio.MP3);
+			new File("E:\\Roaming\\output\\transcode_output.mp3"), Audio.MP3);
 	}
 
 	@Test
-	void testTrimByDuration() throws IOException {
+	void testCutEnd() throws IOException {
 		AudioUtils.cut(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
-			new File("F:\\IDMDownload\\cut_output.mp3"),
-			Duration.ofSeconds(8));
+			new File("E:\\Roaming\\output\\cut_end_output.mp3"), Duration.ofSeconds(8));
 	}
 
 	@Test
-	void testMerge() throws IOException {
+	void testCutStartEnd() throws IOException {
+		AudioUtils.cut(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
+			new File("E:\\Roaming\\output\\cut_start_end_output.mp3"),
+			Duration.ofSeconds(10), Duration.ofSeconds(20));
+	}
+
+	@Test
+	void testConcat() throws IOException {
 		AudioUtils.concat(List.of(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
 				MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.flac"))),
-			new File("F:\\IDMDownload\\concat_output.mp3"),
-			Audio.MP3);
+			new File("E:\\Roaming\\output\\concat_output.mp3"), Audio.MP3);
 	}
 
 	@Test
-	void testRemixShortest() throws IOException {
+	void testRemix() throws IOException {
 		AudioUtils.remix(MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
 			MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
-			new File("F:\\IDMDownload\\mix_shortest_output.wav"), 0.5f);
-	}
-
-	@Test
-	void testRemixLongest() throws IOException {
-		AudioUtils.remix(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
-			MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
-			new File("F:\\IDMDownload\\mix_longest_output.mp3"), 1f);
+			new File("E:\\Roaming\\output\\remix_output.wav"), 1.5f);
 	}
 
 	@Test
 	void testAdjustSpeed() throws IOException {
 		AudioUtils.adjustSpeed(MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
-			new File("F:\\IDMDownload\\speed_output.wav"), 2.5f);
+			new File("E:\\Roaming\\output\\adjust_speed_output.wav"), 15f);
 	}
 }

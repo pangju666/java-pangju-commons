@@ -20,16 +20,12 @@ import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.media.model.MediaResource;
 import io.github.pangju666.commons.media.model.Video;
 import org.apache.commons.lang3.Validate;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.FrameGrabber;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
-import java.util.Objects;
+import java.util.Collection;
 
 /*
 	一、优先必加（生产环境强烈建议补上，解决现有短板）
@@ -81,97 +77,87 @@ public class VideoUtils {
 	}
 
 	public static void transcode(final MediaResource resource, final File outputFile, final Video outputVideo) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doTranscode(resource, recorder, outputVideo);
-		}
+		FFmpegUtils.transcode(resource, outputFile, outputVideo, false);
 	}
 
 	public static void transcode(final MediaResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
-
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doTranscode(resource, recorder, outputVideo);
-		}
+		FFmpegUtils.transcode(resource, outputStream, outputVideo, false);
 	}
 
-	protected static void doCut(MediaResource resource, OutputStream outputStream, Video outputVideo, Duration start, Duration end) throws IOException {
-		try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
-			new FFmpegFrameGrabber(resource.getInputStream()))) {
-			long startTimestamp = start.toNanos() / 1000;
-			long endTimestamp = Objects.isNull(end) ? grabber.getLengthInTime() : Math.min(end.toNanos() / 1000, grabber.getLengthInTime());
-
-			Validate.isTrue(startTimestamp < grabber.getLengthInTime(), "start 必须小于音频总时长");
-
-			grabber.setTimestamp(startTimestamp);
-			grabber.start();
-
-			try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0, 0, 0)) {
-				initRecorder(recorder, grabber, outputVideo);
-				recordFrames(recorder, grabber, endTimestamp);
-			}
-		}
+	public static void cut(final MediaResource resource, final File outputFile, final Duration duration) throws IOException {
+		Validate.notNull(duration, "duration 不可为 null");
+		cut(resource, outputFile, null, Duration.ZERO, duration);
 	}
 
-	protected static void doTranscode(MediaResource resource, FFmpegFrameRecorder recorder, Video outputVideo) throws IOException {
-		try (FFmpegFrameGrabber grabber = (resource.isFile() ? new FFmpegFrameGrabber(resource.getFile()) :
-			new FFmpegFrameGrabber(resource.getInputStream()))) {
-			grabber.start();
-
-			initRecorder(recorder, grabber, outputVideo);
-			recordFrames(recorder, grabber, null);
-		}
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
+		Validate.notNull(duration, "duration 不可为 null");
+		cut(resource, outputStream, null, Duration.ZERO, duration);
 	}
 
-	protected static void recordFrames(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber, Long endTimestamp)
-		throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
-		if (Objects.nonNull(endTimestamp) && grabber.getTimestamp() > endTimestamp) {
-			return;
-		}
-
-		while (true) {
-			try (Frame frame = grabber.grabFrame()) {
-				if (Objects.isNull(frame)) {
-					break;
-				}
-				recorder.record(frame);
-			}
-		}
+	public static void cut(final MediaResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
+		cut(resource, outputFile, null, start, end);
 	}
 
-	protected static void initRecorder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber, Video outputVideo) throws FFmpegFrameRecorder.Exception {
-		if (Objects.nonNull(outputVideo)) {
-			outputVideo.initRecorder(recorder);
-		} else {
-			recorder.setFormat(grabber.getFormat());
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration start,
+	                       final Duration end) throws IOException {
+		cut(resource, outputStream, null, start, end);
+	}
 
-			if (grabber.hasVideo()) {
-				recorder.setVideoCodec(grabber.getVideoCodec());
-				recorder.setVideoCodecName(grabber.getVideoCodecName());
-				recorder.setFrameRate(grabber.getFrameRate());
-				recorder.setVideoBitrate(grabber.getVideoBitrate());
-				recorder.setImageWidth(grabber.getImageWidth());
-				recorder.setImageHeight(grabber.getImageHeight());
-				recorder.setVideoMetadata(grabber.getVideoMetadata());
-			}
+	public static void cut(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                       final Duration duration) throws IOException {
+		Validate.notNull(duration, "duration 不可为 null");
+		cut(resource, outputFile, outputVideo, Duration.ZERO, duration);
+	}
 
-			if (grabber.hasAudio()) {
-				recorder.setAudioCodec(grabber.getAudioCodec());
-				recorder.setAudioCodecName(grabber.getAudioCodecName());
-				recorder.setSampleRate(grabber.getSampleRate());
-				recorder.setAudioBitrate(grabber.getAudioBitrate());
-				recorder.setAudioChannels(grabber.getAudioChannels());
-				recorder.setAudioMetadata(grabber.getAudioMetadata());
-			}
-		}
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Video outputVideo,
+	                       final Duration duration) throws IOException {
+		Validate.notNull(duration, "duration 不可为 null");
+		cut(resource, outputStream, outputVideo, Duration.ZERO, duration);
+	}
 
-		recorder.start();
+	public static void cut(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                       final Duration start, final Duration end) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FFmpegUtils.cut(resource, outputFile, outputVideo, start, end, false);
+	}
+
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Video outputVideo,
+	                       final Duration start, final Duration end) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+		FFmpegUtils.cut(resource, outputStream, outputVideo, start, end, false);
+	}
+
+	public static void concat(final Collection<MediaResource> resources, final File outputFile, final Video outputVideo) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FFmpegUtils.concat(resources, outputFile, outputVideo, false);
+	}
+
+	public static void concat(final Collection<MediaResource> resources, final OutputStream outputStream, final Video outputVideo) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+		FFmpegUtils.concat(resources, outputStream, outputVideo, false);
+	}
+
+	public static void applyFilter(final Collection<MediaResource> resources, final File outputFile,
+	                               final String videoFilters, final String audioFilters) throws IOException {
+		applyFilter(resources, outputFile, videoFilters, audioFilters, null);
+	}
+
+	public static void applyFilter(final Collection<MediaResource> resources, final OutputStream outputStream,
+	                               final String videoFilters, final String audioFilters) throws IOException {
+		applyFilter(resources, outputStream, videoFilters, audioFilters, null);
+	}
+
+	public static void applyFilter(final Collection<MediaResource> resources, final File outputFile, final String videoFilters,
+	                               final String audioFilters, final Video outputVideo) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		FFmpegUtils.applyFilter(resources, outputFile, outputVideo, videoFilters, audioFilters, false);
+	}
+
+	public static void applyFilter(final Collection<MediaResource> resources, final OutputStream outputStream,
+	                               final String videoFilters, final String audioFilters, final Video outputVideo) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+		FFmpegUtils.applyFilter(resources, outputStream, outputVideo, videoFilters, audioFilters, false);
 	}
 }

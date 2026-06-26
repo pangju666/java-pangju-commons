@@ -19,6 +19,7 @@ package io.github.pangju666.commons.media.model;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.avcodec.AVCodec;
 import org.bytedeco.ffmpeg.global.avcodec;
+import org.bytedeco.javacv.FFmpegFrameFilter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 
@@ -161,6 +162,8 @@ public abstract class Media {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		recorder.setFormat(this.format);
 	}
+
+	public abstract void initFilter(FFmpegFrameFilter filter);
 
 	/**
 	 * 媒体对象构建器抽象类，定义通用的构建逻辑
