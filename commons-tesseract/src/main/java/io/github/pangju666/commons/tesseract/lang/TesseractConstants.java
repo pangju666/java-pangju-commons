@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ocr.lang;
+package io.github.pangju666.commons.tesseract.lang;
 
-import io.github.pangju666.commons.ocr.factory.TessBaseAPIFactory;
+import io.github.pangju666.commons.tesseract.factory.TessBaseAPIFactory;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * OCR 相关常量类
+ * Tesseract 相关常量类
  * <p>
  * 该类定义了 OCR 功能所需的常量配置，包括：
  * <ul>
@@ -41,7 +41,7 @@ import java.util.Set;
  * @author pangju666
  * @since 1.1.0
  */
-public class OcrConstants {
+public class TesseractConstants {
 	/**
 	 * Tesseract支持的图片 MIME 类型
 	 * <p>
@@ -135,6 +135,9 @@ public class OcrConstants {
 		DEFAULT_TESS_BASE_API_POOL_CONFIG.setBlockWhenExhausted(true);
 	}
 
+	protected TesseractConstants() {
+	}
+
 	/**
 	 * 获取默认的 {@link TessBaseAPI} 对象池
 	 * <p>
@@ -149,11 +152,11 @@ public class OcrConstants {
 	 */
 	public static GenericObjectPool<TessBaseAPI> getDefaultTessBaseApiPool() {
 		if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
-			synchronized (OcrConstants.class) {
+			synchronized (TesseractConstants.class) {
 				if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
 					try {
 						DEFAULT_TESS_BASE_API_POOL = new GenericObjectPool<>(new TessBaseAPIFactory(),
-							OcrConstants.DEFAULT_TESS_BASE_API_POOL_CONFIG);
+							TesseractConstants.DEFAULT_TESS_BASE_API_POOL_CONFIG);
 					} catch (IOException e) {
 						throw ExceptionUtils.asRuntimeException(e);
 					}

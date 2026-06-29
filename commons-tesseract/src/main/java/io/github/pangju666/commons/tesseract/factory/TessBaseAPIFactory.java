@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ocr.factory;
+package io.github.pangju666.commons.tesseract.factory;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;

@@ -7,7 +7,7 @@
 		<artifactId>commons-parent</artifactId>
 		<version>2.1.0</version>
 	</parent>
-	<artifactId>commons-ocr</artifactId>
+	<artifactId>commons-tesseract</artifactId>
 	<name>commons-tesseract</name>
 	<description>基于 Metadata Extractor 和 TwelveMonkeys 的图像处理与元数据提取工具库</description>
 

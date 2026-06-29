@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ocr.utils;
+package io.github.pangju666.commons.tesseract.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.IOUtils;
-import io.github.pangju666.commons.ocr.lang.OcrConstants;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import io.github.pangju666.commons.tesseract.lang.TesseractConstants;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.leptonica.PIX;
 import org.bytedeco.leptonica.global.leptonica;
 import org.bytedeco.tesseract.TessBaseAPI;
 
-import javax.imageio.ImageIO;
-import java.awt.image.RenderedImage;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,11 +81,11 @@ public class OcrUtils {
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final byte[] imageData) throws Exception {
-		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, imageData);
 		} finally {
-			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
 		}
 	}
 
@@ -110,35 +105,11 @@ public class OcrUtils {
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final File imageFile) throws Exception {
-		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, imageFile);
 		} finally {
-			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
-	}
-
-	/**
-	 * 从 RenderedImage 读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 将 RenderedImage 转换为 PNG 格式的字节数组，
-	 * 然后调用字节数组版本的 OCR 方法进行识别。
-	 * 使用 PNG 格式可以保持图片质量的同时控制文件大小。
-	 * </p>
-	 *
-	 * @param image 图片 RenderedImage 对象，不可为 null
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当转换 RenderedImage、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
-	 * @since 1.1.0
-	 */
-	public static String ocrImage(final RenderedImage image) throws Exception {
-		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, image);
-		} finally {
-			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
 		}
 	}
 
@@ -157,39 +128,12 @@ public class OcrUtils {
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final InputStream inputStream) throws Exception {
-		TessBaseAPI tessBaseAPI = OcrConstants.getDefaultTessBaseApiPool().borrowObject();
+		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
 			return ocrImage(tessBaseAPI, inputStream);
 		} finally {
-			OcrConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
 		}
-	}
-
-	/**
-	 * 从 RenderedImage 读取图片并进行 OCR 识别
-	 * <p>
-	 * 将 RenderedImage 转换为 PNG 格式的字节数组，
-	 * 然后调用字节数组版本的 OCR 方法进行识别。
-	 * 使用 PNG 格式可以保持图片质量的同时控制文件大小。
-	 * </p>
-	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
-	 * @param image       图片 RenderedImage 对象，不可为 null
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws IOException              当转换 RenderedImage 或识别失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
-	 * @since 1.1.0
-	 */
-	public static String ocrImage(final TessBaseAPI tessBaseAPI, final RenderedImage image) throws IOException {
-		Validate.notNull(image, "image 不可为 null");
-		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
-
-		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE);
-		try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
-			ImageIO.write(image, "png", bufferedOutputStream);
-		}
-
-		return ocrImage(tessBaseAPI, outputStream.toByteArray());
 	}
 
 	/**
@@ -232,7 +176,7 @@ public class OcrUtils {
 		Validate.isTrue(imageData.length > 0, "imageData 不可为空");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 		String mimeType = IOConstants.getDefaultTika().detect(imageData);
-		Validate.isTrue(OcrConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
+		Validate.isTrue(TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
 
 		try (PIX image = leptonica.pixReadMem(new BytePointer(imageData), imageData.length)) {
 			if (Objects.isNull(image) || image.isNull()) {
@@ -261,7 +205,7 @@ public class OcrUtils {
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final File imageFile) throws IOException {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 		String mimeType = FileUtils.getMimeType(imageFile);
-		Validate.isTrue(OcrConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
+		Validate.isTrue(TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
 
 		try (PIX image = leptonica.pixRead(imageFile.getAbsolutePath())) {
 			if (Objects.isNull(image) || image.isNull()) {
