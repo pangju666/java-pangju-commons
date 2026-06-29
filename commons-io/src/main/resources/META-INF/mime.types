@@ -537,6 +537,7 @@ application/x-snappy-framed             sz
 application/x-staroffice-template       vor
 application/x-stuffit                   sit
 application/x-stuffitx                  sitx
+application/x-subrip                    srt
 application/x-sv4cpio                   sv4cpio
 application/x-sv4crc                    sv4crc
 application/x-tar                       tar
