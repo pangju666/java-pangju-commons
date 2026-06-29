@@ -31,7 +31,6 @@
 		<module>commons-tesseract</module>
 		<module>commons-bom</module>
 		<module>commons-all</module>
-		<module>commons-opencv</module>
 	</modules>
 
 	<properties>

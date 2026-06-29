@@ -78,10 +78,5 @@
 			<artifactId>commons-tesseract</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.github.pangju666.commons</groupId>
-			<artifactId>commons-opencv</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 </project>

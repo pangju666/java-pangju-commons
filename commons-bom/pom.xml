@@ -80,11 +80,6 @@
 				<artifactId>commons-tesseract</artifactId>
 				<version>2.1.0</version>
 			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666.commons</groupId>
-				<artifactId>commons-opencv</artifactId>
-				<version>2.1.0</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
