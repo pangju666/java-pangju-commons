@@ -714,6 +714,8 @@ public class FFmpegUtils {
 	                                         final FrameType frameType, final boolean recorderStarted) throws IOException {
 		Validate.notNull(grabber, "resource 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.isTrue(startTimestamp >= 0, "startTimestamp 必须大于等于 0");
+		Validate.isTrue(endTimestamp > 0, "endTimestamp 必须大于 0");
 
 		if (isNotStarted(grabber)) {
 			grabber.start();
@@ -722,7 +724,7 @@ public class FFmpegUtils {
 		long lengthInTime = grabber.getLengthInTime();
 		startTimestamp = Math.min(startTimestamp, lengthInTime);
 		endTimestamp = Math.min(endTimestamp, lengthInTime);
-		Validate.isTrue(startTimestamp < endTimestamp, "startTimestamp 必须小于 endTimestamp");
+		Validate.isTrue(endTimestamp > startTimestamp, "endTimestamp 必须大于 startTimestamp");
 
 		if (!recorderStarted) {
 			startRecorder(recorder, grabber, outputMedia, frameType);
@@ -732,13 +734,18 @@ public class FFmpegUtils {
 
 		while (true) {
 			try (Frame frame = frameType.grabFrame(grabber)) {
-				if (grabber.getTimestamp() >= endTimestamp) {
+				long currentTimestamp = grabber.getTimestamp();
+
+				if (currentTimestamp >= endTimestamp) {
 					break;
 				}
 
-				recorder.record(frame);
+				if (currentTimestamp >= startTimestamp) {
+					recorder.record(frame);
+				}
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -943,6 +950,7 @@ public class FFmpegUtils {
 				}
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -974,6 +982,7 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -1001,6 +1010,7 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -1245,7 +1255,7 @@ public class FFmpegUtils {
 		List<BufferedImage> images = new ArrayList<>(Math.min((int) (endTimestamp / intervalMicros), Integer.MAX_VALUE));
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp < endTimestamp) {
+			while (currentTimestamp <= endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
@@ -1254,6 +1264,9 @@ public class FFmpegUtils {
 						images.add(image);
 					}
 
+					if (currentTimestamp == endTimestamp) {
+						break;
+					}
 					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
 				}
 			}
@@ -1290,7 +1303,7 @@ public class FFmpegUtils {
 		long intervalMicros = timeUnit.toMicros(interval);
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp < endTimestamp) {
+			while (currentTimestamp <= endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
@@ -1300,6 +1313,9 @@ public class FFmpegUtils {
 						image.flush();
 					}
 
+					if (currentTimestamp == endTimestamp) {
+						break;
+					}
 					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
 				}
 			}
