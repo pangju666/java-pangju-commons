@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>commons-tesseract</artifactId>
 	<name>commons-tesseract</name>
-	<description>基于 Metadata Extractor 和 TwelveMonkeys 的图像处理与元数据提取工具库</description>
+	<description>基于 Tesseract 的图像OCR工具库</description>
 
 	<licenses>
 		<license>
