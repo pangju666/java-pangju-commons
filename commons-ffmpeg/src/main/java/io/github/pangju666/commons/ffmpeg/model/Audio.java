@@ -303,6 +303,22 @@ public class Audio extends Media {
 		}
 	}
 
+	public static Audio parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		return builder(grabber).build();
+	}
+
+	public static Audio parse(File file) throws IOException {
+		return builder(file).build();
+	}
+
+	public static Audio parse(byte[] bytes) throws IOException {
+		return builder(bytes).build();
+	}
+
+	public static Audio parse(InputStream inputStream) throws IOException {
+		return builder(inputStream).build();
+	}
+
 	/**
 	 * 获取音频时长
 	 *

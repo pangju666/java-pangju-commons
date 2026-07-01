@@ -22,22 +22,81 @@ import io.github.pangju666.commons.ffmpeg.model.Audio;
 import io.github.pangju666.commons.ffmpeg.model.Media;
 import io.github.pangju666.commons.ffmpeg.model.MediaResource;
 import io.github.pangju666.commons.ffmpeg.model.Video;
+import io.github.pangju666.commons.io.utils.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacv.*;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ObjLongConsumer;
+
+import static org.bytedeco.ffmpeg.global.avutil.AV_LOG_WARNING;
+import static org.bytedeco.ffmpeg.global.avutil.av_log_set_level;
 
 public class FFmpegUtils {
 	protected FFmpegUtils() {
 	}
 
-	public static String getVolumeFilter(final Number db) {
+	public static String getSafeFilePath(final File file) throws IOException {
+		FileUtils.checkFile(file, "file 不可为 null");
+
+		return getSafePath(file.getAbsolutePath());
+	}
+
+	public static String getSafePath(final String path) {
+		Validate.notBlank(path, "path 不可为空");
+
+		return FilenameUtils.separatorsToUnix(path).replace(":", "\\:");
+	}
+
+	public static long toTimestamp(final Duration duration) {
+		Validate.notNull(duration, "duration 不可为null");
+		Validate.isTrue(!duration.isNegative(), "duration 必须大于 0");
+
+		return TimeUnit.NANOSECONDS.toMicros(duration.toNanos());
+	}
+
+	public static String getAddBgmFilter(final FFmpegFrameGrabber mainGrabber, final FFmpegFrameGrabber bgmGrabber,
+	                                     final float bgmWeight) throws FFmpegFrameGrabber.Exception {
+		Validate.notNull(mainGrabber, "mainGrabber 不可为 null");
+		Validate.notNull(bgmGrabber, "bgmGrabber 不可为 null");
+
+		if (isNotStarted(mainGrabber)) {
+			mainGrabber.start();
+		}
+		if (isNotStarted(bgmGrabber)) {
+			bgmGrabber.start();
+		}
+		Validate.isTrue(mainGrabber.hasAudio(), "mainGrabber 不存在音频流");
+		Validate.isTrue(bgmGrabber.hasAudio(), "bgmGrabber 不存在音频流");
+
+		long bgmLengthInTime = bgmGrabber.getLengthInTime();
+		int mainSampleRate = mainGrabber.getSampleRate();
+
+		FFmpegFiltersBuilder builder = FFmpegFiltersBuilder.audio()
+			.addInput();
+		if (mainSampleRate != bgmGrabber.getSampleRate()) {
+			builder.addInput("bgm", String.format("aresample=%d", mainSampleRate));
+		}
+		if (mainGrabber.getLengthInTime() > bgmLengthInTime) {
+			builder.addInput("bgm", FFmpegUtils.getAloopFilter(mainSampleRate, bgmLengthInTime));
+		} else {
+			builder.addInput();
+		}
+		return builder
+			.addGlobalFilter(FFmpegUtils.getAmixFilter(2, 1.0f, bgmWeight))
+			.build();
+	}
+
+	public static String getVolumeFilter(final float db) {
 		return getVolumeFilter(db, VolumePrecision.FLOAT);
 	}
 
@@ -97,18 +156,33 @@ public class FFmpegUtils {
 		return audioFilters;
 	}
 
-	public static String getAloopInfiniteFilter(final int sampleRate, final long lengthInTime) {
+	public static String getAloopFilter(final int sampleRate, final long lengthInTime) {
+		return getAloopFilter(-1, sampleRate, lengthInTime);
+	}
+
+	public static String getAloopFilter(final int loop, final int sampleRate, final long lengthInTime) {
+		Validate.isTrue(loop >= -1, "loop 必须大于等于 -1");
 		Validate.isTrue(sampleRate > 0, "sampleRate 必须大于 0");
 		Validate.isTrue(lengthInTime > 0, "lengthInTime 必须大于 0");
 
-		return getAloopFilter(-1, sampleRate * (TimeUnit.MICROSECONDS.toSeconds(lengthInTime)));
+		long size = TimeUnit.MICROSECONDS.toSeconds(lengthInTime) * sampleRate * Math.max(1, loop);
+		return String.format("aloop=loop=%d:size=%d", loop, size);
 	}
 
-	public static String getAloopFilter(final int loop, final long size) {
-		Validate.isTrue(loop >= -1, "loop 必须大于等于 -1");
-		Validate.isTrue(size >= 0, "size 必须大于等于 0");
+	public static String getAtrimFilter(final Duration duration) {
+		Validate.notNull(duration, "duration 不可为null");
+		Validate.isTrue(!duration.isZero() && !duration.isNegative(), "duration 必须大于 0");
 
-		return String.format("aloop=loop=%d:size=%d", loop, size);
+		return getAtrimFilter(toTimestamp(duration));
+	}
+
+	public static String getAtrimFilter(final Duration start, final Duration end) {
+		Validate.notNull(start, "start 不可为null");
+		Validate.isTrue(!start.isZero() && !start.isNegative(), "start 必须大于等于 0");
+		Validate.notNull(end, "end 不可为null");
+		Validate.isTrue(!end.isZero() && end.isNegative(), "end 必须大于等于 0");
+
+		return getAtrimFilter(toTimestamp(start), toTimestamp(end));
 	}
 
 	public static String getAtrimFilter(final long lengthInTime) {
@@ -123,6 +197,22 @@ public class FFmpegUtils {
 		Validate.isTrue(endTimestamp > startTimestamp, "endTimestamp 必须大于 startTimestamp");
 
 		return String.format("atrim=start=%dus:end=%dus", startTimestamp, endTimestamp);
+	}
+
+	public static String getTrimFilter(final Duration duration) {
+		Validate.notNull(duration, "duration 不可为null");
+		Validate.isTrue(!duration.isZero() && !duration.isNegative(), "duration 必须大于 0");
+
+		return String.format("trim=duration=%dus", toTimestamp(duration));
+	}
+
+	public static String getTrimFilter(final Duration start, final Duration end) {
+		Validate.notNull(start, "start 不可为null");
+		Validate.isTrue(!start.isZero() && !start.isNegative(), "start 必须大于等于 0");
+		Validate.notNull(end, "end 不可为null");
+		Validate.isTrue(!end.isZero() && end.isNegative(), "end 必须大于等于 0");
+
+		return String.format("trim=start=%dus:end=%dus", toTimestamp(start), toTimestamp(end));
 	}
 
 	public static String getTrimFilter(final long lengthInTime) {
@@ -155,28 +245,37 @@ public class FFmpegUtils {
 		return String.format("crop=%d:%d:%d:%d", width, height, x, y);
 	}
 
-	public static String getCropFilter(final String x, final String y, final String width, final String height) {
-		Validate.notBlank(width, "width 不可为空");
-		Validate.notBlank(height, "height 不可为空");
-
-		return String.format("crop=%s:%s:%s:%s", width, height, StringUtils.defaultString(x),
-			StringUtils.defaultString(y));
-	}
-
-	public static String getSetptsWithFpsFilter(final float speed, final double frameRate) {
+	public static String getSetptsFilter(final float speed) {
 		Validate.isTrue(speed > 0, "speed 必须大于 0");
 
 		// setpts 系数 = 1 / 速度
 		float ptsScale = 1.0f / speed;
-		return String.format("setpts=%.6f*PTS,fps=%.2f", ptsScale, frameRate);
+		return String.format("setpts=%.6f*PTS", ptsScale);
+	}
+
+	public static String getFpsFilter(final double frameRate) {
+		Validate.isTrue(frameRate > 0, "frameRate 必须大于 0");
+
+		return String.format("fps=%.2f", frameRate);
+	}
+
+	public static <T extends Media> void applyAudioFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
+	                                                      final T outputMedia, final String audioFilters, final FrameType frameType,
+	                                                      final boolean recorderStarted) throws IOException {
+		applyFilter(grabber, recorder, null, outputMedia, null, audioFilters, frameType, recorderStarted);
+	}
+
+	public static <T extends Media> void applyVideoFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
+	                                                      final T outputMedia, final String videoFilters, final FrameType frameType,
+	                                                      final boolean recorderStarted) throws IOException {
+		applyFilter(grabber, recorder, null, outputMedia, videoFilters, null, frameType, recorderStarted);
 	}
 
 	public static <T extends Media> void applyFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                                 final T outputMedia, final String videoFilters,
 	                                                 final String audioFilters, final FrameType frameType,
 	                                                 final boolean recorderStarted) throws IOException {
-		applyFilter(Collections.singletonList(grabber), recorder, null, outputMedia, videoFilters,
-			audioFilters, frameType, recorderStarted);
+		applyFilter(grabber, recorder, null, outputMedia, videoFilters, audioFilters, frameType, recorderStarted);
 	}
 
 	public static <T extends Media> void applyFilter(final FFmpegFrameGrabber grabber,
@@ -184,15 +283,38 @@ public class FFmpegUtils {
 	                                                 final T outputMedia, final String videoFilters,
 	                                                 final String audioFilters, final FrameType frameType,
 	                                                 final boolean recorderStarted) throws IOException {
-		applyFilter(Collections.singletonList(grabber), recorder, filterMedia, outputMedia, videoFilters,
-			audioFilters, frameType, recorderStarted);
-	}
+		Validate.notNull(grabber, "grabber 不可为 null");
+		Validate.notNull(frameType, "frameMode 不可为 null");
+		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.isTrue(!StringUtils.isAllBlank(audioFilters, videoFilters),
+			"audioFilters 或 videoFilters 至少需要一个不为空");
 
-	public static <T extends Media> void applyFilter(final List<FFmpegFrameGrabber> grabbers,
-	                                                 final FFmpegFrameRecorder recorder, final T outputMedia,
-	                                                 final String videoFilters, final String audioFilters,
-	                                                 final FrameType frameType, final boolean recorderStarted) throws IOException {
-		applyFilter(grabbers, recorder, null, outputMedia, videoFilters, audioFilters, frameType, recorderStarted);
+		if (isNotStarted(grabber)) {
+			grabber.start();
+		}
+
+		int audioInputs = grabber.hasAudio() && StringUtils.isNotBlank(audioFilters) ? 1 : 0;
+		int videoInputs = grabber.hasVideo() && StringUtils.isNotBlank(videoFilters) ? 1 : 0;
+
+		try (FFmpegFrameFilter filter = openFrameFilter(videoFilters, audioFilters, grabber, filterMedia, audioInputs,
+			videoInputs)) {
+			if (!recorderStarted) {
+				startRecorder(recorder, grabber, outputMedia, frameType);
+			}
+
+			while (true) {
+				try (Frame frame = frameType.grabFrame(grabber)) {
+					if (Objects.isNull(frame)) {
+						break;
+					}
+					filter.push(frame);
+				}
+
+				recordFrames(recorder, filter, frameType);
+			}
+
+			recordFrames(recorder, filter, frameType);
+		}
 	}
 
 	public static <T extends Media> void applyFilter(final List<FFmpegFrameGrabber> grabbers,
@@ -203,6 +325,8 @@ public class FFmpegUtils {
 		Validate.notEmpty(grabbers, "grabbers 不可为空");
 		Validate.isTrue(grabbers.stream().allMatch(Objects::nonNull), "集合中存在为 null的 grabber");
 		Validate.notNull(frameType, "frameMode 不可为 null");
+		Validate.notNull(filterMedia, "filterMedia 不可为 null");
+		Validate.notNull(outputMedia, "outputMedia 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.isTrue(!StringUtils.isAllBlank(audioFilters, videoFilters),
 			"audioFilters 或 videoFilters 至少需要一个不为空");
@@ -222,90 +346,84 @@ public class FFmpegUtils {
 			}
 		}
 
-		try (FFmpegFrameFilter filter = new FFmpegFrameFilter(videoFilters, audioFilters, 0, 0, 0)) {
+		try (FFmpegFrameFilter filter = openFrameFilter(videoFilters, audioFilters, null, filterMedia,
+			audioInputs, videoInputs)) {
 			boolean hasFrame;
 
-			startFilter(filter, grabbers.get(0), filterMedia, audioInputs, videoInputs);
 			if (!recorderStarted) {
-				startRecorder(recorder, grabbers.get(0), outputMedia, frameType);
+				startRecorder(recorder, null, outputMedia, frameType);
 			}
 
-			if (StringUtils.isNoneBlank(videoFilters, audioFilters)) {
-				do {
-					hasFrame = false;
+			do {
+				hasFrame = false;
 
-					for (int i = 0; i < grabbers.size(); i++) {
-						FFmpegFrameGrabber grabber = grabbers.get(i);
+				for (int i = 0; i < grabbers.size(); i++) {
+					FFmpegFrameGrabber grabber = grabbers.get(i);
 
-						try (Frame frame = FrameType.ALL.grabFrame(grabber)) {
-							if (Objects.nonNull(frame)) {
-								filter.push(i, frame);
-								hasFrame = true;
-							}
+					try (Frame frame = frameType.grabFrame(grabber)) {
+						if (Objects.nonNull(frame)) {
+							filter.push(i, frame);
+							hasFrame = true;
 						}
 					}
-				} while (hasFrame);
-			} else if (StringUtils.isBlank(videoFilters)) {
-				do {
-					hasFrame = false;
+				}
 
-					for (int i = 0; i < grabbers.size(); i++) {
-						FFmpegFrameGrabber grabber = grabbers.get(i);
+				recordFrames(recorder, filter, frameType);
+			} while (hasFrame);
 
-						if (grabber.hasVideo() && frameType != FrameType.AUDIO) {
-							try (Frame videoFrame = FrameType.VIDEO.grabFrame(grabber)) {
-								if (Objects.nonNull(videoFrame)) {
-									recorder.record(videoFrame);
-									hasFrame = true;
-								}
-							}
-						}
+			recordFrames(recorder, filter, frameType);
+		}
+	}
 
-						if (grabber.hasAudio()) {
-							try (Frame audioFrame = FrameType.AUDIO.grabFrame(grabber)) {
-								if (Objects.nonNull(audioFrame)) {
-									filter.push(i, audioFrame);
-									hasFrame = true;
-								}
-							}
-						}
-					}
-				} while (hasFrame);
-			} else if (StringUtils.isBlank(audioFilters)) {
-				do {
-					hasFrame = false;
+	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
+	                                         final T outputMedia, final Duration duration, final FrameType frameType,
+	                                         final boolean recorderStarted) throws IOException {
+		cut(grabber, recorder, outputMedia, 0, toTimestamp(duration), frameType, recorderStarted);
+	}
 
-					for (int i = 0; i < grabbers.size(); i++) {
-						FFmpegFrameGrabber grabber = grabbers.get(i);
+	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
+	                                         final T outputMedia, final Duration start, final Duration end,
+	                                         final FrameType frameType, final boolean recorderStarted) throws IOException {
+		Validate.notNull(start, "start 不可为null");
+		Validate.isTrue(!start.isNegative(), "start 必须大于等于 0");
+		Validate.notNull(end, "end 不可为null");
+		Validate.isTrue(!end.isZero() && !end.isNegative(), "end 必须大于 0");
 
-						if (grabber.hasVideo()) {
-							try (Frame videoFrame = FrameType.VIDEO.grabFrame(grabber)) {
-								if (Objects.nonNull(videoFrame)) {
-									filter.push(i, videoFrame);
-									hasFrame = true;
-								}
-							}
-						}
+		cut(grabber, recorder, outputMedia, toTimestamp(start), toTimestamp(end),
+			frameType, recorderStarted);
+	}
 
-						if (grabber.hasAudio() && frameType == FrameType.ALL) {
-							try (Frame audioFrame = FrameType.AUDIO.grabFrame(grabber)) {
-								if (Objects.nonNull(audioFrame)) {
-									recorder.record(audioFrame);
-									hasFrame = true;
-								}
-							}
-						}
-					}
-				} while (hasFrame);
-			}
+	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
+	                                         final T outputMedia, long startTimestamp, long endTimestamp,
+	                                         final FrameType frameType, final boolean recorderStarted) throws IOException {
+		Validate.notNull(grabber, "resource 不可为 null");
+		Validate.notNull(recorder, "recorder 不可为 null");
+
+		if (isNotStarted(grabber)) {
+			grabber.start();
+		}
+
+		if (!recorderStarted) {
+			startRecorder(recorder, grabber, outputMedia, frameType);
+		}
+
+		long lengthInTime = grabber.getLengthInTime();
+		startTimestamp = Math.min(startTimestamp, lengthInTime);
+		endTimestamp = Math.min(endTimestamp, lengthInTime);
+
+		if (startTimestamp == endTimestamp) {
+			recordFrames(recorder, grabber, frameType);
+		} else {
+			grabber.setTimestamp(startTimestamp);
 
 			while (true) {
-				try (Frame filterFrame = frameType.pullFrame(filter)) {
-					if (Objects.isNull(filterFrame)) {
-						break;
+				if (grabber.getTimestamp() <= endTimestamp) {
+					try (Frame frame = frameType.grabFrame(grabber)) {
+						if (Objects.isNull(frame)) {
+							break;
+						}
+						recorder.record(frame);
 					}
-
-					recorder.record(filterFrame);
 				}
 			}
 		}
@@ -386,11 +504,61 @@ public class FFmpegUtils {
 		}
 	}
 
+	public static <T extends Media> FFmpegFrameFilter openFrameFilter(final String videoFilters, final String audioFilters,
+	                                                                  final FFmpegFrameGrabber grabber, final T filterMedia,
+	                                                                  final int audioInputs, final int videoInputs)
+		throws FFmpegFrameFilter.Exception, FFmpegFrameGrabber.Exception {
+		Validate.isTrue(!StringUtils.isAllBlank(audioFilters, videoFilters),
+			"audioFilters 或 videoFilters 至少需要一个不为空");
+
+		FFmpegFrameFilter filter = new FFmpegFrameFilter(videoFilters, audioFilters, 0, 0, 0);
+
+		startFilter(filter, grabber, filterMedia, audioInputs, videoInputs);
+
+		return filter;
+	}
+
+	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber videoGrabber,
+	                                final FFmpegFrameGrabber audioGrabber) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
+		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.notNull(videoGrabber, "videoGrabber 不可为 null");
+		Validate.notNull(audioGrabber, "audioGrabber 不可为 null");
+
+		if (isNotStarted(videoGrabber)) {
+			videoGrabber.start();
+		}
+		Validate.isTrue(videoGrabber.hasVideo(), "videoGrabber 不存在视频流");
+
+		if (isNotStarted(audioGrabber)) {
+			audioGrabber.start();
+		}
+		Validate.isTrue(audioGrabber.hasAudio(), "audioGrabber 不存在音频流");
+
+		while (true) {
+			try (Frame videoFrame = FrameType.VIDEO.grabFrame(videoGrabber)) {
+				if (Objects.isNull(videoFrame)) {
+					break;
+				}
+				recorder.record(videoFrame);
+			}
+
+			try (Frame audioFrame = FrameType.AUDIO.grabFrame(audioGrabber)) {
+				if (Objects.nonNull(audioFrame)) {
+					recorder.record(audioFrame);
+				}
+			}
+		}
+	}
+
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
 	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(frameType, "frameMode 不可为 null");
+
+		if (isNotStarted(grabber)) {
+			grabber.start();
+		}
 
 		while (true) {
 			try (Frame frame = frameType.grabFrame(grabber)) {
@@ -402,18 +570,37 @@ public class FFmpegUtils {
 		}
 	}
 
+	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameFilter filter,
+	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameFilter.Exception {
+		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.notNull(filter, "filter 不可为 null");
+		Validate.notNull(frameType, "frameMode 不可为 null");
+
+		while (true) {
+			try (Frame frame = frameType.pullFrame(filter)) {
+				if (Objects.isNull(frame)) {
+					break;
+				}
+				recorder.record(frame);
+			}
+		}
+	}
+
 	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
-	                                                   final T outputMedia, final FrameType frameType) throws FFmpegFrameRecorder.Exception {
+	                                                   final T outputMedia, final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameGrabber.Exception {
 		startRecorder(recorder, grabber, grabber, outputMedia, frameType);
 	}
 
-	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber videoGrabber,
+	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder,
+	                                                   final FFmpegFrameGrabber videoGrabber,
 	                                                   final FFmpegFrameGrabber audioGrabber, final T outputMedia,
-	                                                   final FrameType frameType) throws FFmpegFrameRecorder.Exception {
+	                                                   final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameGrabber.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.isTrue(Objects.nonNull(outputMedia) || ObjectUtils.allNotNull(videoGrabber, audioGrabber),
+			"outputMedia 或 （videoGrabber 和 audioGrabber） 不可同时为 null");
 
 		if (Objects.nonNull(outputMedia)) {
-			if (outputMedia instanceof Audio audio && (frameType == FrameType.AUDIO || frameType == FrameType.ALL)) {
+			if (outputMedia instanceof Audio audio && frameType != FrameType.VIDEO) {
 				recorder.setFormat(audio.getFormat());
 				recorder.setSampleRate(audio.getSampleRate());
 				recorder.setAudioCodec(audio.getCodecId());
@@ -432,7 +619,7 @@ public class FFmpegUtils {
 					recorder.setVideoMetadata(new HashMap<>(video.getMetadata()));
 				}
 
-				if (Objects.nonNull(video.getAudio()) && (frameType == FrameType.AUDIO || frameType == FrameType.ALL)) {
+				if (Objects.nonNull(video.getAudio()) && frameType != FrameType.VIDEO) {
 					recorder.setSampleRate(video.getAudio().getSampleRate());
 					recorder.setAudioCodec(video.getAudio().getCodecId());
 					recorder.setAudioCodecName(video.getAudio().getCodecName());
@@ -442,31 +629,33 @@ public class FFmpegUtils {
 				}
 			}
 		} else {
-			if (Objects.nonNull(audioGrabber)) {
-				recorder.setFormat(audioGrabber.getFormat());
-
-				if ((frameType == FrameType.AUDIO || frameType == FrameType.ALL) && audioGrabber.hasAudio()) {
-					recorder.setAudioCodec(audioGrabber.getAudioCodec());
-					recorder.setAudioCodecName(audioGrabber.getAudioCodecName());
-					recorder.setSampleRate(audioGrabber.getSampleRate());
-					recorder.setAudioBitrate(audioGrabber.getAudioBitrate());
-					recorder.setAudioChannels(audioGrabber.getAudioChannels());
-					recorder.setAudioMetadata(audioGrabber.getAudioMetadata());
-				}
+			if (isNotStarted(audioGrabber)) {
+				audioGrabber.start();
 			}
 
-			if (Objects.nonNull(videoGrabber)) {
-				recorder.setFormat(videoGrabber.getFormat());
+			recorder.setFormat(audioGrabber.getFormat());
+			if (frameType != FrameType.VIDEO && audioGrabber.hasAudio()) {
+				recorder.setAudioCodec(audioGrabber.getAudioCodec());
+				recorder.setAudioCodecName(audioGrabber.getAudioCodecName());
+				recorder.setSampleRate(audioGrabber.getSampleRate());
+				recorder.setAudioBitrate(audioGrabber.getAudioBitrate());
+				recorder.setAudioChannels(audioGrabber.getAudioChannels());
+				recorder.setAudioMetadata(audioGrabber.getAudioMetadata());
+			}
 
-				if (frameType != FrameType.AUDIO && videoGrabber.hasVideo()) {
-					recorder.setVideoCodec(videoGrabber.getVideoCodec());
-					recorder.setVideoCodecName(videoGrabber.getVideoCodecName());
-					recorder.setFrameRate(videoGrabber.getFrameRate());
-					recorder.setVideoBitrate(videoGrabber.getVideoBitrate());
-					recorder.setImageWidth(videoGrabber.getImageWidth());
-					recorder.setImageHeight(videoGrabber.getImageHeight());
-					recorder.setVideoMetadata(videoGrabber.getVideoMetadata());
-				}
+			if (isNotStarted(videoGrabber)) {
+				videoGrabber.start();
+			}
+
+			recorder.setFormat(videoGrabber.getFormat());
+			if (frameType != FrameType.AUDIO && videoGrabber.hasVideo()) {
+				recorder.setVideoCodec(videoGrabber.getVideoCodec());
+				recorder.setVideoCodecName(videoGrabber.getVideoCodecName());
+				recorder.setFrameRate(videoGrabber.getFrameRate());
+				recorder.setVideoBitrate(videoGrabber.getVideoBitrate());
+				recorder.setImageWidth(videoGrabber.getImageWidth());
+				recorder.setImageHeight(videoGrabber.getImageHeight());
+				recorder.setVideoMetadata(videoGrabber.getVideoMetadata());
 			}
 		}
 
@@ -474,10 +663,13 @@ public class FFmpegUtils {
 	}
 
 	public static <T extends Media> void startFilter(final FFmpegFrameFilter filter, final FFmpegFrameGrabber grabber,
-	                                                 final T filterMedia, final int audioInputs, final int videoInputs) throws FFmpegFrameFilter.Exception {
+	                                                 final T filterMedia, final int audioInputs, final int videoInputs)
+		throws FFmpegFrameFilter.Exception, FFmpegFrameGrabber.Exception {
 		Validate.notNull(filter, "filter 不可为 null");
 		Validate.isTrue(audioInputs >= 0, "audioInputs 必须大于等于0");
 		Validate.isTrue(videoInputs >= 0, "videoInputs 必须大于等于0");
+		Validate.isTrue(ObjectUtils.anyNotNull(grabber, filterMedia),
+			"grabber 或 filterMedia 不可同时为 null");
 
 		filter.setAudioInputs(audioInputs);
 		filter.setVideoInputs(videoInputs);
@@ -498,7 +690,11 @@ public class FFmpegUtils {
 					filter.setAudioChannels(video.getAudio().getChannels());
 				}
 			}
-		} else if (Objects.nonNull(grabber)) {
+		} else {
+			if (isNotStarted(grabber)) {
+				grabber.start();
+			}
+
 			if (grabber.hasVideo() && videoInputs > 0) {
 				filter.setFrameRate(grabber.getFrameRate());
 				filter.setImageWidth(grabber.getImageWidth());
@@ -522,16 +718,17 @@ public class FFmpegUtils {
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(timestamp, "timestamp 不可为 null");
 
-		if (FFmpegUtils.isNotStarted(grabber)) {
+		if (isNotStarted(grabber)) {
 			grabber.start();
 		}
 
-		long timestampMicros = timestamp.toNanos() / 1000;
+		long timestampMicros = timestamp.get(ChronoUnit.MICROS);
 		Validate.isTrue(timestampMicros <= grabber.getLengthInTime(), "timestamp 必须小于等于总时长");
 		grabber.setTimestamp(timestampMicros);
 
-		try (Frame frame = FrameType.IMAGE.grabFrame(grabber)) {
-			return FFmpegConstants.JAVA_2D_FRAME_CONVERTER.convert(frame);
+		try (Frame frame = grabber.grabImage();
+		     Java2DFrameConverter converter = new Java2DFrameConverter()) {
+			return converter.convert(frame);
 		}
 	}
 
@@ -541,7 +738,7 @@ public class FFmpegUtils {
 		Validate.isTrue(interval > 0, "interval 必须大于 0");
 		Validate.notNull(timeUnit, "timeUnit 不可为 null");
 
-		if (FFmpegUtils.isNotStarted(grabber)) {
+		if (isNotStarted(grabber)) {
 			grabber.start();
 		}
 
@@ -549,16 +746,19 @@ public class FFmpegUtils {
 		long endTimestamp = grabber.getLengthInTime();
 		long intervalMicros = timeUnit.toMicros(interval);
 		List<BufferedImage> images = new ArrayList<>(Math.min((int) (endTimestamp / intervalMicros), Integer.MAX_VALUE));
-		while (currentTimestamp <= endTimestamp) {
-			grabber.setTimestamp(currentTimestamp);
 
-			try (Frame frame = FrameType.KEY_FRAME.grabFrame(grabber)) {
-				if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
-					images.add(FFmpegConstants.JAVA_2D_FRAME_CONVERTER.convert(frame));
+		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
+			while (currentTimestamp <= endTimestamp) {
+				grabber.setTimestamp(currentTimestamp);
+
+				try (Frame frame = grabber.grabKeyFrame()) {
+					if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
+						images.add(converter.convert(frame));
+					}
 				}
-			}
 
-			currentTimestamp += intervalMicros;
+				currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+			}
 		}
 
 		return images;
@@ -571,26 +771,38 @@ public class FFmpegUtils {
 		Validate.notNull(consumer, "consumer 不可为 null");
 		Validate.notNull(timeUnit, "timeUnit 不可为 null");
 
-		if (FFmpegUtils.isNotStarted(grabber)) {
+		if (isNotStarted(grabber)) {
 			grabber.start();
 		}
 
 		long currentTimestamp = 0;
 		long endTimestamp = grabber.getLengthInTime();
 		long intervalMicros = timeUnit.toMicros(interval);
-		while (currentTimestamp <= endTimestamp) {
-			grabber.setTimestamp(currentTimestamp);
 
-			try (Frame frame = FrameType.KEY_FRAME.grabFrame(grabber)) {
-				if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
-					BufferedImage image = FFmpegConstants.JAVA_2D_FRAME_CONVERTER.convert(frame);
-					consumer.accept(image, currentTimestamp);
-					image.flush();
+		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
+			while (currentTimestamp <= endTimestamp) {
+				grabber.setTimestamp(currentTimestamp);
+
+				try (Frame frame = grabber.grabKeyFrame()) {
+					if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
+						BufferedImage image = converter.convert(frame);
+						consumer.accept(image, currentTimestamp);
+						image.flush();
+					}
 				}
-			}
 
-			currentTimestamp += intervalMicros;
+				currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+			}
 		}
+	}
+
+	public static void enableLog() {
+		enableLog(AV_LOG_WARNING);
+	}
+
+	public static void enableLog(int level) {
+		FFmpegLogCallback.set();
+		av_log_set_level(level); // 或者 AV_LOG_TRACE 更详细
 	}
 
 	public enum AmixDuration {

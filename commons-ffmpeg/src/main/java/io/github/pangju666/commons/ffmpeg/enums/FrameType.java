@@ -23,26 +23,21 @@ import org.bytedeco.javacv.FrameGrabber;
 
 public enum FrameType {
 	AUDIO,
-	IMAGE,
 	VIDEO,
-	KEY_FRAME,
 	ALL;
 
 	public Frame grabFrame(FFmpegFrameGrabber grabber) throws FrameGrabber.Exception {
 		return switch (this) {
 			case AUDIO -> grabber.grabSamples();
-			case IMAGE -> grabber.grabImage();
 			case VIDEO -> grabber.grabFrame(false, true, true, false, true);
-			case KEY_FRAME -> grabber.grabKeyFrame();
 			case ALL -> grabber.grab();
 		};
 	}
 
 	public Frame pullFrame(FFmpegFrameFilter filter) throws FFmpegFrameFilter.Exception {
-		return switch (this) {
-			case AUDIO -> filter.pullSamples();
-			case IMAGE -> filter.pullImage();
-			default -> filter.pull();
-		};
+		if (this == AUDIO) {
+			return filter.pullSamples();
+		}
+		return filter.pull();
 	}
 }

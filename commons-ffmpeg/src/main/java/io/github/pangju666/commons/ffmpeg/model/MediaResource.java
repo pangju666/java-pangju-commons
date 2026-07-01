@@ -350,7 +350,7 @@ public class MediaResource {
 	 * @since 1.1.0
 	 */
 	public boolean isAudio() {
-		return Strings.CS.startsWith(mimeType, "audio/");
+		return Strings.CS.startsWith(mimeType, IOConstants.AUDIO_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -361,7 +361,16 @@ public class MediaResource {
 	 * @since 1.1.0
 	 */
 	public boolean isVideo() {
-		return Strings.CS.startsWith(mimeType, "video/");
+		return Strings.CS.startsWith(mimeType, IOConstants.VIDEO_MIME_TYPE_PREFIX);
+	}
+
+	public boolean isImage() {
+		return Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX);
+	}
+
+	public boolean isSubtitles() {
+		return Strings.CS.equals(mimeType, FFmpegConstants.SRT_MIME_TYPE) ||
+			Strings.CS.startsWith(mimeType, IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -372,9 +381,5 @@ public class MediaResource {
 	 */
 	public boolean isFile() {
 		return Objects.nonNull(source) && source instanceof File;
-	}
-
-	public boolean isSubtitles() {
-		return Strings.CS.equalsAny(mimeType, FFmpegConstants.SRT_MIME_TYPE, "text/plain");
 	}
 }

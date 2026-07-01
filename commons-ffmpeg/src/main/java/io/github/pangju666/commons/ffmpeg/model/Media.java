@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.avcodec.AVCodec;
 import org.bytedeco.ffmpeg.global.avcodec;
@@ -23,7 +24,6 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 媒体文件抽象基类，定义音视频媒体的通用属性和构建器规范
@@ -254,7 +254,7 @@ public abstract class Media {
 		protected T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
 
-			if (Objects.isNull(grabber.getFormatContext()) || grabber.getFormatContext().isNull()) {
+			if (FFmpegUtils.isNotStarted(grabber)) {
 				grabber.start();
 			}
 			this.format = grabber.getFormat();

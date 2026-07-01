@@ -17,16 +17,15 @@
 package io.github.pangju666.commons.ffmpeg.utils;
 
 import io.github.pangju666.commons.ffmpeg.enums.FrameType;
-import io.github.pangju666.commons.ffmpeg.model.Audio;
-import io.github.pangju666.commons.ffmpeg.model.MediaResource;
-import io.github.pangju666.commons.ffmpeg.model.Video;
+import io.github.pangju666.commons.ffmpeg.model.*;
+import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
-import org.bytedeco.javacv.Frame;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageOutputStream;
@@ -38,7 +37,6 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.ObjLongConsumer;
@@ -48,15 +46,6 @@ import java.util.function.ObjLongConsumer;
  * @since 1.1.0
  */
 public class VideoUtils {
-	/**
-	 * 系统支持的可写入图像格式集合（懒加载）
-	 * <p>通过ImageIO获取系统注册的可用图像格式</p>
-	 * <p>使用双重检查锁实现线程安全初始化</p>
-	 *
-	 * @since 1.1.0
-	 */
-	private static volatile Set<String> SUPPORTED_WRITE_IMAGE_FORMATS;
-
 	/**
 	 * 受保护的构造函数，防止实例化
 	 *
@@ -158,11 +147,11 @@ public class VideoUtils {
 	}
 
 	public static void cut(final MediaResource resource, final File outputFile, final Duration duration) throws IOException {
-		cut(resource, outputFile, (Video) null, duration);
+		cut(resource, outputFile, (Audio) null, Duration.ZERO, duration);
 	}
 
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
-		cut(resource, outputStream, (Video) null, duration);
+		cut(resource, outputStream, (Audio) null, Duration.ZERO, duration);
 	}
 
 	public static void cut(final MediaResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
@@ -174,43 +163,41 @@ public class VideoUtils {
 		cut(resource, outputStream, null, start, end);
 	}
 
-	public static void cut(final MediaResource resource, final File outputFile, final Video outputVideo,
+	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
 	                       final Duration duration) throws IOException {
+		cut(resource, outputFile, outputAudio, Duration.ZERO, duration);
+	}
+
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
+	                       final Duration duration) throws IOException {
+		cut(resource, outputStream, outputAudio, Duration.ZERO, duration);
+	}
+
+	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
+	                       final Duration start, final Duration end) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doCut(resource, recorder, outputVideo, duration);
+		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource);
+		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
+			FFmpegUtils.cut(grabber, recorder, outputAudio, start, end, FrameType.ALL,
+				false);
 		}
 	}
 
-	public static void cut(final MediaResource resource, final OutputStream outputStream, final Video outputVideo,
-	                       final Duration duration) throws IOException {
-		Validate.notNull(outputStream, "outputStream 不可为 null");
-
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doCut(resource, recorder, outputVideo, duration);
-		}
-	}
-
-	public static void cut(final MediaResource resource, final File outputFile, final Video outputVideo,
-	                       final Duration start, final Duration end) throws IOException {
-		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-
-		FileUtils.forceMkdirParent(outputFile);
-
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doCut(resource, recorder, outputVideo, start, end);
-		}
-	}
-
-	public static void cut(final MediaResource resource, final OutputStream outputStream, final Video outputVideo,
+	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
 	                       final Duration start, final Duration end) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
 
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doCut(resource, recorder, outputVideo, start, end);
+		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource);
+		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
+			FFmpegUtils.cut(grabber, recorder, outputAudio, start, end, FrameType.ALL,
+				false);
 		}
 	}
 
@@ -282,7 +269,7 @@ public class VideoUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		String outputFormat = FilenameUtils.getExtension(outputFile.getName());
-		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 
 		ImageIO.write(grabImageAtTimestamp(resource, timestamp), outputFormat, outputFile);
@@ -292,7 +279,7 @@ public class VideoUtils {
 	                                        final File outputFile, final String outputFormat) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 
 		FileUtils.forceMkdirParent(outputFile);
@@ -304,7 +291,7 @@ public class VideoUtils {
 	                                        final ImageOutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 
 		ImageIO.write(grabImageAtTimestamp(resource, timestamp), outputFormat, outputStream);
@@ -314,7 +301,7 @@ public class VideoUtils {
 	                                        final OutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 
 		ImageIO.write(grabImageAtTimestamp(resource, timestamp), outputFormat, outputStream);
@@ -359,7 +346,7 @@ public class VideoUtils {
 	                                         final Function<Long, String> filenameFormatter) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
-		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
+		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
 
@@ -569,20 +556,32 @@ public class VideoUtils {
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final File outputFile, final Video outputVideo, final boolean loopFillAudio) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		Validate.notNull(videoResource, "resource 不可为 null");
+		Validate.isTrue(videoResource.isVideo(), "不是视频类型 MediaResource");
+		Validate.notNull(audioResource, "resource 不可为 null");
+		Validate.isTrue(audioResource.isAudio(), "不是音频类型 MediaResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doReplaceAudio(videoResource, audioResource, recorder, outputVideo, loopFillAudio);
+		try (FFmpegFrameGrabber videoGrabber = FFmpegUtils.openFrameGrabber(videoResource);
+		     FFmpegFrameGrabber audioGrabber = FFmpegUtils.openFrameGrabber(audioResource);
+		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
+			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, loopFillAudio);
 		}
 	}
 
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final OutputStream outputStream, final Video outputVideo, final boolean loopFillAudio) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
+		Validate.notNull(videoResource, "resource 不可为 null");
+		Validate.isTrue(videoResource.isVideo(), "不是视频类型 MediaResource");
+		Validate.notNull(audioResource, "resource 不可为 null");
+		Validate.isTrue(audioResource.isAudio(), "不是音频类型 MediaResource");
 
-		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doReplaceAudio(videoResource, audioResource, recorder, outputVideo, loopFillAudio);
+		try (FFmpegFrameGrabber videoGrabber = FFmpegUtils.openFrameGrabber(videoResource);
+		     FFmpegFrameGrabber audioGrabber = FFmpegUtils.openFrameGrabber(audioResource);
+		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
+			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, loopFillAudio);
 		}
 	}
 
@@ -636,9 +635,133 @@ public class VideoUtils {
 		}
 	}
 
-	// todo 文字水印
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	                                    final File fontFile) throws IOException {
+		addTextWatermark(resource, outputFile, null, text, new TextWatermarkOption(fontFile));
+	}
 
-	// todo 图像水印
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	                                    final File fontFile) throws IOException {
+		addTextWatermark(resource, outputStream, null, text, new TextWatermarkOption(fontFile));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	                                    final String fontName) throws IOException {
+		addTextWatermark(resource, outputFile, null, text, new TextWatermarkOption(fontName));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	                                    final String fontName) throws IOException {
+		addTextWatermark(resource, outputStream, null, text, new TextWatermarkOption(fontName));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	                                    final TextWatermarkOption option) throws IOException {
+		addTextWatermark(resource, outputFile, null, text, option);
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	                                    final TextWatermarkOption option) throws IOException {
+		addTextWatermark(resource, outputStream, null, text, option);
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final File outputFile,
+	                                    final Video outputVideo, final String text, final File fontFile) throws IOException {
+		addTextWatermark(resource, outputFile, outputVideo, text, new TextWatermarkOption(fontFile));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                    final Video outputVideo, final String text, final File fontFile) throws IOException {
+		addTextWatermark(resource, outputStream, outputVideo, text, new TextWatermarkOption(fontFile));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final File outputFile,
+	                                    final Video outputVideo, final String text, final String fontName) throws IOException {
+		addTextWatermark(resource, outputFile, outputVideo, text, new TextWatermarkOption(fontName));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                    final Video outputVideo, final String text, final String fontName) throws IOException {
+		addTextWatermark(resource, outputStream, outputVideo, text, new TextWatermarkOption(fontName));
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final File outputFile,
+	                                    final Video outputVideo, final String text,
+	                                    final TextWatermarkOption option) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
+			doAddTextWatermark(resource, recorder, outputVideo, text, option);
+		}
+	}
+
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                    final Video outputVideo, final String text,
+	                                    final TextWatermarkOption option) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
+			doAddTextWatermark(resource, recorder, outputVideo, text, option);
+		}
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final File outputFile) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputFile, null,
+			new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final OutputStream outputStream) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputStream, null,
+			new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final File outputFile, final ImageWatermarkOption option) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputFile, null, option);
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final OutputStream outputStream, final ImageWatermarkOption option) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputStream, null, option);
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final File outputFile, final Video outputVideo) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputFile, outputVideo,
+			new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                     final OutputStream outputStream, final Video outputVideo) throws IOException {
+		addImageWatermark(resource, watermarkResource, outputStream, outputVideo,
+			new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkImageResource,
+	                                     final File outputFile, final Video outputVideo,
+	                                     final ImageWatermarkOption option) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
+			doAddImageWatermark(resource, watermarkImageResource, recorder, outputVideo, option);
+		}
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkImageResource,
+	                                     final OutputStream outputStream, final Video outputVideo,
+	                                     final ImageWatermarkOption option) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
+			doAddImageWatermark(resource, watermarkImageResource, recorder, outputVideo, option);
+		}
+	}
 
 	protected static void doAdjustSpeed(final MediaResource resource, final FFmpegFrameRecorder recorder, final float speed,
 	                                    final Video outputVideo) throws IOException {
@@ -649,8 +772,12 @@ public class VideoUtils {
 		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
 			grabber.start();
 
-			FFmpegUtils.applyFilter(grabber, recorder, outputVideo,
-				FFmpegUtils.getSetptsWithFpsFilter(speed, grabber.getFrameRate()),
+			String videoFilters = FFmpegFiltersBuilder.video()
+				.addGlobalFilter(FFmpegUtils.getSetptsFilter(speed))
+				.addGlobalFilter(FFmpegUtils.getFpsFilter(grabber.getFrameRate()))
+				.build();
+
+			FFmpegUtils.applyFilter(grabber, recorder, outputVideo, videoFilters,
 				grabber.hasAudio() ? FFmpegUtils.getAtempoFilter(speed) : null, FrameType.ALL,
 				false);
 		}
@@ -681,15 +808,14 @@ public class VideoUtils {
 
 			Video cropOutputVideo = outputVideo;
 			if (outputCropResolution) {
-				cropOutputVideo = Video.builder(grabber).resolution(videoWidth - leftOffset - rightOffset,
-						videoHeight - topOffset - bottomOffset)
+				cropOutputVideo = Video.builder(grabber)
+					.resolution(videoWidth - leftOffset - rightOffset, videoHeight - topOffset - bottomOffset)
 					.build();
 			}
 
 			FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
-				FFmpegUtils.getCropFilter(String.valueOf(leftOffset), String.valueOf(topOffset),
-					"iw-" + (leftOffset + rightOffset), "ih-" + (topOffset + bottomOffset)),
-				null, FrameType.ALL, false);
+				String.format("crop=%d:%d:%s:%s", leftOffset, topOffset, "iw-" + (leftOffset + rightOffset),
+					"ih-" + (topOffset + bottomOffset)), null, FrameType.ALL, false);
 		}
 	}
 
@@ -722,9 +848,9 @@ public class VideoUtils {
 				cropOutputVideo = Video.builder(grabber).resolution(width, height).build();
 			}
 
-			FFmpegUtils.applyFilter(grabber, recorder, outputVideo,
-				cropOutputVideo, FFmpegUtils.getCropFilter(x, y, width, height),
-				null, FrameType.ALL, false);
+			FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
+				FFmpegUtils.getCropFilter(x, y, width, height), null, FrameType.ALL,
+				false);
 		}
 	}
 
@@ -753,7 +879,7 @@ public class VideoUtils {
 				cropOutputVideo = Video.builder(grabber).resolution(width, height).build();
 			}
 
-			FFmpegUtils.applyFilter(grabber, recorder, cropOutputVideo,
+			FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
 				FFmpegUtils.getCropFilter((videoWidth - width) / 2,
 					(videoHeight - height) / 2, width, height), null, FrameType.ALL,
 				false);
@@ -770,142 +896,66 @@ public class VideoUtils {
 		Validate.isTrue(bgmWeight > 0, "bgmWeight 必须大于0");
 
 		try (FFmpegFrameGrabber videoGrabber = FFmpegUtils.openFrameGrabber(videoResource);
-		     FFmpegFrameGrabber audioGrabber = FFmpegUtils.openFrameGrabber(bgmResource)) {
+		     FFmpegFrameGrabber bgmGrabber = FFmpegUtils.openFrameGrabber(bgmResource)) {
 			videoGrabber.start();
-			audioGrabber.start();
 
 			if (!videoGrabber.hasAudio()) {
-				doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, true);
+				doReplaceAudio(videoGrabber, bgmGrabber, recorder, outputVideo, true);
 			} else {
-				FFmpegUtils.startRecorder(recorder, videoGrabber, audioGrabber, outputVideo, FrameType.ALL);
+				Video video = Video.parse(videoGrabber);
 
-				while (true) {
-					try (Frame videoFrame = FrameType.VIDEO.grabFrame(videoGrabber)) {
-						if (Objects.isNull(videoFrame)) {
-							break;
-						}
-
-						recorder.record(videoFrame);
-					}
-				}
-
-				videoGrabber.setTimestamp(0);
-				AudioUtils.addBgm(videoGrabber, audioGrabber, recorder, outputVideo,
-					bgmWeight, true);
+				FFmpegUtils.applyFilter(List.of(videoGrabber, bgmGrabber), recorder, video,
+					ObjectUtils.getIfNull(outputVideo, video), null,
+					FFmpegUtils.getAddBgmFilter(videoGrabber, bgmGrabber, bgmWeight),
+					FrameType.ALL, false);
 			}
 		}
 	}
 
-	protected static void doReplaceAudio(final MediaResource videoResource, final MediaResource audioResource,
+	protected static void doAddTextWatermark(final MediaResource resource, final FFmpegFrameRecorder recorder,
+	                                         final Video outputVideo, final String text,
+	                                         final TextWatermarkOption option) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
+		Validate.notNull(option, "option 不可为 null");
+
+		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
+			String videoFilters = option.toFFmpegFilter(text, grabber);
+			FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
+				FrameType.ALL, false);
+		}
+	}
+
+	protected static void doAddImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
+	                                          final FFmpegFrameRecorder recorder, final Video outputVideo,
+	                                          final ImageWatermarkOption option) throws IOException {
+		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
+		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
+		Validate.isTrue(watermarkResource.isImage(), "不是图片类型 MediaResource");
+		Validate.notNull(option, "option 不可为 null");
+
+		File file = watermarkResource.getFile();
+		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
+			grabber.start();
+
+			String videoFilters = option.toFFmpegFilter(file, grabber);
+			FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
+				FrameType.ALL, false);
+		} finally {
+			if (!watermarkResource.isFile()) {
+				FileUtils.forceDelete(file);
+			}
+		}
+	}
+
+	protected static void doReplaceAudio(final FFmpegFrameGrabber videoGrabber, final FFmpegFrameGrabber audioGrabber,
 	                                     final FFmpegFrameRecorder recorder, final Video outputVideo,
 	                                     final boolean loopFillAudio) throws IOException {
-		Validate.notNull(videoResource, "resource 不可为 null");
-		Validate.isTrue(videoResource.isVideo(), "不是视频类型 MediaResource");
-		Validate.notNull(audioResource, "resource 不可为 null");
-		Validate.isTrue(audioResource.isAudio(), "不是音频类型 MediaResource");
-		Validate.notNull(recorder, "recorder 不可为 null");
-
-		try (FFmpegFrameGrabber videoGrabber = FFmpegUtils.openFrameGrabber(videoResource);
-		     FFmpegFrameGrabber audioGrabber = FFmpegUtils.openFrameGrabber(audioResource)) {
-			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, loopFillAudio);
-		}
-	}
-
-	protected static void doCut(final MediaResource resource, final FFmpegFrameRecorder recorder,
-	                            final Video outputVideo, final Duration duration) throws IOException {
-		Validate.notNull(duration, "duration 不可为null");
-		Validate.isTrue(!duration.isZero() && !duration.isNegative(), "duration 必须大于 0");
-		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
-		Validate.notNull(recorder, "recorder 不可为 null");
-
-		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
-			grabber.start();
-
-			long srcLengthInTime = grabber.getLengthInTime();
-			long targetLengthInTime = Math.min(duration.toNanos() / 1000, srcLengthInTime);
-			if (targetLengthInTime == srcLengthInTime) {
-				FFmpegUtils.startRecorder(recorder, grabber, outputVideo, FrameType.ALL);
-				FFmpegUtils.recordFrames(recorder, grabber, FrameType.ALL);
-			} else {
-				String videoFilters = FilterBuilder.single()
-					.addFilter(FFmpegUtils.getTrimFilter(targetLengthInTime))
-					.build();
-				String audioFilters = null;
-				if (grabber.hasAudio()) {
-					audioFilters = FilterBuilder.single()
-						.addFilter(FFmpegUtils.getAtrimFilter(targetLengthInTime))
-						.build();
-				}
-				FFmpegUtils.applyFilter(grabber, recorder, outputVideo, videoFilters, audioFilters,
-					FrameType.ALL, false);
-			}
-		}
-	}
-
-	protected static void doCut(final MediaResource resource, final FFmpegFrameRecorder recorder,
-	                            final Video outputVideo, final Duration start, final Duration end) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(recorder, "recorder 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
-		Validate.notNull(start, "start 不可为null");
-		Validate.isTrue(!start.isZero() && !start.isNegative(), "start 必须大于 0");
-		Validate.notNull(end, "end 不可为null");
-		Validate.isTrue(!end.isZero() && !end.isNegative(), "end 必须大于 0");
-
-		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
-			grabber.start();
-
-			long lengthInTime = grabber.getLengthInTime();
-			long startTimestamp = Math.min(start.toNanos() / 1000, lengthInTime);
-			long endTimestamp = Math.min(end.toNanos() / 1000, lengthInTime);
-			if (startTimestamp == endTimestamp) {
-				FFmpegUtils.startRecorder(recorder, grabber, outputVideo, FrameType.ALL);
-				FFmpegUtils.recordFrames(recorder, grabber, FrameType.ALL);
-			} else {
-				String videoFilters = FilterBuilder.single()
-					.addFilter(FFmpegUtils.getTrimFilter(startTimestamp, endTimestamp))
-					.build();
-				String audioFilters = null;
-				if (grabber.hasAudio()) {
-					audioFilters = FilterBuilder.single()
-						.addFilter(FFmpegUtils.getAtrimFilter(startTimestamp, endTimestamp))
-						.build();
-				}
-				FFmpegUtils.applyFilter(grabber, recorder, outputVideo, videoFilters, audioFilters,
-					FrameType.ALL, false);
-			}
-		}
-	}
-
-	/**
-	 * 获取系统支持的可写入图像格式集合
-	 * <p>首次调用时初始化集合，后续直接返回缓存结果</p>
-	 * <p>线程安全实现特性：</p>
-	 * <ul>
-	 *   <li>使用volatile保证可见性</li>
-	 *   <li>双重检查锁保证初始化安全性</li>
-	 *   <li>返回不可变集合保证数据安全</li>
-	 * </ul>
-	 *
-	 * @return ImageIO支持的可写入图像格式集合
-	 * @see javax.imageio.ImageIO#getWriterFormatNames()
-	 * @since 1.1.0
-	 */
-	protected static Set<String> getSupportedWriteImageFormats() {
-		if (Objects.isNull(SUPPORTED_WRITE_IMAGE_FORMATS)) {
-			synchronized (VideoUtils.class) {
-				if (Objects.isNull(SUPPORTED_WRITE_IMAGE_FORMATS)) {
-					SUPPORTED_WRITE_IMAGE_FORMATS = Set.of(ImageIO.getWriterFormatNames());
-				}
-			}
-		}
-		return SUPPORTED_WRITE_IMAGE_FORMATS;
-	}
-
-	private static void doReplaceAudio(final FFmpegFrameGrabber videoGrabber, final FFmpegFrameGrabber audioGrabber,
-	                                   final FFmpegFrameRecorder recorder, final Video outputVideo,
-	                                   final boolean loopFillAudio) throws IOException {
+		Validate.notNull(videoGrabber, "videoGrabber 不可为 null");
+		Validate.notNull(audioGrabber, "audioGrabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
 
 		if (FFmpegUtils.isNotStarted(videoGrabber)) {
@@ -919,32 +969,18 @@ public class VideoUtils {
 
 		long videoLengthInTime = videoGrabber.getLengthInTime();
 		long audioLengthInTime = audioGrabber.getLengthInTime();
-		boolean needLoop = loopFillAudio && videoLengthInTime > audioLengthInTime;
 
-		while (true) {
-			try (Frame videoFrame = FrameType.VIDEO.grabFrame(videoGrabber)) {
-				if (Objects.isNull(videoFrame)) {
-					break;
-				}
+		if (!loopFillAudio || videoLengthInTime <= audioLengthInTime) {
+			FFmpegUtils.recordFrames(recorder, videoGrabber, audioGrabber);
+		} else {
+			FFmpegUtils.recordFrames(recorder, videoGrabber, FrameType.VIDEO);
 
-				recorder.record(videoFrame);
-
-				if (!needLoop) {
-					try (Frame audioFrame = FrameType.AUDIO.grabFrame(audioGrabber)) {
-						if (Objects.nonNull(audioFrame)) {
-							recorder.record(audioFrame);
-						}
-					}
-				}
-			}
-		}
-
-		if (needLoop) {
-			String audioFilters = FilterBuilder.single()
-				.addFilter(FFmpegUtils.getAloopInfiniteFilter(audioGrabber.getSampleRate(), audioLengthInTime))
-				.addFilter(FFmpegUtils.getAtrimFilter(videoLengthInTime))
+			recorder.setTimestamp(0);
+			String audioFilters = FFmpegFiltersBuilder.audio()
+				.addGlobalFilter(FFmpegUtils.getAloopFilter(audioGrabber.getSampleRate(), audioLengthInTime))
+				.addGlobalFilter(FFmpegUtils.getAtrimFilter(videoLengthInTime))
 				.build();
-			FFmpegUtils.applyFilter(audioGrabber, recorder, outputVideo, null, audioFilters,
+			FFmpegUtils.applyAudioFilter(audioGrabber, recorder, outputVideo, audioFilters,
 				FrameType.AUDIO, true);
 		}
 	}

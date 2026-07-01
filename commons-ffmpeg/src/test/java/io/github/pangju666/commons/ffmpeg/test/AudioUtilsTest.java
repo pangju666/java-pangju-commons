@@ -44,14 +44,14 @@ public class AudioUtilsTest {
 	@Test
 	void testAddBgm() throws IOException {
 		AudioUtils.addBgm(MediaResource.of(new File("F:\\IDMDownload\\file_example_MP3_5MG.mp3")),
-			MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
+			MediaResource.of(new File("E:\\Roaming\\output\\transcode_output.aac")),
 			new File("E:\\Roaming\\output\\bgm_output.wav"));
 	}
 
 	@Test
 	void testAdjustSpeed() throws IOException {
 		AudioUtils.adjustSpeed(MediaResource.of(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")),
-			new File("E:\\Roaming\\output\\adjust_speed_output.wav"), 0.5f);
+			new File("E:\\Roaming\\output\\adjust_speed_output.wav"), 2.0f);
 	}
 
 	@Test

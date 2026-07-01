@@ -13,7 +13,7 @@ import java.io.IOException;
 public class AudioTest {
 	@Test
 	void testOutput() throws IOException {
-		Audio audio = Audio.builder(new File("F:\\IDMDownload\\suzume_no_tojimari.wav")).build();
+		Audio audio = Audio.parse(new File("F:\\IDMDownload\\suzume_no_tojimari.wav"));
 		System.out.println(audio);
 	}
 }

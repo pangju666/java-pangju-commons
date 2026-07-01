@@ -16,8 +16,6 @@
 
 package io.github.pangju666.commons.ffmpeg.lang;
 
-import org.bytedeco.javacv.Java2DFrameConverter;
-
 /**
  * FFmpeg 相关常量类，提供常用的媒体格式标识和默认参数值
  * <p>
@@ -54,6 +52,8 @@ import org.bytedeco.javacv.Java2DFrameConverter;
  * @since 1.1.0
  */
 public class FFmpegConstants {
+	public static final String TTF_MIME_TYPE = "application/x-font-ttf";
+
 	public static final String SRT_MIME_TYPE = "application/x-subrip";
 
 	public static final String SINGLE_INPUT_TAG = "[in]";
@@ -167,8 +167,6 @@ public class FFmpegConstants {
 	 * @since 1.1.0
 	 */
 	public static final int VIDEO_STANDARD_SAMPLE_RATE = 48000;
-
-	public static final Java2DFrameConverter JAVA_2D_FRAME_CONVERTER = new Java2DFrameConverter();
 
 	protected FFmpegConstants() {
 	}

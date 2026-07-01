@@ -17,6 +17,7 @@
 package io.github.pangju666.commons.ffmpeg.model;
 
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
+import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.lang3.Validate;
@@ -1076,6 +1077,22 @@ public class Video extends Media {
 		}
 	}
 
+	public static Video parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		return builder(grabber).build();
+	}
+
+	public static Video parse(File file) throws IOException {
+		return builder(file).build();
+	}
+
+	public static Video parse(byte[] bytes) throws IOException {
+		return builder(bytes).build();
+	}
+
+	public static Video parse(InputStream inputStream) throws IOException {
+		return builder(inputStream).build();
+	}
+
 	/**
 	 * 获取视频总时长
 	 *
@@ -1458,6 +1475,42 @@ public class Video extends Media {
 			return this;
 		}
 
+		public Builder scaleByWidth(final int targetWidth) {
+			if (width <= 0 || height <= 0) {
+				return this;
+			}
+
+			ImageSize imageSize = new ImageSize(width, height).scaleByWidth(targetWidth);
+			return resolution(imageSize.getWidth(), imageSize.getHeight());
+		}
+
+		public Builder scaleByHeight(final int targetHeight) {
+			if (width <= 0 || height <= 0) {
+				return this;
+			}
+
+			ImageSize imageSize = new ImageSize(width, height).scaleByHeight(targetHeight);
+			return resolution(imageSize.getWidth(), imageSize.getHeight());
+		}
+
+		public Builder scale(final int targetWidth, final int targetHeight) {
+			if (width <= 0 || height <= 0) {
+				return this;
+			}
+
+			ImageSize imageSize = new ImageSize(width, height).scale(targetWidth, targetHeight);
+			return resolution(imageSize.getWidth(), imageSize.getHeight());
+		}
+
+		public Builder scale(final double ratio) {
+			if (width <= 0 || height <= 0) {
+				return this;
+			}
+
+			ImageSize imageSize = new ImageSize(width, height).scale(ratio);
+			return resolution(imageSize.getWidth(), imageSize.getHeight());
+		}
+
 		/**
 		 * 设置电影标准帧率 24fps（影视胶片制式）
 		 *
@@ -1578,7 +1631,7 @@ public class Video extends Media {
 				this.height = grabber.getImageHeight();
 			}
 			if (grabber.hasAudio()) {
-				this.audio = Audio.builder(grabber).build();
+				this.audio = Audio.parse(grabber);
 			}
 
 			return this;
