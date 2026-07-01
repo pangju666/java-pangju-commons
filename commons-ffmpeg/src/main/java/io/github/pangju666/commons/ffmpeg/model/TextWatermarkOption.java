@@ -455,7 +455,7 @@ public class TextWatermarkOption {
 	public String toFFmpegFilter(final String text, final FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
 
-		if (!FFmpegUtils.isNotStarted(grabber)) {
+		if (FFmpegUtils.isNotStarted(grabber)) {
 			grabber.start();
 		}
 		Validate.isTrue(grabber.hasVideo(), "grabber 不存在视频流");
@@ -470,11 +470,9 @@ public class TextWatermarkOption {
 	 * @param videoWith   视频宽度
 	 * @param videoHeight 视频高度
 	 * @return FFmpeg drawtext 滤镜字符串
-	 * @throws IOException              操作失败时抛出
-	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @since 1.1.0
 	 */
-	public String toFFmpegFilter(final String text, final int videoWith, final int videoHeight) throws IOException {
+	public String toFFmpegFilter(final String text, final int videoWith, final int videoHeight) {
 		Validate.notBlank(text, "text 不能为空");
 		Validate.isTrue(videoWith > 0, "videoWith 必须大于 0");
 		Validate.isTrue(videoHeight > 0, "videoHeight 必须大于 0");
