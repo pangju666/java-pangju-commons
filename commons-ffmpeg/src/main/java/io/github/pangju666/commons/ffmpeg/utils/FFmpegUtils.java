@@ -32,7 +32,6 @@ import org.bytedeco.javacv.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ObjLongConsumer;
@@ -720,27 +719,25 @@ public class FFmpegUtils {
 			grabber.start();
 		}
 
+		long lengthInTime = grabber.getLengthInTime();
+		startTimestamp = Math.min(startTimestamp, lengthInTime);
+		endTimestamp = Math.min(endTimestamp, lengthInTime);
+		Validate.isTrue(startTimestamp <= endTimestamp, "startTimestamp 不能大于 endTimestamp");
+
 		if (!recorderStarted) {
 			startRecorder(recorder, grabber, outputMedia, frameType);
 		}
 
-		long lengthInTime = grabber.getLengthInTime();
-		startTimestamp = Math.min(startTimestamp, lengthInTime);
-		endTimestamp = Math.min(endTimestamp, lengthInTime);
-
-		if (startTimestamp == endTimestamp) {
-			recordFrames(recorder, grabber, frameType);
-		} else {
+		if (startTimestamp != endTimestamp) {
 			grabber.setTimestamp(startTimestamp);
 
 			while (true) {
-				if (grabber.getTimestamp() <= endTimestamp) {
-					try (Frame frame = frameType.grabFrame(grabber)) {
-						if (Objects.isNull(frame)) {
-							break;
-						}
-						recorder.record(frame);
+				try (Frame frame = frameType.grabFrame(grabber)) {
+					if (grabber.getTimestamp() >= endTimestamp) {
+						break;
 					}
+
+					recorder.record(frame);
 				}
 			}
 		}
@@ -1212,7 +1209,7 @@ public class FFmpegUtils {
 			grabber.start();
 		}
 
-		long timestampMicros = timestamp.get(ChronoUnit.MICROS);
+		long timestampMicros = toTimestamp(timestamp);
 		Validate.isTrue(timestampMicros <= grabber.getLengthInTime(), "timestamp 必须小于等于总时长");
 		grabber.setTimestamp(timestampMicros);
 
@@ -1250,16 +1247,17 @@ public class FFmpegUtils {
 		List<BufferedImage> images = new ArrayList<>(Math.min((int) (endTimestamp / intervalMicros), Integer.MAX_VALUE));
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp <= endTimestamp) {
+			while (currentTimestamp < endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
 					if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
-						images.add(converter.convert(frame));
+						BufferedImage image = converter.convert(frame);
+						images.add(image);
 					}
-				}
 
-				currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+				}
 			}
 		}
 
@@ -1294,7 +1292,7 @@ public class FFmpegUtils {
 		long intervalMicros = timeUnit.toMicros(interval);
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp <= endTimestamp) {
+			while (currentTimestamp < endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
@@ -1303,9 +1301,9 @@ public class FFmpegUtils {
 						consumer.accept(image, currentTimestamp);
 						image.flush();
 					}
-				}
 
-				currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+				}
 			}
 		}
 	}

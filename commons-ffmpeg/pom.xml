@@ -8,8 +8,8 @@
 		<version>1.1.0</version>
 	</parent>
 	<artifactId>commons-ffmpeg</artifactId>
-	<name>commons-media</name>
-	<description>基于 Metadata Extractor 和 TwelveMonkeys 的图像处理与元数据提取工具库</description>
+	<name>commons-ffmpeg</name>
+	<description>基于 Javacv 和 FFmpeg 的视频与音频处理工具库</description>
 
 	<licenses>
 		<license>
