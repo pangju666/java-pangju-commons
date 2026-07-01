@@ -2,7 +2,6 @@ package io.github.pangju666.commons.ffmpeg.test;
 
 import io.github.pangju666.commons.ffmpeg.model.MediaResource;
 import io.github.pangju666.commons.ffmpeg.model.Video;
-import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.VideoUtils;
 import org.junit.jupiter.api.Test;
 
@@ -131,18 +130,5 @@ public class VideoUtilsTest {
 		VideoUtils.addImageWatermark(MediaResource.of(new File("E:\\Roaming\\output\\video_audio.mp4")),
 			new File("E:\\Roaming\\output\\image_watermark_output.mp4"),
 			new File("E:/Roaming/output/watermark.jpg"));
-	}
-
-	@Test
-	void a() throws IOException {
-		String textWatermarkFilter = FFmpegFiltersBuilder.video()
-			.addInput("v2", "test=1")
-			.addFileSource("v1", new File("E:/Roaming/output/watermark.jpg"), "aresample=44100")
-			//.addInput("v2", "test=1")
-			.addInput()
-			.addGlobalFilter("amix", "inputs=2", "dropout_transition=0", "duration=first", "weights=1 1")
-			.build();
-
-		System.out.println(textWatermarkFilter);
 	}
 }
