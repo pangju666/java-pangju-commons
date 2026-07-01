@@ -160,7 +160,7 @@ public class ImageConstants {
 	 *   <li>返回不可变集合保证数据安全</li>
 	 * </ul>
 	 *
-	 * @return ImageIO支持的可写入图像格式集合
+	 * @return ImageIO支持的可读取图像格式集合
 	 * @see javax.imageio.ImageIO#getReaderFormatNames()
 	 * @since 1.0.0
 	 */

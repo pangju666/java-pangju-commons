@@ -1436,17 +1436,17 @@ public class ImageEditor {
 		Graphics2D graphics = this.outputImage.createGraphics();
 
 		// 设置字体
-		int fontSize = option.getFontSizeStrategy().apply(outputImageSize);
+		int fontSize = option.getFontSizeStrategy().applyAsInt(outputImageSize);
 		Font font = new Font(option.getFontName(), option.getFontStyle(), fontSize);
 		graphics.setFont(font);
-
-		FontMetrics fontMetrics = graphics.getFontMetrics();
-		int textWidth = fontMetrics.stringWidth(text);
-		int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
 
 		int waterX = x;
 		int waterY = y;
 		if (Objects.nonNull(direction)) {
+			FontMetrics fontMetrics = graphics.getFontMetrics();
+			int textWidth = fontMetrics.stringWidth(text);
+			int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
+
 			switch (direction) {
 				case TOP:
 					waterX = (outputImageSize.getWidth() - textWidth) / 2;
