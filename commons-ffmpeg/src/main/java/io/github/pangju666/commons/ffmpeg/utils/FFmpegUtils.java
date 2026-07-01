@@ -161,20 +161,18 @@ public class FFmpegUtils {
 		Validate.notNull(precision, "duration 不可为 null");
 		Validate.notNull(db, "db 不可为 null");
 
-		return switch (precision) {
-			case FIXED -> {
+		switch (precision) {
+			case FIXED:
 				int volumeVal = db.intValue();
-				yield String.format("volume=volume=%s%ddB:precision=fixed", volumeVal > 0 ? "+" : "", volumeVal);
-			}
-			case FLOAT -> {
-				float volumeVal = db.floatValue();
-				yield String.format("volume=volume=%s%.4fdB:precision=float", volumeVal > 0 ? "+" : "", volumeVal);
-			}
-			case DOUBLE -> {
-				double volumeVal = db.doubleValue();
-				yield String.format("volume=volume=%s%.4fdB:precision=double", volumeVal > 0 ? "+" : "", volumeVal);
-			}
-		};
+				return String.format("volume=volume=%s%ddB:precision=fixed", volumeVal > 0 ? "+" : "", volumeVal);
+			case DOUBLE:
+				double dVolumeVal = db.doubleValue();
+				return String.format("volume=volume=%s%.4fdB:precision=double", dVolumeVal > 0 ? "+" : "", dVolumeVal);
+			case FLOAT:
+			default:
+				float fVolumeVal = db.floatValue();
+				return String.format("volume=volume=%s%.4fdB:precision=float", fVolumeVal > 0 ? "+" : "", fVolumeVal);
+		}
 	}
 
 	/**
@@ -716,6 +714,8 @@ public class FFmpegUtils {
 	                                         final FrameType frameType, final boolean recorderStarted) throws IOException {
 		Validate.notNull(grabber, "resource 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
+		Validate.isTrue(startTimestamp >= 0, "startTimestamp 必须大于等于 0");
+		Validate.isTrue(endTimestamp > 0, "endTimestamp 必须大于 0");
 
 		if (isNotStarted(grabber)) {
 			grabber.start();
@@ -724,7 +724,7 @@ public class FFmpegUtils {
 		long lengthInTime = grabber.getLengthInTime();
 		startTimestamp = Math.min(startTimestamp, lengthInTime);
 		endTimestamp = Math.min(endTimestamp, lengthInTime);
-		Validate.isTrue(startTimestamp < endTimestamp, "startTimestamp 必须小于 endTimestamp");
+		Validate.isTrue(endTimestamp > startTimestamp, "endTimestamp 必须大于 startTimestamp");
 
 		if (!recorderStarted) {
 			startRecorder(recorder, grabber, outputMedia, frameType);
@@ -734,13 +734,18 @@ public class FFmpegUtils {
 
 		while (true) {
 			try (Frame frame = frameType.grabFrame(grabber)) {
-				if (grabber.getTimestamp() >= endTimestamp) {
+				long currentTimestamp = grabber.getTimestamp();
+
+				if (currentTimestamp >= endTimestamp) {
 					break;
 				}
 
-				recorder.record(frame);
+				if (currentTimestamp >= startTimestamp) {
+					recorder.record(frame);
+				}
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -945,6 +950,7 @@ public class FFmpegUtils {
 				}
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -976,6 +982,7 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -1003,6 +1010,7 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
+		recorder.flush();
 	}
 
 	/**
@@ -1046,7 +1054,9 @@ public class FFmpegUtils {
 			"outputMedia 或 （videoGrabber 和 audioGrabber） 不可同时为 null");
 
 		if (Objects.nonNull(outputMedia)) {
-			if (outputMedia instanceof Audio audio && frameType != FrameType.VIDEO) {
+			if (outputMedia instanceof Audio && frameType != FrameType.VIDEO) {
+				Audio audio = (Audio) outputMedia;
+
 				recorder.setFormat(audio.getFormat());
 				recorder.setSampleRate(audio.getSampleRate());
 				recorder.setAudioCodec(audio.getCodecId());
@@ -1054,7 +1064,9 @@ public class FFmpegUtils {
 				recorder.setAudioBitrate(audio.getBitrate());
 				recorder.setAudioChannels(audio.getChannels());
 				recorder.setAudioMetadata(new HashMap<>(audio.getMetadata()));
-			} else if (outputMedia instanceof Video video) {
+			} else if (outputMedia instanceof Video) {
+				Video video = (Video) outputMedia;
+
 				if (frameType != FrameType.AUDIO) {
 					recorder.setFrameRate(video.getFrameRate());
 					recorder.setVideoBitrate(video.getBitrate());
@@ -1137,10 +1149,13 @@ public class FFmpegUtils {
 		filter.setVideoInputs(videoInputs);
 
 		if (Objects.nonNull(filterMedia)) {
-			if (filterMedia instanceof Audio audio && audioInputs > 0) {
+			if (filterMedia instanceof Audio && audioInputs > 0) {
+				Audio audio = (Audio) filterMedia;
 				filter.setSampleRate(audio.getSampleRate());
 				filter.setAudioChannels(audio.getChannels());
-			} else if (filterMedia instanceof Video video) {
+			} else if (filterMedia instanceof Video) {
+				Video video = (Video) filterMedia;
+
 				if (videoInputs > 0) {
 					filter.setFrameRate(video.getFrameRate());
 					filter.setImageWidth(video.getWidth());
@@ -1240,7 +1255,7 @@ public class FFmpegUtils {
 		List<BufferedImage> images = new ArrayList<>(Math.min((int) (endTimestamp / intervalMicros), Integer.MAX_VALUE));
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp < endTimestamp) {
+			while (currentTimestamp <= endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
@@ -1249,6 +1264,9 @@ public class FFmpegUtils {
 						images.add(image);
 					}
 
+					if (currentTimestamp == endTimestamp) {
+						break;
+					}
 					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
 				}
 			}
@@ -1285,7 +1303,7 @@ public class FFmpegUtils {
 		long intervalMicros = timeUnit.toMicros(interval);
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp < endTimestamp) {
+			while (currentTimestamp <= endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
@@ -1295,6 +1313,9 @@ public class FFmpegUtils {
 						image.flush();
 					}
 
+					if (currentTimestamp == endTimestamp) {
+						break;
+					}
 					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
 				}
 			}
