@@ -128,7 +128,7 @@ public class VideoUtilsTest {
 	@Test
 	void testAddImageWatermark() throws IOException {
 		VideoUtils.addImageWatermark(MediaResource.of(new File("E:\\Roaming\\output\\video_audio.mp4")),
-			MediaResource.of(new File("E:/Roaming/output/watermark.jpg")),
-			new File("E:\\Roaming\\output\\image_watermark_output.mp4"));
+			new File("E:\\Roaming\\output\\image_watermark_output.mp4"),
+			new File("E:/Roaming/output/watermark.jpg"));
 	}
 }

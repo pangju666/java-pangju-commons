@@ -19,6 +19,7 @@ package io.github.pangju666.commons.ffmpeg.model;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
 import io.github.pangju666.commons.image.enums.WatermarkDirection;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
@@ -94,7 +95,7 @@ public class ImageWatermarkOption {
 		}
 	}
 
-	public String toFFmpegFilter(File watermarkImageFile, FFmpegFrameGrabber grabber) throws IOException {
+	public String toFFmpegFilter(File imageFile, FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
 
 		if (FFmpegUtils.isNotStarted(grabber)) {
@@ -102,15 +103,16 @@ public class ImageWatermarkOption {
 		}
 		Validate.isTrue(grabber.hasVideo(), "grabber 不存在视频流");
 
-		return toFFmpegFilter(watermarkImageFile, grabber.getImageWidth(), grabber.getImageHeight());
+		return toFFmpegFilter(imageFile, grabber.getImageWidth(), grabber.getImageHeight());
 	}
 
-	public String toFFmpegFilter(File watermarkImageFile, int videoWith, int videoHeight) throws IOException {
+	public String toFFmpegFilter(File imageFile, int videoWith, int videoHeight) throws IOException {
 		Validate.isTrue(videoWith > 0, "videoWith 必须大于0");
 		Validate.isTrue(videoHeight > 0, "videoHeight 必须大于0");
+		Validate.isTrue(FileUtils.isImageType(imageFile), "imageFile 不是图片文件");
 
 		return FFmpegFiltersBuilder.video()
-			.addFileSource("wm", watermarkImageFile)
+			.addFileSource("wm", imageFile)
 			.appendAliasFilter("wm", "scale=" + (videoWith > videoHeight ?
 				String.format("iw*%.2f:-1", relativeScale) : String.format("-1:ih*%.2f", relativeScale)))
 			.appendAliasFilter("wm", "format=rgba")

@@ -63,7 +63,8 @@ public class TextWatermarkOption {
 	};
 
 	public TextWatermarkOption(File fontFile) throws IOException {
-		FileUtils.isMimeType(fontFile, FFmpegConstants.TTF_MIME_TYPE);
+		Validate.isTrue(FileUtils.isMimeType(fontFile, FFmpegConstants.TTF_MIME_TYPE),
+			"fontFile 不是字体文件");
 
 		this.fontFile = fontFile;
 		this.fontName = null;

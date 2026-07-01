@@ -635,131 +635,124 @@ public class VideoUtils {
 		}
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final File fontFile) throws IOException {
-		addTextWatermark(resource, outputFile, null, text, new TextWatermarkOption(fontFile));
+		addTextWatermark(resource, outputFile, null, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final File fontFile) throws IOException {
-		addTextWatermark(resource, outputStream, null, text, new TextWatermarkOption(fontFile));
+		addTextWatermark(resource, outputStream, null, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final String fontName) throws IOException {
-		addTextWatermark(resource, outputFile, null, text, new TextWatermarkOption(fontName));
+		addTextWatermark(resource, outputFile, null, watermarkText, new TextWatermarkOption(fontName));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final String fontName) throws IOException {
-		addTextWatermark(resource, outputStream, null, text, new TextWatermarkOption(fontName));
+		addTextWatermark(resource, outputStream, null, watermarkText, new TextWatermarkOption(fontName));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String text,
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
-		addTextWatermark(resource, outputFile, null, text, option);
+		addTextWatermark(resource, outputFile, null, watermarkText, option);
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String text,
+	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
-		addTextWatermark(resource, outputStream, null, text, option);
+		addTextWatermark(resource, outputStream, null, watermarkText, option);
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile,
-	                                    final Video outputVideo, final String text, final File fontFile) throws IOException {
-		addTextWatermark(resource, outputFile, outputVideo, text, new TextWatermarkOption(fontFile));
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                                    final String watermarkText, final File fontFile) throws IOException {
+		addTextWatermark(resource, outputFile, outputVideo, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String text, final File fontFile) throws IOException {
-		addTextWatermark(resource, outputStream, outputVideo, text, new TextWatermarkOption(fontFile));
+	                                    final Video outputVideo, final String watermarkText, final File fontFile) throws IOException {
+		addTextWatermark(resource, outputStream, outputVideo, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile,
-	                                    final Video outputVideo, final String text, final String fontName) throws IOException {
-		addTextWatermark(resource, outputFile, outputVideo, text, new TextWatermarkOption(fontName));
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                                    final String watermarkText, final String fontName) throws IOException {
+		addTextWatermark(resource, outputFile, outputVideo, watermarkText, new TextWatermarkOption(fontName));
 	}
 
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String text, final String fontName) throws IOException {
-		addTextWatermark(resource, outputStream, outputVideo, text, new TextWatermarkOption(fontName));
+	                                    final Video outputVideo, final String watermarkText, final String fontName) throws IOException {
+		addTextWatermark(resource, outputStream, outputVideo, watermarkText, new TextWatermarkOption(fontName));
 	}
 
-	public static void addTextWatermark(final MediaResource resource, final File outputFile,
-	                                    final Video outputVideo, final String text,
-	                                    final TextWatermarkOption option) throws IOException {
+	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                                    final String watermarkText, final TextWatermarkOption option) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAddTextWatermark(resource, recorder, outputVideo, text, option);
+			doAddTextWatermark(resource, recorder, outputVideo, watermarkText, option);
 		}
 	}
 
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String text,
+	                                    final Video outputVideo, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doAddTextWatermark(resource, recorder, outputVideo, text, option);
+			doAddTextWatermark(resource, recorder, outputVideo, watermarkText, option);
 		}
 	}
 
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final File outputFile) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputFile, null,
-			new ImageWatermarkOption());
+	public static void addImageWatermark(final MediaResource resource, final File outputFile, final File watermarkImage) throws IOException {
+		addImageWatermark(resource, outputFile, null, watermarkImage, new ImageWatermarkOption());
 	}
 
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final OutputStream outputStream) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputStream, null,
-			new ImageWatermarkOption());
+	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                     final File watermarkImage) throws IOException {
+		addImageWatermark(resource, outputStream, null, watermarkImage, new ImageWatermarkOption());
 	}
 
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final File outputFile, final ImageWatermarkOption option) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputFile, null, option);
-	}
-
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final OutputStream outputStream, final ImageWatermarkOption option) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputStream, null, option);
-	}
-
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final File outputFile, final Video outputVideo) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputFile, outputVideo,
-			new ImageWatermarkOption());
-	}
-
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                     final OutputStream outputStream, final Video outputVideo) throws IOException {
-		addImageWatermark(resource, watermarkResource, outputStream, outputVideo,
-			new ImageWatermarkOption());
-	}
-
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkImageResource,
-	                                     final File outputFile, final Video outputVideo,
+	public static void addImageWatermark(final MediaResource resource, final File outputFile, final File watermarkImage,
 	                                     final ImageWatermarkOption option) throws IOException {
+		addImageWatermark(resource, outputFile, null, watermarkImage, option);
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                     final File watermarkImage, final ImageWatermarkOption option) throws IOException {
+		addImageWatermark(resource, outputStream, null, watermarkImage, option);
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                                     final File watermarkImage) throws IOException {
+		addImageWatermark(resource, outputFile, outputVideo, watermarkImage, new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                     final File watermarkImage, final Video outputVideo) throws IOException {
+		addImageWatermark(resource, outputStream, outputVideo, watermarkImage, new ImageWatermarkOption());
+	}
+
+	public static void addImageWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
+	                                     final File watermarkImage, final ImageWatermarkOption option) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAddImageWatermark(resource, watermarkImageResource, recorder, outputVideo, option);
+			doAddImageWatermark(resource, recorder, outputVideo, watermarkImage, option);
 		}
 	}
 
-	public static void addImageWatermark(final MediaResource resource, final MediaResource watermarkImageResource,
-	                                     final OutputStream outputStream, final Video outputVideo,
+	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
+	                                     final Video outputVideo, final File watermarkImage,
 	                                     final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputStream, 0)) {
-			doAddImageWatermark(resource, watermarkImageResource, recorder, outputVideo, option);
+			doAddImageWatermark(resource, recorder, outputVideo, watermarkImage, option);
 		}
 	}
 
@@ -913,7 +906,7 @@ public class VideoUtils {
 	}
 
 	protected static void doAddTextWatermark(final MediaResource resource, final FFmpegFrameRecorder recorder,
-	                                         final Video outputVideo, final String text,
+	                                         final Video outputVideo, final String watermarkText,
 	                                         final TextWatermarkOption option) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
@@ -921,33 +914,26 @@ public class VideoUtils {
 		Validate.notNull(option, "option 不可为 null");
 
 		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
-			String videoFilters = option.toFFmpegFilter(text, grabber);
+			String videoFilters = option.toFFmpegFilter(watermarkText, grabber);
 			FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
 				FrameType.ALL, false);
 		}
 	}
 
-	protected static void doAddImageWatermark(final MediaResource resource, final MediaResource watermarkResource,
-	                                          final FFmpegFrameRecorder recorder, final Video outputVideo,
+	protected static void doAddImageWatermark(final MediaResource resource, final FFmpegFrameRecorder recorder,
+	                                          final Video outputVideo, final File watermarkImage,
 	                                          final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
-		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
-		Validate.isTrue(watermarkResource.isImage(), "不是图片类型 MediaResource");
 		Validate.notNull(option, "option 不可为 null");
 
-		File file = watermarkResource.getFile();
 		try (FFmpegFrameGrabber grabber = FFmpegUtils.openFrameGrabber(resource)) {
 			grabber.start();
 
-			String videoFilters = option.toFFmpegFilter(file, grabber);
+			String videoFilters = option.toFFmpegFilter(watermarkImage, grabber);
 			FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
 				FrameType.ALL, false);
-		} finally {
-			if (!watermarkResource.isFile()) {
-				FileUtils.forceDelete(file);
-			}
 		}
 	}
 
