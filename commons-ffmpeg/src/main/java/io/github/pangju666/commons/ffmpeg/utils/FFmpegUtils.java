@@ -724,23 +724,21 @@ public class FFmpegUtils {
 		long lengthInTime = grabber.getLengthInTime();
 		startTimestamp = Math.min(startTimestamp, lengthInTime);
 		endTimestamp = Math.min(endTimestamp, lengthInTime);
-		Validate.isTrue(startTimestamp <= endTimestamp, "startTimestamp 不能大于 endTimestamp");
+		Validate.isTrue(startTimestamp < endTimestamp, "startTimestamp 必须小于 endTimestamp");
 
 		if (!recorderStarted) {
 			startRecorder(recorder, grabber, outputMedia, frameType);
 		}
 
-		if (startTimestamp != endTimestamp) {
-			grabber.setTimestamp(startTimestamp);
+		grabber.setTimestamp(startTimestamp);
 
-			while (true) {
-				try (Frame frame = frameType.grabFrame(grabber)) {
-					if (grabber.getTimestamp() >= endTimestamp) {
-						break;
-					}
-
-					recorder.record(frame);
+		while (true) {
+			try (Frame frame = frameType.grabFrame(grabber)) {
+				if (grabber.getTimestamp() >= endTimestamp) {
+					break;
 				}
+
+				recorder.record(frame);
 			}
 		}
 	}
@@ -1242,16 +1240,17 @@ public class FFmpegUtils {
 		List<BufferedImage> images = new ArrayList<>(Math.min((int) (endTimestamp / intervalMicros), Integer.MAX_VALUE));
 
 		try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-			while (currentTimestamp <= endTimestamp) {
+			while (currentTimestamp < endTimestamp) {
 				grabber.setTimestamp(currentTimestamp);
 
 				try (Frame frame = grabber.grabKeyFrame()) {
 					if (Objects.nonNull(frame) && !Objects.isNull(frame.image)) {
-						images.add(converter.convert(frame));
+						BufferedImage image = converter.convert(frame);
+						images.add(image);
 					}
-				}
 
-				currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+					currentTimestamp = Math.min(currentTimestamp + intervalMicros, endTimestamp);
+				}
 			}
 		}
 
