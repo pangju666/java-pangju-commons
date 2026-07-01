@@ -27,6 +27,8 @@
 		<module>commons-pdf</module>
 		<module>commons-poi</module>
 		<module>commons-validation</module>
+		<module>commons-ffmpeg</module>
+		<module>commons-tesseract</module>
 		<module>commons-bom</module>
 		<module>commons-all</module>
 	</modules>

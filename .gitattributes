@@ -30,3 +30,4 @@
 *.docx  binary
 *.xls   binary
 *.xlsx  binary
+*.traineddata  binary
