@@ -16,7 +16,6 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
-import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
@@ -134,8 +133,8 @@ public class MediaResource {
 	 * 私有构造函数，内部专用
 	 * <p>直接通过原始源对象、资源大小和 MIME 类型创建实例，主要供工厂方法调用</p>
 	 *
-	 * @param source 媒体源对象（仅支持 File、byte[]、InputStream 类型）
-	 * @param size 资源大小（单位：字节）
+	 * @param source   媒体源对象（仅支持 File、byte[]、InputStream 类型）
+	 * @param size     资源大小（单位：字节）
 	 * @param mimeType 媒体 MIME 类型
 	 * @since 1.1.0
 	 */
@@ -362,15 +361,6 @@ public class MediaResource {
 	 */
 	public boolean isVideo() {
 		return Strings.CS.startsWith(mimeType, IOConstants.VIDEO_MIME_TYPE_PREFIX);
-	}
-
-	public boolean isImage() {
-		return Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX);
-	}
-
-	public boolean isSubtitles() {
-		return Strings.CS.equals(mimeType, FFmpegConstants.SRT_MIME_TYPE) ||
-			Strings.CS.startsWith(mimeType, IOConstants.TEXT_MIME_TYPE_PREFIX);
 	}
 
 	/**

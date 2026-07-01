@@ -32,20 +32,130 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 
+/**
+ * 文字水印配置选项类
+ * <p>
+ * 用于配置视频文字水印的各项参数，包括字体、颜色、位置、透明度等。
+ * 支持通过系统字体或字体文件指定，提供多种预设位置和自定义位置选项。
+ * </p>
+ * <h3>核心特性</h3>
+ * <ul>
+ *     <li>支持系统字体和自定义字体文件</li>
+ *     <li>可配置填充色和描边色</li>
+ *     <li>支持多种预定义水印位置</li>
+ *     <li>自适应字体大小策略</li>
+ *     <li>支持自定义位置和边距</li>
+ * </ul>
+ * <h3>使用示例</h3>
+ * <pre>{@code
+ * // 使用系统字体
+ * TextWatermarkOption option = new TextWatermarkOption("Arial");
+ * option.setFillColor(Color.WHITE);
+ * option.setStrokeColor(Color.BLACK);
+ * option.setDirection(WatermarkDirection.BOTTOM_RIGHT);
+ *
+ * // 使用字体文件
+ * TextWatermarkOption option = new TextWatermarkOption(new File("font.ttf"));
+ * option.setOpacity(0.5f);
+ * option.setFontSize(48);
+ * }</pre>
+ *
+ * @author pangju666
+ * @see ImageWatermarkOption
+ * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @since 1.1.0
+ */
 public class TextWatermarkOption {
+	/**
+	 * 系统字体名称
+	 *
+	 * @since 1.1.0
+	 */
 	protected final String fontName;
+
+	/**
+	 * 字体文件
+	 *
+	 * @since 1.1.0
+	 */
 	protected final File fontFile;
 
+	/**
+	 * 水印透明度，范围 0.0-1.0，默认 0.4
+	 *
+	 * @since 1.1.0
+	 */
 	protected float opacity = 0.4f;
+
+	/**
+	 * 字体大小（像素），0 表示使用自适应策略
+	 *
+	 * @since 1.1.0
+	 */
 	protected int fontSize = 0;
+
+	/**
+	 * 描边颜色，默认黑色
+	 *
+	 * @since 1.1.0
+	 */
 	protected Color strokeColor = Color.BLACK;
+
+	/**
+	 * 填充颜色，默认白色
+	 *
+	 * @since 1.1.0
+	 */
 	protected Color fillColor = Color.WHITE;
+
+	/**
+	 * 描边宽度，默认 2.0
+	 *
+	 * @since 1.1.0
+	 */
 	protected float strokeWidth = 2.0f;
+
+	/**
+	 * 是否启用描边，默认 true
+	 *
+	 * @since 1.1.0
+	 */
 	protected boolean stroke = true;
+
+	/**
+	 * X 坐标位置，仅在未设置方向时生效
+	 *
+	 * @since 1.1.0
+	 */
 	protected int x = 0;
+
+	/**
+	 * Y 坐标位置，仅在未设置方向时生效
+	 *
+	 * @since 1.1.0
+	 */
 	protected int y = 0;
+
+	/**
+	 * 边距大小，默认 20
+	 *
+	 * @since 1.1.0
+	 */
 	protected int margin = 20;
+
+	/**
+	 * 水印位置方向，null 表示使用自定义坐标
+	 *
+	 * @since 1.1.0
+	 */
 	protected WatermarkDirection direction;
+
+	/**
+	 * 自适应字体大小策略函数
+	 * <p>根据视频宽高计算合适的字体大小</p>
+	 *
+	 * @since 1.1.0
+	 */
 	protected IntBinaryOperator fontSizeStrategy = (width, height) -> {
 		int shorter = Math.min(width, height);
 		if (shorter < 600) {
@@ -62,6 +172,14 @@ public class TextWatermarkOption {
 		}
 	};
 
+	/**
+	 * 使用字体文件创建文字水印配置
+	 *
+	 * @param fontFile 字体文件，必须是 TTF 格式
+	 * @throws IOException              文件读取失败时抛出
+	 * @throws IllegalArgumentException 当文件不是 TTF 格式时抛出
+	 * @since 1.1.0
+	 */
 	public TextWatermarkOption(File fontFile) throws IOException {
 		Validate.isTrue(FileUtils.isMimeType(fontFile, FFmpegConstants.TTF_MIME_TYPE),
 			"fontFile 不是字体文件");
@@ -70,6 +188,13 @@ public class TextWatermarkOption {
 		this.fontName = null;
 	}
 
+	/**
+	 * 使用系统字体创建文字水印配置
+	 *
+	 * @param fontName 系统字体名称
+	 * @throws IllegalArgumentException 当字体名称为空时抛出
+	 * @since 1.1.0
+	 */
 	public TextWatermarkOption(String fontName) {
 		Validate.notBlank(fontName, "fontName 不能为空");
 
@@ -77,114 +202,256 @@ public class TextWatermarkOption {
 		this.fontName = fontName;
 	}
 
+	/**
+	 * 获取水印透明度
+	 *
+	 * @return 透明度值，范围 0.0-1.0
+	 * @since 1.1.0
+	 */
 	public float getOpacity() {
 		return opacity;
 	}
 
+	/**
+	 * 设置水印透明度
+	 *
+	 * @param opacity 透明度值，范围 0.0-1.0
+	 * @since 1.1.0
+	 */
 	public void setOpacity(float opacity) {
 		if (opacity >= 0f && opacity <= 1) {
 			this.opacity = opacity;
 		}
 	}
 
+	/**
+	 * 获取字体大小
+	 *
+	 * @return 字体大小（像素），0 表示使用自适应策略
+	 * @since 1.1.0
+	 */
 	public int getFontSize() {
 		return fontSize;
 	}
 
+	/**
+	 * 设置字体大小
+	 *
+	 * @param fontSize 字体大小（像素），必须大于 0
+	 * @since 1.1.0
+	 */
 	public void setFontSize(int fontSize) {
 		if (fontSize > 0) {
 			this.fontSize = fontSize;
 		}
 	}
 
+	/**
+	 * 获取描边颜色
+	 *
+	 * @return 描边颜色
+	 * @since 1.1.0
+	 */
 	public Color getStrokeColor() {
 		return strokeColor;
 	}
 
+	/**
+	 * 设置描边颜色
+	 *
+	 * @param strokeColor 描边颜色
+	 * @since 1.1.0
+	 */
 	public void setStrokeColor(Color strokeColor) {
 		if (Objects.nonNull(strokeColor)) {
 			this.strokeColor = strokeColor;
 		}
 	}
 
+	/**
+	 * 获取填充颜色
+	 *
+	 * @return 填充颜色
+	 * @since 1.1.0
+	 */
 	public Color getFillColor() {
 		return fillColor;
 	}
 
+	/**
+	 * 设置填充颜色
+	 *
+	 * @param fillColor 填充颜色
+	 * @since 1.1.0
+	 */
 	public void setFillColor(Color fillColor) {
 		if (Objects.nonNull(fillColor)) {
 			this.fillColor = fillColor;
 		}
 	}
 
+	/**
+	 * 获取描边宽度
+	 *
+	 * @return 描边宽度
+	 * @since 1.1.0
+	 */
 	public float getStrokeWidth() {
 		return strokeWidth;
 	}
 
+	/**
+	 * 设置描边宽度
+	 *
+	 * @param strokeWidth 描边宽度，必须大于 0
+	 * @since 1.1.0
+	 */
 	public void setStrokeWidth(float strokeWidth) {
 		if (strokeWidth > 0f) {
 			this.strokeWidth = strokeWidth;
 		}
 	}
 
+	/**
+	 * 判断是否启用描边
+	 *
+	 * @return true 表示启用描边，false 表示不启用
+	 * @since 1.1.0
+	 */
 	public boolean isStroke() {
 		return stroke;
 	}
 
+	/**
+	 * 设置是否启用描边
+	 *
+	 * @param stroke 是否启用描边
+	 * @since 1.1.0
+	 */
 	public void setStroke(boolean stroke) {
 		this.stroke = stroke;
 	}
 
+	/**
+	 * 获取 X 坐标
+	 *
+	 * @return X 坐标值
+	 * @since 1.1.0
+	 */
 	public int getX() {
 		return x;
 	}
 
+	/**
+	 * 设置 X 坐标
+	 *
+	 * @param x X 坐标值，必须大于等于 0
+	 * @since 1.1.0
+	 */
 	public void setX(int x) {
 		if (x >= 0) {
 			this.x = x;
 		}
 	}
 
+	/**
+	 * 获取 Y 坐标
+	 *
+	 * @return Y 坐标值
+	 * @since 1.1.0
+	 */
 	public int getY() {
 		return y;
 	}
 
+	/**
+	 * 设置 Y 坐标
+	 *
+	 * @param y Y 坐标值，必须大于等于 0
+	 * @since 1.1.0
+	 */
 	public void setY(int y) {
 		if (y >= 0) {
 			this.y = y;
 		}
 	}
 
+	/**
+	 * 获取边距大小
+	 *
+	 * @return 边距值
+	 * @since 1.1.0
+	 */
 	public int getMargin() {
 		return margin;
 	}
 
+	/**
+	 * 设置边距大小
+	 *
+	 * @param margin 边距值，必须大于等于 0
+	 * @since 1.1.0
+	 */
 	public void setMargin(int margin) {
 		if (margin >= 0) {
 			this.margin = margin;
 		}
 	}
 
+	/**
+	 * 获取水印位置方向
+	 *
+	 * @return 位置方向枚举，null 表示使用自定义坐标
+	 * @since 1.1.0
+	 */
 	public WatermarkDirection getDirection() {
 		return direction;
 	}
 
+	/**
+	 * 设置水印位置方向
+	 *
+	 * @param direction 位置方向枚举
+	 * @since 1.1.0
+	 */
 	public void setDirection(WatermarkDirection direction) {
 		if (Objects.nonNull(direction)) {
 			this.direction = direction;
 		}
 	}
 
+	/**
+	 * 获取字体大小策略
+	 *
+	 * @return 字体大小计算策略函数
+	 * @since 1.1.0
+	 */
 	public IntBinaryOperator getFontSizeStrategy() {
 		return fontSizeStrategy;
 	}
 
+	/**
+	 * 设置字体大小策略
+	 *
+	 * @param fontSizeStrategy 字体大小计算策略函数
+	 * @since 1.1.0
+	 */
 	public void setFontSizeStrategy(IntBinaryOperator fontSizeStrategy) {
 		if (Objects.nonNull(fontSizeStrategy)) {
 			this.fontSizeStrategy = fontSizeStrategy;
 		}
 	}
 
+	/**
+	 * 将文字水印配置转换为 FFmpeg 滤镜字符串
+	 *
+	 * @param text    水印文字内容
+	 * @param grabber FFmpeg 帧抓取器，用于获取视频尺寸
+	 * @return FFmpeg drawtext 滤镜字符串
+	 * @throws IOException              操作失败时抛出
+	 * @throws IllegalArgumentException 当参数无效时抛出
+	 * @since 1.1.0
+	 */
 	public String toFFmpegFilter(final String text, final FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
 
@@ -196,6 +463,17 @@ public class TextWatermarkOption {
 		return toFFmpegFilter(text, grabber.getImageWidth(), grabber.getImageHeight());
 	}
 
+	/**
+	 * 将文字水印配置转换为 FFmpeg 滤镜字符串
+	 *
+	 * @param text        水印文字内容
+	 * @param videoWith   视频宽度
+	 * @param videoHeight 视频高度
+	 * @return FFmpeg drawtext 滤镜字符串
+	 * @throws IOException              操作失败时抛出
+	 * @throws IllegalArgumentException 当参数无效时抛出
+	 * @since 1.1.0
+	 */
 	public String toFFmpegFilter(final String text, final int videoWith, final int videoHeight) throws IOException {
 		Validate.notBlank(text, "text 不能为空");
 		Validate.isTrue(videoWith > 0, "videoWith 必须大于 0");
@@ -204,8 +482,8 @@ public class TextWatermarkOption {
 		return FFmpegFiltersBuilder.video()
 			.addGlobalFilter("drawtext",
 				String.format("text='%s'", text),
-				Objects.nonNull(fontFile) ? String.format("fontfile='%s'", FFmpegUtils.getSafeFilePath(fontFile)) :
-					String.format("font=%s", fontName),
+				Objects.nonNull(fontFile) ? String.format("fontfile='%s'", FFmpegUtils.getSafeFileSourcePath(
+					fontFile.getAbsolutePath())) : String.format("font=%s", fontName),
 				computePositionArgs(),
 				"alpha=" + opacity,
 				"fontsize=" + (fontSize > 0 ? fontSize : fontSizeStrategy.applyAsInt(videoWith, videoHeight)),
@@ -215,6 +493,12 @@ public class TextWatermarkOption {
 			.build();
 	}
 
+	/**
+	 * 计算位置参数
+	 *
+	 * @return FFmpeg drawtext 滤镜的位置参数字符串
+	 * @since 1.1.0
+	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
 			return String.format("x=%d:y=%d", x + margin, y + margin);

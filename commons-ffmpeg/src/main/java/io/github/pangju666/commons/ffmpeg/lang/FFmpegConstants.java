@@ -17,59 +17,70 @@
 package io.github.pangju666.commons.ffmpeg.lang;
 
 /**
- * FFmpeg 相关常量类，提供常用的媒体格式标识和默认参数值
+ * FFmpeg 相关常量类
  * <p>
- * 该类包含音频、视频常用格式的单个常量，以及媒体处理的默认参数值，
- * 方便在媒体处理操作中统一引用标准配置。
- * <p>
- * <h3>单个格式常量</h3>
- * <ul>
- *   <li><b>音频格式</b>：{@link #AUDIO_WAV_FORMAT}、{@link #AUDIO_FLAC_FORMAT}、{@link #AUDIO_MP3_FORMAT}、{@link #AUDIO_OPUS_FORMAT}、{@link #AUDIO_AAC_FORMAT}</li>
- *   <li><b>视频格式</b>：{@link #VIDEO_MP4_FORMAT}、{@link #VIDEO_WEBM_FORMAT}、{@link #VIDEO_MKV_FORMAT}</li>
- * </ul>
- * <p>
- * <h3>默认参数值</h3>
- * <ul>
- *   <li>{@link #DEFAULT_VIDEO_FRAME_RATE}：默认视频帧率</li>
- *   <li>{@link #DEFAULT_AUDIO_CHANNELS}：默认音频声道数</li>
- *   <li>{@link #AUDIO_STANDARD_SAMPLE_RATE}：音频标准采样率</li>
- *   <li>{@link #VIDEO_STANDARD_SAMPLE_RATE}：视频标准采样率</li>
- * </ul>
- * <h3>使用示例</h3>
- * <pre>{@code
- * // 使用单个格式常量
- * String audioFormat = MediaConstants.AUDIO_MP3_FORMAT;
- * String videoFormat = MediaConstants.VIDEO_MP4_FORMAT;
- *
- * // 使用默认参数值
- * int frameRate = MediaConstants.DEFAULT_VIDEO_FRAME_RATE;
- * int channels = MediaConstants.DEFAULT_AUDIO_CHANNELS;
- * int sampleRate = MediaConstants.AUDIO_STANDARD_SAMPLE_RATE;
- * }</pre>
+ * 包含 FFmpeg 处理中常用的常量，如格式标识、滤镜标签、分隔符等。
+ * </p>
  *
  * @author pangju666
  * @see <a href="https://ffmpeg.org/ffmpeg-formats.html">FFmpeg Formats Official Doc</a>
  * @since 1.1.0
  */
 public class FFmpegConstants {
+	/**
+	 * TTF 字体文件的 MIME 类型
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String TTF_MIME_TYPE = "application/x-font-ttf";
 
-	public static final String SRT_MIME_TYPE = "application/x-subrip";
+	/**
+	 * 单个输入流的滤镜标签
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String FILTER_SINGLE_INPUT_TAG = "[in]";
 
-	public static final String SINGLE_INPUT_TAG = "[in]";
+	/**
+	 * 单个输出流的滤镜标签
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String FILTER_SINGLE_OUTPUT_TAG = "[out]";
 
-	public static final String SINGLE_OUTPUT_TAG = "[out]";
+	/**
+	 * 视频输出流的滤镜标签
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String FILTER_OUTPUT_VIDEO_TAG = "[v]";
 
-	public static final String OUTPUT_VIDEO_TAG = "[v]";
+	/**
+	 * 音频输出流的滤镜标签
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String FILTER_OUTPUT_AUDIO_TAG = "[a]";
 
-	public static final String OUTPUT_AUDIO_TAG = "[a]";
-
+	/**
+	 * 滤镜参数之间的连接分隔符
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String FILTER_CONCAT_SEPARATOR = ",";
 
-	public static final float FILTER_AMIX_DEFAULT_WEIGHT = 1f;
-
+	/**
+	 * 滤镜分支之间的分隔符
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String FILTER_BRANCH_SEPARATOR = ";";
 
+	/**
+	 * 滤镜内部参数的分隔符
+	 *
+	 * @since 1.1.0
+	 */
 	public static final String FILTER_ARG_SEPARATOR = ":";
 
 	/**
@@ -168,6 +179,11 @@ public class FFmpegConstants {
 	 */
 	public static final int VIDEO_STANDARD_SAMPLE_RATE = 48000;
 
+	/**
+	 * 私有构造函数，防止实例化
+	 *
+	 * @since 1.1.0
+	 */
 	protected FFmpegConstants() {
 	}
 }

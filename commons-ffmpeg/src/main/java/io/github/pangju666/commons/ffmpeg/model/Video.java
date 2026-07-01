@@ -809,6 +809,7 @@ public class Video extends Media {
 	 * 标准MKV 480P视频配置
 	 * <p>MKV容器+H265编码，640×480，900kbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_480P = Video.builder()
@@ -822,6 +823,7 @@ public class Video extends Media {
 	 * 标准MKV 720P视频配置
 	 * <p>MKV容器+H265编码，1280×720，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_720P = Video.builder()
@@ -835,6 +837,7 @@ public class Video extends Media {
 	 * 标准MKV 1080P视频配置
 	 * <p>MKV容器+H265编码，1920×1080，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_1080P = Video.builder()
@@ -848,6 +851,7 @@ public class Video extends Media {
 	 * 标准MKV 2K视频配置
 	 * <p>MKV容器+H265编码，2560×1440，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_2K = Video.builder()
@@ -861,6 +865,7 @@ public class Video extends Media {
 	 * 标准MKV 480P竖屏视频配置
 	 * <p>MKV容器+H265编码，480×640，900kbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_480P_VERTICAL = Video.builder()
@@ -874,6 +879,7 @@ public class Video extends Media {
 	 * 标准MKV 720P竖屏视频配置
 	 * <p>MKV容器+H265编码，720×1280，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_720P_VERTICAL = Video.builder()
@@ -887,6 +893,7 @@ public class Video extends Media {
 	 * 标准MKV 1080P竖屏视频配置
 	 * <p>MKV容器+H265编码，1080×1920，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_1080P_VERTICAL = Video.builder()
@@ -900,6 +907,7 @@ public class Video extends Media {
 	 * 标准MKV 2K竖屏视频配置
 	 * <p>MKV容器+H265编码，1440×2560，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
+	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 	 * @since 1.1.0
 	 */
 	public static final Video MKV_2K_VERTICAL = Video.builder()
@@ -1077,18 +1085,58 @@ public class Video extends Media {
 		}
 	}
 
+	/**
+	 * 从 {@link FFmpegFrameGrabber} 解析视频对象
+	 * <p>会自动解析 grabber 中的视频信息并构建 Video 对象
+	 *
+	 * @param grabber FFmpeg 帧抓取器，不可为 null
+	 * @return 解析得到的 Video 对象
+	 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
+	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Video parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return builder(grabber).build();
 	}
 
+	/**
+	 * 从文件解析视频对象
+	 * <p>会自动解析文件中的视频信息并构建 Video 对象
+	 *
+	 * @param file 视频文件，不可为 null 且必须是有效文件
+	 * @return 解析得到的 Video 对象
+	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
+	 * @throws IOException              当文件读取失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Video parse(File file) throws IOException {
 		return builder(file).build();
 	}
 
+	/**
+	 * 从字节数组解析视频对象
+	 * <p>会自动解析字节数组中的视频信息并构建 Video 对象
+	 *
+	 * @param bytes 视频字节数组，不可为 null
+	 * @return 解析得到的 Video 对象
+	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
+	 * @throws IOException              当解析失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Video parse(byte[] bytes) throws IOException {
 		return builder(bytes).build();
 	}
 
+	/**
+	 * 从输入流解析视频对象
+	 * <p>会自动解析输入流中的视频信息并构建 Video 对象
+	 *
+	 * @param inputStream 视频输入流，不可为 null
+	 * @return 解析得到的 Video 对象
+	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
+	 * @throws IOException              当读取失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Video parse(InputStream inputStream) throws IOException {
 		return builder(inputStream).build();
 	}
@@ -1334,6 +1382,7 @@ public class Video extends Media {
 		 * 设置为MP4格式+H265编码
 		 *
 		 * @return 构建器自身，用于链式调用
+		 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 		 * @since 1.1.0
 		 */
 		public Builder mp4WithH265() {
@@ -1370,6 +1419,7 @@ public class Video extends Media {
 		 * 设置为MKV格式+H265编码
 		 *
 		 * @return 构建器自身，用于链式调用
+		 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
 		 * @since 1.1.0
 		 */
 		public Builder mkvWithH265() {
@@ -1475,6 +1525,14 @@ public class Video extends Media {
 			return this;
 		}
 
+		/**
+		 * 按目标宽度等比例缩放视频分辨率
+		 * <p>保持宽高比，根据目标宽度自动计算高度。如果当前宽度或高度为0，则不进行缩放
+		 *
+		 * @param targetWidth 目标宽度（像素）
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
 		public Builder scaleByWidth(final int targetWidth) {
 			if (width <= 0 || height <= 0) {
 				return this;
@@ -1484,6 +1542,14 @@ public class Video extends Media {
 			return resolution(imageSize.getWidth(), imageSize.getHeight());
 		}
 
+		/**
+		 * 按目标高度等比例缩放视频分辨率
+		 * <p>保持宽高比，根据目标高度自动计算宽度。如果当前宽度或高度为0，则不进行缩放
+		 *
+		 * @param targetHeight 目标高度（像素）
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
 		public Builder scaleByHeight(final int targetHeight) {
 			if (width <= 0 || height <= 0) {
 				return this;
@@ -1493,6 +1559,15 @@ public class Video extends Media {
 			return resolution(imageSize.getWidth(), imageSize.getHeight());
 		}
 
+		/**
+		 * 按目标宽高缩放视频分辨率
+		 * <p>按照目标宽高进行缩放，保持宽高比。如果当前宽度或高度为0，则不进行缩放
+		 *
+		 * @param targetWidth  目标宽度（像素）
+		 * @param targetHeight 目标高度（像素）
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
 		public Builder scale(final int targetWidth, final int targetHeight) {
 			if (width <= 0 || height <= 0) {
 				return this;
@@ -1502,6 +1577,14 @@ public class Video extends Media {
 			return resolution(imageSize.getWidth(), imageSize.getHeight());
 		}
 
+		/**
+		 * 按比例缩放视频分辨率
+		 * <p>按照指定比例缩放，保持宽高比。如果当前宽度或高度为0，则不进行缩放
+		 *
+		 * @param ratio 缩放比例（大于0）
+		 * @return 构建器自身，用于链式调用
+		 * @since 1.1.0
+		 */
 		public Builder scale(final double ratio) {
 			if (width <= 0 || height <= 0) {
 				return this;

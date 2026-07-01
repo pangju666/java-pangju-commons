@@ -303,18 +303,58 @@ public class Audio extends Media {
 		}
 	}
 
+	/**
+	 * 从 {@link FFmpegFrameGrabber} 解析音频对象
+	 * <p>会自动解析 grabber 中的音频信息并构建 Audio 对象
+	 *
+	 * @param grabber FFmpeg 帧抓取器，不可为 null
+	 * @return 解析得到的 Audio 对象
+	 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
+	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Audio parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return builder(grabber).build();
 	}
 
+	/**
+	 * 从文件解析音频对象
+	 * <p>会自动解析文件中的音频信息并构建 Audio 对象
+	 *
+	 * @param file 音频文件，不可为 null 且必须是有效文件
+	 * @return 解析得到的 Audio 对象
+	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
+	 * @throws IOException              当文件读取失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Audio parse(File file) throws IOException {
 		return builder(file).build();
 	}
 
+	/**
+	 * 从字节数组解析音频对象
+	 * <p>会自动解析字节数组中的音频信息并构建 Audio 对象
+	 *
+	 * @param bytes 音频字节数组，不可为 null
+	 * @return 解析得到的 Audio 对象
+	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
+	 * @throws IOException              当解析失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Audio parse(byte[] bytes) throws IOException {
 		return builder(bytes).build();
 	}
 
+	/**
+	 * 从输入流解析音频对象
+	 * <p>会自动解析输入流中的音频信息并构建 Audio 对象
+	 *
+	 * @param inputStream 音频输入流，不可为 null
+	 * @return 解析得到的 Audio 对象
+	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
+	 * @throws IOException              当读取失败时抛出
+	 * @since 1.1.0
+	 */
 	public static Audio parse(InputStream inputStream) throws IOException {
 		return builder(inputStream).build();
 	}
