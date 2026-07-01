@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 /**
  * 文字水印样式配置。
@@ -106,7 +106,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.0.0
 	 */
-	private Function<ImageSize, Integer> fontSizeStrategy = imageSize -> {
+	private ToIntFunction<ImageSize> fontSizeStrategy = imageSize -> {
 		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
 		if (shorter < 600) {
 			// 小图：强制 32pt
@@ -182,7 +182,7 @@ public class TextWatermarkOption {
 	 * @return 计算字体大小的策略函数
 	 * @since 1.0.0
 	 */
-	public Function<ImageSize, Integer> getFontSizeStrategy() {
+	public ToIntFunction<ImageSize> getFontSizeStrategy() {
 		return fontSizeStrategy;
 	}
 
@@ -195,7 +195,7 @@ public class TextWatermarkOption {
 	 * @param fontSizeStrategy 字体大小计算策略，不能为 null；如果为 null 则忽略并保持原策略
 	 * @since 1.0.0
 	 */
-	public void setFontSizeStrategy(Function<ImageSize, Integer> fontSizeStrategy) {
+	public void setFontSizeStrategy(ToIntFunction<ImageSize> fontSizeStrategy) {
 		if (Objects.nonNull(fontSizeStrategy)) {
 			this.fontSizeStrategy = fontSizeStrategy;
 		}
