@@ -227,7 +227,8 @@ public class TextWatermarkOption {
 	}
 
 	/**
-	 * 设置描边颜色
+	 * 设置描边颜色。
+	 * 参数为 {@code null} 时忽略。
 	 *
 	 * @param strokeColor 描边颜色
 	 * @since 1.1.0
@@ -249,7 +250,8 @@ public class TextWatermarkOption {
 	}
 
 	/**
-	 * 设置填充颜色
+	 * 设置填充颜色。
+	 * 参数为 {@code null} 时忽略。
 	 *
 	 * @param fillColor 填充颜色
 	 * @since 1.1.0
@@ -385,9 +387,7 @@ public class TextWatermarkOption {
 	 * @since 1.1.0
 	 */
 	public void setDirection(WatermarkDirection direction) {
-		if (Objects.nonNull(direction)) {
-			this.direction = direction;
-		}
+		this.direction = direction;
 	}
 
 	/**

@@ -136,9 +136,11 @@ public class ImageWatermarkOption {
 	}
 
 	/**
-	 * 设置水印相对尺寸
+	 * 设置水印的相对缩放比例（相对原视频尺寸）。
+	 * 必须为正数；非正数将被忽略并保持当前值。
+	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
-	 * @param relativeScaleFactor 相对尺寸比例，必须大于 0
+	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
 	 * @since 1.1.0
 	 */
 	public void setRelativeScaleFactor(double relativeScaleFactor) {
@@ -252,9 +254,7 @@ public class ImageWatermarkOption {
 	 * @since 1.1.0
 	 */
 	public void setDirection(WatermarkDirection direction) {
-		if (Objects.nonNull(direction)) {
-			this.direction = direction;
-		}
+		this.direction = direction;
 	}
 
 	/**
