@@ -565,7 +565,7 @@ public class FFmpegUtils {
 					filter.push(frame);
 				}
 
-				recordFrames(recorder, filter, frameType);
+				recordFrames(recorder, filter, frameType, false);
 			}
 
 			recordFrames(recorder, filter, frameType);
@@ -640,7 +640,7 @@ public class FFmpegUtils {
 					}
 				}
 
-				recordFrames(recorder, filter, frameType);
+				recordFrames(recorder, filter, frameType, false);
 			} while (hasFrame);
 
 			recordFrames(recorder, filter, frameType);
@@ -998,6 +998,23 @@ public class FFmpegUtils {
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameFilter filter,
 	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameFilter.Exception {
+		recordFrames(recorder, filter, frameType, true);
+	}
+
+	/**
+	 * 录制帧（从帧滤镜）
+	 *
+	 * @param recorder      帧录制器
+	 * @param filter        帧滤镜
+	 * @param frameType     处理的帧类型
+	 * @param flushRecorder 是否刷新录制器
+	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
+	 * @throws FFmpegFrameFilter.Exception   当滤镜操作失败时
+	 * @throws NullPointerException          当 recorder、filter 或 frameType 为 null 时
+	 * @since 1.1.0
+	 */
+	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameFilter filter,
+	                                final FrameType frameType, final boolean flushRecorder) throws FFmpegFrameRecorder.Exception, FFmpegFrameFilter.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(filter, "filter 不可为 null");
 		Validate.notNull(frameType, "frameMode 不可为 null");
@@ -1010,7 +1027,10 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
-		recorder.flush();
+
+		if (flushRecorder) {
+			recorder.flush();
+		}
 	}
 
 	/**

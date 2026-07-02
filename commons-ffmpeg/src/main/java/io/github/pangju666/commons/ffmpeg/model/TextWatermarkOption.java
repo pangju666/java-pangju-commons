@@ -141,7 +141,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected int margin = 20;
+	protected int inset = 20;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
@@ -382,19 +382,19 @@ public class TextWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getMargin() {
-		return margin;
+	public int getInset() {
+		return inset;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param margin 边距值，必须大于等于 0
+	 * @param inset 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setMargin(int margin) {
-		if (margin >= 0) {
-			this.margin = margin;
+	public void setInset(int inset) {
+		if (inset >= 0) {
+			this.inset = inset;
 		}
 	}
 
@@ -499,18 +499,18 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + margin, y + margin);
+			return String.format("x=%d:y=%d", x + inset, y + inset);
 		}
 
 		return switch (direction) {
-			case TOP -> String.format("x=%s:y=%d", "(w-text_w)/2", margin);
-			case TOP_LEFT -> String.format("x=%d:y=%d", margin, margin);
-			case TOP_RIGHT -> String.format("x=%s:y=%d", "w-text_w-" + margin, margin);
-			case BOTTOM -> String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + margin);
-			case BOTTOM_LEFT -> String.format("x=%d:y=%s", margin, "h-text_h-" + margin);
-			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "h-text_h-" + margin);
-			case LEFT -> String.format("x=%d:y=%s", margin, "(h-text_h)/2");
-			case RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "(h-text_h)/2");
+			case TOP -> String.format("x=%s:y=%d", "(w-text_w)/2", inset);
+			case TOP_LEFT -> String.format("x=%d:y=%d", inset, inset);
+			case TOP_RIGHT -> String.format("x=%s:y=%d", "w-text_w-" + inset, inset);
+			case BOTTOM -> String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + inset);
+			case BOTTOM_LEFT -> String.format("x=%d:y=%s", inset, "h-text_h-" + inset);
+			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + inset, "h-text_h-" + inset);
+			case LEFT -> String.format("x=%d:y=%s", inset, "(h-text_h)/2");
+			case RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + inset, "(h-text_h)/2");
 			case CENTER -> String.format("x=%s:y=%s", "(w-text_w)/2", "(h-text_h)/2");
 		};
 	}
