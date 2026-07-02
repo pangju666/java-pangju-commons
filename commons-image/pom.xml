@@ -33,6 +33,10 @@
 			<artifactId>common-image</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-image-module</artifactId>
 			<version>${tika.version}</version>

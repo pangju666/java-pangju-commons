@@ -17,10 +17,7 @@
 package io.github.pangju666.commons.image.model;
 
 import io.github.pangju666.commons.image.lang.ImageConstants;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
-
-import java.util.Objects;
 
 /**
  * 图像尺寸模型（不可变）。
@@ -67,7 +64,7 @@ public class ImageSize {
 	 *
 	 * @since 1.0.0
 	 */
-	private final Integer orientation;
+	private final int orientation;
 	/**
 	 * 是否为可视化尺寸
 	 *
@@ -76,9 +73,9 @@ public class ImageSize {
 	private final boolean visual;
 
 	/**
-	 * 构造方法（无方向）
+	 * 构造方法（正常方向）
 	 * <p>
-	 * 创建一个具有指定宽高、不包含 EXIF 方向的图像尺寸对象。
+	 * 创建一个具有指定宽高、EXIF 方向为正常的图像尺寸对象。
 	 * </p>
 	 *
 	 * @param width  图像宽度（像素），必须大于 0
@@ -92,7 +89,7 @@ public class ImageSize {
 
 		this.width = width;
 		this.height = height;
-		this.orientation = null;
+		this.orientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		this.visual = false;
 	}
 
@@ -125,12 +122,10 @@ public class ImageSize {
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
-	protected ImageSize(int width, int height, Integer orientation, boolean visual) {
+	protected ImageSize(int width, int height, int orientation, boolean visual) {
 		Validate.isTrue(width > 0, "width 必须大于0");
 		Validate.isTrue(height > 0, "height 必须大于0");
-		if (Objects.nonNull(orientation)) {
-			Validate.inclusiveBetween(1, 8, orientation, "orientation 必须介于1-8之间");
-		}
+		Validate.inclusiveBetween(1, 8, orientation, "orientation 必须介于1-8之间");
 
 		this.width = width;
 		this.height = height;
@@ -145,7 +140,7 @@ public class ImageSize {
 	 * </p>
 	 * <ul>
 	 *   <li><b>方向 5-8：</b> 图像被旋转了 90° 或 270°，此时<b>交换宽度和高度</b>。</li>
-	 *   <li><b>其他方向 或 无方向：</b> 保持原始存储尺寸（无方向时默认视为正常方向）。</li>
+	 *   <li><b>其他方向：</b> 保持原始存储尺寸。</li>
 	 * </ul>
 	 * <p>
 	 * 此方法常用于 UI 显示或需要按照图像“摆正”后的样子处理的场景。
@@ -159,9 +154,8 @@ public class ImageSize {
 		if (this.visual) {
 			return this;
 		}
-		int effectiveOrientation = ObjectUtils.defaultIfNull(orientation, ImageConstants.NORMAL_EXIF_ORIENTATION);
-		return effectiveOrientation >= 5 ? new ImageSize(height, width, effectiveOrientation, true) :
-			new ImageSize(width, height, effectiveOrientation, true);
+		return orientation >= 5 ? new ImageSize(height, width, orientation, true) :
+			new ImageSize(width, height, orientation, true);
 	}
 
 	/**
@@ -170,10 +164,10 @@ public class ImageSize {
 	 * 对应 EXIF 标签 Orientation，值的范围为 1-8。
 	 * </p>
 	 *
-	 * @return 方向标识值，如果未定义方向信息则返回 null
+	 * @return 方向标识值
 	 * @since 1.0.0
 	 */
-	public Integer getOrientation() {
+	public int getOrientation() {
 		return orientation;
 	}
 
@@ -270,16 +264,8 @@ public class ImageSize {
 	 *
 	 * <p>该方法不会修改当前对象，而是返回一个新的实例。</p>
 	 *
-	 * @param targetWidth  目标宽度，必须满足：
-	 *                     <ul>
-	 *                       <li>大于0</li>
-	 *                       <li>不超过Integer.MAX_VALUE</li>
-	 *                     </ul>
-	 * @param targetHeight 目标高度，必须满足：
-	 *                     <ul>
-	 *                       <li>大于0</li>
-	 *                       <li>不超过Integer.MAX_VALUE</li>
-	 *                     </ul>
+	 * @param targetWidth  目标宽度，必须大于0
+	 * @param targetHeight 目标高度，必须大于0
 	 * @return 满足约束的缩放尺寸
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
@@ -303,15 +289,16 @@ public class ImageSize {
 	 * <p>该方法不会修改当前对象，而是返回一个新的尺寸实例。</p>
 	 * <p>缩放结果采用四舍五入到最近像素。</p>
 	 *
-	 * @param ratio 缩放比例，必须大于 0
+	 * @param scalingFactor 缩放比例，必须大于 0
 	 * @return 缩放后的新尺寸
 	 * @throws IllegalArgumentException 当 {@code scale} 小于或等于 0 时抛出
 	 * @since 1.0.0
 	 */
-	public ImageSize scale(final double ratio) {
-		Validate.isTrue(ratio > 0, "scale 必须大于0");
-		return new ImageSize((int) Math.round(this.getWidth() * ratio),
-			(int) Math.round(this.height * ratio), orientation, visual);
+	public ImageSize scale(final double scalingFactor) {
+		Validate.isTrue(scalingFactor > 0, "scale 必须大于0");
+
+		return new ImageSize((int) Math.round(this.getWidth() * scalingFactor),
+			(int) Math.round(this.height * scalingFactor), orientation, visual);
 	}
 
 	/**
@@ -333,5 +320,19 @@ public class ImageSize {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于0");
 
 		return new ImageSize(targetWidth, targetHeight, orientation, visual);
+	}
+
+	/**
+	 * 检查图像是否为正常方向（无需旋转/翻转）。
+	 * <p>
+	 * 当 EXIF 等于 {@link ImageConstants#NORMAL_EXIF_ORIENTATION}（值为 1）时，
+	 * 表示图像方向正常，显示时不需要进行任何旋转或翻转操作。
+	 * </p>
+	 *
+	 * @return true 表示图像方向正常；false 表示需要根据 EXIF 方向进行校正
+	 * @since 1.1.0
+	 */
+	public boolean isNormalOrientation() {
+		return orientation == ImageConstants.NORMAL_EXIF_ORIENTATION;
 	}
 }
