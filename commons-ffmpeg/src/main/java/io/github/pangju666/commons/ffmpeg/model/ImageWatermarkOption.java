@@ -320,13 +320,13 @@ public class ImageWatermarkOption {
 		return FFmpegFiltersBuilder.video()
 			.addFileSource("wm", watermarkImage)
 			.appendAliasFilter("wm", "scale", String.format(
-				"w='if(gt(iw,ih),min(%d\\,max(%d\\,iw*%.2f)),-1)':h='if(gt(ih,iw),min(%d\\,max(%d\\,ih*%.2f)),-1)'",
+				"w='if(gt(iw,ih),min(%d\\,max(%d\\,%d)),-1)':h='if(gt(ih,iw),min(%d\\,max(%d\\,%d)),-1)'",
 				watermarkImageSizeRange.getRight().getWidth(),
 				watermarkImageSizeRange.getLeft().getWidth(),
-				relativeScaleFactor,
+				(int) (videoWith * relativeScaleFactor),
 				watermarkImageSizeRange.getRight().getHeight(),
 				watermarkImageSizeRange.getLeft().getHeight(),
-				relativeScaleFactor))
+				(int) (videoHeight * relativeScaleFactor)))
 			.appendAliasFilter("wm", "format=rgba")
 			.appendAliasFilter("wm", "colorchannelmixer", "aa=" + opacity)
 			.addGlobalFilter("overlay", computePositionArgs(), "format=auto")

@@ -161,18 +161,20 @@ public class FFmpegUtils {
 		Validate.notNull(precision, "duration 不可为 null");
 		Validate.notNull(db, "db 不可为 null");
 
-		switch (precision) {
-			case FIXED:
+		return switch (precision) {
+			case FIXED -> {
 				int volumeVal = db.intValue();
-				return String.format("volume=volume=%s%ddB:precision=fixed", volumeVal > 0 ? "+" : "", volumeVal);
-			case DOUBLE:
+				yield String.format("volume=volume=%s%ddB:precision=fixed", volumeVal > 0 ? "+" : "", volumeVal);
+			}
+			case DOUBLE -> {
 				double dVolumeVal = db.doubleValue();
-				return String.format("volume=volume=%s%.4fdB:precision=double", dVolumeVal > 0 ? "+" : "", dVolumeVal);
-			case FLOAT:
-			default:
+				yield String.format("volume=volume=%s%.4fdB:precision=double", dVolumeVal > 0 ? "+" : "", dVolumeVal);
+			}
+			default -> {
 				float fVolumeVal = db.floatValue();
-				return String.format("volume=volume=%s%.4fdB:precision=float", fVolumeVal > 0 ? "+" : "", fVolumeVal);
-		}
+				yield String.format("volume=volume=%s%.4fdB:precision=float", fVolumeVal > 0 ? "+" : "", fVolumeVal);
+			}
+		};
 	}
 
 	/**
@@ -1074,9 +1076,7 @@ public class FFmpegUtils {
 			"outputMedia 或 （videoGrabber 和 audioGrabber） 不可同时为 null");
 
 		if (Objects.nonNull(outputMedia)) {
-			if (outputMedia instanceof Audio && frameType != FrameType.VIDEO) {
-				Audio audio = (Audio) outputMedia;
-
+			if (outputMedia instanceof Audio audio && frameType != FrameType.VIDEO) {
 				recorder.setFormat(audio.getFormat());
 				recorder.setSampleRate(audio.getSampleRate());
 				recorder.setAudioCodec(audio.getCodecId());
@@ -1084,9 +1084,7 @@ public class FFmpegUtils {
 				recorder.setAudioBitrate(audio.getBitrate());
 				recorder.setAudioChannels(audio.getChannels());
 				recorder.setAudioMetadata(new HashMap<>(audio.getMetadata()));
-			} else if (outputMedia instanceof Video) {
-				Video video = (Video) outputMedia;
-
+			} else if (outputMedia instanceof Video video) {
 				if (frameType != FrameType.AUDIO) {
 					recorder.setFrameRate(video.getFrameRate());
 					recorder.setVideoBitrate(video.getBitrate());
@@ -1169,13 +1167,10 @@ public class FFmpegUtils {
 		filter.setVideoInputs(videoInputs);
 
 		if (Objects.nonNull(filterMedia)) {
-			if (filterMedia instanceof Audio && audioInputs > 0) {
-				Audio audio = (Audio) filterMedia;
+			if (filterMedia instanceof Audio audio && audioInputs > 0) {
 				filter.setSampleRate(audio.getSampleRate());
 				filter.setAudioChannels(audio.getChannels());
-			} else if (filterMedia instanceof Video) {
-				Video video = (Video) filterMedia;
-
+			} else if (filterMedia instanceof Video video) {
 				if (videoInputs > 0) {
 					filter.setFrameRate(video.getFrameRate());
 					filter.setImageWidth(video.getWidth());
