@@ -38,6 +38,56 @@
 		<dependency>
 			<groupId>org.bytedeco</groupId>
 			<artifactId>javacv</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>artoolkitplus</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>flycapture</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>javafx-graphics</artifactId>
+					<groupId>org.openjfx</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>leptonica</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>videoinput</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>tesseract</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>openblas</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>libdc1394</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>libfreenect</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>libfreenect2</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>librealsense</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>librealsense2</artifactId>
+					<groupId>org.bytedeco</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.bytedeco</groupId>
