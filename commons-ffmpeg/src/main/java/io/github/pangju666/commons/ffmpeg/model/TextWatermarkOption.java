@@ -57,7 +57,6 @@ import java.util.function.IntBinaryOperator;
  * // 使用字体文件
  * TextWatermarkOption option = new TextWatermarkOption(new File("font.ttf"));
  * option.setOpacity(0.5f);
- * option.setFontSize(48);
  * }</pre>
  *
  * @author pangju666
@@ -86,13 +85,6 @@ public class TextWatermarkOption {
 	 * @since 1.1.0
 	 */
 	protected float opacity = 0.4f;
-
-	/**
-	 * 字体大小（像素），0 表示使用自适应策略
-	 *
-	 * @since 1.1.0
-	 */
-	protected int fontSize = 0;
 
 	/**
 	 * 描边颜色，默认黑色
@@ -221,28 +213,6 @@ public class TextWatermarkOption {
 	public void setOpacity(float opacity) {
 		if (opacity >= 0f && opacity <= 1) {
 			this.opacity = opacity;
-		}
-	}
-
-	/**
-	 * 获取字体大小
-	 *
-	 * @return 字体大小（像素），0 表示使用自适应策略
-	 * @since 1.1.0
-	 */
-	public int getFontSize() {
-		return fontSize;
-	}
-
-	/**
-	 * 设置字体大小
-	 *
-	 * @param fontSize 字体大小（像素），必须大于 0
-	 * @since 1.1.0
-	 */
-	public void setFontSize(int fontSize) {
-		if (fontSize > 0) {
-			this.fontSize = fontSize;
 		}
 	}
 
@@ -484,7 +454,7 @@ public class TextWatermarkOption {
 					fontFile.getAbsolutePath())) : String.format("font=%s", fontName),
 				computePositionArgs(),
 				"alpha=" + opacity,
-				"fontsize=" + (fontSize > 0 ? fontSize : fontSizeStrategy.applyAsInt(videoWith, videoHeight)),
+				"fontsize=" + fontSizeStrategy.applyAsInt(videoWith, videoHeight),
 				"fontcolor=" + ImageUtils.toHexColor(fillColor),
 				stroke ? "borderw=" + strokeWidth : StringUtils.EMPTY,
 				stroke ? "bordercolor=" + ImageUtils.toHexColor(strokeColor) : StringUtils.EMPTY)

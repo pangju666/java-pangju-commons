@@ -47,7 +47,7 @@ import java.util.function.BiFunction;
  * <pre>{@code
  * ImageWatermarkOption option = new ImageWatermarkOption();
  * option.setOpacity(0.5f);
- * option.setRelativeScale(0.2);
+ * option.setRelativeScaleFactor(0.2);
  * option.setDirection(WatermarkDirection.BOTTOM_RIGHT);
  * }</pre>
  *
