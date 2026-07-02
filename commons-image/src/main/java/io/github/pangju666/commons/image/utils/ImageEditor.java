@@ -31,6 +31,9 @@ import io.github.pangju666.commons.image.model.TextWatermarkOption;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
+import net.coobird.thumbnailator.filters.Caption;
+import net.coobird.thumbnailator.filters.Transparency;
+import net.coobird.thumbnailator.filters.Watermark;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ObjectUtils;
@@ -69,16 +72,9 @@ import java.util.Objects;
  *       <li>调整：旋转、翻转、裁剪。</li>
  *       <li>调色：亮度、对比度、灰度化、饱和度（通过滤镜）。</li>
  *       <li>特效：模糊、锐化、自定义滤镜。</li>
- *       <li>水印：支持图片和文字水印，提供九宫格定位与精细坐标控制。</li>
+ *       <li>水印：支持图片和文字水印。</li>
  *     </ul>
  *   </li>
- * </ul>
- *
- * <p><b>坐标与定位：</b></p>
- * <ul>
- *   <li>提供两套定位 API：显式坐标（{@code x}, {@code y}）与九宫格方向（{@link WatermarkDirection}）。</li>
- *   <li>文字水印以“文本基线”为基准；图片水印以“左上角”为基准。</li>
- *   <li>九宫格定位会自动应用适当的边距（图片约 10px，文字约 20px）。</li>
  * </ul>
  *
  * <p><b>线程安全：</b></p>
@@ -158,8 +154,8 @@ import java.util.Objects;
  *
  * // 6. 水印添加（支持图片与文字）
  * ImageEditor.of(new File("input.jpg"), true)
- *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption(), WatermarkDirection.CENTER)
- *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption(), WatermarkDirection.BOTTOM_RIGHT)
+ *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
+ *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
  *     .toFile(new File("out_watermark.jpg"));
  *
  * // 7. 格式转换与输出
@@ -172,7 +168,7 @@ import java.util.Objects;
  *     .cropByCenter(1000, 1000)       // 1. 先裁剪中心 1000x1000 区域
  *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
  *     .blur(2.0f)                     // 3. 应用高斯模糊
- *     .addTextWatermark("PREVIEW", new TextWatermarkOption(), WatermarkDirection.CENTER) // 4. 添加水印
+ *     .addTextWatermark("PREVIEW", new TextWatermarkOption()) // 4. 添加水印
  *     .toFile(new File("processed.jpg"));
  *
  * // 9. 状态重置与多版本输出
@@ -182,7 +178,7 @@ import java.util.Objects;
  * 		.toFile(new File("thumbnail.png"));
  * // 重置并输出带水印的高清图
  * editor.reset()
- *       .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption(), WatermarkDirection.CENTER)
+ *       .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
  *       .toFile(new File("watermarked_original.png"));
  * }</pre>
  *
@@ -192,7 +188,6 @@ import java.util.Objects;
  * @see ImageUtil
  * @see BrightnessContrastFilter
  * @see GrayFilter
- * @see WatermarkDirection
  * @see ImageWatermarkOption
  * @see TextWatermarkOption
  * @since 1.0.0
@@ -230,6 +225,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
+
 	/**
 	 * 默认对比度过滤器
 	 * <p>
@@ -240,6 +236,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
+
 	/**
 	 * 原始图像尺寸
 	 * <p>
@@ -248,7 +245,8 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	protected final ImageSize inputImageSize;
+	protected ImageSize inputImageSize;
+
 	/**
 	 * 原始输入图像
 	 * <p>
@@ -258,6 +256,19 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected BufferedImage inputImage;
+
+	/**
+	 * 输入图像格式
+	 * <p>
+	 * 通过 {@link #of(File)} 或 {@link #of(File, boolean)} 从文件创建时，取自文件扩展名的大写格式（如 "PNG"、"JPG"或"JPEG"）；
+	 * 需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportedReadImageFormats()}）。
+	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #reset()} 时也会用它恢复输出格式。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected String inputFormat;
+
 	/**
 	 * 处理后的输出图像
 	 * <p>
@@ -305,18 +316,6 @@ public class ImageEditor {
 	protected int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
-	 * 输入图像格式
-	 * <p>
-	 * 通过 {@link #of(File)} 或 {@link #of(File, boolean)} 从文件创建时，取自文件扩展名的大写格式（如 "PNG"、"JPG"或"JPEG"）；
-	 * 需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportedReadImageFormats()}）。
-	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #reset()} 时也会用它恢复输出格式。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected String inputFormat;
-
-	/**
 	 * 构造实例并初始化以下属性：
 	 * <ul>
 	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
@@ -340,11 +339,28 @@ public class ImageEditor {
 		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");
 
 		this.inputImage = inputImage;
-		this.inputImageSize = inputImageSize.getVisualSize();
+		this.inputImageSize = inputImageSize;
 
 		this.outputImage = inputImage;
-		this.outputImageSize = inputImageSize.getVisualSize();
+		this.outputImageSize = inputImageSize;
 		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+
+		// 矫正视觉方向
+		correctOrientation();
+	}
+
+	protected ImageEditor(final BufferedImage inputImage, final ImageSize inputImageSize, final String inputFormat) {
+		Validate.notNull(inputImage, "inputImage 不可为 null");
+		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");
+		Validate.notBlank(inputFormat, "inputFormat 不可为空");
+
+		this.inputImage = inputImage;
+		this.inputImageSize = inputImageSize;
+		this.inputFormat = inputFormat;
+
+		this.outputImage = inputImage;
+		this.outputImageSize = inputImageSize;
+		this.outputFormat = inputFormat;
 
 		// 矫正视觉方向
 		correctOrientation();
@@ -399,7 +415,7 @@ public class ImageEditor {
 		String inputFormat = FilenameUtils.getExtension(file.getName()).toUpperCase();
 		Validate.isTrue(ImageConstants.getSupportedReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
 
-		Integer exifOrientation = null;
+		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		if (correctOrientation) {
 			try {
 				exifOrientation = ImageUtils.getExifOrientation(file);
@@ -408,16 +424,8 @@ public class ImageEditor {
 		}
 
 		BufferedImage bufferedImage = ImageIO.read(file);
-		ImageSize imageSize;
-		if (Objects.nonNull(exifOrientation)) {
-			imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
-		} else {
-			imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight());
-		}
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
-		imageEditor.inputFormat = inputFormat;
-		imageEditor.outputFormat = inputFormat;
-		return imageEditor;
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
+		return new ImageEditor(bufferedImage, imageSize, inputFormat);
 	}
 
 	/**
@@ -448,10 +456,7 @@ public class ImageEditor {
 
 		BufferedImage bufferedImage = ImageIO.read(file);
 		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
-		ImageEditor imageEditor = new ImageEditor(bufferedImage, imageSize);
-		imageEditor.inputFormat = inputFormat;
-		imageEditor.outputFormat = inputFormat;
-		return imageEditor;
+		return new ImageEditor(bufferedImage, imageSize, inputFormat);
 	}
 
 	/**
@@ -510,8 +515,9 @@ public class ImageEditor {
 			return new ImageEditor(bufferedImage, imageSize);
 		}
 
-		Integer exifOrientation = null;
+		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		BufferedImage bufferedImage;
+
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
 			try {
 				exifOrientation = ImageUtils.getExifOrientation(inputStream);
@@ -521,20 +527,15 @@ public class ImageEditor {
 			bufferedImage = ImageIO.read(inputStream);
 		} else {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				exifOrientation = ImageUtils.getExifOrientation(tmpInputStream);
+			try {
+				exifOrientation = ImageUtils.getExifOrientation(outputStream.toInputStream());
 			} catch (ImageProcessingException | IOException ignored) {
 			}
-			try (InputStream tmpInputStream = outputStream.toInputStream()) {
-				bufferedImage = ImageIO.read(tmpInputStream);
-			}
+			bufferedImage = ImageIO.read(outputStream.toInputStream());
 		}
-		ImageSize imageSize;
-		if (Objects.nonNull(exifOrientation)) {
-			imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
-		} else {
-			imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight());
-		}
+
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
+
 		return new ImageEditor(bufferedImage, imageSize);
 	}
 
@@ -577,8 +578,8 @@ public class ImageEditor {
 		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
-			bufferedImage.getHeight()));
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight());
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
@@ -600,8 +601,8 @@ public class ImageEditor {
 		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
-		return new ImageEditor(bufferedImage, new ImageSize(
-			bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation));
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
@@ -619,8 +620,8 @@ public class ImageEditor {
 	public static ImageEditor of(final BufferedImage bufferedImage) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
 
-		return new ImageEditor(bufferedImage, new ImageSize(bufferedImage.getWidth(),
-			bufferedImage.getHeight()));
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight());
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
@@ -640,8 +641,8 @@ public class ImageEditor {
 	public static ImageEditor of(final BufferedImage bufferedImage, final int exifOrientation) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
 
-		return new ImageEditor(bufferedImage, new ImageSize(
-			bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation));
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
+		return new ImageEditor(bufferedImage, imageSize);
 	}
 
 	/**
@@ -677,6 +678,31 @@ public class ImageEditor {
 		} else {
 			this.resampleFilterType = filterType;
 		}
+		return this;
+	}
+
+	/**
+	 * 调整图像整体透明度。
+	 * <p>
+	 * 该方法会为整个图像应用统一的透明度值，可以用于创建半透明效果、水印叠加前的准备等场景。
+	 * </p>
+	 * <p><b>取值说明</b>：
+	 * <ul>
+	 *   <li>{@code alpha = 0.0}：完全透明（图像不可见）</li>
+	 *   <li>{@code alpha = 0.5}：半透明（50% 透明度）</li>
+	 *   <li>{@code alpha = 1.0}：完全不透明（原图保持不变）</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param alpha 透明度值，范围 0.0（完全透明）到 1.0（完全不透明）
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws IllegalArgumentException 当 alpha 超出 [0.0, 1.0] 范围时抛出
+	 * @since 1.1.0
+	 */
+	public ImageEditor transparency(final float alpha) {
+		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
+
+		this.outputImage = new Transparency(alpha).apply(this.outputImage);
 		return this;
 	}
 
@@ -978,7 +1004,7 @@ public class ImageEditor {
 
 		this.outputImage = this.outputImage.getSubimage((this.outputImage.getWidth() - width) / 2,
 			(this.outputImage.getHeight() - height) / 2, width, height);
-		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		this.outputImageSize = new ImageSize(width, height);
 		return this;
 	}
 
@@ -1011,10 +1037,10 @@ public class ImageEditor {
 			return this;
 		}
 
-		this.outputImage = this.outputImage.getSubimage(leftOffset, topOffset,
-			this.outputImage.getWidth() - leftOffset - rightOffset,
-			this.outputImage.getHeight() - topOffset - bottomOffset);
-		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		int width = this.outputImage.getWidth() - leftOffset - rightOffset;
+		int height = this.outputImage.getHeight() - topOffset - bottomOffset;
+		this.outputImage = this.outputImage.getSubimage(leftOffset, topOffset, width, height);
+		this.outputImageSize = new ImageSize(width, height);
 		return this;
 	}
 
@@ -1050,7 +1076,87 @@ public class ImageEditor {
 		}
 
 		this.outputImage = this.outputImage.getSubimage(x, y, width, height);
-		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+		this.outputImageSize = new ImageSize(width, height);
+		return this;
+	}
+
+	/**
+	 * 添加图片水印，使用指定的水印配置选项。
+	 * <p>
+	 * 该方法会根据 {@link ImageWatermarkOption} 中的配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
+	 *
+	 * @param watermarkImage 水印图片，不可为 null
+	 * @param option         水印配置选项，包含缩放比例、透明度、位置方向、尺寸限制等，不可为 null
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws IllegalArgumentException 当 watermarkImage 或 option 为 null 时抛出
+	 * @see ImageWatermarkOption
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final BufferedImage watermarkImage, final ImageWatermarkOption option) {
+		Validate.notNull(option, "option 不可为 null");
+
+		this.outputImage = option.toWatermark(this.outputImageSize, watermarkImage).apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加图片水印，直接使用预创建的 Watermark 对象。
+	 * <p>
+	 * 适用于需要对水印进行精确控制，或者需要复用同一水印配置的场景。
+	 * </p>
+	 *
+	 * @param watermark 预创建的 Watermark 对象，不可为 null
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws IllegalArgumentException 当 watermark 为 null 时抛出
+	 * @see Watermark
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final Watermark watermark) {
+		Validate.notNull(watermark, "watermark 不可为 null");
+
+		this.outputImage = watermark.apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加文字水印，使用指定的水印配置选项。
+	 * <p>
+	 * 该方法会根据 {@link TextWatermarkOption} 中的配置，自动计算文字大小、位置、颜色等参数，
+	 * 然后将文字水印应用到当前图像上。
+	 * </p>
+	 *
+	 * @param watermarkText 水印文字内容，不可为空字符串
+	 * @param option        文字水印配置选项，包含字体、大小、颜色、透明度、位置方向等，不可为 null
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws IllegalArgumentException 当 watermarkText 为空或 option 为 null 时抛出
+	 * @see TextWatermarkOption
+	 * @since 1.1.0
+	 */
+	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
+		Validate.notNull(option, "option 不可为 null");
+
+		this.outputImage = option.toCaption(watermarkText, this.outputImage).apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加文字水印，直接使用预创建的 Caption 对象。
+	 * <p>
+	 * 适用于需要对文字水印进行精确控制，或者需要复用同一文字水印配置的场景。
+	 * </p>
+	 *
+	 * @param caption 预创建的 Caption 对象，不可为 null
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws IllegalArgumentException 当 caption 为 null 时抛出
+	 * @see Caption
+	 * @since 1.1.0
+	 */
+	public ImageEditor addTextWatermark(final Caption caption) {
+		Validate.notNull(caption, "caption 不可为 null");
+
+		this.outputImage = caption.apply(this.outputImage);
 		return this;
 	}
 
@@ -1068,7 +1174,9 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addImageWatermark(watermarkImage, option, null, x, y);
@@ -1087,7 +1195,9 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 		return addImageWatermark(watermarkImage, option, direction, 0, 0);
@@ -1107,7 +1217,9 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
 		Validate.notNull(direction, "direction 不可为 null");
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
@@ -1128,7 +1240,9 @@ public class ImageEditor {
 	 * @throws IOException 当文件读取失败时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
 		return addImageWatermark(ImageIO.read(watermarkFile), option, null, x, y);
@@ -1149,7 +1263,9 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null}、或 {@code watermarkText} 为空、或 {@code option} 为 {@code null} 时抛出
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 		return addTextWatermark(watermarkText, option, direction, 0, 0);
@@ -1171,7 +1287,9 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code x < 0} 或 {@code y < 0}，或 {@code watermarkText} 为空，或 {@code option} 为 {@code null} 时抛出
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addTextWatermark(watermarkText, option, null, x, y);
@@ -1281,6 +1399,24 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 恢复图像到初始状态，重置所有处理效果。
+	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
+	 *
+	 * @return 当前编辑器实例（便于链式调用）
+	 * @since 1.0.0
+	 */
+	public ImageEditor reset() {
+		this.outputImage = this.inputImage;
+		this.outputImageSize = this.inputImageSize;
+		this.outputFormat = this.inputFormat;
+		if (StringUtils.isBlank(this.outputFormat)) {
+			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+		}
+		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
+		return this;
+	}
+
+	/**
 	 * 对图像进行重采样处理，根据当前设置的输出尺寸和重采样过滤器类型。
 	 *
 	 * @return 重采样后的图像
@@ -1312,7 +1448,9 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.model.ImageWatermarkOption
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option,
 	                                        WatermarkDirection direction, int x, int y) {
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
@@ -1418,7 +1556,9 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.model.TextWatermarkOption
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
 	                                       int x, int y) {
 		Validate.notBlank(text, "text 不可为空");
@@ -1514,7 +1654,9 @@ public class ImageEditor {
 	 * @param opacity 透明度比率（0.0~1.0），0表示全透，1表示不透
 	 * @return 处理后的颜色对象
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected Color getColor(Color color, float opacity) {
 		if (color.getAlpha() == 255) {
 			// 设置不透明度
@@ -1533,7 +1675,6 @@ public class ImageEditor {
 	 * </p>
 	 * <p><b>处理逻辑：</b></p>
 	 * <ul>
-	 *   <li>若未包含方向信息或方向为 1（正常），则不进行任何操作。</li>
 	 *   <li>根据 EXIF 标准（1-8）自动应用旋转/翻转变换。</li>
 	 *   <li>对于方向值 5-8，图像宽高会发生交换。</li>
 	 *   <li>操作完成后，内部维护的 {@link ImageSize} 将更新为 {@link ImageSize#getVisualSize()}（即可视化尺寸）。</li>
@@ -1554,7 +1695,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	protected void correctOrientation() {
-		if (Objects.isNull(outputImageSize.getOrientation())) {
+		if (outputImageSize.isNormalOrientation()) {
 			return;
 		}
 
@@ -1585,25 +1726,10 @@ public class ImageEditor {
 			default:
 				break;
 		}
-		// 防止 reset 后丢失方向矫正效果
-		inputImage = outputImage;
-	}
+		outputImageSize = outputImageSize.getVisualSize();
 
-	/**
-	 * 恢复图像到初始状态，重置所有处理效果。
-	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
-	 *
-	 * @return 当前编辑器实例（便于链式调用）
-	 * @since 1.0.0
-	 */
-	public ImageEditor reset() {
-		this.outputImage = this.inputImage;
-		this.outputImageSize = this.inputImageSize;
-		this.outputFormat = this.inputFormat;
-		if (StringUtils.isBlank(this.outputFormat)) {
-			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
-		}
-		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
-		return this;
+		// 防止 reset 后丢失方向矫正效果
+		inputImageSize = outputImageSize;
+		inputImage = outputImage;
 	}
 }

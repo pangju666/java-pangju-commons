@@ -526,9 +526,10 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def option = new ImageWatermarkOption()
+				option.setDirection(WatermarkDirection.BOTTOM_RIGHT)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "wm-${ext}.png")
-				editor.addImageWatermark(watermark, option, WatermarkDirection.BOTTOM_RIGHT)
+				editor.addImageWatermark(ImageIO.read(watermark), option)
 				if (canWrite) {
 					ok = editor.outputFormat("PNG").toFile(out)
 					assert out.exists()
@@ -570,9 +571,10 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def option = new TextWatermarkOption()
+				option.setDirection(WatermarkDirection.CENTER)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "tw-${ext}.jpg")
-				editor.addTextWatermark("TEST", option, WatermarkDirection.CENTER)
+				editor.addTextWatermark("TEST", option)
 				if (canWrite) {
 					ok = editor.outputFormat("JPG").toFile(out)
 					assert out.exists()
@@ -917,11 +919,15 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def wm = ImageIO.read(new File("${TEST_IMAGES_DIR}/watermark.png"))
-				def option = new ImageWatermarkOption()
+				def directionOption = new ImageWatermarkOption()
+				directionOption.setDirection(WatermarkDirection.TOP_RIGHT)
+				def posOption = new ImageWatermarkOption()
+				posOption.setX(10)
+				posOption.setY(10)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "wm2-${ext}.png")
-				editor.addImageWatermark(wm, option, WatermarkDirection.TOP_RIGHT)
-				editor.addImageWatermark(wm, option, 10, 10)
+				editor.addImageWatermark(wm, directionOption)
+				editor.addImageWatermark(wm, posOption)
 				if (canWrite) {
 					ok = editor.outputFormat("PNG").toFile(out)
 					assert out.exists()
@@ -963,9 +969,11 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def option = new TextWatermarkOption()
+				option.setX(20)
+				option.setY(30)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "tw2-${ext}.jpg")
-				editor.addTextWatermark("HELLO", option, 20, 30)
+				editor.addTextWatermark("HELLO", option)
 				if (canWrite) {
 					ok = editor.outputFormat("JPG").toFile(out)
 					assert out.exists()

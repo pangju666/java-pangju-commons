@@ -16,15 +16,27 @@
 
 package io.github.pangju666.commons.image.model;
 
+import com.twelvemonkeys.image.ImageUtil;
+import io.github.pangju666.commons.image.enums.WatermarkDirection;
+import net.coobird.thumbnailator.filters.Watermark;
+import net.coobird.thumbnailator.geometry.Coordinate;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * 图像水印尺寸与透明度配置。
+ * 图像水印配置。
  *
- * <p>用于控制图片水印绘制时的缩放比例（相对原图尺寸）、透明度，以及水印尺寸的最小/最大限制策略。</p>
+ * <p>用于控制图片水印绘制时的缩放比例（相对原图尺寸）、透明度、边距、位置（方向或自定义坐标），以及水印尺寸的最小/最大限制策略。</p>
+ * <p>水印位置支持两种方式：</p>
+ * <ul>
+ *   <li>通过 {@link WatermarkDirection} 设置九宫格方向位置</li>
+ *   <li>通过自定义坐标 x/y 精确设置位置</li>
+ * </ul>
  *
  * @author pangju666
  * @since 1.0.0
@@ -34,9 +46,10 @@ public class ImageWatermarkOption {
 	 * 水印的相对缩放比例（相对原图尺寸）。
 	 * 默认值：0.15；建议范围：[0.0, 1.0]
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	private double relativeScale = 0.15;
+	private double relativeScaleFactor = 0.15;
+
 	/**
 	 * 水印透明度（百分比）。
 	 * 默认值：0.4；范围：[0.0（完全透明）, 1.0（完全不透明）]
@@ -44,6 +57,34 @@ public class ImageWatermarkOption {
 	 * @since 1.0.0
 	 */
 	private float opacity = 0.4f;
+
+	/**
+	 * 边距大小，默认 10
+	 *
+	 * @since 1.1.0
+	 */
+	private int inset = 10;
+
+	/**
+	 * X 坐标位置，仅在未设置方向时生效
+	 *
+	 * @since 1.1.0
+	 */
+	private int x = 0;
+
+	/**
+	 * Y 坐标位置，仅在未设置方向时生效
+	 *
+	 * @since 1.1.0
+	 */
+	private int y = 0;
+
+	/**
+	 * 水印位置方向，null 表示使用自定义坐标
+	 *
+	 * @since 1.1.0
+	 */
+	private WatermarkDirection direction;
 
 	/**
 	 * 水印尺寸限制策略。
@@ -74,10 +115,36 @@ public class ImageWatermarkOption {
 	 * 获取水印的相对缩放比例。
 	 *
 	 * @return 相对缩放比例（如 0.15 表示水印大小约为原图的 15%）
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
+	public double getRelativeScaleFactor() {
+		return relativeScaleFactor;
+	}
+
+	/**
+	 * 设置水印的相对缩放比例（相对原图尺寸）。
+	 * 必须为正数；非正数将被忽略并保持当前值。
+	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
+	 *
+	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
+	 * @since 1.1.0
+	 */
+	public void setRelativeScaleFactor(double relativeScaleFactor) {
+		if (relativeScaleFactor > 0) {
+			this.relativeScaleFactor = relativeScaleFactor;
+		}
+	}
+
+	/**
+	 * 获取水印的相对缩放比例。
+	 *
+	 * @return 相对缩放比例（如 0.15 表示水印大小约为原图的 15%）
+	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #getRelativeScaleFactor} 替代
+	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public double getRelativeScale() {
-		return relativeScale;
+		return relativeScaleFactor;
 	}
 
 	/**
@@ -87,10 +154,12 @@ public class ImageWatermarkOption {
 	 *
 	 * @param relativeScale 相对原图尺寸的缩放比例（&gt; 0）
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #setRelativeScaleFactor} 替代
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public void setRelativeScale(double relativeScale) {
 		if (relativeScale > 0) {
-			this.relativeScale = relativeScale;
+			this.relativeScaleFactor = relativeScale;
 		}
 	}
 
@@ -141,5 +210,139 @@ public class ImageWatermarkOption {
 		if (Objects.nonNull(sizeLimitStrategy)) {
 			this.sizeLimitStrategy = sizeLimitStrategy;
 		}
+	}
+
+	/**
+	 * 获取边距大小
+	 *
+	 * @return 边距值
+	 * @since 1.1.0
+	 */
+	public int getInset() {
+		return inset;
+	}
+
+	/**
+	 * 设置边距大小
+	 *
+	 * @param inset 边距值，必须大于等于 0
+	 * @since 1.1.0
+	 */
+	public void setInset(int inset) {
+		if (inset >= 0) {
+			this.inset = inset;
+		}
+	}
+
+	/**
+	 * 获取 X 坐标位置
+	 *
+	 * @return X 坐标值
+	 * @since 1.1.0
+	 */
+	public int getX() {
+		return x;
+	}
+
+	/**
+	 * 设置 X 坐标位置，仅在未设置方向时生效
+	 *
+	 * @param x X 坐标值，必须大于等于 0
+	 * @since 1.1.0
+	 */
+	public void setX(int x) {
+		if (x >= 0) {
+			this.x = x;
+		}
+	}
+
+	/**
+	 * 获取 Y 坐标位置
+	 *
+	 * @return Y 坐标值
+	 * @since 1.1.0
+	 */
+	public int getY() {
+		return y;
+	}
+
+	/**
+	 * 设置 Y 坐标位置，仅在未设置方向时生效
+	 *
+	 * @param y Y 坐标值，必须大于等于 0
+	 * @since 1.1.0
+	 */
+	public void setY(int y) {
+		if (y >= 0) {
+			this.y = y;
+		}
+	}
+
+	/**
+	 * 获取水印位置方向
+	 *
+	 * @return 水印方向，null 表示使用自定义坐标
+	 * @since 1.1.0
+	 */
+	public WatermarkDirection getDirection() {
+		return direction;
+	}
+
+	/**
+	 * 设置水印位置方向，设置为 null 表示使用自定义坐标
+	 *
+	 * @param direction 水印方向
+	 * @since 1.1.0
+	 */
+	public void setDirection(WatermarkDirection direction) {
+		this.direction = direction;
+	}
+
+	/**
+	 * 根据目标图像尺寸和水印图像创建 Watermark 对象
+	 * <p>
+	 * 水印尺寸会根据相对缩放比例和尺寸限制策略进行调整。
+	 * 如果设置了方向，则根据方向计算坐标；否则使用自定义坐标。
+	 * </p>
+	 *
+	 * @param targetImageSize 目标图像尺寸
+	 * @param watermarkImage  水印图像
+	 * @return 配置好的 Watermark 对象
+	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @since 1.1.0
+	 */
+	public Watermark toWatermark(ImageSize targetImageSize, BufferedImage watermarkImage) {
+		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+		Validate.notNull(targetImageSize, "targetImageSize 不可为 null");
+
+		Pair<ImageSize, ImageSize> watermarkImageSizeRange = sizeLimitStrategy.apply(targetImageSize);
+		ImageSize originalWatermarkSize = new ImageSize(watermarkImage.getWidth(), watermarkImage.getHeight());
+
+		BufferedImage targetWatermarkImage = watermarkImage;
+		ImageSize targetWatermarkImageSize = targetImageSize.scale(relativeScaleFactor);
+
+		if (originalWatermarkSize.getWidth() > originalWatermarkSize.getHeight()) {
+			int targetWidth = Math.min(watermarkImageSizeRange.getRight().getWidth(),
+				Math.max(watermarkImageSizeRange.getLeft().getWidth(), targetWatermarkImageSize.getWidth()));
+			if (targetWidth != targetWatermarkImageSize.getWidth()) {
+				targetWatermarkImageSize = originalWatermarkSize.scaleByWidth(targetWidth);
+				targetWatermarkImage = ImageUtil.createResampled(watermarkImage,
+					targetWatermarkImageSize.getWidth(), targetWatermarkImageSize.getHeight(),
+					Image.SCALE_DEFAULT);
+			}
+		} else {
+			int targetHeight = Math.min(watermarkImageSizeRange.getRight().getHeight(),
+				Math.max(watermarkImageSizeRange.getLeft().getHeight(), targetWatermarkImageSize.getHeight()));
+			if (targetHeight != targetWatermarkImageSize.getHeight()) {
+				targetWatermarkImageSize = originalWatermarkSize.scaleByHeight(targetHeight);
+				targetWatermarkImage = ImageUtil.createResampled(watermarkImage,
+					targetWatermarkImageSize.getWidth(), targetWatermarkImageSize.getHeight(),
+					Image.SCALE_DEFAULT);
+			}
+		}
+
+		Coordinate coordinate = Objects.nonNull(direction) ? direction.toCoordinate(targetImageSize,
+			targetWatermarkImageSize) : new Coordinate(x, y);
+		return new Watermark(coordinate, targetWatermarkImage, opacity, inset);
 	}
 }
