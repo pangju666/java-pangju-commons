@@ -19,13 +19,16 @@ package io.github.pangju666.commons.ffmpeg.model;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
 import io.github.pangju666.commons.image.enums.WatermarkDirection;
+import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * 图片水印配置选项类
@@ -44,13 +47,13 @@ import java.util.Objects;
  * <pre>{@code
  * ImageWatermarkOption option = new ImageWatermarkOption();
  * option.setOpacity(0.5f);
- * option.setRelativeScale(0.2);
+ * option.setRelativeScaleFactor(0.2);
  * option.setDirection(WatermarkDirection.BOTTOM_RIGHT);
  * }</pre>
  *
  * @author pangju666
  * @see TextWatermarkOption
- * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @see WatermarkDirection
  * @since 1.1.0
  */
 public class ImageWatermarkOption {
@@ -60,42 +63,67 @@ public class ImageWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected double relativeScale = 0.15;
+	private double relativeScaleFactor = 0.15;
 
 	/**
 	 * 水印透明度，范围 0.0-1.0，默认 0.4
 	 *
 	 * @since 1.1.0
 	 */
-	protected float opacity = 0.4f;
+	private float opacity = 0.4f;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
 	 *
 	 * @since 1.1.0
 	 */
-	protected int x = 0;
+	private int x = 0;
 
 	/**
 	 * Y 坐标位置，仅在未设置方向时生效
 	 *
 	 * @since 1.1.0
 	 */
-	protected int y = 0;
+	private int y = 0;
 
 	/**
 	 * 边距大小，默认 10
 	 *
 	 * @since 1.1.0
 	 */
-	protected int margin = 10;
+	private int inset = 10;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
 	 *
 	 * @since 1.1.0
 	 */
-	protected WatermarkDirection direction;
+	private WatermarkDirection direction;
+
+	/**
+	 * 水印尺寸限制策略。
+	 * <p>
+	 * 根据目标视频的画面尺寸，计算出水印允许的最小尺寸和最大尺寸（{@link Pair}，左为最小，右为最大）。
+	 * 默认策略根据视频画面尺寸短边长度分为三档：
+	 * <ul>
+	 *   <li>小尺寸视频（短边 &lt; 600px）：最小 120x120，最大 150x150</li>
+	 *   <li>大尺寸视频（短边 &ge; 1920px）：最小 250x250，最大 400x400</li>
+	 *   <li>中等尺寸视频（其他）：最小 150x150，最大 250x250</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	private BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> sizeLimitStrategy = (width, height) -> {
+		int shorter = Math.min(width, height);
+		if (shorter < 600) { // 小图
+			return Pair.of(new ImageSize(120, 120), new ImageSize(150, 150));
+		} else if (shorter >= 1920) { // 大图（注意：>=1920）
+			return Pair.of(new ImageSize(250, 250), new ImageSize(400, 400));
+		} else { // 中等图
+			return Pair.of(new ImageSize(150, 150), new ImageSize(250, 250));
+		}
+	};
 
 	/**
 	 * 获取水印相对尺寸
@@ -103,19 +131,21 @@ public class ImageWatermarkOption {
 	 * @return 相对尺寸比例值
 	 * @since 1.1.0
 	 */
-	public double getRelativeScale() {
-		return relativeScale;
+	public double getRelativeScaleFactor() {
+		return relativeScaleFactor;
 	}
 
 	/**
-	 * 设置水印相对尺寸
+	 * 设置水印的相对缩放比例（相对原视频尺寸）。
+	 * 必须为正数；非正数将被忽略并保持当前值。
+	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
-	 * @param relativeScale 相对尺寸比例，必须大于 0
+	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
 	 * @since 1.1.0
 	 */
-	public void setRelativeScale(double relativeScale) {
-		if (relativeScale > 0) {
-			this.relativeScale = relativeScale;
+	public void setRelativeScaleFactor(double relativeScaleFactor) {
+		if (relativeScaleFactor > 0) {
+			this.relativeScaleFactor = relativeScaleFactor;
 		}
 	}
 
@@ -191,19 +221,19 @@ public class ImageWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getMargin() {
-		return margin;
+	public int getInset() {
+		return inset;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param margin 边距值，必须大于等于 0
+	 * @param inset 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setMargin(int margin) {
-		if (margin >= 0) {
-			this.margin = margin;
+	public void setInset(int inset) {
+		if (inset >= 0) {
+			this.inset = inset;
 		}
 	}
 
@@ -224,19 +254,38 @@ public class ImageWatermarkOption {
 	 * @since 1.1.0
 	 */
 	public void setDirection(WatermarkDirection direction) {
-		if (Objects.nonNull(direction)) {
-			this.direction = direction;
+		this.direction = direction;
+	}
+
+	/**
+	 * 获取当前的水印尺寸限制策略。
+	 *
+	 * @return 计算最小/最大尺寸的策略函数
+	 * @since 1.1.0
+	 */
+	public BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> getSizeLimitStrategy() {
+		return sizeLimitStrategy;
+	}
+
+	/**
+	 * 设置水印尺寸限制策略。
+	 * <p>
+	 * 允许自定义策略，根据目标图像尺寸动态决定水印的尺寸上下限。
+	 * </p>
+	 *
+	 * @param sizeLimitStrategy 水印尺寸限制策略，不能为 null；如果为 null 则忽略并保持原策略
+	 * @since 1.1.0
+	 */
+	public void setSizeLimitStrategy(BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> sizeLimitStrategy) {
+		if (Objects.nonNull(sizeLimitStrategy)) {
+			this.sizeLimitStrategy = sizeLimitStrategy;
 		}
 	}
 
 	/**
-	 * 将图片水印配置转换为 FFmpeg 滤镜字符串
+	 * 获取当前的水印尺寸限制策略。
 	 *
-	 * @param imageFile 水印图片文件
-	 * @param grabber   FFmpeg 帧抓取器，用于获取视频尺寸
-	 * @return FFmpeg overlay 滤镜字符串
-	 * @throws IOException              操作失败时抛出
-	 * @throws IllegalArgumentException 当参数无效时抛出
+	 * @return 计算最小/最大尺寸的策略函数
 	 * @since 1.1.0
 	 */
 	public String toFFmpegFilter(File imageFile, FFmpegFrameGrabber grabber) throws IOException {
@@ -253,23 +302,31 @@ public class ImageWatermarkOption {
 	/**
 	 * 将图片水印配置转换为 FFmpeg 滤镜字符串
 	 *
-	 * @param imageFile   水印图片文件
-	 * @param videoWith   视频宽度
-	 * @param videoHeight 视频高度
+	 * @param watermarkImage 水印图片文件
+	 * @param videoWith      视频宽度
+	 * @param videoHeight    视频高度
 	 * @return FFmpeg overlay 滤镜字符串
 	 * @throws IOException              操作失败时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @since 1.1.0
 	 */
-	public String toFFmpegFilter(File imageFile, int videoWith, int videoHeight) throws IOException {
+	public String toFFmpegFilter(File watermarkImage, int videoWith, int videoHeight) throws IOException {
 		Validate.isTrue(videoWith > 0, "videoWith 必须大于0");
 		Validate.isTrue(videoHeight > 0, "videoHeight 必须大于0");
-		Validate.isTrue(FileUtils.isImageType(imageFile), "imageFile 不是图片文件");
+		Validate.isTrue(FileUtils.isImageType(watermarkImage), "imageFile 不是图片文件");
+
+		Pair<ImageSize, ImageSize> watermarkImageSizeRange = sizeLimitStrategy.apply(videoWith, videoHeight);
 
 		return FFmpegFiltersBuilder.video()
-			.addFileSource("wm", imageFile)
-			.appendAliasFilter("wm", "scale=" + (videoWith > videoHeight ?
-				String.format("iw*%.2f:-1", relativeScale) : String.format("-1:ih*%.2f", relativeScale)))
+			.addFileSource("wm", watermarkImage)
+			.appendAliasFilter("wm", "scale", String.format(
+				"w='if(gt(iw,ih),min(%d\\,max(%d\\,%d)),-1)':h='if(gt(ih,iw),min(%d\\,max(%d\\,%d)),-1)'",
+				watermarkImageSizeRange.getRight().getWidth(),
+				watermarkImageSizeRange.getLeft().getWidth(),
+				(int) (videoWith * relativeScaleFactor),
+				watermarkImageSizeRange.getRight().getHeight(),
+				watermarkImageSizeRange.getLeft().getHeight(),
+				(int) (videoHeight * relativeScaleFactor)))
 			.appendAliasFilter("wm", "format=rgba")
 			.appendAliasFilter("wm", "colorchannelmixer", "aa=" + opacity)
 			.addGlobalFilter("overlay", computePositionArgs(), "format=auto")
@@ -284,26 +341,26 @@ public class ImageWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + margin, y + margin);
+			return String.format("x=%d:y=%d", x + inset, y + inset);
 		}
 
 		switch (direction) {
 			case TOP:
-				return String.format("x=%s:y=%d", "(W-w)/2", margin);
+				return String.format("x=%s:y=%d", "(W-w)/2", inset);
 			case TOP_LEFT:
-				return String.format("x=%d:y=%d", margin, margin);
+				return String.format("x=%d:y=%d", inset, inset);
 			case TOP_RIGHT:
-				return String.format("x=%s:y=%d", "W-w-" + margin, margin);
+				return String.format("x=%s:y=%d", "W-w-" + inset, inset);
 			case BOTTOM:
-				return String.format("x=%s:y=%s", "(W-w)/2", "H-h-" + margin);
+				return String.format("x=%s:y=%s", "(W-w)/2", "H-h-" + inset);
 			case BOTTOM_LEFT:
-				return String.format("x=%d:y=%s", margin, "H-h-" + margin);
+				return String.format("x=%d:y=%s", inset, "H-h-" + inset);
 			case BOTTOM_RIGHT:
-				return String.format("x=%s:y=%s", "W-w-" + margin, "H-h-" + margin);
+				return String.format("x=%s:y=%s", "W-w-" + inset, "H-h-" + inset);
 			case LEFT:
-				return String.format("x=%d:y=%s", margin, "(H-h)/2");
+				return String.format("x=%d:y=%s", inset, "(H-h)/2");
 			case RIGHT:
-				return String.format("x=%s:y=%s", "W-w-" + margin, "(H-h)/2");
+				return String.format("x=%s:y=%s", "W-w-" + inset, "(H-h)/2");
 			case CENTER:
 			default:
 				return String.format("x=%s:y=%s", "(W-w)/2", "(H-h)/2");

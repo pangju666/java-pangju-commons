@@ -57,12 +57,11 @@ import java.util.function.IntBinaryOperator;
  * // 使用字体文件
  * TextWatermarkOption option = new TextWatermarkOption(new File("font.ttf"));
  * option.setOpacity(0.5f);
- * option.setFontSize(48);
  * }</pre>
  *
  * @author pangju666
  * @see ImageWatermarkOption
- * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @see WatermarkDirection
  * @since 1.1.0
  */
 public class TextWatermarkOption {
@@ -86,13 +85,6 @@ public class TextWatermarkOption {
 	 * @since 1.1.0
 	 */
 	protected float opacity = 0.4f;
-
-	/**
-	 * 字体大小（像素），0 表示使用自适应策略
-	 *
-	 * @since 1.1.0
-	 */
-	protected int fontSize = 0;
 
 	/**
 	 * 描边颜色，默认黑色
@@ -141,7 +133,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected int margin = 20;
+	protected int inset = 20;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
@@ -225,28 +217,6 @@ public class TextWatermarkOption {
 	}
 
 	/**
-	 * 获取字体大小
-	 *
-	 * @return 字体大小（像素），0 表示使用自适应策略
-	 * @since 1.1.0
-	 */
-	public int getFontSize() {
-		return fontSize;
-	}
-
-	/**
-	 * 设置字体大小
-	 *
-	 * @param fontSize 字体大小（像素），必须大于 0
-	 * @since 1.1.0
-	 */
-	public void setFontSize(int fontSize) {
-		if (fontSize > 0) {
-			this.fontSize = fontSize;
-		}
-	}
-
-	/**
 	 * 获取描边颜色
 	 *
 	 * @return 描边颜色
@@ -257,7 +227,8 @@ public class TextWatermarkOption {
 	}
 
 	/**
-	 * 设置描边颜色
+	 * 设置描边颜色。
+	 * 参数为 {@code null} 时忽略。
 	 *
 	 * @param strokeColor 描边颜色
 	 * @since 1.1.0
@@ -279,7 +250,8 @@ public class TextWatermarkOption {
 	}
 
 	/**
-	 * 设置填充颜色
+	 * 设置填充颜色。
+	 * 参数为 {@code null} 时忽略。
 	 *
 	 * @param fillColor 填充颜色
 	 * @since 1.1.0
@@ -382,19 +354,19 @@ public class TextWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getMargin() {
-		return margin;
+	public int getInset() {
+		return inset;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param margin 边距值，必须大于等于 0
+	 * @param inset 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setMargin(int margin) {
-		if (margin >= 0) {
-			this.margin = margin;
+	public void setInset(int inset) {
+		if (inset >= 0) {
+			this.inset = inset;
 		}
 	}
 
@@ -415,9 +387,7 @@ public class TextWatermarkOption {
 	 * @since 1.1.0
 	 */
 	public void setDirection(WatermarkDirection direction) {
-		if (Objects.nonNull(direction)) {
-			this.direction = direction;
-		}
+		this.direction = direction;
 	}
 
 	/**
@@ -455,7 +425,7 @@ public class TextWatermarkOption {
 	public String toFFmpegFilter(final String text, final FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
 
-		if (!FFmpegUtils.isNotStarted(grabber)) {
+		if (FFmpegUtils.isNotStarted(grabber)) {
 			grabber.start();
 		}
 		Validate.isTrue(grabber.hasVideo(), "grabber 不存在视频流");
@@ -484,7 +454,7 @@ public class TextWatermarkOption {
 					fontFile.getAbsolutePath())) : String.format("font=%s", fontName),
 				computePositionArgs(),
 				"alpha=" + opacity,
-				"fontsize=" + (fontSize > 0 ? fontSize : fontSizeStrategy.applyAsInt(videoWith, videoHeight)),
+				"fontsize=" + fontSizeStrategy.applyAsInt(videoWith, videoHeight),
 				"fontcolor=" + ImageUtils.toHexColor(fillColor),
 				stroke ? "borderw=" + strokeWidth : StringUtils.EMPTY,
 				stroke ? "bordercolor=" + ImageUtils.toHexColor(strokeColor) : StringUtils.EMPTY)
@@ -499,26 +469,26 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + margin, y + margin);
+			return String.format("x=%d:y=%d", x + inset, y + inset);
 		}
 
 		switch (direction) {
 			case TOP:
-				return String.format("x=%s:y=%d", "(w-text_w)/2", margin);
+				return String.format("x=%s:y=%d", "(w-text_w)/2", inset);
 			case TOP_LEFT:
-				return String.format("x=%d:y=%d", margin, margin);
+				return String.format("x=%d:y=%d", inset, inset);
 			case TOP_RIGHT:
-				return String.format("x=%s:y=%d", "w-text_w-" + margin, margin);
+				return String.format("x=%s:y=%d", "w-text_w-" + inset, inset);
 			case BOTTOM:
-				return String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + margin);
+				return String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + inset);
 			case BOTTOM_LEFT:
-				return String.format("x=%d:y=%s", margin, "h-text_h-" + margin);
+				return String.format("x=%d:y=%s", inset, "h-text_h-" + inset);
 			case BOTTOM_RIGHT:
-				return String.format("x=%s:y=%s", "w-text_w-" + margin, "h-text_h-" + margin);
+				return String.format("x=%s:y=%s", "w-text_w-" + inset, "h-text_h-" + inset);
 			case LEFT:
-				return String.format("x=%d:y=%s", margin, "(h-text_h)/2");
+				return String.format("x=%d:y=%s", inset, "(h-text_h)/2");
 			case RIGHT:
-				return String.format("x=%s:y=%s", "w-text_w-" + margin, "(h-text_h)/2");
+				return String.format("x=%s:y=%s", "w-text_w-" + inset, "(h-text_h)/2");
 			case CENTER:
 			default:
 				return String.format("x=%s:y=%s", "(w-text_w)/2", "(h-text_h)/2");
