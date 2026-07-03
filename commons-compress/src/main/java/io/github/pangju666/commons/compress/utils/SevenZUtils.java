@@ -73,9 +73,9 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
- * @since 1.0.0
  * @see SevenZFile
  * @see SevenZOutputFile
+ * @since 1.0.0
  */
 public class SevenZUtils {
 	protected SevenZUtils() {
@@ -135,11 +135,8 @@ public class SevenZUtils {
 	 */
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
+		Validate.isTrue(is7z(inputFile), "inputFile 不是7z压缩文件");
 
-		String mimeType = FileUtils.getMimeType(inputFile);
-		if (!CompressConstants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是7z类型文件");
-		}
 		try (SevenZFile sevenZFile = SevenZFile.builder().setFile(inputFile).get()) {
 			uncompress(sevenZFile, outputDir);
 		}

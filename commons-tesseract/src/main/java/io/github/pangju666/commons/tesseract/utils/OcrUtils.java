@@ -20,6 +20,7 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.tesseract.lang.TesseractConstants;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.leptonica.PIX;
@@ -281,9 +282,8 @@ public class OcrUtils {
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final byte[] imageData) throws IOException {
-		Validate.notNull(imageData, "imageData 不可为 null");
-		Validate.isTrue(imageData.length > 0, "imageData 不可为空");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(ArrayUtils.isNotEmpty(imageData), "imageData 不可为空");
 		String mimeType = IOConstants.getDefaultTika().detect(imageData);
 		Validate.isTrue(TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
 

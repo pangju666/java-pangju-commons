@@ -86,9 +86,9 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
- * @see org.apache.commons.compress.archivers.zip.ZipFile
- * @see org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
- * @see org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
+ * @see ZipFile
+ * @see ZipArchiveInputStream
+ * @see ZipArchiveOutputStream
  * @since 1.0.0
  */
 public class ZipUtils {
@@ -183,11 +183,8 @@ public class ZipUtils {
 	 */
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
+		Validate.isTrue(isZip(inputFile), "inputFile 不是zip压缩文件");
 
-		String mimeType = FileUtils.getMimeType(inputFile);
-		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是zip类型文件");
-		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			uncompress(zipArchiveInputStream, outputDir);
@@ -226,11 +223,8 @@ public class ZipUtils {
 	 */
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(isZip(bytes), "bytes 不是zip压缩文件数据");
 
-		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是zip类型文件");
-		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 			 ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			uncompress(zipArchiveInputStream, outputDir);

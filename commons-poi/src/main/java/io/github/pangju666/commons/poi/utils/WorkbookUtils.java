@@ -26,10 +26,7 @@ import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.common.usermodel.HyperlinkType;
@@ -236,9 +233,8 @@ public class WorkbookUtils {
 	 */
 	public static Workbook getWorkbook(final File file) throws IOException {
 		String mimeType = FileUtils.getMimeType(file);
-		if (!StringUtils.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLSX_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是 xlsx 或 xls文件");
-		}
+		Validate.isTrue(StringUtils.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
+			PoiConstants.XLSX_MIME_TYPE), "file 不是 xlsx 或 xls文件");
 
 		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			switch (mimeType) {
@@ -269,9 +265,8 @@ public class WorkbookUtils {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!StringUtils.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLSX_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是 xlsx 或 xls文件字节数组");
-		}
+		Validate.isTrue(StringUtils.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
+			PoiConstants.XLSX_MIME_TYPE), "bytes 不是 xlsx 或 xls 文件数据");
 
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		switch (mimeType) {
@@ -2035,8 +2030,7 @@ public class WorkbookUtils {
 	 * @throws IllegalArgumentException 如果sheet为null或rowNum小于0
 	 * @since 1.0.0
 	 */
-	public static void writeRowAt(final Sheet sheet, final Collection<Pair<?, Integer>> valueIndexPairs,
-								 final int rowNum) {
+	public static void writeRowAt(final Sheet sheet, final Collection<Pair<?, Integer>> valueIndexPairs, final int rowNum) {
 		writeRowAt(sheet, valueIndexPairs, rowNum, null);
 	}
 

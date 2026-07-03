@@ -80,9 +80,9 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
- * @see org.apache.commons.compress.archivers.tar.TarFile
- * @see org.apache.commons.compress.archivers.tar.TarArchiveInputStream
- * @see org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+ * @see TarFile
+ * @see TarArchiveInputStream
+ * @see TarArchiveOutputStream
  * @since 1.0.0
  */
 public class TarUtils {
@@ -144,11 +144,8 @@ public class TarUtils {
 	 */
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
+		Validate.isTrue(isTar(inputFile), "inputFile 不是tar压缩文件");
 
-		String mimeType = FileUtils.getMimeType(inputFile);
-		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是tar类型文件");
-		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
@@ -167,11 +164,8 @@ public class TarUtils {
 	 */
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(isTar(bytes), "bytes 不是tar压缩文件数据");
 
-		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是tar类型文件");
-		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
@@ -481,12 +475,12 @@ public class TarUtils {
 	 * - 有父前缀且父前缀以分隔符结尾：{@code parent + inputFile.getName()}
 	 * - 有父前缀但不以分隔符结尾：{@code parent + PATH_SEPARATOR + inputFile.getName()}
 	 * </p>
-	 * 输入流采用 try-with-resources 自动关闭；条目内容通过 {@link java.io.InputStream#transferTo(java.io.OutputStream)} 写入。
+	 * 输入流采用 try-with-resources 自动关闭；条目内容通过 {@link InputStream#transferTo(OutputStream)} 写入。
 	 *
 	 * @param inputFile              要写入的文件
 	 * @param tarArchiveOutputStream 目标 TAR 输出流
 	 * @param parent                 归档内的父路径前缀，空或空白表示顶层
-	 * @throws IOException 打开文件或写入条目内容时发生的 I/O 异常（包括 {@link java.io.FileNotFoundException}）
+	 * @throws IOException 打开文件或写入条目内容时发生的 I/O 异常（包括 {@link FileNotFoundException}）
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {

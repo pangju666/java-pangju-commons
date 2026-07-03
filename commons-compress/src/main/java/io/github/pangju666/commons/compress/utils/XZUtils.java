@@ -36,9 +36,9 @@ import java.util.Objects;
  * <h3>核心特性</h3>
  * <ul>
  *   <li>单文件/流式压缩：适用于对单个文件或输入流进行压缩，输出为 {@code .xz}。</li>
- *   <li>多输入与输出：支持 {@link java.io.File} 与 {@link java.io.InputStream} 输入，输出到 {@link java.io.OutputStream} 或 {@link java.io.File}。</li>
+ *   <li>多输入与输出：支持 {@link File} 与 {@link InputStream} 输入，输出到 {@link OutputStream} 或 {@link File}。</li>
  *   <li>格式校验：通过 Tika 进行 MIME 类型检测；文件/字节数组版本在调用前校验，输入流版本不预校验。</li>
- *   <li>性能优化：广泛使用缓冲与 {@link java.io.InputStream#transferTo(java.io.OutputStream)}。</li>
+ *   <li>性能优化：广泛使用缓冲与 {@link InputStream#transferTo(OutputStream)}。</li>
  *   <li>资源管理：采用 try-with-resources 自动释放内部创建的包装流。</li>
  * </ul>
  *
@@ -249,20 +249,17 @@ public class XZUtils {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (inputStream instanceof XZCompressorInputStream) {
-			XZCompressorInputStream compressorInputStream = (XZCompressorInputStream) inputStream;
 			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
-				compressorInputStream.transferTo(bufferedOutputStream);
+				inputStream.transferTo(outputStream);
 			} else {
 				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
-					compressorInputStream.transferTo(bufferedOutputStream);
+					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
 		} else if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 			try (XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(inputStream)) {
 				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
-					compressorInputStream.transferTo(bufferedOutputStream);
+					compressorInputStream.transferTo(outputStream);
 				} else {
 					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
@@ -273,8 +270,7 @@ public class XZUtils {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
 				if (outputStream instanceof BufferedOutputStream) {
-					BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
-					compressorInputStream.transferTo(bufferedOutputStream);
+					compressorInputStream.transferTo(outputStream);
 				} else {
 					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
@@ -297,13 +293,12 @@ public class XZUtils {
 	 */
 	public static void uncompress(File inputFile, OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		checkInputFile(inputFile);
+		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 			 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
 			if (outputStream instanceof BufferedOutputStream) {
-				BufferedOutputStream bufferedOutputStream = (BufferedOutputStream) outputStream;
-				compressorInputStream.transferTo(bufferedOutputStream);
+				compressorInputStream.transferTo(outputStream);
 			} else {
 				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
@@ -325,7 +320,7 @@ public class XZUtils {
 	 */
 	public static void uncompress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		checkInputFile(inputFile);
+		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
@@ -333,23 +328,6 @@ public class XZUtils {
 			 OutputStream outputStream = FileUtils.openOutputStream(outputFile);
 			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 			compressorInputStream.transferTo(bufferedOutputStream);
-		}
-	}
-
-	/**
-	 * 校验输入文件是否存在且为 XZ 格式。
-	 * <p>通过 Tika 的 MIME 类型检测；当格式不匹配时抛出 {@link IllegalArgumentException}。</p>
-	 *
-	 * @param inputFile 待校验的输入文件，非空
-	 * @throws NullPointerException     当 {@code inputFile} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不是有效的 XZ 格式时抛出
-	 * @throws IOException              当文件访问发生 I/O 异常时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkInputFile(File inputFile) throws IOException {
-		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
-		if (!FileUtils.isMimeType(inputFile, CompressConstants.XZ_MIME_TYPE)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是xz类型文件");
 		}
 	}
 }
