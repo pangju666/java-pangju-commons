@@ -291,7 +291,7 @@ public class XZUtils {
 	 */
 	public static void uncompress(File inputFile, OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		checkInputFile(inputFile);
+		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 		     XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
@@ -318,7 +318,7 @@ public class XZUtils {
 	 */
 	public static void uncompress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		checkInputFile(inputFile);
+		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
@@ -326,23 +326,6 @@ public class XZUtils {
 		     OutputStream outputStream = FileUtils.openOutputStream(outputFile);
 		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 			compressorInputStream.transferTo(bufferedOutputStream);
-		}
-	}
-
-	/**
-	 * 校验输入文件是否存在且为 XZ 格式。
-	 * <p>通过 Tika 的 MIME 类型检测；当格式不匹配时抛出 {@link IllegalArgumentException}。</p>
-	 *
-	 * @param inputFile 待校验的输入文件，非空
-	 * @throws NullPointerException     当 {@code inputFile} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不是有效的 XZ 格式时抛出
-	 * @throws IOException              当文件访问发生 I/O 异常时抛出
-	 * @since 1.0.0
-	 */
-	protected static void checkInputFile(File inputFile) throws IOException {
-		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
-		if (!FileUtils.isMimeType(inputFile, CompressConstants.XZ_MIME_TYPE)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是xz类型文件");
 		}
 	}
 }

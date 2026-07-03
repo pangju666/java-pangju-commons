@@ -28,6 +28,7 @@ import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.image.model.ImageWatermarkOption;
 import io.github.pangju666.commons.image.model.TextWatermarkOption;
+import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
@@ -38,6 +39,7 @@ import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -430,10 +432,15 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final boolean correctOrientation) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
+		String mimeType = ImageUtils.getMimeType(file);
+		Validate.isTrue(Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
+			"file 不是图像文件");
 
 		String inputFormat = FilenameUtils.getExtension(file.getName()).toUpperCase();
-		Validate.isTrue(ImageConstants.getSupportedReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
+		if (!ImageConstants.getSupportedReadImageFormats().contains(inputFormat)) {
+			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
+				"不支持读取 " + mimeType+ " 类型图像");
+		}
 
 		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 		if (correctOrientation) {
@@ -469,10 +476,15 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final File file, final int exifOrientation) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
+		String mimeType = ImageUtils.getMimeType(file);
+		Validate.isTrue(Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
+			"file 不是图像文件");
 
 		String inputFormat = FilenameUtils.getExtension(file.getName()).toUpperCase();
-		Validate.isTrue(ImageConstants.getSupportedReadImageFormats().contains(inputFormat), "不支持读取该图像格式");
+		if (!ImageConstants.getSupportedReadImageFormats().contains(inputFormat)) {
+			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
+				"不支持读取 " + mimeType+ " 类型图像");
+		}
 
 		BufferedImage bufferedImage = ImageIO.read(file);
 		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
@@ -539,19 +551,39 @@ public class ImageEditor {
 		BufferedImage bufferedImage;
 
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
+			String mimeType = IOConstants.getDefaultTika().detect(inputStream);
+			Validate.isTrue(Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
+				"inputStream 不是图像数据输入流");
+			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
+				"不支持读取 " + mimeType+ " 类型图像");
+
 			try {
 				exifOrientation = ImageUtils.getExifOrientation(inputStream);
 			} catch (ImageProcessingException | IOException ignored) {
+			} finally {
+				inputStream.reset();
 			}
-			inputStream.reset();
+
 			bufferedImage = ImageIO.read(inputStream);
 		} else {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
+			InputStream bytesInputStream = outputStream.toInputStream();
+
+			String mimeType = IOConstants.getDefaultTika().detect(bytesInputStream);
+			Validate.isTrue(Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
+				"inputStream 不是图像数据输入流");
+			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
+				"不支持读取 " + mimeType+ " 类型图像");
+			bytesInputStream.reset();
+
 			try {
-				exifOrientation = ImageUtils.getExifOrientation(outputStream.toInputStream());
+				exifOrientation = ImageUtils.getExifOrientation(bytesInputStream);
 			} catch (ImageProcessingException | IOException ignored) {
+			} finally {
+				bytesInputStream.reset();
 			}
-			bufferedImage = ImageIO.read(outputStream.toInputStream());
+
+			bufferedImage = ImageIO.read(bytesInputStream);
 		}
 
 		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);

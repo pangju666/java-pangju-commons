@@ -23,6 +23,7 @@ import io.github.pangju666.commons.pdf.lang.PdfConstants;
 import io.github.pangju666.commons.pdf.model.Bookmark;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
@@ -303,9 +304,8 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final File file) throws IOException {
-		if (!FileUtils.isMimeType(file, PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件");
-		}
+		Validate.isTrue(isPDF(file), "file 不是PDF文件");
+
 		return Loader.loadPDF(file, computeMemoryUsageSetting(file.length()).streamCache);
 	}
 
@@ -333,9 +333,8 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final File file, final String password) throws IOException {
-		if (!FileUtils.isMimeType(file, PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件");
-		}
+		Validate.isTrue(isPDF(file), "file 不是PDF文件");
+
 		return Loader.loadPDF(file, password, computeMemoryUsageSetting(file.length()).streamCache);
 	}
 
@@ -361,10 +360,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final byte[] bytes) throws IOException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
-		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件字节数组");
-		}
+		Validate.isTrue(isPDF(bytes), "bytes 不是PDF文件数据");
 
 		return Loader.loadPDF(bytes, "", null, null,
 			computeMemoryUsageSetting(bytes.length).streamCache);
@@ -393,10 +389,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static PDDocument getDocument(final byte[] bytes, final String password) throws IOException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
-		if (!IOConstants.getDefaultTika().detect(bytes).equals(PdfConstants.PDF_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是一个 PDF 文件字节数组");
-		}
+		Validate.isTrue(isPDF(bytes), "bytes 不是PDF文件数据");
 
 		return Loader.loadPDF(bytes, password, null, null,
 			computeMemoryUsageSetting(bytes.length).streamCache);
@@ -560,6 +553,8 @@ public class PDDocumentUtils {
 	public static void addImage(final PDDocument document, final byte[] bytes, final int page) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
+			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
 
 		PDImageXObject imageObject = PDImageXObject.createFromByteArray(document, bytes, null);
 		addImageToDocument(document, imageObject, page, 0, 0, imageObject.getWidth(), imageObject.getHeight());
@@ -598,6 +593,8 @@ public class PDDocumentUtils {
 	                            final int x, final int y, final int width, final int height) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
+			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
 
 		PDImageXObject imageObject = PDImageXObject.createFromByteArray(document, bytes, null);
 		addImageToDocument(document, imageObject, page, x, y, width, height);
@@ -680,8 +677,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static void addImage(final PDDocument document, final File imageFile, final int page) throws IOException {
-		Validate.isTrue(page > 0, "page 不可为小于等于0");
-		FileUtils.checkFile(imageFile, "imageFile 不可为 null");
+		Validate.isTrue(FileUtils.isImageType(imageFile), "imageFile 不是图像文件");
 
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
 		addImageToDocument(document, imageObject, page, 0, 0, imageObject.getWidth(), imageObject.getHeight());
@@ -718,7 +714,7 @@ public class PDDocumentUtils {
 	 */
 	public static void addImage(final PDDocument document, final File imageFile, final int page,
 	                            final int x, final int y, final int width, final int height) throws IOException {
-		FileUtils.checkFile(imageFile, "imageFile 不可为 null");
+		Validate.isTrue(FileUtils.isImageType(imageFile), "imageFile 不是图像文件");
 
 		PDImageXObject imageObject = PDImageXObject.createFromFileByContent(imageFile, document);
 		addImageToDocument(document, imageObject, page, x, y, width, height);
@@ -888,7 +884,8 @@ public class PDDocumentUtils {
 	 * @see #getPagesAsImage(PDDocument, int, int)
 	 * @since 1.0.0
 	 */
-	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale, final int startPage, final int endPage) throws IOException {
+	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale, final int startPage,
+													  final int endPage) throws IOException {
 		if (Objects.isNull(document)) {
 			return Collections.emptyList();
 		}

@@ -42,10 +42,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.*;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -450,7 +447,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
+		Validate.isTrue(FileUtils.isImageType(file), "file 不是图像文件");
 
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
@@ -476,6 +473,7 @@ public class ImageUtils {
 			}
 		} catch (ImageProcessingException | IOException ignored) {
 		}
+
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;
@@ -535,9 +533,9 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
-		if (ArrayUtils.isEmpty(bytes)) {
-			return null;
-		}
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
+			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return parseSizeByByteArrayInputStream(inputStream, bytes.length, useMetadata);
@@ -599,6 +597,10 @@ public class ImageUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
+			Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(inputStream),
+				IOConstants.IMAGE_MIME_TYPE_PREFIX), "inputStream 不是图像数据输入流");
+			inputStream.reset();
+
 			return parseSizeByByteArrayInputStream(inputStream, inputStream.available(), useMetadata);
 		}
 
@@ -613,9 +615,14 @@ public class ImageUtils {
 
 		Integer orientation = null;
 		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-		try (InputStream tmpInputStream = outputStream.toInputStream()) {
-			Metadata metadata = ImageMetadataReader.readMetadata(tmpInputStream, outputStream.size());
 
+		InputStream bytesInputStream = outputStream.toInputStream();
+		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytesInputStream),
+			IOConstants.IMAGE_MIME_TYPE_PREFIX), "inputStream 不是图数据输入流");
+		bytesInputStream.reset();
+
+		try {
+			Metadata metadata = ImageMetadataReader.readMetadata(bytesInputStream, outputStream.size());
 			ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 			if (Objects.nonNull(exifIFD0Directory)) {
 				orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
@@ -626,9 +633,11 @@ public class ImageUtils {
 				return imageSize;
 			}
 		} catch (ImageProcessingException | IOException ignored) {
+		} finally {
+			bytesInputStream.reset();
 		}
-		try (InputStream tmpInputStream = outputStream.toInputStream();
-		     ImageInputStream imageInputStream = ImageIO.createImageInputStream(tmpInputStream)) {
+
+		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bytesInputStream)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;
 			}
@@ -722,7 +731,8 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final File file) throws IOException, ImageProcessingException {
-		FileUtils.checkFile(file, "file 不可为 null");
+		Validate.isTrue(FileUtils.isImageType(file), "file 不是图像文件");
+
 		Metadata metadata = ImageMetadataReader.readMetadata(file);
 		return getExifOrientation(metadata);
 	}
@@ -755,6 +765,8 @@ public class ImageUtils {
 	 */
 	public static int getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
+			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream, bytes.length);
@@ -905,8 +917,10 @@ public class ImageUtils {
 				return imageSize;
 			}
 		} catch (ImageProcessingException | IOException ignored) {
+		} finally {
+			inputStream.reset();
 		}
-		inputStream.reset();
+
 		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 			if (Objects.isNull(imageInputStream)) {
 				return null;

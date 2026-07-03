@@ -144,11 +144,8 @@ public class TarUtils {
 	 */
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
+		Validate.isTrue(isTar(inputFile), "inputFile 不是tar压缩文件");
 
-		String mimeType = FileUtils.getMimeType(inputFile);
-		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException(inputFile.getAbsolutePath() + "不是tar类型文件");
-		}
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
 		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
@@ -167,11 +164,8 @@ public class TarUtils {
 	 */
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+		Validate.isTrue(isTar(bytes), "bytes 不是tar压缩文件数据");
 
-		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {
-			throw new IllegalArgumentException("不是tar类型文件");
-		}
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
