@@ -63,6 +63,7 @@ import java.util.Objects;
  * <p>
  * 提供图像信息获取功能，包括但不限于以下方面：
  * <ul>
+ *   <li><b>图像类型检测</b> - 检测文件、字节数组或输入流是否为图像类型（支持多种数据源）</li>
  *   <li><b>图像元数据读取</b> - 读取EXIF信息</li>
  *   <li><b>图像格式检测</b> - 基于文件内容检测 MIME 类型（支持 JPEG、PNG、GIF、BMP、WebP 等）</li>
  *   <li><b>图像尺寸获取</b> - 解析原始尺寸并提取 EXIF 方向信息</li>
@@ -76,7 +77,14 @@ import java.util.Objects;
  *   <li>图像上传时的格式验证和尺寸获取</li>
  *   <li>图像处理前的 EXIF 方向校正</li>
  *   <li>图像格式转换时的 MIME 类型检查</li>
+ *   <li>文件处理前的图像类型快速检测</li>
  * </ol>
+ *
+ * <p><b>关于图像类型检测：</b></p>
+ * <p>
+ * 使用 {@link #isImage(File)}、{@link #isImage(byte[])} 或 {@link #isImage(InputStream)} 可快速检测数据是否为图像。
+ * 基于 Apache Tika 进行内容检测，不依赖文件扩展名，支持 JPEG、PNG、GIF、BMP、WebP、TIFF 等常见图像格式。
+ * </p>
  *
  * <p><b>关于图像尺寸：</b></p>
  * <p>
@@ -215,6 +223,86 @@ public class ImageUtils {
 			return false;
 		}
 		return ImageConstants.getSupportedWriteImageTypes().contains(imageMimeType);
+	}
+
+	/**
+	 * 检测文件是否为图像类型
+	 * <p>
+	 * 基于文件内容检测其是否为图像，通过 Apache Tika 解析 MIME 类型并判断是否以 "image/" 开头。
+	 * 此方法不依赖文件扩展名，而是通过分析文件内容来判断。
+	 * </p>
+	 *
+	 * <p><b>支持的图像格式（取决于环境）：</b></p>
+	 * <ul>
+	 *   <li>image/jpeg (JPEG)</li>
+	 *   <li>image/png (PNG)</li>
+	 *   <li>image/gif (GIF)</li>
+	 *   <li>image/bmp (BMP)</li>
+	 *   <li>image/webp (WebP)</li>
+	 *   <li>image/tiff (TIFF)</li>
+	 * </ul>
+	 *
+	 * @param file 待检测的文件，必须非 null 且存在可读
+	 * @return true 表示文件为图像类型，false 表示不是或检测失败
+	 * @throws IOException              当文件无法读取时抛出
+	 * @throws IllegalArgumentException 当 file 为 null 时抛出
+	 * @see FileUtils#isImageType(File)
+	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
+	 * @since 1.1.0
+	 */
+	public static boolean isImage(final File file) throws IOException {
+		return FileUtils.isImageType(file);
+	}
+
+	/**
+	 * 检测字节数组是否为图像数据
+	 * <p>
+	 * 通过 Apache Tika 解析字节数组内容，检测其 MIME 类型是否以 "image/" 开头。
+	 * 适用于内存中图像数据的类型检测。
+	 * </p>
+	 *
+	 * <p><b>注意事项：</b></p>
+	 * <ul>
+	 *   <li>基于内容魔数检测，不依赖文件扩展名</li>
+	 *   <li>对于大字节数组，建议使用流式处理以节省内存</li>
+	 * </ul>
+	 *
+	 * @param bytes 待检测的字节数组，允许为 null 或空（此时返回 false）
+	 * @return true 表示数据为图像类型，false 表示不是或检测失败
+	 * @see IOConstants#getDefaultTika()
+	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
+	 * @since 1.1.0
+	 */
+	public static boolean isImage(final byte[] bytes) {
+		if (ArrayUtils.isEmpty(bytes)) {
+			return false;
+		}
+		return Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes), IOConstants.IMAGE_MIME_TYPE_PREFIX);
+	}
+
+	/**
+	 * 检测输入流是否为图像数据
+	 * <p>
+	 * 通过 Apache Tika 解析输入流内容，检测其 MIME 类型是否以 "image/" 开头。
+	 * </p>
+	 *
+	 * <p><b>流处理规则：</b></p>
+	 * <ul>
+	 *   <li>流不会被关闭（调用者负责）</li>
+	 * </ul>
+	 *
+	 * @param inputStream 待检测的输入流，允许为 null（此时返回 false）
+	 * @return true 表示流数据为图像类型，false 表示不是或检测失败
+	 * @throws IOException 当读取流失败时抛出
+	 * @see IOConstants#getDefaultTika()
+	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
+	 * @since 1.1.0
+	 */
+	public static boolean isImage(final InputStream inputStream) throws IOException {
+		if (Objects.isNull(inputStream)) {
+			return false;
+		}
+		return Strings.CS.startsWith(IOConstants.getDefaultTika().detect(inputStream), IOConstants.IMAGE_MIME_TYPE_PREFIX);
 	}
 
 	/**
@@ -533,9 +621,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final byte[] bytes, final boolean useMetadata) throws IOException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
-		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
-			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
+		Validate.isTrue(isImage(bytes), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return parseSizeByByteArrayInputStream(inputStream, bytes.length, useMetadata);
@@ -597,8 +683,7 @@ public class ImageUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
-			Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(inputStream),
-				IOConstants.IMAGE_MIME_TYPE_PREFIX), "inputStream 不是图像数据输入流");
+			Validate.isTrue(isImage(inputStream), "inputStream 不是图像数据输入流");
 			inputStream.reset();
 
 			return parseSizeByByteArrayInputStream(inputStream, inputStream.available(), useMetadata);
@@ -617,8 +702,7 @@ public class ImageUtils {
 		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
 
 		InputStream bytesInputStream = outputStream.toInputStream();
-		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytesInputStream),
-			IOConstants.IMAGE_MIME_TYPE_PREFIX), "inputStream 不是图数据输入流");
+		Validate.isTrue(isImage(bytesInputStream), "inputStream 不是图数据输入流");
 		bytesInputStream.reset();
 
 		try {
@@ -764,9 +848,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
-		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
-		Validate.isTrue(Strings.CS.startsWith(IOConstants.getDefaultTika().detect(bytes),
-			IOConstants.IMAGE_MIME_TYPE_PREFIX), "bytes 不是图像数据");
+		Validate.isTrue(isImage(bytes), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream, bytes.length);

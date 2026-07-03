@@ -57,7 +57,7 @@ import java.util.Objects;
 /**
  * 图像编辑器（链式调用风格）
  * <p>
- * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、以及图片/文字水印等常见操作。<br />
+ * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
  * 支持以文件、输入流、{@link ImageInputStream}与 {@link BufferedImage} 作为输入源，并可输出为文件、输出流、{@link ImageOutputStream}或 {@link BufferedImage}。<br />
  * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
@@ -72,9 +72,9 @@ import java.util.Objects;
  *     <ul>
  *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式，默认使用高质量 Lanczos 滤波。</li>
  *       <li>调整：旋转、翻转、裁剪。</li>
- *       <li>调色：亮度、对比度、灰度化、饱和度（通过滤镜）。</li>
+ *       <li>调色：亮度、对比度、灰度化、透明度调整。</li>
  *       <li>特效：模糊、锐化、自定义滤镜。</li>
- *       <li>水印：支持图片和文字水印。</li>
+ *       <li>水印：支持图片和文字水印，提供九宫格方向定位和自定义坐标两种方式。</li>
  *     </ul>
  *   </li>
  * </ul>
@@ -106,6 +106,7 @@ import java.util.Objects;
  *   <li>灰度化</li>
  *   <li>修改亮度</li>
  *   <li>修改对比度</li>
+ *   <li>调整透明度</li>
  *   <li>锐化或模糊（这两个效果互斥，一般不会同时用）</li>
  *   <li>滤镜</li>
  *   <li>添加水印</li>
@@ -140,8 +141,8 @@ import java.util.Objects;
  *
  * // 4. 旋转与翻转
  * ImageEditor.of(new File("input.jpg"))
- *     .rotate(ImageUtil.ROTATE_90_CW) // 顺时针旋转 90 度
- *     .flip(ImageUtil.FLIP_HORIZONTAL)// 水平翻转
+ *     .rotate(RotateDirection.CW_90)  // 顺时针旋转 90 度
+ *     .flip(FlipDirection.HORIZONTAL) // 水平翻转
  *     .toFile(new File("out_rotate.jpg"));
  *
  * // 5. 色彩与滤镜
@@ -151,6 +152,7 @@ import java.util.Objects;
  *     .sharpen(0.3f)                  // 锐化
  *     .contrast(0.2f)                 // 增加对比度
  *     .brightness(0.1f)               // 增加亮度
+ *     .transparency(0.5f)             // 调整透明度为 50%
  *     .filter(new GrayFilter())       // 应用自定义滤镜（支持 java.awt.image.ImageFilter）
  *     .toFile(new File("out_filter.jpg"));
  *
@@ -556,6 +558,7 @@ public class ImageEditor {
 				"inputStream 不是图像数据输入流");
 			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
 				"不支持读取 " + mimeType+ " 类型图像");
+			inputStream.reset();
 
 			try {
 				exifOrientation = ImageUtils.getExifOrientation(inputStream);
