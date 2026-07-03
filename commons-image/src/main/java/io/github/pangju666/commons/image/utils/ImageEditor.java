@@ -551,10 +551,10 @@ public class ImageEditor {
 
 		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
 			String mimeType = IOConstants.getDefaultTika().detect(inputStream);
-			Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
-				"inputStream 不是图像数据输入流");
+			Validate.isTrue(ImageUtils.isImage(inputStream), "inputStream 不是图像数据输入流");
 			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
 				"不支持读取 " + mimeType+ " 类型图像");
+			inputStream.reset();
 
 			try {
 				exifOrientation = ImageUtils.getExifOrientation(inputStream);
@@ -569,8 +569,7 @@ public class ImageEditor {
 			InputStream bytesInputStream = outputStream.toInputStream();
 
 			String mimeType = IOConstants.getDefaultTika().detect(bytesInputStream);
-			Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
-				"inputStream 不是图像数据输入流");
+			Validate.isTrue(ImageUtils.isImage(bytesInputStream), "inputStream 不是图像数据输入流");
 			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
 				"不支持读取 " + mimeType+ " 类型图像");
 			bytesInputStream.reset();
