@@ -66,7 +66,7 @@ public class XWPFTemplateUtils {
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static XWPFTemplate compile(File templateFile) throws IOException {
+	public static XWPFTemplate compile(final File templateFile) throws IOException {
 		return compile(templateFile, Configure.createDefault());
 	}
 
@@ -80,10 +80,10 @@ public class XWPFTemplateUtils {
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static XWPFTemplate compile(File templateFile, Configure configure) throws IOException {
-		if (!XWPFDocumentUtils.isDocx(templateFile)) {
-			throw new IllegalArgumentException("templateFile 不是一个docx文件");
-		}
+	public static XWPFTemplate compile(final File templateFile, final Configure configure) throws IOException {
+		Validate.isTrue(XWPFDocumentUtils.isDocx(templateFile), "templateFile 不是docx文件");
+		Validate.notNull(configure, "configure 不可为 null");
+
 		return XWPFTemplate.compile(templateFile, configure);
 	}
 
@@ -96,7 +96,7 @@ public class XWPFTemplateUtils {
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static XWPFTemplate compile(byte[] bytes) throws IOException {
+	public static XWPFTemplate compile(final byte[] bytes) throws IOException {
 		return compile(bytes, Configure.createDefault());
 	}
 
@@ -110,10 +110,10 @@ public class XWPFTemplateUtils {
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
 	 */
-	public static XWPFTemplate compile(byte[] bytes, Configure configure) throws IOException {
-		if (!XWPFDocumentUtils.isDocx(bytes)) {
-			throw new IllegalArgumentException("bytes 不是一个docx文档字节数组");
-		}
+	public static XWPFTemplate compile(final byte[] bytes, final Configure configure) throws IOException {
+		Validate.isTrue(XWPFDocumentUtils.isDocx(bytes), "bytes 不是docx文件数据");
+		Validate.notNull(configure, "configure 不可为 null");
+
 		return XWPFTemplate.compile(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), configure);
 	}
 

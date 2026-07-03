@@ -233,9 +233,8 @@ public class WorkbookUtils {
 	 */
 	public static Workbook getWorkbook(final File file) throws IOException {
 		String mimeType = FileUtils.getMimeType(file);
-		if (!Strings.CS.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLSX_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是 xlsx 或 xls文件");
-		}
+		Validate.isTrue(Strings.CS.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
+			PoiConstants.XLSX_MIME_TYPE), "file 不是 xlsx 或 xls文件");
 
 		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			return switch (mimeType) {
@@ -263,9 +262,8 @@ public class WorkbookUtils {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
-		if (!Strings.CS.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLSX_MIME_TYPE)) {
-			throw new IllegalArgumentException("不是 xlsx 或 xls文件字节数组");
-		}
+		Validate.isTrue(Strings.CS.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
+			PoiConstants.XLSX_MIME_TYPE), "bytes 不是 xlsx 或 xls 文件数据");
 
 		InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		return switch (mimeType) {

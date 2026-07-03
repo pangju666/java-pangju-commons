@@ -1,9 +1,13 @@
 package io.github.pangju666.commons.opencv.utils;
 
 import org.apache.commons.lang3.Validate;
+import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
 import org.bytedeco.opencv.opencv_core.Size;
+
+import java.io.File;
+import java.io.IOException;
 
 public class ImageEditor {
 	protected Size inputImageSize;
@@ -14,26 +18,24 @@ public class ImageEditor {
 
 	protected Size outputImageSize;
 
-	protected MatVector metadata;
-
-	protected ImageEditor(final Mat inputImage, final MatVector metadata) {
+	protected ImageEditor(final Mat inputImage) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 
 		this.inputImage = inputImage;
+		Validate.isTrue(inputImage.isNull() || inputImage.empty(), "inputImage 不存在图像数据");
+
 		this.inputImageSize = inputImage.size();
+		Validate.isTrue(inputImageSize.isNull() || inputImageSize.empty(), "inputImage 不存在图像尺寸");
 
 		this.outputImage = inputImage;
 		this.outputImageSize = inputImageSize;
 	}
 
-	/*public static ImageEditor of(final File file) throws IOException {
-		MatVector metadata = new MatVector();
-		Mat mat = ImageUtils.
-		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
-		return new ImageEditor(bufferedImage, imageSize, inputFormat);
+	public static ImageEditor of(final File file) {
+		return new ImageEditor(opencv_imgcodecs.imread(file.getAbsolutePath()));
 	}
 
-	public ImageEditor transparency(final float alpha) {
+	/*public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
 
 		this.outputImage = new Transparency(alpha).apply(this.outputImage);
