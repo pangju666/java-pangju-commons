@@ -367,7 +367,7 @@ public class ImageEditor {
 	 * @param inputFormat    输入图像格式（如 "PNG"、"JPG"），不可为空字符串
 	 * @throws NullPointerException     当 inputImage 或 inputImageSize 为 null 时抛出
 	 * @throws IllegalArgumentException 当 inputFormat 为空或空白字符串时抛出
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	protected ImageEditor(final BufferedImage inputImage, final ImageSize inputImageSize, final String inputFormat) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
