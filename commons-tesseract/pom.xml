@@ -26,7 +26,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bytedeco</groupId>
-			<artifactId>tesseract-platform</artifactId>
+			<artifactId>tesseract</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -48,6 +48,27 @@
 					<artifactId>junit-vintage-engine</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>javacpp</artifactId>
+			<version>${javacpp.version}</version>
+			<classifier>windows-x86_64</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>leptonica</artifactId>
+			<version>${leptonica.version}-${javacpp.version}</version>
+			<classifier>windows-x86_64</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>tesseract</artifactId>
+			<version>${tesseract.version}-${javacpp.version}</version>
+			<classifier>windows-x86_64</classifier>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
