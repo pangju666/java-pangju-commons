@@ -349,6 +349,26 @@ public class ImageEditor {
 		correctOrientation();
 	}
 
+	/**
+	 * 构造实例并初始化以下属性。
+	 * <p>
+	 * 与 {@link #ImageEditor(BufferedImage, ImageSize)} 相比，此构造方法允许明确指定输入格式，
+	 * 输出格式也会直接使用该输入格式，而不根据图像是否含 Alpha 通道自动选择。
+	 * </p>
+	 * <ul>
+	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
+	 *   若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
+	 *   <li><b>图像尺寸：</b> 记录输入图像的<b>可视化尺寸</b>（即 {@link ImageSize#getVisualSize()}，若存在 90°/270° 旋转，宽高会自动交换）。</li>
+	 *   <li><b>输入/输出格式：</b> 使用传入的 {@code inputFormat} 作为初始输入和输出格式。</li>
+	 * </ul>
+	 *
+	 * @param inputImage     原始图像数据（BufferedImage），不可为 null
+	 * @param inputImageSize 原始图像尺寸对象（包含宽、高及方向信息），不可为 null
+	 * @param inputFormat    输入图像格式（如 "PNG"、"JPG"），不可为空字符串
+	 * @throws NullPointerException     当 inputImage 或 inputImageSize 为 null 时抛出
+	 * @throws IllegalArgumentException 当 inputFormat 为空或空白字符串时抛出
+	 * @since 1.0.0
+	 */
 	protected ImageEditor(final BufferedImage inputImage, final ImageSize inputImageSize, final String inputFormat) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 		Validate.notNull(inputImageSize, "inputImageSize 不可为 null");

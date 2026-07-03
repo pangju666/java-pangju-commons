@@ -91,12 +91,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bytedeco</groupId>
-			<artifactId>ffmpeg-platform</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.bytedeco</groupId>
-			<artifactId>ffmpeg-platform-gpl</artifactId>
-			<optional>true</optional>
+			<artifactId>ffmpeg</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -115,7 +110,27 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>javacpp</artifactId>
+			<version>${javacpp.version}</version>
+			<classifier>windows-x86_64</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>ffmpeg</artifactId>
+			<version>${ffmpeg.version}-${javacpp.version}</version>
+			<classifier>windows-x86_64</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>ffmpeg</artifactId>
+			<version>${ffmpeg.version}-${javacpp.version}</version>
+			<classifier>windows-x86_64-gpl</classifier>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
