@@ -17,9 +17,11 @@
 package io.github.pangju666.commons.image.model;
 
 import com.twelvemonkeys.image.ImageUtil;
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import net.coobird.thumbnailator.filters.Watermark;
 import net.coobird.thumbnailator.geometry.Coordinate;
+import net.coobird.thumbnailator.geometry.Position;
+import net.coobird.thumbnailator.geometry.Positions;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -35,7 +37,7 @@ import java.util.function.Function;
  *
  * <p>水印位置支持两种方式：</p>
  * <ul>
- *   <li>通过 {@link WatermarkDirection} 设置九宫格方向位置</li>
+ *   <li>通过 {@link Positions} 设置九宫格方向位置</li>
  *   <li>通过自定义坐标 x/y 精确设置位置</li>
  * </ul>
  *
@@ -49,6 +51,7 @@ import java.util.function.Function;
  *
  * @author pangju666
  * @see #toWatermark(ImageSize, BufferedImage)
+ * @see Positions
  * @since 1.0.0
  */
 public class ImageWatermarkOption {
@@ -94,7 +97,7 @@ public class ImageWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private WatermarkDirection direction;
+	private Positions direction;
 
 	/**
 	 * 水印尺寸限制策略。
@@ -294,7 +297,7 @@ public class ImageWatermarkOption {
 	 * @return 水印方向，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Positions getDirection() {
 		return direction;
 	}
 
@@ -304,7 +307,7 @@ public class ImageWatermarkOption {
 	 * @param direction 水印方向
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Positions direction) {
 		this.direction = direction;
 	}
 
@@ -312,7 +315,7 @@ public class ImageWatermarkOption {
 	 * 根据目标图像尺寸和水印图像创建 Watermark 对象
 	 * <p>
 	 * 水印尺寸会根据相对缩放比例和尺寸限制策略进行调整。
-	 * 如果设置了方向，则根据方向计算坐标；否则使用自定义坐标。
+	 * 如果设置了方向，则直接使用该方向；否则使用自定义坐标。
 	 * </p>
 	 *
 	 * <p>尺寸计算逻辑：</p>
@@ -360,8 +363,7 @@ public class ImageWatermarkOption {
 			}
 		}
 
-		Coordinate coordinate = Objects.nonNull(direction) ? direction.toWatermarkCoordinate(targetImageSize,
-			targetWatermarkImageSize) : new Coordinate(x, y);
+		Position coordinate = ObjectUtils.defaultIfNull(direction, new Coordinate(x, y));
 		return new Watermark(coordinate, targetWatermarkImage, opacity, margin);
 	}
 }

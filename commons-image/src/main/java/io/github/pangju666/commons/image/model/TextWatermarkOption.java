@@ -16,9 +16,13 @@
 
 package io.github.pangju666.commons.image.model;
 
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
+import com.twelvemonkeys.image.BrightnessContrastFilter;
+import com.twelvemonkeys.image.GrayFilter;
 import net.coobird.thumbnailator.filters.Caption;
 import net.coobird.thumbnailator.geometry.Coordinate;
+import net.coobird.thumbnailator.geometry.Position;
+import net.coobird.thumbnailator.geometry.Positions;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -34,7 +38,7 @@ import java.util.function.ToIntFunction;
  *
  * <p>水印位置支持两种方式：</p>
  * <ul>
- *   <li>通过 {@link WatermarkDirection} 设置九宫格方向位置</li>
+ *   <li>通过 {@link Positions} 设置九宫格方向位置</li>
  *   <li>通过自定义坐标 x/y 精确设置位置</li>
  * </ul>
  *
@@ -47,6 +51,7 @@ import java.util.function.ToIntFunction;
  *
  * @author pangju666
  * @see #toCaption(String, BufferedImage)
+ * @see Positions
  * @since 1.0.0
  */
 public class TextWatermarkOption {
@@ -119,7 +124,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private WatermarkDirection direction;
+	private Positions direction;
 
 	/**
 	 * 描边颜色，默认黑色。仅当 {@code stroke=true} 时使用。
@@ -133,6 +138,7 @@ public class TextWatermarkOption {
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	private Color strokeColor = Color.BLACK;
+
 	/**
 	 * 填充颜色，默认白色。
 	 * <p>
@@ -145,6 +151,7 @@ public class TextWatermarkOption {
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	private Color fillColor = Color.WHITE;
+
 	/**
 	 * 描边线宽（像素），默认 2.0。仅当 {@code stroke=true} 时生效。
 	 *
@@ -153,6 +160,7 @@ public class TextWatermarkOption {
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	private float strokeWidth = 2.0f;
+
 	/**
 	 * 是否启用文字描边。默认 {@code true}；在复杂背景下提升可读性。
 	 *
@@ -387,7 +395,7 @@ public class TextWatermarkOption {
 	 * @return 水印方向，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Positions getDirection() {
 		return direction;
 	}
 
@@ -397,7 +405,7 @@ public class TextWatermarkOption {
 	 * @param direction 水印方向
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Positions direction) {
 		this.direction = direction;
 	}
 
@@ -513,7 +521,7 @@ public class TextWatermarkOption {
 	 * 根据目标图像和文字创建 Caption 对象
 	 * <p>
 	 * 字体会根据字体大小策略进行动态计算。
-	 * 如果设置了方向，则根据方向计算坐标；否则使用自定义坐标。
+	 * 如果设置了方向，则直接使用该方向；否则使用自定义坐标。
 	 * </p>
 	 *
 	 * <p>字体大小计算流程：</p>
@@ -525,7 +533,7 @@ public class TextWatermarkOption {
 	 * <p>坐标计算说明：</p>
 	 * <ul>
 	 *   <li>使用自定义坐标时，Y 坐标会自动添加边距值以补偿 Thumbnailator 的渲染特点</li>
-	 *   <li>使用方向坐标时，通过 {@link WatermarkDirection#toCaptionCoordinate(ImageSize, int)} 计算</li>
+	 *   <li>使用方向坐标时，使用 {@link Direction} 内部类，在九宫格位置基础上添加边距</li>
 	 * </ul>
 	 *
 	 * @param text        水印文字
@@ -543,11 +551,68 @@ public class TextWatermarkOption {
 			FONT_SCALE)));
 
 		// Caption 计算y坐标不使用insets，需要手动添加
-		Coordinate coordinate = new Coordinate(x, y + margin);
+		Position coordinate = new Coordinate(x, y + margin);
 		if (Objects.nonNull(direction)) {
-			coordinate = direction.toCaptionCoordinate(targetImageSize, margin);
+			coordinate = new Direction(direction, margin);
+		}
+		return new Caption(text, font, color, opacity, coordinate, margin);
+	}
+
+	/**
+	 * 扩展的位置计算类，在九宫格位置基础上添加 Y 轴边距
+	 *
+	 * <p>这是一个内部辅助类，解决 Thumbnailator Caption 在计算 Y 坐标时不使用边距的问题。</p>
+	 * <p>工作原理：使用 {@link Positions} 计算出基础位置后，再在 Y 轴上添加指定的边距值。</p>
+	 *
+	 * @author pangju666
+	 * @since 1.1.0
+	 */
+	protected static final class Direction implements Position {
+		/**
+		 * 基础九宫格位置
+		 */
+		private final Positions positions;
+
+		/**
+		 * Y 轴边距值（单位：像素）
+		 */
+		private final int margin;
+
+		/**
+		 * 创建带有边距的位置计算器
+		 *
+		 * @param positions 基础九宫格位置，不能为空
+		 * @param margin    Y 轴边距值
+		 * @since 1.1.0
+		 */
+		public Direction(Positions positions, int margin) {
+			this.positions = positions;
+			this.margin = margin;
 		}
 
-		return new Caption(text, font, color, opacity, coordinate, margin);
+		/**
+		 * 计算最终位置坐标
+		 *
+		 * <p>先使用基础 {@link Positions} 计算位置，然后在 Y 轴上添加边距进行补偿</p>
+		 *
+		 * @param enclosingWidth  容器宽度
+		 * @param enclosingHeight 容器高度
+		 * @param width           元素宽度
+		 * @param height          元素高度
+		 * @param insetLeft       左边距
+		 * @param insetRight      右边距
+		 * @param insetTop        上边距
+		 * @param insetBottom     下边距
+		 * @return 计算出的最终位置点
+		 * @since 1.1.0
+		 */
+		@Override
+		public Point calculate(int enclosingWidth, int enclosingHeight, int width, int height, int insetLeft,
+							   int insetRight, int insetTop, int insetBottom) {
+			Point point = positions.calculate(enclosingWidth, enclosingHeight, width,  height, insetLeft, insetRight, insetTop,
+				insetBottom);
+			point.y += margin;
+			return point;
+		}
 	}
 }
