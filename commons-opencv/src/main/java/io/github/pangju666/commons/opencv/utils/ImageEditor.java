@@ -1214,6 +1214,12 @@ public class ImageEditor {
 					point = new Point(imageSize.width() - textW - option.getMargin(),
 						imageSize.height() - option.getMargin());
 					break;
+				case RIGHT:
+					point = new Point(imageSize.width() - textW - option.getMargin(), (imageSize.height() + textH) / 2);
+					break;
+				case LEFT:
+					point = new Point(option.getMargin(), (imageSize.height() + textH) / 2);
+					break;
 				case CENTER:
 					point = new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
 					break;
