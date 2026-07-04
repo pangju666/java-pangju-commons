@@ -133,7 +133,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected int inset = 20;
+	protected int margin = 20;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
@@ -144,21 +144,25 @@ public class TextWatermarkOption {
 
 	/**
 	 * 自适应字体大小策略函数
-	 * <p>根据视频宽高计算合适的字体大小</p>
+	 * <p>根据视频宽高计算合适的字体大小。</p>
+	 * <p><b>计算策略：</b></p>
+	 * <ul>
+	 *   <li>取视频宽度和高度的较小值作为基准</li>
+	 *   <li>当较短边 &lt; 600 时，字体大小为 32</li>
+	 *   <li>当 600 ≤ 较短边 &lt; 1920 时，从 32 线性增长到 48</li>
+	 *   <li>当较短边 ≥ 1920 时，从 48 线性增长到 160（上限为 6000）</li>
+	 * </ul>
 	 *
 	 * @since 1.1.0
 	 */
 	protected IntBinaryOperator fontSizeStrategy = (width, height) -> {
 		int shorter = Math.min(width, height);
 		if (shorter < 600) {
-			// 低分辨率：强制 32pt
 			return 32;
 		} else if (shorter >= 1920) {
-			// 大分辨率：48pt~80pt 缓慢增长
-			double ratio = Math.min(1.0, (shorter - 1920.0) / 3000.0);
-			return (int) Math.round(48 + ratio * (80 - 48));
+			double ratio = Math.min(1.0, (shorter - 1920.0) / (6000 - 1920.0));
+			return (int) Math.round(48 + ratio * (160 - 48));
 		} else {
-			// 中等分辨率：32pt~48pt 线性增长
 			double ratio = (shorter - 600.0) / (1920.0 - 600.0);
 			return (int) Math.round(32 + ratio * (48 - 32));
 		}
@@ -354,19 +358,19 @@ public class TextWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getInset() {
-		return inset;
+	public int getMargin() {
+		return margin;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param inset 边距值，必须大于等于 0
+	 * @param margin 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setInset(int inset) {
-		if (inset >= 0) {
-			this.inset = inset;
+	public void setMargin(int margin) {
+		if (margin >= 0) {
+			this.margin = margin;
 		}
 	}
 
@@ -469,18 +473,18 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + inset, y + inset);
+			return String.format("x=%d:y=%d", x + margin, y + margin);
 		}
 
 		return switch (direction) {
-			case TOP -> String.format("x=%s:y=%d", "(w-text_w)/2", inset);
-			case TOP_LEFT -> String.format("x=%d:y=%d", inset, inset);
-			case TOP_RIGHT -> String.format("x=%s:y=%d", "w-text_w-" + inset, inset);
-			case BOTTOM -> String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + inset);
-			case BOTTOM_LEFT -> String.format("x=%d:y=%s", inset, "h-text_h-" + inset);
-			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + inset, "h-text_h-" + inset);
-			case LEFT -> String.format("x=%d:y=%s", inset, "(h-text_h)/2");
-			case RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + inset, "(h-text_h)/2");
+			case TOP -> String.format("x=%s:y=%d", "(w-text_w)/2", margin);
+			case TOP_LEFT -> String.format("x=%d:y=%d", margin, margin);
+			case TOP_RIGHT -> String.format("x=%s:y=%d", "w-text_w-" + margin, margin);
+			case BOTTOM -> String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + margin);
+			case BOTTOM_LEFT -> String.format("x=%d:y=%s", margin, "h-text_h-" + margin);
+			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "h-text_h-" + margin);
+			case LEFT -> String.format("x=%d:y=%s", margin, "(h-text_h)/2");
+			case RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "(h-text_h)/2");
 			case CENTER -> String.format("x=%s:y=%s", "(w-text_w)/2", "(h-text_h)/2");
 		};
 	}

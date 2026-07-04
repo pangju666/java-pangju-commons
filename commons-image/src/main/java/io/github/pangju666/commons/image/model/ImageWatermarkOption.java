@@ -32,13 +32,23 @@ import java.util.function.Function;
  * 图像水印配置。
  *
  * <p>用于控制图片水印绘制时的缩放比例（相对原图尺寸）、透明度、边距、位置（方向或自定义坐标），以及水印尺寸的最小/最大限制策略。</p>
+ *
  * <p>水印位置支持两种方式：</p>
  * <ul>
  *   <li>通过 {@link WatermarkDirection} 设置九宫格方向位置</li>
  *   <li>通过自定义坐标 x/y 精确设置位置</li>
  * </ul>
  *
+ * <p>水印尺寸计算流程：</p>
+ * <ol>
+ *   <li>根据 {@code relativeScaleFactor} 计算初始目标尺寸</li>
+ *   <li>根据 {@code sizeLimitStrategy} 计算允许的最小/最大尺寸</li>
+ *   <li>将初始目标尺寸限制在允许的范围内</li>
+ *   <li>根据水印宽高比选择以宽度或高度为基准进行缩放</li>
+ * </ol>
+ *
  * @author pangju666
+ * @see #toWatermark(ImageSize, BufferedImage)
  * @since 1.0.0
  */
 public class ImageWatermarkOption {
@@ -63,7 +73,7 @@ public class ImageWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private int inset = 10;
+	private int margin = 10;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
@@ -93,8 +103,8 @@ public class ImageWatermarkOption {
 	 * 默认策略根据图像短边长度分为三档：
 	 * <ul>
 	 *   <li>小图（短边 &lt; 600px）：最小 120x120，最大 150x150</li>
+	 *   <li>中等图（600px &le; 短边 &lt; 1920px）：最小 150x150，最大 250x250</li>
 	 *   <li>大图（短边 &ge; 1920px）：最小 250x250，最大 400x400</li>
-	 *   <li>中等图（其他）：最小 150x150，最大 250x250</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -218,19 +228,19 @@ public class ImageWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getInset() {
-		return inset;
+	public int getMargin() {
+		return margin;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param inset 边距值，必须大于等于 0
+	 * @param margin 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setInset(int inset) {
-		if (inset >= 0) {
-			this.inset = inset;
+	public void setMargin(int margin) {
+		if (margin >= 0) {
+			this.margin = margin;
 		}
 	}
 
@@ -305,6 +315,15 @@ public class ImageWatermarkOption {
 	 * 如果设置了方向，则根据方向计算坐标；否则使用自定义坐标。
 	 * </p>
 	 *
+	 * <p>尺寸计算逻辑：</p>
+	 * <ol>
+	 *   <li>首先根据 {@code relativeScaleFactor} 计算初始目标尺寸</li>
+	 *   <li>使用 {@code sizeLimitStrategy} 获取允许的最小和最大尺寸</li>
+	 *   <li>根据水印宽高比选择主维度：宽&gt;高时以宽度为基准，否则以高度为基准</li>
+	 *   <li>将目标尺寸限制在最小和最大尺寸范围内</li>
+	 *   <li>如果需要调整尺寸，则重新采样水印图像</li>
+	 * </ol>
+	 *
 	 * @param targetImageSize 目标图像尺寸
 	 * @param watermarkImage  水印图像
 	 * @return 配置好的 Watermark 对象
@@ -341,8 +360,8 @@ public class ImageWatermarkOption {
 			}
 		}
 
-		Coordinate coordinate = Objects.nonNull(direction) ? direction.toCoordinate(targetImageSize,
+		Coordinate coordinate = Objects.nonNull(direction) ? direction.toWatermarkCoordinate(targetImageSize,
 			targetWatermarkImageSize) : new Coordinate(x, y);
-		return new Watermark(coordinate, targetWatermarkImage, opacity, inset);
+		return new Watermark(coordinate, targetWatermarkImage, opacity, margin);
 	}
 }
