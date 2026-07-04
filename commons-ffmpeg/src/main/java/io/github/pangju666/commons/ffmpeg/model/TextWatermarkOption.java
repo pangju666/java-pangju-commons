@@ -16,10 +16,10 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.enums.WatermarkDirection;
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.utils.ImageUtils;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +61,7 @@ import java.util.function.IntBinaryOperator;
  *
  * @author pangju666
  * @see ImageWatermarkOption
- * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @see WatermarkDirection
  * @since 1.1.0
  */
 public class TextWatermarkOption {
@@ -473,19 +473,19 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + margin, y + margin);
+			return String.format("x=%d:y=text_h+%d", x + margin, y + margin);
 		}
 
 		return switch (direction) {
-			case TOP -> String.format("x=%s:y=%d", "(w-text_w)/2", margin);
-			case TOP_LEFT -> String.format("x=%d:y=%d", margin, margin);
-			case TOP_RIGHT -> String.format("x=%s:y=%d", "w-text_w-" + margin, margin);
-			case BOTTOM -> String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + margin);
-			case BOTTOM_LEFT -> String.format("x=%d:y=%s", margin, "h-text_h-" + margin);
-			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "h-text_h-" + margin);
-			case LEFT -> String.format("x=%d:y=%s", margin, "(h-text_h)/2");
-			case RIGHT -> String.format("x=%s:y=%s", "w-text_w-" + margin, "(h-text_h)/2");
-			case CENTER -> String.format("x=%s:y=%s", "(w-text_w)/2", "(h-text_h)/2");
+			case TOP -> String.format("x=(W-text_w)/2:y=text_h+%d", margin);
+			case TOP_LEFT -> String.format("x=%d:y=text_h+%d", margin, margin);
+			case TOP_RIGHT -> String.format("x=W-text_w-%d:y=text_h+%d", margin, margin);
+			case BOTTOM -> String.format("x=(W-text_w)/2:y=H-text_h-%d", margin);
+			case BOTTOM_LEFT -> String.format("x=%d:y=H-text_h-%d", margin, margin);
+			case BOTTOM_RIGHT -> String.format("x=W-text_w-%d:y=H-text_h-%d", margin, margin);
+			case LEFT -> String.format("x=%d:y=(H+text_h)/2", margin);
+			case RIGHT -> String.format("x=W-text_w-%d:y=(H+text_h)/2", margin);
+			case CENTER -> "x=(W-text_w)/2:y=(H+text_h)/2";
 		};
 	}
 }

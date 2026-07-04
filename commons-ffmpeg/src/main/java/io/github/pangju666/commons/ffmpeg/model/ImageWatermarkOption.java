@@ -16,9 +16,9 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.enums.WatermarkDirection;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.Validate;
@@ -53,7 +53,7 @@ import java.util.function.BiFunction;
  *
  * @author pangju666
  * @see TextWatermarkOption
- * @see io.github.pangju666.commons.image.enums.WatermarkDirection
+ * @see WatermarkDirection
  * @since 1.1.0
  */
 public class ImageWatermarkOption {
@@ -345,15 +345,15 @@ public class ImageWatermarkOption {
 		}
 
 		return switch (direction) {
-			case TOP -> String.format("x=%s:y=%d", "(W-w)/2", margin);
+			case TOP -> String.format("x=(W-w)/2:y=%d", margin);
 			case TOP_LEFT -> String.format("x=%d:y=%d", margin, margin);
-			case TOP_RIGHT -> String.format("x=%s:y=%d", "W-w-" + margin, margin);
-			case BOTTOM -> String.format("x=%s:y=%s", "(W-w)/2", "H-h-" + margin);
-			case BOTTOM_LEFT -> String.format("x=%d:y=%s", margin, "H-h-" + margin);
-			case BOTTOM_RIGHT -> String.format("x=%s:y=%s", "W-w-" + margin, "H-h-" + margin);
-			case LEFT -> String.format("x=%d:y=%s", margin, "(H-h)/2");
-			case RIGHT -> String.format("x=%s:y=%s", "W-w-" + margin, "(H-h)/2");
-			case CENTER -> String.format("x=%s:y=%s", "(W-w)/2", "(H-h)/2");
+			case TOP_RIGHT -> String.format("x=W-w-%d:y=%d", margin, margin);
+			case BOTTOM -> String.format("x=(W-w)/2:y=H-h-%d", margin);
+			case BOTTOM_LEFT -> String.format("x=%d:y=H-h-%d", margin, margin);
+			case BOTTOM_RIGHT -> String.format("x=W-w-%d:y=H-h-%d", margin, margin);
+			case LEFT -> String.format("x=%d:y=(H-h)/2", margin);
+			case RIGHT -> String.format("x=W-w-%d:y=(H-h)/2", margin);
+			case CENTER -> "x=(W-w)/2:y=(H-h)/2";
 		};
 	}
 }
