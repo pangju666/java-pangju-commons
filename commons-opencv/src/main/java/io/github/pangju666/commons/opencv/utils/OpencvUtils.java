@@ -491,7 +491,7 @@ public class OpencvUtils {
 	 * 调整图像的亮度和对比度
 	 *
 	 * <p>使用公式：g(i,j) = alpha * f(i,j) + beta</p>
-	 * <p>alpha 控制对比度（> 1 增加对比度，< 1 减小对比度）</p>
+	 * <p>alpha 控制对比度（> 1 增加对比度，&lt; 1 减小对比度）</p>
 	 * <p>beta 控制亮度（正值增加亮度，负值减小亮度）</p>
 	 *
 	 * @param image 输入图像，不能为 null
@@ -573,7 +573,7 @@ public class OpencvUtils {
 	 *
 	 * <p>主要功能：
 	 * <ul>
-	 *   <li>将极低透明度的像素（Alpha < 10）强制设为完全透明，解决白边问题</li>
+	 *   <li>将极低透明度的像素（Alpha &lt; 10）强制设为完全透明，解决白边问题</li>
 	 *   <li>将完全透明区域（Alpha = 0）的 RGB 通道也强制设为 0，解决黑底问题</li>
 	 * </ul>
 	 *

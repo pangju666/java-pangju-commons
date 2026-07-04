@@ -826,7 +826,7 @@ public class ImageEditor {
 	 *
 	 * @param weight 锐化强度，必须 > 4（值越大锐化效果越强）
 	 * @return 当前编辑器实例，支持链式调用
-	 * @throws IllegalArgumentException 如果 weight <= 4
+	 * @throws IllegalArgumentException 如果 weight &lt;= 4
 	 * @since 1.1.0
 	 */
 	public ImageEditor sharpen(final float weight) {
@@ -864,7 +864,7 @@ public class ImageEditor {
 	 *
 	 * @param strength 浮雕强度，必须 > 0
 	 * @return 当前编辑器实例，支持链式调用
-	 * @throws IllegalArgumentException 如果 strength <= 0
+	 * @throws IllegalArgumentException 如果 strength &lt;= 0
 	 * @since 1.1.0
 	 */
 	public ImageEditor emboss(final float strength) {
@@ -974,7 +974,7 @@ public class ImageEditor {
 	/**
 	 * 调整图像对比度
 	 *
-	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，<1 减弱）
+	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，&lt;1 减弱）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
