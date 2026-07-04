@@ -83,7 +83,7 @@ public class VideoUtils {
 	 * @since 1.1.0
 	 */
 	public static void transcode(final MediaResource resource, final File outputFile, final Video outputVideo) throws IOException {
-		Validate.notNull(outputVideo, "outputAudio 不可为 null");
+		Validate.notNull(outputVideo, "outputVideo 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -110,7 +110,7 @@ public class VideoUtils {
 	 */
 	public static void transcode(final MediaResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.notNull(outputVideo, "outputAudio 不可为 null");
+		Validate.notNull(outputVideo, "outputVideo 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(resource.isVideo(), "不是视频类型 MediaResource");
 
@@ -1792,8 +1792,7 @@ public class VideoUtils {
 			int videoWidth = grabber.getImageWidth();
 			int videoHeight = grabber.getImageHeight();
 			// 边界检测
-			if (rightOffset >= videoWidth || leftOffset >= videoWidth || leftOffset + rightOffset >= videoWidth ||
-				topOffset >= videoHeight || bottomOffset >= videoHeight || topOffset + bottomOffset >= videoHeight) {
+			if (leftOffset + rightOffset > videoWidth || topOffset + bottomOffset > videoHeight) {
 				throw new IllegalArgumentException(String.format("偏移裁剪 坐标越界，原视频：%dx%d，裁剪区域：顶部偏移标 %d，" +
 						"底部偏移 %d 左侧偏移：%d 右侧偏移：%d",
 					videoWidth, videoHeight, topOffset, bottomOffset, leftOffset, rightOffset));
@@ -1845,8 +1844,7 @@ public class VideoUtils {
 			int videoHeight = grabber.getImageHeight();
 			int videoWidth = grabber.getImageWidth();
 			// 边界检测
-			if (x >= videoWidth || width >= videoWidth || x + width >= videoWidth ||
-				y >= videoHeight || height >= videoHeight || y + height >= videoHeight) {
+			if (x + width > videoWidth || y + height > videoHeight) {
 				throw new IllegalArgumentException(String.format("区域裁剪 坐标越界，原视频：%dx%d，裁剪区域：x坐标 %d，" +
 						"y坐标 %d 宽高：%d 高度：%d",
 					videoWidth, videoHeight, x, y, width, height));
@@ -1892,7 +1890,7 @@ public class VideoUtils {
 			int videoHeight = grabber.getImageHeight();
 			int videoWidth = grabber.getImageWidth();
 			// 边界检测
-			if (width >= videoWidth || height >= videoHeight) {
+			if (width > videoWidth || height > videoHeight) {
 				throw new IllegalArgumentException(String.format("中心裁剪 坐标越界，原视频：%dx%d，裁剪宽度：%d，裁剪高度：%d",
 					videoWidth, videoHeight, width, height));
 			}
