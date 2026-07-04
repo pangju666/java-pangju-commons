@@ -341,8 +341,8 @@ public class ImageWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			String xExpr = String.format("max(%d, min(W-w-%d, %d))", margin, margin, x + margin);
-			String yExpr = String.format("max(%d, min(H-h-%d, %d))", margin, margin, y + margin);
+			String xExpr = String.format("max(%d,min(W-w-%d,%d))", margin, margin, x + margin);
+			String yExpr = String.format("max(%d,min(H-h-%d,%d))", margin, margin, y + margin);
 			return String.format("x='%s':y='%s'", xExpr, yExpr);
 		}
 

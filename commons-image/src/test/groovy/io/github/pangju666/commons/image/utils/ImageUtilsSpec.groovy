@@ -294,27 +294,4 @@ class ImageUtilsSpec extends Specification {
 		where:
 		name << ALL_IMAGES.findAll { it != "test.svg" }
 	}
-
-	def test() throws IOException {
-		setup:
-		File inputFile = new File("E:\\Roaming\\camera.jpg")
-		File outputFile = new File("E:\\Roaming\\output.png")
-		File watermarkFile = new File("E:\\Roaming\\watermark.png")
-
-		def textOption = new TextWatermarkOption()
-		//textOption.direction = Positions.TOP_LEFT
-		def imageOption = new ImageWatermarkOption()
-		imageOption.direction = Positions.TOP_LEFT
-
-		ImageEditor.of(FileUtils.readFileToByteArray(inputFile), true)
-		//.transparency(0.3)
-		//.flip(FlipDirection.HORIZONTAL)
-		//.rotate(27)
-		//.scale(500, 500)
-		.addTextWatermark("DEMO", textOption)
-			//.addImageWatermark(ImageIO.read(watermarkFile), imageOption)
-		//.cropByCenter(100, 100)
-		//.grayscale()
-			.toFile(outputFile)
-	}
 }

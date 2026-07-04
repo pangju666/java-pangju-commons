@@ -561,10 +561,9 @@ public class TextWatermarkOption {
 
 				FontMetrics fontMetrics = graphics.getFontMetrics();
 				int textWidth = fontMetrics.stringWidth(text);
-				int textHeight = fontMetrics.getHeight();
 
 				int x = Math.max(0, Math.min(targetImageSize.getWidth() - textWidth - margin, this.x));
-				int y = Math.max(textHeight + margin, Math.min(targetImageSize.getHeight() - margin, this.y + margin));
+				int y = Math.max(margin, Math.min(targetImageSize.getHeight() - margin, this.y + margin));
 				coordinate = new Coordinate(x, y);
 			} finally {
 				if (Objects.nonNull(graphics)) {
