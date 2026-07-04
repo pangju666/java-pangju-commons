@@ -983,12 +983,12 @@ public class ImageEditor {
 	/**
 	 * 按指定宽度等比例缩放图像，保持原始宽高比。
 	 *
-	 * @param width 目标宽度（像素）
+	 * @param targetWidth 目标宽度（像素）
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor scaleByWidth(final int width) {
-		this.outputImageSize = this.outputImageSize.scaleByWidth(width);
+	public ImageEditor scaleByWidth(final int targetWidth) {
+		this.outputImageSize = this.outputImageSize.scaleByWidth(targetWidth);
 		this.outputImage = resample();
 		return this;
 	}
@@ -996,12 +996,12 @@ public class ImageEditor {
 	/**
 	 * 按指定高度等比例缩放图像，保持原始宽高比。
 	 *
-	 * @param height 目标高度（像素）
+	 * @param targetHeight 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor scaleByHeight(final int height) {
-		this.outputImageSize = this.outputImageSize.scaleByHeight(height);
+	public ImageEditor scaleByHeight(final int targetHeight) {
+		this.outputImageSize = this.outputImageSize.scaleByHeight(targetHeight);
 		this.outputImage = resample();
 		return this;
 	}
@@ -1009,27 +1009,34 @@ public class ImageEditor {
 	/**
 	 * 将图像缩放到指定的比例，保持原始宽高比。
 	 *
-	 * @param scale 缩放比例
+	 * @param scalingFactor 缩放比例
 	 * @return 当前编辑器实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public ImageEditor scale(final double scale) {
-		this.outputImageSize = this.outputImageSize.scale(scale);
+	public ImageEditor scale(final double scalingFactor) {
+		this.outputImageSize = this.outputImageSize.scale(scalingFactor);
 		this.outputImage = resample();
 		return this;
 	}
 
 	/**
-	 * 将图像缩放到指定的最大宽度和高度范围内，保持原始宽高比。
+	 * 双约束等比缩放（基于目标宽高值）
+	 * <p>
+	 * 在不超过目标宽高的前提下保持宽高比：
+	 * <ol>
+	 *   <li>优先适配宽度计算</li>
+	 *   <li>若高度超出则改为适配高度</li>
+	 * </ol>
+	 * </p>
 	 *
-	 * @param width  最大宽度（像素）
-	 * @param height 最大高度（像素）
+	 * @param targetWidth  目标宽度（像素）
+	 * @param targetHeight 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ImageSize#scale(int, int)
 	 * @since 1.0.0
 	 */
-	public ImageEditor scale(final int width, final int height) {
-		this.outputImageSize = this.outputImageSize.scale(width, height);
+	public ImageEditor scale(final int targetWidth, final int targetHeight) {
+		this.outputImageSize = this.outputImageSize.scale(targetWidth, targetHeight);
 		this.outputImage = resample();
 		return this;
 	}
@@ -1052,12 +1059,12 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (width >= this.outputImage.getWidth() || height >= this.outputImage.getHeight()) {
+		if (width >= this.outputImageSize.getWidth() || height >= this.outputImageSize.getHeight()) {
 			return this;
 		}
 
-		this.outputImage = this.outputImage.getSubimage((this.outputImage.getWidth() - width) / 2,
-			(this.outputImage.getHeight() - height) / 2, width, height);
+		this.outputImage = this.outputImage.getSubimage((this.outputImageSize.getWidth() - width) / 2,
+			(this.outputImageSize.getHeight() - height) / 2, width, height);
 		this.outputImageSize = new ImageSize(width, height);
 		return this;
 	}
@@ -1082,17 +1089,14 @@ public class ImageEditor {
 			"offset 不能小于0");
 
 		// 边界检测
-		if (rightOffset >= this.outputImage.getWidth() ||
-			leftOffset >= this.outputImage.getWidth() ||
-			leftOffset + rightOffset >= this.outputImage.getWidth() ||
-			topOffset >= this.outputImage.getHeight() ||
-			bottomOffset >= this.outputImage.getHeight() ||
-			topOffset + bottomOffset >= this.outputImage.getHeight()) {
+		if (rightOffset >= this.outputImageSize.getWidth() || leftOffset >= this.outputImageSize.getWidth() ||
+			leftOffset + rightOffset >= this.outputImageSize.getWidth() || topOffset >= this.outputImageSize.getHeight() ||
+			bottomOffset >= this.outputImageSize.getHeight() || topOffset + bottomOffset >= this.outputImageSize.getHeight()) {
 			return this;
 		}
 
-		int width = this.outputImage.getWidth() - leftOffset - rightOffset;
-		int height = this.outputImage.getHeight() - topOffset - bottomOffset;
+		int width = this.outputImageSize.getWidth() - leftOffset - rightOffset;
+		int height = this.outputImageSize.getHeight() - topOffset - bottomOffset;
 		this.outputImage = this.outputImage.getSubimage(leftOffset, topOffset, width, height);
 		this.outputImageSize = new ImageSize(width, height);
 		return this;
@@ -1120,12 +1124,9 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (x >= this.outputImage.getWidth() ||
-			width >= this.outputImage.getWidth() ||
-			x + width >= this.outputImage.getWidth() ||
-			y >= this.outputImage.getHeight() ||
-			height >= this.outputImage.getHeight() ||
-			y + height >= this.outputImage.getHeight()) {
+		if (x >= this.outputImageSize.getWidth() || width >= this.outputImageSize.getWidth() ||
+			x + width >= this.outputImageSize.getWidth() || y >= this.outputImageSize.getHeight() ||
+			height >= this.outputImageSize.getHeight() || y + height >= this.outputImageSize.getHeight()) {
 			return this;
 		}
 
@@ -1374,7 +1375,7 @@ public class ImageEditor {
 		Validate.notBlank(outputFormat, "输出格式不可为空");
 		String upperCaseOutputFormat = outputFormat.toUpperCase();
 		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(upperCaseOutputFormat),
-			"不支持输出该图像格式");
+			"不支持输出 " + outputFormat + " 图像格式");
 
 		this.outputFormat = upperCaseOutputFormat;
 		return this;
@@ -1466,13 +1467,18 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor reset() {
-		this.outputImage = this.inputImage;
-		this.outputImageSize = this.inputImageSize;
-		this.outputFormat = this.inputFormat;
-		if (StringUtils.isBlank(this.outputFormat)) {
-			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+		if (this.outputImage != this.inputImage) {
+			this.outputImage.flush();
+
+			this.outputImage = this.inputImage;
+			this.outputImageSize = this.inputImageSize;
+			this.outputFormat = this.inputFormat;
+			if (StringUtils.isBlank(this.outputFormat)) {
+				this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
+			}
+			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 		}
-		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
+
 		return this;
 	}
 

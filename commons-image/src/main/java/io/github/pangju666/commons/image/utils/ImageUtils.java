@@ -248,7 +248,7 @@ public class ImageUtils {
 	 * @throws IllegalArgumentException 当 file 为 null 时抛出
 	 * @see FileUtils#isImageType(File)
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public static boolean isImage(final File file) throws IOException {
 		return FileUtils.isImageType(file);
@@ -271,7 +271,7 @@ public class ImageUtils {
 	 * @return true 表示数据为图像类型，false 表示不是或检测失败
 	 * @see IOConstants#getDefaultTika()
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public static boolean isImage(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -296,7 +296,7 @@ public class ImageUtils {
 	 * @throws IOException 当读取流失败时抛出
 	 * @see IOConstants#getDefaultTika()
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public static boolean isImage(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
@@ -431,11 +431,14 @@ public class ImageUtils {
 		Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInputStream);
 		if (readers.hasNext()) {
 			ImageReader reader = readers.next();
-			ImageReaderSpi readerSpi = reader.getOriginatingProvider();
-			if (Objects.nonNull(readerSpi)) {
-				mimeTypes = ArrayUtils.nullToEmpty(readerSpi.getMIMETypes());
+			try {
+				ImageReaderSpi readerSpi = reader.getOriginatingProvider();
+				if (Objects.nonNull(readerSpi)) {
+					mimeTypes = ArrayUtils.nullToEmpty(readerSpi.getMIMETypes());
+				}
+			} finally {
+				reader.dispose();
 			}
-			reader.dispose();
 		}
 		return ArrayUtils.get(mimeTypes, 0, null);
 	}
@@ -535,7 +538,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final File file, final boolean useMetadata) throws IOException {
-		Validate.isTrue(isImage(file), "file 不是图像文件");
+		Validate.isTrue(FileUtils.isImageType(file), "file 不是图像文件");
 
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file)) {
@@ -702,7 +705,7 @@ public class ImageUtils {
 		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
 
 		InputStream bytesInputStream = outputStream.toInputStream();
-		Validate.isTrue(isImage(inputStream), "inputStream 不是图数据输入流");
+		Validate.isTrue(isImage(bytesInputStream), "inputStream 不是图数据输入流");
 		bytesInputStream.reset();
 
 		try {
@@ -848,7 +851,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static int getExifOrientation(final byte[] bytes) throws IOException, ImageProcessingException {
-		Validate.isTrue(isImage(bytes), "bytes 不可为空");
+		Validate.isTrue(isImage(bytes), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		Metadata metadata = ImageMetadataReader.readMetadata(inputStream, bytes.length);
@@ -1049,10 +1052,13 @@ public class ImageUtils {
 			return null;
 		}
 		ImageReader reader = iterator.next();
-		reader.setInput(imageInputStream);
-		width = reader.getWidth(0);
-		height = reader.getHeight(0);
-		reader.dispose();
+		try {
+			reader.setInput(imageInputStream);
+			width = reader.getWidth(0);
+			height = reader.getHeight(0);
+		} finally {
+			reader.dispose();
+		}
 
 		if (Objects.isNull(orientation)) {
 			return new ImageSize(width, height);

@@ -631,7 +631,7 @@ image/heic	                            heif heic
 image/ief                               ief
 image/iff                               iff  lbm
 image/jp2                               jp2  jpf
-image/jpeg                              jpg  jpeg
+image/jpeg                              jpg  jpeg  jpe
 image/jpm                               jpm  jpgm
 image/jpx                               jpx
 image/nitf                              ntf  nitf
@@ -663,6 +663,7 @@ image/x-cmu-raster                      ras
 image/x-cmx                             cmx
 image/x-cursor                          cur  ani
 image/x-dcx                             dcx
+image/x-exr                             exr
 image/x-freehand                        fh11  ft8  fh  fh5  ft11  ft12  fh10  fh7  fh50  fh9  ft7  fh4  fh8  ft9  fh40  fhc  ft10  fh12
 image/x-icns	                        icns
 image/x-icon                            ico
@@ -670,10 +671,11 @@ image/x-jb2                             jb2
 image/x-jp2-codestream                  j2c
 image/x-pcx                             pcx
 image/x-pict                            pict  pct  pic
-image/x-portable-anymap                 pnm
+image/x-portable-anymap                 pnm   pxm
 image/x-portable-arbitrarymap           pam
 image/x-portable-bitmap                 pbm
 image/x-portable-graymap                pgm
+image/x-portable-floatmap               pfm
 image/x-portable-pixmap                 ppm
 image/x-raw-adobe                       dng
 image/x-raw-canon                       crw  cr2
@@ -697,6 +699,7 @@ image/x-raw-red                         r3d
 image/x-raw-sigma                       x3f
 image/x-raw-sony                        sr2  srf  arw
 image/x-rgb                             rgb  rgba  rgbe  rgbf
+image/x-sun-raster                      sr
 image/x-tga                             tga
 image/x-wmf                             wmf
 image/x-xbitmap                         xbm
