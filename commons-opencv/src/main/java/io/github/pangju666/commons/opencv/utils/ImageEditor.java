@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package io.github.pangju666.commons.opencv.utils;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -12,31 +28,38 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;
-import org.apache.commons.lang3.ArrayUtils;
+import io.github.pangju666.commons.opencv.model.ImageWatermarkOption;
+import io.github.pangju666.commons.opencv.model.TextWatermarkOption;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
+import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
+import org.bytedeco.opencv.opencv_core.Point;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.IntBuffer;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ImageEditor {
 	protected static final int NORMAL_EXIF_ORIENTATION = 1;
-	protected static final Scalar TRANSPARENT_SCALAR = new Scalar(0,0,0,0);
+
+	protected static final Scalar TRANSPARENT_COLOR = new Scalar(0, 0, 0, 0);
 
 	protected Mat inputImage;
 
 	protected Mat outputImage;
-
-	protected Size outputImageSize;
 
 	protected ImageEditor(final Mat inputImage, int exifOrientation, int flags) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
@@ -45,8 +68,6 @@ public class ImageEditor {
 		Validate.isTrue(!inputImage.isNull() && !inputImage.empty(), "inputImage 不存在图像数据");
 
 		this.outputImage = inputImage;
-		this.outputImageSize = inputImage.size();
-		Validate.isTrue(!outputImageSize.isNull() && !outputImageSize.empty(), "inputImage 不存在图像尺寸");
 
 		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
 			switch (exifOrientation) {
@@ -77,10 +98,6 @@ public class ImageEditor {
 					break;
 			}
 
-			if (exifOrientation >= 5) {
-				this.outputImageSize = this.outputImage.size();
-			}
-
 			this.inputImage = this.outputImage;
 		}
 	}
@@ -91,7 +108,7 @@ public class ImageEditor {
 
 	public static ImageEditor of(final File file, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
-		Mat mat = ImageUtils.read(file, flags);
+		Mat mat = OpencvUtils.read(file, flags);
 
 		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
 			try {
@@ -120,7 +137,7 @@ public class ImageEditor {
 
 	public static ImageEditor of(final byte[] bytes, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
-		Mat mat = ImageUtils.read(bytes, flags);
+		Mat mat = OpencvUtils.read(bytes, flags);
 
 		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
 			try {
@@ -132,6 +149,8 @@ public class ImageEditor {
 
 		return new ImageEditor(mat, exifOrientation, flags);
 	}
+
+
 
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
@@ -179,8 +198,9 @@ public class ImageEditor {
 	}
 
 	public ImageEditor rotate(final double angle) {
-		int width = outputImageSize.width();
-		int height = outputImageSize.height();
+		Size imageSize = outputImage.size();
+		int width = imageSize.width();
+		int height = imageSize.height();
 		Point2f center = new Point2f((float) (width / 2.0), (float) (height / 2.0));
 		Mat rotateMat = opencv_imgproc.getRotationMatrix2D(center, angle, 1.0);
 
@@ -200,17 +220,14 @@ public class ImageEditor {
 			indexer.put(1, 2, indexer.get(1, 2) + (newHeight / 2.0 - center.y()));
 		}
 
-		Mat image = new Mat(new Size(newWidth, newHeight), outputImage.type());
-		Size size = new Size(newWidth, newHeight);
+		Mat newImage = new Mat(new Size(newWidth, newHeight), outputImage.type());
+		Size newImageSize = new Size(newWidth, newHeight);
 		// 仿射旋转，边界填充背景色
-		opencv_imgproc.warpAffine(outputImage, image, rotateMat, size, opencv_imgproc.INTER_LINEAR,
-			opencv_core.BORDER_CONSTANT, TRANSPARENT_SCALAR);
+		opencv_imgproc.warpAffine(outputImage, newImage, rotateMat, newImageSize,
+			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT, TRANSPARENT_COLOR);
 
 		this.outputImage.close();
-		this.outputImage = image;
-
-		this.outputImageSize.close();
-		this.outputImageSize = size;
+		this.outputImage = newImage;
 
 		return this;
 	}
@@ -237,17 +254,15 @@ public class ImageEditor {
 		this.outputImage.close();
 		this.outputImage = image;
 
-		this.outputImageSize.close();
-		this.outputImageSize = new Size(width, height);
-
 		return this;
 	}
 
 	public ImageEditor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
-		int width = outputImageSize.width();
-		int height = outputImageSize.height();
+		Size imageSize = outputImage.size();
+		int width = imageSize.width();
+		int height = imageSize.height();
 		Size size;
 
 		if (width > height) {
@@ -264,66 +279,66 @@ public class ImageEditor {
 	public ImageEditor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		int width = outputImageSize.width();
-		int height = outputImageSize.height();
-		Size size;
+		Size imageSize = outputImage.size();
+		int width = imageSize.width();
+		int height = imageSize.height();
 
+		Size newImageSize;
 		if (width > height) {
 			double ratio = (double) width / height;
-			size = new Size(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight);
+			newImageSize = new Size(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight);
 		} else {
 			double ratio = (double) height / width;
-			size = new Size(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight);
+			newImageSize = new Size(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight);
 		}
 
-		return resize(size.width(), size.height());
+		return resize(newImageSize.width(), newImageSize.height());
 	}
 
 	public ImageEditor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
-		return resize((int) Math.round(outputImageSize.width() * scalingFactor),
-			(int) Math.round(outputImageSize.height() * scalingFactor));
+		Size imageSize = outputImage.size();
+		return resize((int) Math.round(imageSize.width() * scalingFactor),
+			(int) Math.round(imageSize.height() * scalingFactor));
 	}
 
 	public ImageEditor scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		int width = outputImageSize.width();
-		int height = outputImageSize.height();
-		Size size;
+		Size imageSize = outputImage.size();
+		int width = imageSize.width();
+		int height = imageSize.height();
 
+		Size newImageSize;
 		double ratio = (double) width / height;
 		int heightByWidth = Math.max((int) Math.round(targetWidth / ratio), 1);
 		if (heightByWidth <= targetHeight) {
-			size = new Size(targetWidth, heightByWidth);
+			newImageSize = new Size(targetWidth, heightByWidth);
 		} else {
 			int widthByHeight = Math.max((int) Math.round(targetHeight * ratio), 1);
-			size = new Size(widthByHeight, targetHeight);
+			newImageSize = new Size(widthByHeight, targetHeight);
 		}
 
-		return resize(size.width(), size.height());
+		return resize(newImageSize.width(), newImageSize.height());
 	}
 
 	public ImageEditor cropByCenter(int width, int height) {
 		Validate.isTrue(width > 0, "width 不能小于0");
 		Validate.isTrue(height > 0, "height 不能小于0");
 
+		Size imageSize = outputImage.size();
 		// 边界检测
-		if (width > this.outputImageSize.width() || height > this.outputImageSize.height()) {
+		if (width > imageSize.width() || height > imageSize.height()) {
 			return this;
 		}
 
-		Rect rect = new Rect((this.outputImageSize.width() - width) / 2,
-			(this.outputImageSize.height() - height) / 2, width, height);
+		Rect rect = new Rect((imageSize.width() - width) / 2, (imageSize.height() - height) / 2, width, height);
 		Mat image = outputImage.apply(rect).clone();
 
 		this.outputImage.close();
 		this.outputImage = image;
-
-		this.outputImageSize.close();
-		this.outputImageSize = new Size(rect.width(), rect.height());
 
 		return this;
 	}
@@ -332,21 +347,19 @@ public class ImageEditor {
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
+		Size imageSize = outputImage.size();
 		// 边界检测
-		if (leftOffset + rightOffset > this.outputImageSize.width() ||
-			topOffset + bottomOffset > this.outputImageSize.height()) {
+		if (leftOffset + rightOffset > imageSize.width() ||
+			topOffset + bottomOffset > imageSize.height()) {
 			return this;
 		}
 
-		Rect rect = new Rect(leftOffset, topOffset, this.outputImageSize.width() - leftOffset - rightOffset,
-			this.outputImageSize.height() - topOffset - bottomOffset);
+		Rect rect = new Rect(leftOffset, topOffset, imageSize.width() - leftOffset - rightOffset,
+			imageSize.height() - topOffset - bottomOffset);
 		Mat image = outputImage.apply(rect).clone();
 
 		this.outputImage.close();
 		this.outputImage = image;
-
-		this.outputImageSize.close();
-		this.outputImageSize = new Size(rect.width(), rect.height());
 
 		return this;
 	}
@@ -357,8 +370,9 @@ public class ImageEditor {
 		Validate.isTrue(width > 0, "width 不能小于0");
 		Validate.isTrue(height > 0, "height 不能小于0");
 
+		Size imageSize = outputImage.size();
 		// 边界检测
-		if (x + width > this.outputImageSize.width() || y + height > this.outputImageSize.height()) {
+		if (x + width > imageSize.width() || y + height > imageSize.height()) {
 			return this;
 		}
 
@@ -367,9 +381,6 @@ public class ImageEditor {
 
 		this.outputImage.close();
 		this.outputImage = image;
-
-		this.outputImageSize.close();
-		this.outputImageSize = new Size(width, height);
 
 		return this;
 	}
@@ -390,67 +401,261 @@ public class ImageEditor {
 		return this;
 	}
 
-	/*public ImageEditor addImageWatermark(final BufferedImage watermarkImage, final ImageWatermarkOption option) {
-		Validate.notNull(option, "option 不可为 null");
-
-		this.outputImage = option.toWatermark(this.outputImageSize, watermarkImage).apply(this.outputImage);
-		return this;
-	}
-	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
-		Validate.notNull(option, "option 不可为 null");
-
-		this.outputImage = option.toCaption(watermarkText, this.outputImage).apply(this.outputImage);
-		return this;
-	}*/
-
-	/*public ImageEditor blur() {
-		this.outputImage = ImageUtil.blur(this.outputImage, 1.5f);
-		return this;
+	public ImageEditor blur() {
+		return blur(new Size(5, 5));
 	}
 
-	public ImageEditor blur(final float radius) {
-		this.outputImage = ImageUtil.blur(this.outputImage, radius);
+	public ImageEditor blur(final Size ksize) {
+		Validate.notNull(ksize, "ksize 不可为 null");
+
+		Mat image = new Mat();
+
+		opencv_imgproc.blur(this.outputImage, image, ksize);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
+	}
+
+	public ImageEditor gaussianBlur() {
+		return gaussianBlur(new Size(5, 5), 0);
+	}
+
+	public ImageEditor gaussianBlur(final Size ksize) {
+		return gaussianBlur(ksize, 0);
+	}
+
+	public ImageEditor gaussianBlur(final Size ksize, final double sigmaX) {
+		Validate.notNull(ksize, "ksize 不可为 null");
+		Validate.isTrue(sigmaX >= 0, "sigmaX 必须大于等于 0");
+
+		Mat image = new Mat();
+
+		opencv_imgproc.GaussianBlur(this.outputImage, image, ksize, sigmaX);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
+	}
+
+	public ImageEditor medianBlur() {
+		return medianBlur(5);
+	}
+
+	public ImageEditor medianBlur(final int ksize) {
+		Validate.isTrue(ksize > 1, "ksize 必须大于 1");
+		Validate.isTrue(ksize % 2 != 0, "ksize 必须为奇数");
+
+		Mat image = new Mat();
+
+		opencv_imgproc.medianBlur(this.outputImage, image, ksize);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
 		return this;
 	}
 
 	public ImageEditor sharpen() {
-		this.outputImage = ImageUtil.sharpen(this.outputImage, 0.3f);
+		return sharpen(5);
+	}
+
+	public ImageEditor sharpen(final float weight) {
+		Validate.isTrue(weight > 4, "weight 必须大于4");
+
+		float[] kernelData = {
+			0, -1, 0,
+			-1, weight, -1,
+			0, -1, 0
+		};
+		Mat kernel = OpencvUtils.getKernel(kernelData);
+
+		Mat image = new Mat();
+
+		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
 		return this;
 	}
 
-	public ImageEditor sharpen(final float amount) {
-		this.outputImage = ImageUtil.sharpen(this.outputImage, amount);
+	public ImageEditor emboss() {
+		return emboss(1.0f);
+	}
+
+	public ImageEditor emboss(final float strength) {
+		Validate.isTrue(strength > 0, "strength 必须大于0");
+
+		float[] kernelData = {
+			-2 * strength, -1 * strength, 0,
+			-1 * strength, 1, 1 * strength,
+			0, 1 * strength, 2 * strength
+		};
+		Mat kernel = OpencvUtils.getKernel(kernelData);
+
+		Mat image = new Mat();
+
+		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
+	}
+
+	public ImageEditor threshold() {
+		return threshold(0, 255, opencv_imgproc.THRESH_BINARY + opencv_imgproc.THRESH_OTSU);
+	}
+
+	public ImageEditor threshold(final double thresh, final double maxVal, final int type) {
+		Validate.isTrue(thresh >= 0 && thresh <= 255, "thresh 取值范围必须为 0~255");
+		Validate.isTrue(maxVal >= 0 && maxVal <= 255, "maxVal 取值范围必须为 0~255");
+		Validate.isTrue(thresh != maxVal, "thresh 不能与 maxVal 相同");
+
+		Mat image = new Mat();
+
+		opencv_imgproc.threshold(this.outputImage, image, thresh, maxVal, type);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
+	}
+
+	public ImageEditor adaptiveThreshold() {
+		return adaptiveThreshold(255, opencv_imgproc.ADAPTIVE_THRESH_MEAN_C,
+			opencv_imgproc.THRESH_BINARY, 11, 2);
+	}
+
+	public ImageEditor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
+										 final int blockSize, final double c) {
+		Validate.isTrue(maxValue >= 0 && maxValue <= 255, "maxValue 取值范围必须 0 ~ 255");
+		Validate.isTrue(blockSize >= 3 && blockSize % 2 == 1, "blockSize 必须是大于等于3的奇数");
+
+		Mat image = new Mat();
+
+		opencv_imgproc.adaptiveThreshold(this.outputImage, image, maxValue, adaptiveMethod, thresholdType,
+			blockSize, c);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
 		return this;
 	}
 
 	public ImageEditor contrast() {
-		Image image = ImageUtil.filter(this.outputImage, DEFAULT_CONTRAST_FILTER);
-		this.outputImage = ImageUtil.toBuffered(image);
+		return adjustBrightnessContrast(0.3f, 0);
+	}
+
+	public ImageEditor contrast(final float alpha) {
+		return adjustBrightnessContrast(alpha, 0);
+	}
+
+	public ImageEditor brightness(final float beta) {
+		return adjustBrightnessContrast(1f, beta);
+	}
+
+	public ImageEditor addImageWatermark(final File watermarkImage, final ImageWatermarkOption option) throws IOException {
+		Validate.notNull(option, "option 不可为 null");
+
+		return addImageWatermark(OpencvUtils.read(watermarkImage), option);
+	}
+
+	public ImageEditor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
+		Validate.notNull(option, "option 不可为 null");
+		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+
+		Mat image = new Mat();
+		// 缩放水印
+
+		opencv_core.addWeighted(outputImage, 1, watermarkImage, option.getOpacity(), 0,
+			image);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
 		return this;
 	}
 
-	public ImageEditor contrast(final float amount) {
-		if (amount == 0f || amount > 1.0 || amount < -1.0) {
-			return this;
+	/* 不支持中文水印 */
+	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
+		Validate.notNull(option, "option 不可为 null");
+		Validate.notBlank(watermarkText, "watermarkText 不可为空");
+
+		Mat image = new Mat();
+		Size imageSize = outputImage.size();
+
+		Scalar fillColor = OpencvUtils.toBGRColor(option.getFillColor());
+		Scalar strokeColor = OpencvUtils.toBGRColor(option.getStrokeColor());
+		double fontScale = option.getFontScaleStrategy().applyAsDouble(outputImage.size(), option.getFontFace());
+
+		Size textSize = opencv_imgproc.getTextSize(watermarkText, option.getFontFace(), fontScale,
+			option.getThickness(), (IntBuffer) null);
+		int textW = textSize.width();
+		int textH = textSize.height();
+
+		Point point = new Point(option.getX() + option.getInset(), option.getY() + option.getInset() + textH);
+
+		if (Objects.nonNull(option.getDirection())) {
+			point = switch (option.getDirection()) {
+				case TOP -> new Point((imageSize.width() - textW) / 2, textH + option.getInset());
+				case TOP_LEFT -> new Point(option.getInset(), textH + option.getInset());
+				case TOP_RIGHT -> new Point(imageSize.width() - textW - option.getInset(), textH + option.getInset());
+				case BOTTOM -> new Point((imageSize.width() - textW) / 2, imageSize.height() - option.getInset());
+				case BOTTOM_LEFT -> new Point(option.getInset(), imageSize.height() - option.getInset());
+				case BOTTOM_RIGHT -> new Point(imageSize.width() - textW - option.getInset(),
+					imageSize.height() - option.getInset());
+				case CENTER -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
+				default -> point;
+			};
 		}
 
-		BrightnessContrastFilter filter = new BrightnessContrastFilter(0f, amount);
-		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image);
-		return this;
-	}
+		if (option.getOpacity() < 1.0f) {
+			Mat textLayer = new Mat();
+			textLayer.put(Mat.zeros(imageSize, outputImage.type()));
 
-	public ImageEditor brightness(final float amount) {
-		if (amount == 0f || amount > 2.0 || amount < -2.0) {
-			return this;
+			if (option.isStroke()) {
+				opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
+					fontScale, strokeColor, option.getThickness() + option.getStrokeSize(),
+					opencv_imgproc.LINE_AA, false);
+			}
+			opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
+				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
+
+			opencv_core.addWeighted(outputImage, 1, textLayer, option.getOpacity(), 0, image);
+
+			textLayer.close();
+		} else {
+			image = outputImage.clone();
+
+			if (option.isStroke()) {
+				opencv_imgproc.putText(image, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
+					fontScale, strokeColor, option.getThickness() + option.getStrokeSize(),
+					opencv_imgproc.LINE_AA, false);
+			}
+			opencv_imgproc.putText(image, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
+				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
 		}
 
-		BrightnessContrastFilter filter = new BrightnessContrastFilter(amount, 0f);
-		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image);
+		this.outputImage.close();
+		this.outputImage = image;
+
 		return this;
 	}
-	 */
+
+	public ImageEditor apply(final Function<Mat, Mat> operation) {
+		Validate.notNull(operation, "operation 不可为 null");
+
+		Mat image = operation.apply(this.outputImage);
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
+	}
 
 	public boolean toFile(final File outputFile) {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -536,21 +741,45 @@ public class ImageEditor {
 	public ImageEditor reset() {
 		if (this.outputImage != this.inputImage) {
 			this.outputImage.close();
-			this.outputImageSize.close();
 
 			this.outputImage = this.inputImage;
-			this.outputImageSize = this.inputImage.size();
 		}
 
 		return this;
 	}
 
-	protected void release() {
-		if (this.outputImage != this.inputImage) {
-			this.outputImage.close();
-			this.outputImageSize.close();
-		}
+	public void release() {
+		this.outputImage.close();
 		this.inputImage.close();
+	}
+
+	protected ImageEditor adjustBrightnessContrast(final float alpha, final float beta) {
+		// 参数校验
+		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
+
+		Mat image = new Mat();
+
+		Mat alphaMat = new Mat();
+		alphaMat.put(Scalar.all(alpha));
+		opencv_core.multiply(outputImage, alphaMat, image);
+
+		Mat betaMat = new Mat();
+		alphaMat.put(Scalar.all(beta));
+		opencv_core.add(image, betaMat, image);
+
+		opencv_imgproc.threshold(image, image, 0, 255, opencv_imgproc.THRESH_TRUNC);
+
+		Mat tmpImage = new Mat();
+		Mat tmpMat = new Mat();
+		tmpMat.put(Scalar.all(0));
+		opencv_core.subtract(image, tmpMat, tmpImage);
+		image.close();
+		image = tmpImage;
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		return this;
 	}
 
 	protected static int getExifOrientation(final Metadata metadata) {
