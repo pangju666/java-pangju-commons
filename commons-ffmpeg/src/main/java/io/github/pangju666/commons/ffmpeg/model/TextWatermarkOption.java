@@ -473,7 +473,9 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=text_h+%d", x + margin, y + margin);
+			String exprX = String.format("max(%d, min(W-text_w-%d, %d))", margin, margin, x + margin);
+			String exprY = String.format("max(text_h+%d, min(H-%d, %d))", margin, margin, y + margin);
+			return String.format("x='%s':y='%s'", exprX, exprY);
 		}
 
 		switch (direction) {

@@ -363,7 +363,15 @@ public class ImageWatermarkOption {
 			}
 		}
 
-		Position coordinate = ObjectUtils.defaultIfNull(direction, new Coordinate(x, y));
+		Position coordinate;
+		if (Objects.nonNull(direction)) {
+			coordinate = direction;
+		} else {
+			int x = Math.max(0, Math.min(targetImageSize.getWidth() - targetWatermarkImage.getWidth(), this.x));
+			int y = Math.max(0, Math.min(targetImageSize.getHeight() - targetWatermarkImage.getHeight(), this.y));
+			coordinate = new Coordinate(x, y);
+		}
+
 		return new Watermark(coordinate, targetWatermarkImage, opacity, margin);
 	}
 }
