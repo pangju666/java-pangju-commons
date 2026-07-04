@@ -3,7 +3,6 @@ package io.github.pangju666.commons.opencv.test
 import io.github.pangju666.commons.io.utils.FileUtils
 import io.github.pangju666.commons.opencv.enums.FlipDirection
 import io.github.pangju666.commons.opencv.enums.RotateDirection
-import io.github.pangju666.commons.opencv.enums.WatermarkDirection
 import io.github.pangju666.commons.opencv.model.ImageWatermarkOption
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption
 import io.github.pangju666.commons.opencv.utils.ImageEditor
@@ -29,7 +28,7 @@ class OpencvUtilsSpec extends Specification {
 			//.rotate(27)
 			//.scale(500, 500)
 			//.addTextWatermark("DEMO", textOption)
-			.addImageWatermark(OpencvUtils.read(watermarkFile), imageOption)
+			.addImageWatermark(watermarkFile, imageOption)
 			//.cropByCenter(100, 100)
 			//.grayscale()
 			.toFile(outputFile)

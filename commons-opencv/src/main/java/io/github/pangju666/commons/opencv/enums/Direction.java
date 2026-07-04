@@ -16,21 +16,93 @@
 
 package io.github.pangju666.commons.opencv.enums;
 
-import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_core.Size;
 
-public enum WatermarkDirection {
+/**
+ * 位置方向枚举
+ *
+ * <p>提供九宫格位置定位。</p>
+ *
+ * @author pangju666
+ * @since 1.1.0
+ */
+public enum Direction {
+	/**
+	 * 左上角
+	 *
+	 * @since 1.1.0
+	 */
 	TOP_LEFT,
+
+	/**
+	 * 顶部居中
+	 *
+	 * @since 1.1.0
+	 */
 	TOP,
+
+	/**
+	 * 右上角
+	 *
+	 * @since 1.1.0
+	 */
 	TOP_RIGHT,
+
+	/**
+	 * 右侧居中
+	 *
+	 * @since 1.1.0
+	 */
 	RIGHT,
+
+	/**
+	 * 中心
+	 *
+	 * @since 1.1.0
+	 */
 	CENTER,
+
+	/**
+	 * 左侧居中
+	 *
+	 * @since 1.1.0
+	 */
 	LEFT,
+
+	/**
+	 * 底部居中
+	 *
+	 * @since 1.1.0
+	 */
 	BOTTOM,
+
+	/**
+	 * 右下角
+	 *
+	 * @since 1.1.0
+	 */
 	BOTTOM_RIGHT,
+
+	/**
+	 * 左下角
+	 *
+	 * @since 1.1.0
+	 */
 	BOTTOM_LEFT;
 
+	/**
+	 * 根据位置方向计算图像水印的矩形区域
+	 *
+	 * <p>该方法返回水印在目标图像中的放置位置（Rect），考虑了指定的边距。</p>
+	 * <p>返回的矩形包含水印的起始坐标（x, y）和尺寸（width, height）。</p>
+	 *
+	 * @param imageSize        目标图像尺寸
+	 * @param watermarkImageSize 水印图像尺寸
+	 * @param margin           水印与图像边缘的距离（单位：像素）
+	 * @return 水印放置位置的矩形
+	 * @since 1.1.0
+	 */
 	public Rect toImageWatermarkRect(Size imageSize, Size watermarkImageSize, int margin) {
 		return switch (this) {
 			case TOP -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,

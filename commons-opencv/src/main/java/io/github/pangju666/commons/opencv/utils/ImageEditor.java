@@ -53,16 +53,176 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * 基于 OpenCV 的图像编辑器（链式调用风格）
+ * <p>
+ * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
+ * 支持以文件、输入流、字节数组（{@code byte[]}）或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
+ * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
+ * </p>
+ *
+ * <p><b>核心特性：</b></p>
+ * <ul>
+ *   <li><b>链式调用：</b> API 设计简洁，配置与处理顺序清晰。</li>
+ *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
+ *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
+ *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 校正方向。</li>
+ *   <li><b>自定义扩展：</b> 通过 {@link #apply(Function)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
+ *   <li><b>丰富操作：</b>
+ *     <ul>
+ *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式。</li>
+ *       <li>调整：旋转（支持固定方向和任意角度）、翻转、平移。</li>
+ *       <li>调色：亮度、对比度、灰度化、透明度调整。</li>
+ *       <li>特效：均值模糊、高斯模糊、中值模糊、锐化、浮雕、阈值、自适应阈值。</li>
+ *       <li>水印：支持图片和文字水印，提供九宫格方向定位和自定义坐标两种方式。</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ *
+ * <p><b>线程安全：</b></p>
+ * <ul>
+ *   <li>本类 <b>非线程安全</b>。实例包含可变的图像状态（{@code outputImage} 等）。</li>
+ *   <li>请确保每个线程使用独立的实例，不要在多线程间共享同一个实例。</li>
+ * </ul>
+ *
+ * <p><b>性能与内存：</b></p>
+ * <ul>
+ *   <li><b>处理顺序：</b> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
+ *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后编辑器不可再使用。</li>
+ * </ul>
+ *
+ * <p><b>推荐方法调用顺序：</b></p>
+ * <ol>
+ *   <li>裁剪</li>
+ *   <li>缩放</li>
+ *   <li>旋转</li>
+ *   <li>翻转</li>
+ *   <li>灰度化</li>
+ *   <li>修改亮度</li>
+ *   <li>修改对比度</li>
+ *   <li>调整透明度</li>
+ *   <li>锐化或模糊（这两个效果互斥，一般不会同时用）</li>
+ *   <li>滤镜/阈值</li>
+ *   <li>添加水印</li>
+ * </ol>
+ *
+ * <p><b>代码示例：</b></p>
+ * <pre>{@code
+ * // 1. 构建实例
+ * // 从文件构建
+ * ImageEditor.of(new File("input.jpg"));
+ * // 从输入流构建
+ * ImageEditor.of(inputStream);
+ * // 从字节数组构建
+ * ImageEditor.of(bytes);
+ * // 从 Mat 构建
+ * ImageEditor.of(mat);
+ *
+ * // 2. 缩放与调整大小
+ * ImageEditor.of(new File("input.jpg"))
+ *     .scaleByWidth(800)              // 按宽度等比缩放
+ *     .scaleByHeight(600)             // 按高度等比缩放
+ *     .scale(0.5)                     // 按比例缩放（50%）
+ *     .scale(800, 600)                // 按目标尺寸等比缩放（不超出）
+ *     .resize(100, 100)               // 强制缩放到指定尺寸（不保持比例）
+ *     .toFile(new File("out_scale.jpg"));
+ *
+ * // 3. 裁剪操作
+ * ImageEditor.of(new File("input.jpg"))
+ *     .cropByCenter(400, 400)         // 居中裁剪
+ *     .cropByRect(0, 0, 200, 200)     // 指定矩形区域裁剪
+ *     .cropByOffset(10, 10, 20, 20)   // 按边距裁剪（上、下、左、右）
+ *     .toFile(new File("out_crop.jpg"));
+ *
+ * // 4. 旋转与翻转
+ * ImageEditor.of(new File("input.jpg"))
+ *     .rotate(RotateDirection.CLOCKWISE_90)  // 顺时针旋转 90 度
+ *     .rotate(45)                            // 任意角度旋转（45度）
+ *     .flip(FlipDirection.HORIZONTAL)        // 水平翻转
+ *     .toFile(new File("out_rotate.jpg"));
+ *
+ * // 5. 色彩与滤镜
+ * ImageEditor.of(new File("input.jpg"))
+ *     .grayscale()                    // 转为灰度图
+ *     .blur()                         // 均值模糊（默认尺寸）
+ *     .gaussianBlur()                 // 高斯模糊（默认尺寸）
+ *     .medianBlur(5)                  // 中值模糊
+ *     .sharpen()                      // 锐化
+ *     .emboss()                       // 浮雕效果
+ *     .contrast(0.2f)                 // 增加对比度
+ *     .brightness(20)                 // 增加亮度
+ *     .transparency(0.5f)             // 调整透明度为 50%
+ *     .threshold()                    // 自适应阈值
+ *     .toFile(new File("out_filter.jpg"));
+ *
+ * // 6. 水印添加（支持图片与文字）
+ * ImageEditor.of(new File("input.jpg"))
+ *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
+ *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
+ *     .toFile(new File("out_watermark.jpg"));
+ *
+ * // 7. 复杂操作链（链式调用）
+ * ImageEditor.of(new File("input.jpg"))
+ *     .cropByCenter(1000, 1000)       // 1. 先裁剪中心 1000x1000 区域
+ *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
+ *     .gaussianBlur()                 // 3. 应用高斯模糊
+ *     .addTextWatermark("PREVIEW", new TextWatermarkOption()) // 4. 添加水印
+ *     .toFile(new File("processed.jpg"));
+ *
+ * // 8. 状态重置与多版本输出
+ * ImageEditor editor = ImageEditor.of(new File("original.png"));
+ * // 输出缩略图
+ * editor.scaleByWidth(200)
+ *       .toFile(new File("thumbnail.png"));
+ * // 重置并输出带水印的高清图
+ * editor.reset()
+ *       .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
+ *       .toFile(new File("watermarked_original.png"));
+ *
+ * // 9. 使用后释放资源
+ * editor.release();
+ * }</pre>
+ *
+ * @author pangju666
+ * @see RotateDirection
+ * @see FlipDirection
+ * @see io.github.pangju666.commons.opencv.model.ImageWatermarkOption
+ * @see io.github.pangju666.commons.opencv.model.TextWatermarkOption
+ * @see OpencvUtils
+ * @since 1.1.0
+ */
 public class ImageEditor {
+	/**
+	 * 正常的 EXIF 方向值
+	 *
+	 * @since 1.1.0
+	 */
 	protected static final int NORMAL_EXIF_ORIENTATION = 1;
 
-	protected static final Scalar TRANSPARENT_COLOR = new Scalar(0, 0, 0, 0);
-
+	/**
+	 * 原始输入图像，用于重置操作
+	 *
+	 * @since 1.1.0
+	 */
 	protected Mat inputImage;
 
+	/**
+	 * 当前处理中的输出图像
+	 *
+	 * @since 1.1.0
+	 */
 	protected Mat outputImage;
 
-	protected ImageEditor(final Mat inputImage, int exifOrientation, int flags) {
+	/**
+	 * 内部构造函数，用于创建图像编辑器
+	 *
+	 * @param inputImage     输入图像 Mat，不能为 null 或空
+	 * @param exifOrientation EXIF 方向值
+	 * @param flags           图像读取标志
+	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空
+	 * @since 1.1.0
+	 */
+	protected ImageEditor(Mat inputImage, int exifOrientation, int flags) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
 
 		this.inputImage = inputImage;
@@ -103,10 +263,27 @@ public class ImageEditor {
 		}
 	}
 
+	/**
+	 * 从图像文件创建编辑器
+	 *
+	 * @param file 图像文件，不能为 null 且必须是图像文件
+	 * @return 图像编辑器实例
+	 * @throws IOException 如果读取文件失败
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final File file) throws IOException {
 		return of(file, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
+	/**
+	 * 从图像文件创建编辑器，使用指定的读取标志
+	 *
+	 * @param file  图像文件，不能为 null 且必须是图像文件
+	 * @param flags 图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @return 图像编辑器实例
+	 * @throws IOException 如果读取文件失败
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final File file, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
 		Mat mat = OpencvUtils.read(file, flags);
@@ -122,20 +299,56 @@ public class ImageEditor {
 		return new ImageEditor(mat, exifOrientation, flags);
 	}
 
+	/**
+	 * 从输入流创建编辑器
+	 *
+	 * @param inputStream 输入流，不能为 null
+	 * @return 图像编辑器实例
+	 * @throws IOException 如果读取流失败
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final InputStream inputStream) throws IOException {
 		return of(inputStream.readAllBytes(), OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
+	/**
+	 * 从输入流创建编辑器，使用指定的读取标志
+	 *
+	 * @param inputStream 输入流，不能为 null
+	 * @param flags       图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @return 图像编辑器实例
+	 * @throws IOException              如果读取流失败
+	 * @throws IllegalArgumentException 如果 inputStream 为 null
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final InputStream inputStream, final int flags) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		return of(inputStream.readAllBytes(), flags);
 	}
 
+	/**
+	 * 从字节数组创建编辑器
+	 *
+	 * @param bytes 图像字节数组，不能为 null 或空
+	 * @return 图像编辑器实例
+	 * @throws IOException 如果读取失败
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final byte[] bytes) throws IOException {
 		return of(bytes, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
+	/**
+	 * 从字节数组创建编辑器，使用指定的读取标志
+	 *
+	 * @param bytes 图像字节数组，不能为 null 或空
+	 * @param flags 图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @return 图像编辑器实例
+	 * @throws IOException              如果读取失败
+	 * @throws IllegalArgumentException 如果 bytes 为 null 或空
+	 * @since 1.1.0
+	 */
 	public static ImageEditor of(final byte[] bytes, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
 		Mat mat = OpencvUtils.read(bytes, flags);
@@ -151,6 +364,27 @@ public class ImageEditor {
 		return new ImageEditor(mat, exifOrientation, flags);
 	}
 
+	/**
+	 * 从现有 Mat 图像创建编辑器
+	 *
+	 * @param image 图像 Mat，不能为 null 或空
+	 * @return 图像编辑器实例
+	 * @since 1.1.0
+	 */
+	public static ImageEditor of(final Mat image) {
+		return new ImageEditor(image, 1, opencv_imgcodecs.IMREAD_UNCHANGED);
+	}
+
+	/**
+	 * 设置图像的全局透明度
+	 *
+	 * <p>如果图像没有 Alpha 通道，会自动添加</p>
+	 *
+	 * @param alpha 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
+	 * @since 1.1.0
+	 */
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
 
@@ -162,6 +396,14 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 旋转图像（90度、180度、逆时针90度）
+	 *
+	 * @param direction 旋转方向枚举，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 direction 为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor rotate(final RotateDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 
@@ -174,6 +416,15 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 按任意角度旋转图像
+	 *
+	 * <p>旋转后的画布会自动调整大小，避免图像被裁切，图像会保持居中显示</p>
+	 *
+	 * @param angle 旋转角度（度），正数为顺时针，负数为逆时针
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor rotate(final double angle) {
 		Size imageSize = outputImage.size();
 		int width = imageSize.width();
@@ -201,7 +452,8 @@ public class ImageEditor {
 		Size newImageSize = new Size(newWidth, newHeight);
 		// 仿射旋转，边界填充背景色
 		opencv_imgproc.warpAffine(outputImage, newImage, rotateMat, newImageSize,
-			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT, TRANSPARENT_COLOR);
+			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
+			OpencvConstants.TRANSPARENT_COLOR);
 
 		this.outputImage.releaseReference();
 		this.outputImage = newImage;
@@ -209,6 +461,14 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 翻转图像（水平或垂直）
+	 *
+	 * @param direction 翻转方向枚举，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 direction 为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor flip(final FlipDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 
@@ -221,12 +481,21 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 平移图像
+	 *
+	 * @param dx 水平平移距离（像素）
+	 * @param dy 垂直平移距离（像素）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor warpAffine(final int dx, final int dy) {
 		Mat image = new Mat();
 
 		Mat matrixMat = OpencvUtils.getMatrixMat(dx, dy);
 		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(),
-			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT, TRANSPARENT_COLOR);
+			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
+			OpencvConstants.TRANSPARENT_COLOR);
 		matrixMat.releaseReference();
 
 		this.outputImage.releaseReference();
@@ -235,6 +504,15 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 调整图像大小到指定尺寸
+	 *
+	 * @param width  目标宽度，必须大于 0
+	 * @param height 目标高度，必须大于 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor resize(final int width, final int height) {
 		Validate.isTrue(width > 0, "width 必须大于 0");
 		Validate.isTrue(height > 0, "height 必须大于 0");
@@ -248,6 +526,14 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 按目标宽度等比例缩放图像
+	 *
+	 * @param targetWidth 目标宽度，必须大于 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
@@ -255,6 +541,14 @@ public class ImageEditor {
 		return resize(size.width(), size.height());
 	}
 
+	/**
+	 * 按目标高度等比例缩放图像
+	 *
+	 * @param targetHeight 目标高度，必须大于 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
@@ -262,6 +556,14 @@ public class ImageEditor {
 		return resize(size.width(), size.height());
 	}
 
+	/**
+	 * 按比例因子缩放图像
+	 *
+	 * @param scalingFactor 缩放比例因子，必须大于 0（例如 0.5 为缩小 50%）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
@@ -269,6 +571,15 @@ public class ImageEditor {
 		return resize(size.width(), size.height());
 	}
 
+	/**
+	 * 按目标尺寸等比例缩放图像（保持宽高比，不超出目标尺寸）
+	 *
+	 * @param targetWidth  目标宽度，必须大于 0
+	 * @param targetHeight 目标高度，必须大于 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
@@ -277,7 +588,18 @@ public class ImageEditor {
 		return resize(size.width(), size.height());
 	}
 
-	public ImageEditor cropByCenter(int width, int height) {
+	/**
+	 * 从图像中心裁剪指定大小的区域
+	 *
+	 * <p>如果目标尺寸大于图像尺寸，裁剪操作会被跳过</p>
+	 *
+	 * @param width  裁剪宽度，必须大于 0
+	 * @param height 裁剪高度，必须大于 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
+	 * @since 1.1.0
+	 */
+	public ImageEditor cropByCenter(final int width, final int height) {
 		Validate.isTrue(width > 0, "width 不能小于0");
 		Validate.isTrue(height > 0, "height 不能小于0");
 
@@ -296,7 +618,20 @@ public class ImageEditor {
 		return this;
 	}
 
-	public ImageEditor cropByOffset(int topOffset, int bottomOffset, int leftOffset, int rightOffset) {
+	/**
+	 * 从四周边缘按偏移量裁剪图像
+	 *
+	 * <p>如果目标区域超出图像边界，裁剪操作会被跳过</p>
+	 *
+	 * @param topOffset    顶部裁剪偏移（像素），必须 >= 0
+	 * @param bottomOffset 底部裁剪偏移（像素），必须 >= 0
+	 * @param leftOffset   左侧裁剪偏移（像素），必须 >= 0
+	 * @param rightOffset  右侧裁剪偏移（像素），必须 >= 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果任一 offset 小于 0
+	 * @since 1.1.0
+	 */
+	public ImageEditor cropByOffset(final int topOffset, final int bottomOffset, final int leftOffset, final int rightOffset) {
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
@@ -317,7 +652,20 @@ public class ImageEditor {
 		return this;
 	}
 
-	public ImageEditor cropByRect(int x, int y, int width, int height) {
+	/**
+	 * 按指定矩形区域裁剪图像
+	 *
+	 * <p>如果目标区域超出图像边界，裁剪操作会被跳过</p>
+	 *
+	 * @param x      矩形左上角 x 坐标，必须 >= 0
+	 * @param y      矩形左上角 y 坐标，必须 >= 0
+	 * @param width  矩形宽度，必须 > 0
+	 * @param height 矩形高度，必须 > 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
+	public ImageEditor cropByRect(final int x, final int y, final int width, final int height) {
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
 		Validate.isTrue(width > 0, "width 不能小于0");
@@ -338,6 +686,14 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 将图像转换为灰度图
+	 *
+	 * <p>支持 BGR（3通道）或 BGRA（4通道）图像的转换</p>
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor grayscale() {
 		Mat image = new Mat();
 		int channels = this.outputImage.channels();
@@ -354,10 +710,24 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行均值模糊处理（默认 5x5 卷积核）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor blur() {
 		return blur(new Size(5, 5));
 	}
 
+	/**
+	 * 对图像进行均值模糊处理
+	 *
+	 * @param ksize 卷积核尺寸，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 ksize 为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor blur(final Size ksize) {
 		Validate.notNull(ksize, "ksize 不可为 null");
 
@@ -371,14 +741,37 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行高斯模糊处理（默认 5x5 卷积核，sigma=0）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor gaussianBlur() {
 		return gaussianBlur(new Size(5, 5), 0);
 	}
 
+	/**
+	 * 对图像进行高斯模糊处理（sigma=0，自动计算）
+	 *
+	 * @param ksize 卷积核尺寸，不能为 null（宽高必须是奇数）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 ksize 为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor gaussianBlur(final Size ksize) {
 		return gaussianBlur(ksize, 0);
 	}
 
+	/**
+	 * 对图像进行高斯模糊处理
+	 *
+	 * @param ksize   卷积核尺寸，不能为 null（宽高必须是奇数）
+	 * @param sigmaX  X 方向的高斯核标准差，必须 >= 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果参数无效
+	 * @since 1.1.0
+	 */
 	public ImageEditor gaussianBlur(final Size ksize, final double sigmaX) {
 		Validate.notNull(ksize, "ksize 不可为 null");
 		Validate.isTrue(sigmaX >= 0, "sigmaX 必须大于等于 0");
@@ -393,10 +786,24 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行中值模糊处理（默认 5x5 卷积核）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor medianBlur() {
 		return medianBlur(5);
 	}
 
+	/**
+	 * 对图像进行中值模糊处理
+	 *
+	 * @param ksize 卷积核尺寸，必须是大于 1 的奇数
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 ksize 无效
+	 * @since 1.1.0
+	 */
 	public ImageEditor medianBlur(final int ksize) {
 		Validate.isTrue(ksize > 1, "ksize 必须大于 1");
 		Validate.isTrue(ksize % 2 != 0, "ksize 必须为奇数");
@@ -411,10 +818,24 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行锐化处理（默认强度 weight=5）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor sharpen() {
 		return sharpen(5);
 	}
 
+	/**
+	 * 对图像进行锐化处理
+	 *
+	 * @param weight 锐化强度，必须 > 4（值越大锐化效果越强）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 weight <= 4
+	 * @since 1.1.0
+	 */
 	public ImageEditor sharpen(final float weight) {
 		Validate.isTrue(weight > 4, "weight 必须大于4");
 
@@ -435,10 +856,24 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行浮雕效果处理（默认强度 strength=1.0）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor emboss() {
 		return emboss(1.0f);
 	}
 
+	/**
+	 * 对图像进行浮雕效果处理
+	 *
+	 * @param strength 浮雕强度，必须 > 0
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 strength <= 0
+	 * @since 1.1.0
+	 */
 	public ImageEditor emboss(final float strength) {
 		Validate.isTrue(strength > 0, "strength 必须大于0");
 
@@ -459,10 +894,26 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行自适应二值化处理（使用 Otsu 算法自动计算阈值）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor threshold() {
 		return threshold(0, 255, opencv_imgproc.THRESH_BINARY + opencv_imgproc.THRESH_OTSU);
 	}
 
+	/**
+	 * 对图像进行二值化处理
+	 *
+	 * @param thresh  阈值，范围 [0, 255]
+	 * @param maxVal  最大值，范围 [0, 255]
+	 * @param type    阈值处理类型（OpenCV 的 THRESH_* 常量）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果参数无效
+	 * @since 1.1.0
+	 */
 	public ImageEditor threshold(final double thresh, final double maxVal, final int type) {
 		Validate.isTrue(thresh >= 0 && thresh <= 255, "thresh 取值范围必须为 0~255");
 		Validate.isTrue(maxVal >= 0 && maxVal <= 255, "maxVal 取值范围必须为 0~255");
@@ -478,11 +929,29 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 对图像进行自适应二值化处理（使用默认参数）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor adaptiveThreshold() {
 		return adaptiveThreshold(255, opencv_imgproc.ADAPTIVE_THRESH_MEAN_C,
 			opencv_imgproc.THRESH_BINARY, 11, 2);
 	}
 
+	/**
+	 * 对图像进行自适应二值化处理
+	 *
+	 * @param maxValue      最大值，范围 [0, 255]
+	 * @param adaptiveMethod 自适应方法（OpenCV 的 ADAPTIVE_THRESH_* 常量）
+	 * @param thresholdType 阈值类型（OpenCV 的 THRESH_* 常量）
+	 * @param blockSize     邻域大小，必须是 >= 3 的奇数
+	 * @param c             从均值或加权均值中减去的常量
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果参数无效
+	 * @since 1.1.0
+	 */
 	public ImageEditor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
 										 final int blockSize, final double c) {
 		Validate.isTrue(maxValue >= 0 && maxValue <= 255, "maxValue 取值范围必须 0 ~ 255");
@@ -499,10 +968,23 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 调整图像对比度（默认 alpha=0.3）
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor contrast() {
 		return contrast(0.3f);
 	}
 
+	/**
+	 * 调整图像对比度
+	 *
+	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，<1 减弱）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor contrast(final float alpha) {
 		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, alpha, 0);
 
@@ -512,6 +994,13 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 调整图像亮度
+	 *
+	 * @param beta 亮度偏移量（0 为不改变，正值增加亮度，负值减少亮度）
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor brightness(final float beta) {
 		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, 1f, beta);
 
@@ -521,15 +1010,42 @@ public class ImageEditor {
 		return this;
 	}
 
-	public ImageEditor addImageWatermark(final File watermarkImage, final ImageWatermarkOption option) throws IOException {
+	/**
+	 * 添加图片水印（从文件加载）
+	 *
+	 * @param watermarkImageFile 水印图片文件，不能为 null
+	 * @param option            水印配置选项，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IOException              如果读取水印文件读取失败
+	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(option, "option 不可为 null");
 
-		return addImageWatermark(OpencvUtils.read(watermarkImage), option);
+		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
+			return addImageWatermark(watermarkImageMat, option);
+		}
 	}
 
+	/**
+	 * 添加图片水印
+	 *
+	 * <p>水印会根据配置自动调整大小、位置和透明度</p>
+	 *
+	 * @param watermarkImage 水印图片 Mat，不能为 null
+	 * @param option         水印配置选项，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+
+		if (watermarkImage.channels() == 4) {
+			OpencvUtils.cleanTransparency(watermarkImage);
+		}
 
 		Size outputImageSize = outputImage.size();
 		Size originalWatermarkSize = watermarkImage.size();
@@ -562,42 +1078,108 @@ public class ImageEditor {
 			}
 		}
 
-		Rect roiRect;
+		Rect watermarkRect;
 		if (Objects.nonNull(option.getDirection())) {
-			roiRect = option.getDirection().toImageWatermarkRect(outputImageSize, targetWatermarkImageSize, option.getMargin());
+			watermarkRect = option.getDirection().toImageWatermarkRect(outputImageSize, targetWatermarkImageSize, option.getMargin());
 		} else {
-			roiRect = new Rect(option.getX() + option.getMargin(), option.getY() + option.getMargin(),
+			watermarkRect = new Rect(option.getX() + option.getMargin(), option.getY() + option.getMargin(),
 				targetWatermarkImageSize.width(), targetWatermarkImageSize.height());
 		}
 
-		Mat newOutputImage = outputImage.clone();
-		Mat roiMat = newOutputImage.apply(roiRect);
+		Mat roi = new Mat(outputImage, watermarkRect);
 
-		if (option.getOpacity() < 1) {
-			Mat transparencyWatarmarkImageMat = OpencvUtils.transparency(targetWatermarkImage, option.getOpacity());
-			Mat mixRoi = new Mat();
-			opencv_core.addWeighted(roiMat, 1.0, transparencyWatarmarkImageMat, option.getOpacity(),
-				0, mixRoi);
-			mixRoi.copyTo(roiMat);
+		Mat finalAlpha = new Mat();
+		boolean hasAlpha = targetWatermarkImage.channels() == 4;
+		if (hasAlpha) {
+			// 提取水印自带的 Alpha 通道
+			MatVector channels = new MatVector(4);
+			opencv_core.split(targetWatermarkImage, channels);
 
-			transparencyWatarmarkImageMat.releaseReference();
-			mixRoi.releaseReference();
+			Mat originalAlpha = channels.get(3);
+			originalAlpha.convertTo(finalAlpha, opencv_core.CV_32F, option.getOpacity() / 255.0, 0);
+
+			for (Mat mat : channels.get()) {
+				mat.releaseReference();
+			}
 		} else {
-			opencv_core.addWeighted(roiMat, 1, targetWatermarkImage, 1, 0, roiMat);
+			finalAlpha.create(targetWatermarkImageSize.height(), targetWatermarkImageSize.width(), opencv_core.CV_32F);
+			finalAlpha.put(new Scalar(option.getOpacity(), option.getOpacity(), option.getOpacity(), 0));
 		}
+
+		Mat watermarkBGR = new Mat();
+		if (hasAlpha) {
+			MatVector channels = new MatVector(4);
+			opencv_core.split(targetWatermarkImage, channels);
+
+			Mat alphatMat = channels.pop_back();
+			alphatMat.releaseReference();
+
+			opencv_core.merge(channels, watermarkBGR);
+
+			for (Mat mat : channels.get()) {
+				mat.releaseReference();
+			}
+		} else {
+			targetWatermarkImage.copyTo(watermarkBGR);
+		}
+
+		Mat alpha3ch = new Mat();
+		MatVector channels = new MatVector(3);
+		channels.put(finalAlpha, finalAlpha, finalAlpha);
+		opencv_core.merge(channels, alpha3ch);
+
+		Mat oneMat = new Mat(targetWatermarkImageSize.height(), targetWatermarkImageSize.width(),
+			opencv_core.CV_32FC3, new Scalar(1.0, 1.0, 1.0, 0));
+
+		Mat alignedAlpha = new Mat();
+		alpha3ch.convertTo(alignedAlpha, opencv_core.CV_32FC3);
+
+		Mat invAlpha = new Mat();
+		opencv_core.subtract(oneMat, alignedAlpha, invAlpha);
+
+		Mat foreground = new Mat();
+		opencv_core.multiply(watermarkBGR, alignedAlpha, foreground, 1.0, opencv_core.CV_32F);
+
+		Mat background = new Mat();
+		opencv_core.multiply(roi, invAlpha, background, 1.0, opencv_core.CV_32F);
+
+		Mat blended = new Mat();
+		opencv_core.add(foreground, background, blended, new Mat(), opencv_core.CV_32F);
+
+		Mat blendedUint8 = new Mat();
+		blended.convertTo(blendedUint8, opencv_core.CV_8U);
+		blendedUint8.copyTo(roi);
 
 		if (targetWatermarkImage != watermarkImage) {
-			targetWatermarkImage.releaseReference();
+			targetWatermarkImage.release();
 		}
-		roiMat.releaseReference();
-
-		this.outputImage.releaseReference();
-		this.outputImage = newOutputImage;
+		roi.release();
+		roi.release();
+		finalAlpha.release();
+		watermarkBGR.release();
+		alignedAlpha.release();
+		alpha3ch.release();
+		oneMat.release();
+		invAlpha.release();
+		foreground.release();
+		background.release();
+		blended.release();
+		blendedUint8.release();
 
 		return this;
 	}
 
-	/* 不支持中文水印 */
+	/**
+	 * 添加文字水印
+	 *
+	 * <p><b>注意：OpenCV 默认不支持中文字符</p>
+	 *
+	 * @param watermarkText 水印文字，不能为 null 或空
+	 * @param option        水印配置选项，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
 	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notBlank(watermarkText, "watermarkText 不可为空");
@@ -663,6 +1245,14 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 应用自定义图像处理操作
+	 *
+	 * @param operation 自定义处理函数，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 operation 为 null
+	 * @since 1.1.0
+	 */
 	public ImageEditor apply(final Function<Mat, Mat> operation) {
 		Validate.notNull(operation, "operation 不可为 null");
 
@@ -674,23 +1264,46 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 将处理后的图像保存到文件
+	 *
+	 * @param outputFile 输出文件，不能为 null
+	 * @return 是否保存成功
+	 * @throws IllegalArgumentException 如果 outputFile 为 null
+	 * @since 1.1.0
+	 */
 	public boolean toFile(final File outputFile) {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		boolean result = opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage);
-		release();
-		return result;
+		return opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage);
 	}
 
-	public boolean toFile(final File outputFile, int... params) {
+	/**
+	 * 将处理后的图像保存到文件（带编码参数）
+	 *
+	 * @param outputFile 输出文件，不能为 null
+	 * @param params      编码参数，不能为 null
+	 * @return 是否保存成功
+	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @since 1.1.0
+	 */
+	public boolean toFile(final File outputFile, final int... params) {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(params, "params 不可为 null");
 
-		boolean result = opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage, params);
-		release();
-		return result;
+		return opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage, params);
 	}
 
+	/**
+	 * 将处理后的图像写入输出流
+	 *
+	 * @param format       图像格式，不能为 null 或空
+	 * @param outputStream 输出流，不能为 null
+	 * @return 是否写入成功
+	 * @throws IOException              如果写入失败
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
 	public boolean toOutputStream(final String format, final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
@@ -702,7 +1315,18 @@ public class ImageEditor {
 		return true;
 	}
 
-	public boolean toOutputStream(final String format, final OutputStream outputStream, int... params) throws IOException {
+	/**
+	 * 将处理后的图像写入输出流（带编码参数）
+	 *
+	 * @param format       图像格式，不能为 null 或空
+	 * @param outputStream 输出流，不能为 null
+	 * @param params        编码参数，不能为 null
+	 * @return 是否写入成功
+	 * @throws IOException              如果写入失败
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
+	public boolean toOutputStream(final String format, final OutputStream outputStream, final int... params) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		byte[] bytes = toBytes(format, params);
@@ -713,6 +1337,14 @@ public class ImageEditor {
 		return true;
 	}
 
+	/**
+	 * 将处理后的图像转换为字节数组
+	 *
+	 * @param format 图像格式，不能为 null 或空
+	 * @return 图像字节数组，失败时返回 null
+	 * @throws IllegalArgumentException 如果 format 无效
+	 * @since 1.1.0
+	 */
 	public byte[] toBytes(final String format) {
 		Validate.notBlank(format, "format 不可为空");
 		Validate.isTrue(OpencvConstants.SUPPORTED_IMAGE_FILE_FORMATS.contains(format),
@@ -722,14 +1354,21 @@ public class ImageEditor {
 		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
 			StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR + format, outputImage, bytes);
 
-		release();
-
 		if (!result) {
 			return null;
 		}
 		return bytes;
 	}
 
+	/**
+	 * 将处理后的图像转换为字节数组（带编码参数）
+	 *
+	 * @param format 图像格式，不能为 null 或空
+	 * @param params 编码参数，不能为 null
+	 * @return 图像字节数组，失败时返回 null
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
 	public byte[] toBytes(final String format, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
 		Validate.notBlank(format, "format 不可为空");
@@ -740,21 +1379,28 @@ public class ImageEditor {
 		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
 			StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR + format, outputImage, bytes, params);
 
-		release();
-
 		if (!result) {
 			return null;
 		}
 		return bytes;
 	}
 
+	/**
+	 * 获取处理后的图像 Mat
+	 *
+	 * @return 图像 Mat 对象
+	 * @since 1.1.0
+	 */
 	public Mat toMat() {
-		if (this.outputImage != this.inputImage) {
-			this.inputImage.releaseReference();
-		}
 		return this.outputImage;
 	}
 
+	/**
+	 * 重置到初始图像状态
+	 *
+	 * @return 当前编辑器实例，支持链式调用
+	 * @since 1.1.0
+	 */
 	public ImageEditor reset() {
 		if (this.outputImage != this.inputImage) {
 			this.outputImage.releaseReference();
@@ -765,11 +1411,24 @@ public class ImageEditor {
 		return this;
 	}
 
+	/**
+	 * 释放所有图像资源
+	 *
+	 * @since 1.1.0
+	 */
 	public void release() {
 		this.outputImage.releaseReference();
 		this.inputImage.releaseReference();
 	}
 
+	/**
+	 * 从元数据中获取 EXIF 方向信息
+	 *
+	 * @param metadata EXIF 元数据，不能为 null
+	 * @return EXIF 方向值
+	 * @throws IllegalArgumentException 如果 metadata 为 null
+	 * @since 1.1.0
+	 */
 	protected static int getExifOrientation(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
 
