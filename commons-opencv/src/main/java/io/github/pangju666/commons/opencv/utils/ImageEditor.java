@@ -186,8 +186,8 @@ import java.util.function.Function;
  * @author pangju666
  * @see RotateDirection
  * @see FlipDirection
- * @see io.github.pangju666.commons.opencv.model.ImageWatermarkOption
- * @see io.github.pangju666.commons.opencv.model.TextWatermarkOption
+ * @see ImageWatermarkOption
+ * @see TextWatermarkOption
  * @see OpencvUtils
  * @since 1.1.0
  */
@@ -833,7 +833,7 @@ public class ImageEditor {
 	 *
 	 * @param weight 锐化强度，必须 > 4（值越大锐化效果越强）
 	 * @return 当前编辑器实例，支持链式调用
-	 * @throws IllegalArgumentException 如果 weight <= 4
+	 * @throws IllegalArgumentException 如果 weight &lt;= 4
 	 * @since 1.1.0
 	 */
 	public ImageEditor sharpen(final float weight) {
@@ -871,7 +871,7 @@ public class ImageEditor {
 	 *
 	 * @param strength 浮雕强度，必须 > 0
 	 * @return 当前编辑器实例，支持链式调用
-	 * @throws IllegalArgumentException 如果 strength <= 0
+	 * @throws IllegalArgumentException 如果 strength &lt;= 0
 	 * @since 1.1.0
 	 */
 	public ImageEditor emboss(final float strength) {
@@ -981,7 +981,7 @@ public class ImageEditor {
 	/**
 	 * 调整图像对比度
 	 *
-	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，<1 减弱）
+	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，&lt;1 减弱）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
@@ -1209,7 +1209,9 @@ public class ImageEditor {
 				case BOTTOM_LEFT -> new Point(option.getMargin(), imageSize.height() - option.getMargin());
 				case BOTTOM_RIGHT -> new Point(imageSize.width() - textW - option.getMargin(),
 					imageSize.height() - option.getMargin());
-				case CENTER, default -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
+				case RIGHT -> new Point(imageSize.width() - textW - option.getMargin(), (imageSize.height() + textH) / 2);
+				case CENTER -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
+				case LEFT -> new Point(option.getMargin(), (imageSize.height() + textH) / 2);
 			};
 		} else {
 			int x = Math.max(option.getMargin(), Math.min(imageSize.width() - textW - option.getMargin(),
