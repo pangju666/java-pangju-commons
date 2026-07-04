@@ -25,11 +25,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.javacpp.indexer.DoubleIndexer;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
+import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.MatVector;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
 
@@ -174,5 +177,129 @@ public class OpencvUtils {
 			}
 		}
 		return kernel;
+	}
+
+	public static Size scaleByWidth(final Size size, final int targetWidth) {
+		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
+
+		int width = size.width();
+		int height = size.height();
+
+		if (width > height) {
+			double ratio = (double) width / height;
+			return new Size(targetWidth, Math.max((int) Math.round(targetWidth / ratio), 1));
+		} else {
+			double ratio = (double) height / width;
+			return new Size(targetWidth, Math.max((int) Math.round(targetWidth * ratio), 1));
+		}
+	}
+
+	public static Size scaleByHeight(final Size size, final int targetHeight) {
+		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
+
+		int width = size.width();
+		int height = size.height();
+
+		if (width > height) {
+			double ratio = (double) width / height;
+			return new Size(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight);
+		} else {
+			double ratio = (double) height / width;
+			return new Size(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight);
+		}
+	}
+
+	public static Size scale(final Size size, final double scalingFactor) {
+		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
+
+		return new Size((int) Math.round(size.width() * scalingFactor),
+			(int) Math.round(size.height() * scalingFactor));
+	}
+
+	public static Size scale(final Size size, final int targetWidth, final int targetHeight) {
+		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
+		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
+
+		int width = size.width();
+		int height = size.height();
+
+		double ratio = (double) width / height;
+		int heightByWidth = Math.max((int) Math.round(targetWidth / ratio), 1);
+		if (heightByWidth <= targetHeight) {
+			return new Size(targetWidth, heightByWidth);
+		} else {
+			int widthByHeight = Math.max((int) Math.round(targetHeight * ratio), 1);
+			return new Size(widthByHeight, targetHeight);
+		}
+	}
+
+	public static Mat getMatrixMat(final int dx, final int dy) {
+		Mat matrixMat = new Mat(2, 3, opencv_core.CV_64F);
+		try (DoubleIndexer indexer = matrixMat.createIndexer()) {
+			// 第一行 [1, 0, dx]
+			indexer.put(0, 0, 1.0);
+			indexer.put(0, 1, 0.0);
+			indexer.put(0, 2, dx);
+			// 第二行 [0, 1, dy]
+			indexer.put(1, 0, 0.0);
+			indexer.put(1, 1, 1.0);
+			indexer.put(1, 2, dy);
+		}
+		return matrixMat;
+	}
+
+	public static Mat adjustBrightnessContrast(final Mat image, final float alpha, final float beta) {
+		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
+		Validate.notNull(image, "image 不可为 null");
+
+		Mat outputImage = new Mat();
+
+		try (Mat thresholdImage = new Mat()) {
+			Mat alphaMat = new Mat(Scalar.all(alpha));
+			opencv_core.multiply(image, alphaMat, thresholdImage);
+			alphaMat.releaseReference();
+
+			Mat betaMat = new Mat(Scalar.all(beta));
+			opencv_core.add(thresholdImage, betaMat, thresholdImage);
+			betaMat.releaseReference();
+
+			opencv_imgproc.threshold(thresholdImage, thresholdImage, 0, 255, opencv_imgproc.THRESH_TRUNC);
+
+			Mat subtractMat = new Mat(Scalar.all(0));
+			opencv_core.subtract(thresholdImage, subtractMat, outputImage);
+			subtractMat.releaseReference();
+
+			return outputImage;
+		}
+	}
+
+	public static Mat transparency(final Mat image, final float alpha) {
+		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
+
+		Mat outputImage = image;
+
+		if (outputImage.channels() < 4) {
+			Mat bgraMat = new Mat();
+			int type = image.type();
+			int code = opencv_imgproc.COLOR_BGR2BGRA;
+			if (type == opencv_core.CV_8UC1 || type == opencv_core.CV_16UC1 || type == opencv_core.CV_32FC1) {
+				code = opencv_imgproc.COLOR_GRAY2BGRA;
+			}
+			opencv_imgproc.cvtColor(outputImage, bgraMat, code);
+			image.releaseReference();
+			outputImage = bgraMat;
+		}
+
+		try (MatVector channels = new MatVector();
+		     Scalar alphaScalar = new Scalar(Math.floor(alpha * 255))) {
+			opencv_core.split(outputImage, channels);
+
+			try (Mat alphaChannel = channels.get(3)) {
+				alphaChannel.put(alphaScalar);
+				opencv_core.merge(channels, outputImage);
+			}
+		}
+
+		return outputImage;
 	}
 }

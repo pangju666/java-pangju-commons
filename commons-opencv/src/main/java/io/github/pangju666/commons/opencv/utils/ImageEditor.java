@@ -32,6 +32,7 @@ import io.github.pangju666.commons.opencv.model.ImageWatermarkOption;
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.opencv.global.opencv_core;
@@ -150,36 +151,12 @@ public class ImageEditor {
 		return new ImageEditor(mat, exifOrientation, flags);
 	}
 
-
-
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
 
-		Mat image = this.outputImage;
+		Mat image = OpencvUtils.transparency(this.outputImage, alpha);
 
-		if (image.channels() < 4) {
-			Mat bgraMat = new Mat();
-			int type = image.type();
-			int code = opencv_imgproc.COLOR_BGR2BGRA;
-			if (type == opencv_core.CV_8UC1 || type == opencv_core.CV_16UC1 || type == opencv_core.CV_32FC1) {
-				code = opencv_imgproc.COLOR_GRAY2BGRA;
-			}
-			opencv_imgproc.cvtColor(image, bgraMat, code);
-			image.close();
-			image = bgraMat;
-		}
-
-		try (MatVector channels = new MatVector();
-		     Scalar alphaScalar = new Scalar(Math.floor(alpha * 255))) {
-			opencv_core.split(image, channels);
-
-			try (Mat alphaChannel = channels.get(3)) {
-				alphaChannel.put(alphaScalar);
-				opencv_core.merge(channels, image);
-			}
-		}
-
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -191,7 +168,7 @@ public class ImageEditor {
 		Mat image = new Mat();
 		opencv_core.rotate(outputImage, image, direction.getCode());
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -226,7 +203,7 @@ public class ImageEditor {
 		opencv_imgproc.warpAffine(outputImage, newImage, rotateMat, newImageSize,
 			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT, TRANSPARENT_COLOR);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = newImage;
 
 		return this;
@@ -238,7 +215,21 @@ public class ImageEditor {
 		Mat image = new Mat();
 		opencv_core.flip(outputImage, image, direction.getCode());
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
+		this.outputImage = image;
+
+		return this;
+	}
+
+	public ImageEditor warpAffine(final int dx, final int dy) {
+		Mat image = new Mat();
+
+		Mat matrixMat = OpencvUtils.getMatrixMat(dx, dy);
+		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(),
+			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT, TRANSPARENT_COLOR);
+		matrixMat.releaseReference();
+
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -251,7 +242,7 @@ public class ImageEditor {
 		Mat image = new Mat();
 		opencv_imgproc.resize(outputImage, image, new Size(width, height));
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -260,68 +251,30 @@ public class ImageEditor {
 	public ImageEditor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
-		Size imageSize = outputImage.size();
-		int width = imageSize.width();
-		int height = imageSize.height();
-		Size size;
-
-		if (width > height) {
-			double ratio = (double) width / height;
-			size = new Size(targetWidth, Math.max((int) Math.round(targetWidth / ratio), 1));
-		} else {
-			double ratio = (double) height / width;
-			size = new Size(targetWidth, Math.max((int) Math.round(targetWidth * ratio), 1));
-		}
-
+		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
 		return resize(size.width(), size.height());
 	}
 
 	public ImageEditor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size imageSize = outputImage.size();
-		int width = imageSize.width();
-		int height = imageSize.height();
-
-		Size newImageSize;
-		if (width > height) {
-			double ratio = (double) width / height;
-			newImageSize = new Size(Math.max((int) Math.round(targetHeight * ratio), 1), targetHeight);
-		} else {
-			double ratio = (double) height / width;
-			newImageSize = new Size(Math.max((int) Math.round(targetHeight / ratio), 1), targetHeight);
-		}
-
-		return resize(newImageSize.width(), newImageSize.height());
+		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
+		return resize(size.width(), size.height());
 	}
 
 	public ImageEditor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
-		Size imageSize = outputImage.size();
-		return resize((int) Math.round(imageSize.width() * scalingFactor),
-			(int) Math.round(imageSize.height() * scalingFactor));
+		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
+		return resize(size.width(), size.height());
 	}
 
 	public ImageEditor scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size imageSize = outputImage.size();
-		int width = imageSize.width();
-		int height = imageSize.height();
-
-		Size newImageSize;
-		double ratio = (double) width / height;
-		int heightByWidth = Math.max((int) Math.round(targetWidth / ratio), 1);
-		if (heightByWidth <= targetHeight) {
-			newImageSize = new Size(targetWidth, heightByWidth);
-		} else {
-			int widthByHeight = Math.max((int) Math.round(targetHeight * ratio), 1);
-			newImageSize = new Size(widthByHeight, targetHeight);
-		}
-
-		return resize(newImageSize.width(), newImageSize.height());
+		Size size = OpencvUtils.scale(outputImage.size(), targetWidth, targetHeight);
+		return resize(size.width(), size.height());
 	}
 
 	public ImageEditor cropByCenter(int width, int height) {
@@ -337,7 +290,7 @@ public class ImageEditor {
 		Rect rect = new Rect((imageSize.width() - width) / 2, (imageSize.height() - height) / 2, width, height);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -358,7 +311,7 @@ public class ImageEditor {
 			imageSize.height() - topOffset - bottomOffset);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -379,7 +332,7 @@ public class ImageEditor {
 		Rect rect = new Rect(x, y, width, height);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -395,7 +348,7 @@ public class ImageEditor {
 			opencv_imgproc.cvtColor(this.outputImage, image, opencv_imgproc.COLOR_BGRA2GRAY);
 		}
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -412,7 +365,7 @@ public class ImageEditor {
 
 		opencv_imgproc.blur(this.outputImage, image, ksize);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -434,7 +387,7 @@ public class ImageEditor {
 
 		opencv_imgproc.GaussianBlur(this.outputImage, image, ksize, sigmaX);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -452,7 +405,7 @@ public class ImageEditor {
 
 		opencv_imgproc.medianBlur(this.outputImage, image, ksize);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -476,7 +429,7 @@ public class ImageEditor {
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -500,7 +453,7 @@ public class ImageEditor {
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -519,7 +472,7 @@ public class ImageEditor {
 
 		opencv_imgproc.threshold(this.outputImage, image, thresh, maxVal, type);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -540,22 +493,32 @@ public class ImageEditor {
 		opencv_imgproc.adaptiveThreshold(this.outputImage, image, maxValue, adaptiveMethod, thresholdType,
 			blockSize, c);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
 	}
 
 	public ImageEditor contrast() {
-		return adjustBrightnessContrast(0.3f, 0);
+		return contrast(0.3f);
 	}
 
 	public ImageEditor contrast(final float alpha) {
-		return adjustBrightnessContrast(alpha, 0);
+		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, alpha, 0);
+
+		this.outputImage.releaseReference();
+		this.outputImage = image;
+
+		return this;
 	}
 
 	public ImageEditor brightness(final float beta) {
-		return adjustBrightnessContrast(1f, beta);
+		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, 1f, beta);
+
+		this.outputImage.releaseReference();
+		this.outputImage = image;
+
+		return this;
 	}
 
 	public ImageEditor addImageWatermark(final File watermarkImage, final ImageWatermarkOption option) throws IOException {
@@ -568,14 +531,68 @@ public class ImageEditor {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 
-		Mat image = new Mat();
-		// 缩放水印
+		Size outputImageSize = outputImage.size();
+		Size originalWatermarkSize = watermarkImage.size();
+		Pair<Size, Size> watermarkImageSizeRange = option.getSizeLimitStrategy().apply(outputImageSize);
 
-		opencv_core.addWeighted(outputImage, 1, watermarkImage, option.getOpacity(), 0,
-			image);
+		Mat targetWatermarkImage;
+		Size targetWatermarkImageSize = OpencvUtils.scale(outputImageSize, option.getRelativeScaleFactor());
 
-		this.outputImage.close();
-		this.outputImage = image;
+		if (originalWatermarkSize.width() > originalWatermarkSize.height()) {
+			int targetWidth = Math.min(watermarkImageSizeRange.getRight().width(),
+				Math.max(watermarkImageSizeRange.getLeft().width(), targetWatermarkImageSize.width()));
+			if (targetWidth != targetWatermarkImageSize.width()) {
+				targetWatermarkImage = new Mat();
+				targetWatermarkImageSize = OpencvUtils.scaleByWidth(originalWatermarkSize, targetWidth);
+
+				opencv_imgproc.resize(watermarkImage, targetWatermarkImage, targetWatermarkImageSize);
+			} else {
+				targetWatermarkImage = watermarkImage;
+			}
+		} else {
+			int targetHeight = Math.min(watermarkImageSizeRange.getRight().height(),
+				Math.max(watermarkImageSizeRange.getLeft().height(), targetWatermarkImageSize.height()));
+			if (targetHeight != targetWatermarkImageSize.height()) {
+				targetWatermarkImage = new Mat();
+				targetWatermarkImageSize = OpencvUtils.scaleByHeight(originalWatermarkSize, targetHeight);
+
+				opencv_imgproc.resize(watermarkImage, targetWatermarkImage, targetWatermarkImageSize);
+			} else {
+				targetWatermarkImage = watermarkImage;
+			}
+		}
+
+		Rect roiRect;
+		if (Objects.nonNull(option.getDirection())) {
+			roiRect = option.getDirection().toImageWatermarkRect(outputImageSize, targetWatermarkImageSize, option.getMargin());
+		} else {
+			roiRect = new Rect(option.getX() + option.getMargin(), option.getY() + option.getMargin(),
+				targetWatermarkImageSize.width(), targetWatermarkImageSize.height());
+		}
+
+		Mat newOutputImage = outputImage.clone();
+		Mat roiMat = newOutputImage.apply(roiRect);
+
+		if (option.getOpacity() < 1) {
+			Mat transparencyWatarmarkImageMat = OpencvUtils.transparency(targetWatermarkImage, option.getOpacity());
+			Mat mixRoi = new Mat();
+			opencv_core.addWeighted(roiMat, 1.0, transparencyWatarmarkImageMat, option.getOpacity(),
+				0, mixRoi);
+			mixRoi.copyTo(roiMat);
+
+			transparencyWatarmarkImageMat.releaseReference();
+			mixRoi.releaseReference();
+		} else {
+			opencv_core.addWeighted(roiMat, 1, targetWatermarkImage, 1, 0, roiMat);
+		}
+
+		if (targetWatermarkImage != watermarkImage) {
+			targetWatermarkImage.releaseReference();
+		}
+		roiMat.releaseReference();
+
+		this.outputImage.releaseReference();
+		this.outputImage = newOutputImage;
 
 		return this;
 	}
@@ -597,23 +614,23 @@ public class ImageEditor {
 		int textW = textSize.width();
 		int textH = textSize.height();
 
-		Point point = new Point(option.getX() + option.getInset(), option.getY() + option.getInset() + textH);
+		Point point = new Point(option.getX() + option.getMargin(), option.getY() + option.getMargin() + textH);
 
 		if (Objects.nonNull(option.getDirection())) {
 			point = switch (option.getDirection()) {
-				case TOP -> new Point((imageSize.width() - textW) / 2, textH + option.getInset());
-				case TOP_LEFT -> new Point(option.getInset(), textH + option.getInset());
-				case TOP_RIGHT -> new Point(imageSize.width() - textW - option.getInset(), textH + option.getInset());
-				case BOTTOM -> new Point((imageSize.width() - textW) / 2, imageSize.height() - option.getInset());
-				case BOTTOM_LEFT -> new Point(option.getInset(), imageSize.height() - option.getInset());
-				case BOTTOM_RIGHT -> new Point(imageSize.width() - textW - option.getInset(),
-					imageSize.height() - option.getInset());
+				case TOP -> new Point((imageSize.width() - textW) / 2, textH + option.getMargin());
+				case TOP_LEFT -> new Point(option.getMargin(), textH + option.getMargin());
+				case TOP_RIGHT -> new Point(imageSize.width() - textW - option.getMargin(), textH + option.getMargin());
+				case BOTTOM -> new Point((imageSize.width() - textW) / 2, imageSize.height() - option.getMargin());
+				case BOTTOM_LEFT -> new Point(option.getMargin(), imageSize.height() - option.getMargin());
+				case BOTTOM_RIGHT -> new Point(imageSize.width() - textW - option.getMargin(),
+					imageSize.height() - option.getMargin());
 				case CENTER -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
 				default -> point;
 			};
 		}
 
-		if (option.getOpacity() < 1.0f) {
+		if (option.getOpacity() < 1) {
 			Mat textLayer = new Mat();
 			textLayer.put(Mat.zeros(imageSize, outputImage.type()));
 
@@ -627,7 +644,7 @@ public class ImageEditor {
 
 			opencv_core.addWeighted(outputImage, 1, textLayer, option.getOpacity(), 0, image);
 
-			textLayer.close();
+			textLayer.releaseReference();
 		} else {
 			image = outputImage.clone();
 
@@ -640,7 +657,7 @@ public class ImageEditor {
 				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
 		}
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -651,7 +668,7 @@ public class ImageEditor {
 
 		Mat image = operation.apply(this.outputImage);
 
-		this.outputImage.close();
+		this.outputImage.releaseReference();
 		this.outputImage = image;
 
 		return this;
@@ -733,14 +750,14 @@ public class ImageEditor {
 
 	public Mat toMat() {
 		if (this.outputImage != this.inputImage) {
-			this.inputImage.close();
+			this.inputImage.releaseReference();
 		}
 		return this.outputImage;
 	}
 
 	public ImageEditor reset() {
 		if (this.outputImage != this.inputImage) {
-			this.outputImage.close();
+			this.outputImage.releaseReference();
 
 			this.outputImage = this.inputImage;
 		}
@@ -749,37 +766,8 @@ public class ImageEditor {
 	}
 
 	public void release() {
-		this.outputImage.close();
-		this.inputImage.close();
-	}
-
-	protected ImageEditor adjustBrightnessContrast(final float alpha, final float beta) {
-		// 参数校验
-		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
-
-		Mat image = new Mat();
-
-		Mat alphaMat = new Mat();
-		alphaMat.put(Scalar.all(alpha));
-		opencv_core.multiply(outputImage, alphaMat, image);
-
-		Mat betaMat = new Mat();
-		alphaMat.put(Scalar.all(beta));
-		opencv_core.add(image, betaMat, image);
-
-		opencv_imgproc.threshold(image, image, 0, 255, opencv_imgproc.THRESH_TRUNC);
-
-		Mat tmpImage = new Mat();
-		Mat tmpMat = new Mat();
-		tmpMat.put(Scalar.all(0));
-		opencv_core.subtract(image, tmpMat, tmpImage);
-		image.close();
-		image = tmpImage;
-
-		this.outputImage.close();
-		this.outputImage = image;
-
-		return this;
+		this.outputImage.releaseReference();
+		this.inputImage.releaseReference();
 	}
 
 	protected static int getExifOrientation(final Metadata metadata) {

@@ -36,7 +36,7 @@ public class TextWatermarkOption {
 
 	private float opacity = 0.4f;
 
-	private int inset = 20;
+	private int margin = 20;
 
 	private int x = 0;
 
@@ -70,16 +70,14 @@ public class TextWatermarkOption {
 			fontPt = (int) Math.round(32 + ratio * (48 - 32));
 		}
 
-		int baseFontType = fontFace & ~opencv_imgproc.FONT_ITALIC;
-		return switch (baseFontType) {
-			case opencv_imgproc.FONT_HERSHEY_SCRIPT_SIMPLEX, opencv_imgproc.FONT_HERSHEY_SCRIPT_COMPLEX ->
-				(double) fontPt / SCRIPT_FONT_DIV;
-			case opencv_imgproc.FONT_HERSHEY_PLAIN , opencv_imgproc.FONT_HERSHEY_COMPLEX_SMALL ->
-				(double) fontPt / SMALL_FONT_DIV;
-			case opencv_imgproc.FONT_HERSHEY_SIMPLEX, opencv_imgproc.FONT_HERSHEY_DUPLEX,
-				 opencv_imgproc.FONT_HERSHEY_COMPLEX, opencv_imgproc.FONT_HERSHEY_TRIPLEX, default ->
-				(double) fontPt / STD_FONT_DIV;
-		};
+		int baseFontFace = fontFace & ~opencv_imgproc.FONT_ITALIC;
+		if (baseFontFace == opencv_imgproc.FONT_HERSHEY_SCRIPT_SIMPLEX || baseFontFace == opencv_imgproc.FONT_HERSHEY_SCRIPT_COMPLEX) {
+			return (double) fontPt / SCRIPT_FONT_DIV;
+		} else if (baseFontFace == opencv_imgproc.FONT_HERSHEY_PLAIN || baseFontFace == opencv_imgproc.FONT_HERSHEY_COMPLEX_SMALL) {
+			return (double) fontPt / SMALL_FONT_DIV;
+		} else {
+			return (double) fontPt / STD_FONT_DIV;
+		}
 	};
 
 	public float getOpacity() {
@@ -92,13 +90,13 @@ public class TextWatermarkOption {
 		}
 	}
 
-	public int getInset() {
-		return inset;
+	public int getMargin() {
+		return margin;
 	}
 
-	public void setInset(int inset) {
-		if (inset >= 0) {
-			this.inset = inset;
+	public void setMargin(int margin) {
+		if (margin >= 0) {
+			this.margin = margin;
 		}
 	}
 

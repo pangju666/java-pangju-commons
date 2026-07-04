@@ -20,6 +20,7 @@ import com.github.jaiimageio.impl.common.ImageUtil;
 import io.github.pangju666.commons.opencv.enums.WatermarkDirection;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bytedeco.opencv.opencv_core.Size;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -31,7 +32,7 @@ public class ImageWatermarkOption {
 
 	private float opacity = 0.4f;
 
-	private int inset = 10;
+	private int margin = 10;
 
 	private int x = 0;
 
@@ -39,16 +40,16 @@ public class ImageWatermarkOption {
 
 	private WatermarkDirection direction;
 
-	/*private Function<ImageSize, Pair<ImageSize, ImageSize>> sizeLimitStrategy = imageSize -> {
-		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
+	private Function<Size, Pair<Size, Size>> sizeLimitStrategy = imageSize -> {
+		int shorter = Math.min(imageSize.width(), imageSize.height());
 		if (shorter < 600) { // 小图
-			return Pair.of(new ImageSize(120, 120), new ImageSize(150, 150));
+			return Pair.of(new Size(120, 120), new Size(150, 150));
 		} else if (shorter >= 1920) { // 大图（注意：>=1920）
-			return Pair.of(new ImageSize(250, 250), new ImageSize(400, 400));
+			return Pair.of(new Size(250, 250), new Size(400, 400));
 		} else { // 中等图
-			return Pair.of(new ImageSize(150, 150), new ImageSize(250, 250));
+			return Pair.of(new Size(150, 150), new Size(250, 250));
 		}
-	};*/
+	};
 
 	public double getRelativeScaleFactor() {
 		return relativeScaleFactor;
@@ -70,13 +71,13 @@ public class ImageWatermarkOption {
 		}
 	}
 
-	public int getInset() {
-		return inset;
+	public int getMargin() {
+		return margin;
 	}
 
-	public void setInset(int inset) {
-		if (inset >= 0) {
-			this.inset = inset;
+	public void setMargin(int margin) {
+		if (margin >= 0) {
+			this.margin = margin;
 		}
 	}
 
@@ -106,5 +107,13 @@ public class ImageWatermarkOption {
 
 	public void setDirection(WatermarkDirection direction) {
 		this.direction = direction;
+	}
+
+	public Function<Size, Pair<Size, Size>> getSizeLimitStrategy() {
+		return sizeLimitStrategy;
+	}
+
+	public void setSizeLimitStrategy(Function<Size, Pair<Size, Size>> sizeLimitStrategy) {
+		this.sizeLimitStrategy = sizeLimitStrategy;
 	}
 }

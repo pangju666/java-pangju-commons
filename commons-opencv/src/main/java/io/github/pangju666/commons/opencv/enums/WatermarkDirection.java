@@ -16,6 +16,10 @@
 
 package io.github.pangju666.commons.opencv.enums;
 
+import org.bytedeco.opencv.opencv_core.Point;
+import org.bytedeco.opencv.opencv_core.Rect;
+import org.bytedeco.opencv.opencv_core.Size;
+
 public enum WatermarkDirection {
 	TOP_LEFT,
 	TOP,
@@ -25,5 +29,25 @@ public enum WatermarkDirection {
 	LEFT,
 	BOTTOM,
 	BOTTOM_RIGHT,
-	BOTTOM_LEFT
+	BOTTOM_LEFT;
+
+	public Rect toImageWatermarkRect(Size imageSize, Size watermarkImageSize, int margin) {
+		return switch (this) {
+			case TOP -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
+				watermarkImageSize.height() + margin, watermarkImageSize.width(), watermarkImageSize.height());
+			case TOP_LEFT -> new Rect(0, watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case TOP_RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
+				watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case BOTTOM -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
+				imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case BOTTOM_LEFT -> new Rect(0, imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case BOTTOM_RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
+				imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case LEFT -> new Rect(0, (imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+			case RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
+				(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+			default -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
+				(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+		};
+	}
 }
