@@ -140,14 +140,11 @@ public class ImageEditor {
 
 		if (image.channels() < 4) {
 			Mat bgraMat = new Mat();
-			int code = switch (image.type()) {
-				case opencv_imgcodecs.IMREAD_COLOR_RGB -> opencv_imgproc.COLOR_RGB2RGBA;
-				case opencv_imgcodecs.IMREAD_GRAYSCALE,
-					 opencv_imgcodecs.IMREAD_REDUCED_GRAYSCALE_2,
-					 opencv_imgcodecs.IMREAD_REDUCED_GRAYSCALE_4,
-					 opencv_imgcodecs.IMREAD_REDUCED_GRAYSCALE_8 -> opencv_imgproc.COLOR_GRAY2BGRA;
-				default -> opencv_imgproc.COLOR_BGR2BGRA;
-			};
+			int type = image.type();
+			int code = opencv_imgproc.COLOR_BGR2BGRA;
+			if (type == opencv_core.CV_8UC1 || type == opencv_core.CV_16UC1 || type == opencv_core.CV_32FC1) {
+				code = opencv_imgproc.COLOR_GRAY2BGRA;
+			}
 			opencv_imgproc.cvtColor(image, bgraMat, code);
 			image.close();
 			image = bgraMat;
@@ -211,6 +208,9 @@ public class ImageEditor {
 
 		this.outputImage.close();
 		this.outputImage = image;
+
+		this.outputImageSize.close();
+		this.outputImageSize = size;
 
 		return this;
 	}
@@ -311,12 +311,21 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (width >= this.outputImageSize.width() || height >= this.outputImageSize.height()) {
+		if (width > this.outputImageSize.width() || height > this.outputImageSize.height()) {
 			return this;
 		}
 
-		return cropByRect((this.outputImageSize.width() - width) / 2, (this.outputImageSize.height() - height) / 2,
-			this.outputImageSize.width(), this.outputImageSize.height());
+		Rect rect = new Rect((this.outputImageSize.width() - width) / 2,
+			(this.outputImageSize.height() - height) / 2, width, height);
+		Mat image = outputImage.apply(rect).clone();
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		this.outputImageSize.close();
+		this.outputImageSize = new Size(rect.width(), rect.height());
+
+		return this;
 	}
 
 	public ImageEditor cropByOffset(int topOffset, int bottomOffset, int leftOffset, int rightOffset) {
@@ -324,17 +333,22 @@ public class ImageEditor {
 			"offset 不能小于0");
 
 		// 边界检测
-		if (rightOffset >= this.outputImageSize.width() ||
-			leftOffset >= this.outputImageSize.width() ||
-			leftOffset + rightOffset >= this.outputImageSize.width() ||
-			topOffset >= this.outputImageSize.height() ||
-			bottomOffset >= this.outputImageSize.height() ||
-			topOffset + bottomOffset >= this.outputImageSize.height()) {
+		if (leftOffset + rightOffset > this.outputImageSize.width() ||
+			topOffset + bottomOffset > this.outputImageSize.height()) {
 			return this;
 		}
 
-		return cropByRect(leftOffset, topOffset, this.outputImageSize.width() - leftOffset - rightOffset,
+		Rect rect = new Rect(leftOffset, topOffset, this.outputImageSize.width() - leftOffset - rightOffset,
 			this.outputImageSize.height() - topOffset - bottomOffset);
+		Mat image = outputImage.apply(rect).clone();
+
+		this.outputImage.close();
+		this.outputImage = image;
+
+		this.outputImageSize.close();
+		this.outputImageSize = new Size(rect.width(), rect.height());
+
+		return this;
 	}
 
 	public ImageEditor cropByRect(int x, int y, int width, int height) {
@@ -344,20 +358,34 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (x >= this.outputImageSize.width() || width >= this.outputImageSize.width() ||
-			x + width >= this.outputImageSize.width() || y >= this.outputImageSize.height() ||
-			height >= this.outputImageSize.height() || y + height >= this.outputImageSize.height()) {
+		if (x + width > this.outputImageSize.width() || y + height > this.outputImageSize.height()) {
 			return this;
 		}
 
 		Rect rect = new Rect(x, y, width, height);
-		Mat image = new Mat(this.outputImage, rect);
+		Mat image = outputImage.apply(rect).clone();
 
 		this.outputImage.close();
 		this.outputImage = image;
 
 		this.outputImageSize.close();
 		this.outputImageSize = new Size(width, height);
+
+		return this;
+	}
+
+	public ImageEditor grayscale() {
+		Mat image = new Mat();
+		int channels = this.outputImage.channels();
+
+		if (channels == 3) {
+			opencv_imgproc.cvtColor(this.outputImage, image, opencv_imgproc.COLOR_BGR2GRAY);
+		} else if (channels == 4) {
+			opencv_imgproc.cvtColor(this.outputImage, image, opencv_imgproc.COLOR_BGRA2GRAY);
+		}
+
+		this.outputImage.close();
+		this.outputImage = image;
 
 		return this;
 	}
@@ -395,12 +423,6 @@ public class ImageEditor {
 		return this;
 	}
 
-	public ImageEditor grayscale() {
-		Image image = ImageUtil.filter(this.outputImage, GRAY_FILTER);
-		this.outputImage = ImageUtil.toBuffered(image);
-		return this;
-	}
-
 	public ImageEditor contrast() {
 		Image image = ImageUtil.filter(this.outputImage, DEFAULT_CONTRAST_FILTER);
 		this.outputImage = ImageUtil.toBuffered(image);
@@ -424,14 +446,6 @@ public class ImageEditor {
 		}
 
 		BrightnessContrastFilter filter = new BrightnessContrastFilter(amount, 0f);
-		Image image = ImageUtil.filter(this.outputImage, filter);
-		this.outputImage = ImageUtil.toBuffered(image);
-		return this;
-	}
-
-	public ImageEditor filter(final ImageFilter filter) {
-		Validate.notNull(filter, "filter不可为 null");
-
 		Image image = ImageUtil.filter(this.outputImage, filter);
 		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
@@ -531,7 +545,7 @@ public class ImageEditor {
 		return this;
 	}
 
-	public void release() {
+	protected void release() {
 		if (this.outputImage != this.inputImage) {
 			this.outputImage.close();
 			this.outputImageSize.close();
