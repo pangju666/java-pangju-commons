@@ -37,9 +37,7 @@ import net.coobird.thumbnailator.filters.Transparency;
 import net.coobird.thumbnailator.filters.Watermark;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.imageio.ImageIO;
@@ -53,12 +51,13 @@ import java.awt.image.CropImageFilter;
 import java.awt.image.ImageFilter;
 import java.io.*;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * 图像编辑器（链式调用风格）
  * <p>
  * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
- * 支持以文件、输入流、{@link ImageInputStream}与 {@link BufferedImage} 作为输入源，并可输出为文件、输出流、{@link ImageOutputStream}或 {@link BufferedImage}。<br />
+ * 支持以文件、输入流、{@link ImageInputStream}、{@link BufferedImage} 或字节数组（{@code byte[]}）作为输入源，并可输出为文件、输出流、{@link ImageOutputStream} 或 {@link BufferedImage}。<br />
  * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
  *
@@ -69,6 +68,7 @@ import java.util.Objects;
  *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
  *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
  *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 校正方向，也支持手动指定方向进行校正。</li>
+ *   <li><b>自定义扩展：</b> 通过 {@link #apply(BiFunction)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
  *   <li><b>丰富操作：</b>
  *     <ul>
  *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式，默认使用高质量 Lanczos 滤波。</li>
@@ -96,6 +96,12 @@ import java.util.Objects;
  *       <li>对于其他类型的流，内部会将数据完全缓冲到内存中，处理大文件时需注意 OOM 风险。</li>
  *     </ul>
  *   </li>
+ *   <li><b>字节数组输入：</b> 从字节数组（{@code byte[]}）创建编辑器时，具有最佳性能：
+ *     <ul>
+ *       <li>内部使用 {@link UnsynchronizedByteArrayInputStream} 包装，支持高效的重置和二次读取。</li>
+ *       <li>无额外的内存开销，性能最优。</li>
+ *     </ul>
+ *   </li>
  *   <li><b>滤波器权衡：</b> 默认的 {@link ResampleOp#FILTER_LANCZOS} 质量最好但计算最慢；对性能要求高时可选择 {@link ResampleOp#FILTER_BOX}。</li>
  * </ul>
  *
@@ -121,10 +127,16 @@ import java.util.Objects;
  * ImageEditor.of(new File("input.jpg"));
  * // 从输入流构建
  * ImageEditor.of(inputStream);
+ * // 从字节数组构建
+ * ImageEditor.of(bytes);
  * // 自动校正 EXIF 方向（默认为 false）
  * ImageEditor.of(new File("input.jpg"), true);
+ * ImageEditor.of(inputStream, true);
+ * ImageEditor.of(bytes, true);
  * // 指定 EXIF 方向（如：6 表示顺时针旋转 90 度）
  * ImageEditor.of(new File("input.jpg"), 6);
+ * ImageEditor.of(inputStream, 6);
+ * ImageEditor.of(bytes, 6);
  *
  * // 2. 缩放与调整大小
  * ImageEditor.of(new File("input.jpg"))
@@ -474,6 +486,86 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 从字节数组构建实例（默认不校正 EXIF 方向）。
+	 * <p>
+	 * 此方法为 {@link #of(byte[], boolean)} 的便捷调用，等同于 {@code of(bytes, false)}。
+	 * </p>
+	 * <p><b>字节数组特点：</b></p>
+	 * <ul>
+	 *   <li>使用 {@link UnsynchronizedByteArrayInputStream} 包装字节数组，支持高效的重置和二次读取。</li>
+	 *   <li>无额外的内存开销，性能最优。</li>
+	 * </ul>
+	 *
+	 * @param bytes 图像字节数组，不可为 null 或空
+	 * @return 图像编辑器实例
+	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
+	 * @see #of(byte[], boolean)
+	 * @since 1.1.0
+	 */
+	public static ImageEditor of(final byte[] bytes) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		return of(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), false);
+	}
+
+	/**
+	 * 从字节数组构建实例（可选择是否校正 EXIF 方向）。
+	 * <p>
+	 * 读取字节数组数据，并根据参数决定是否解析并应用 EXIF 方向信息。
+	 * </p>
+	 * <p><b>初始化行为：</b></p>
+	 * <ul>
+	 *   <li><b>格式保持：</b> 由于字节数组无法直接获取文件名，输入/输出格式将默认为 null（或由后续操作指定）。</li>
+	 *   <li><b>方向校正：</b>
+	 *     <ul>
+	 *       <li>{@code correctOrientation = true}：尝试解析字节数组中的 EXIF 信息获取方向，并自动旋转/翻转图像。</li>
+	 *       <li>{@code correctOrientation = false}：仅读取像素数据，忽略 EXIF 方向信息。</li>
+	 *     </ul>
+	 *   </li>
+	 * </ul>
+	 * <p><b>字节数组特点：</b></p>
+	 * <ul>
+	 *   <li>使用 {@link UnsynchronizedByteArrayInputStream} 包装，支持高效的重置和二次读取。</li>
+	 *   <li>无额外的内存开销，性能最优。</li>
+	 * </ul>
+	 *
+	 * @param bytes              图像字节数组，不可为 null 或空
+	 * @param correctOrientation 是否自动校正 EXIF 方向
+	 * @return 图像编辑器实例
+	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
+	 * @see #correctOrientation()
+	 * @see ImageUtils#getExifOrientation(InputStream)
+	 * @since 1.1.0
+	 */
+	public static ImageEditor of(final byte[] bytes, final boolean correctOrientation) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		return of(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), correctOrientation);
+	}
+
+	/**
+	 * 从字节数组构建实例（手动指定 EXIF 方向）。
+	 * <p>
+	 * 适用于已知图像 EXIF 方向的场景。字节数组仅会被读取一次，性能最优。
+	 * </p>
+	 *
+	 * @param bytes            图像字节数组，不可为 null 或空
+	 * @param exifOrientation  EXIF 方向值（1-8），用于校正图像
+	 * @return 图像编辑器实例
+	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
+	 * @see #correctOrientation()
+	 * @since 1.1.0
+	 */
+	public static ImageEditor of(final byte[] bytes, final int exifOrientation) throws IOException {
+		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
+
+		return of(IOUtils.toUnsynchronizedByteArrayInputStream(bytes), exifOrientation);
+	}
+
+	/**
 	 * 从输入流构建实例（默认不校正 EXIF 方向）。
 	 * <p>
 	 * 此方法为 {@link #of(InputStream, boolean)} 的便捷调用，等同于 {@code of(inputStream, false)}。
@@ -530,47 +622,28 @@ public class ImageEditor {
 		}
 
 		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		BufferedImage bufferedImage;
-
-		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
-			String mimeType = IOConstants.getDefaultTika().detect(inputStream);
-			Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
-				"inputStream 不是图像数据输入流");
-			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
-				"不支持读取 " + mimeType+ " 类型图像");
-			inputStream.reset();
-
-			try {
-				exifOrientation = ImageUtils.getExifOrientation(inputStream);
-			} catch (ImageProcessingException | IOException ignored) {
-			} finally {
-				inputStream.reset();
-			}
-
-			bufferedImage = ImageIO.read(inputStream);
-		} else {
+		InputStream markSupportedInputStream = inputStream;
+		if (!(inputStream instanceof ByteArrayInputStream) && !(inputStream instanceof UnsynchronizedByteArrayInputStream)) {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-			InputStream bytesInputStream = outputStream.toInputStream();
-
-			String mimeType = IOConstants.getDefaultTika().detect(bytesInputStream);
-			Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
-				"inputStream 不是图像数据输入流");
-			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
-				"不支持读取 " + mimeType+ " 类型图像");
-			bytesInputStream.reset();
-
-			try {
-				exifOrientation = ImageUtils.getExifOrientation(bytesInputStream);
-			} catch (ImageProcessingException | IOException ignored) {
-			} finally {
-				bytesInputStream.reset();
-			}
-
-			bufferedImage = ImageIO.read(bytesInputStream);
+			markSupportedInputStream = outputStream.toInputStream();
 		}
 
-		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
+		String mimeType = IOConstants.getDefaultTika().detect(markSupportedInputStream);
+		Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
+			"inputStream 不是图像数据输入流");
+		Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
+			"不支持读取 " + mimeType+ " 类型图像");
+		markSupportedInputStream.reset();
 
+		try {
+			exifOrientation = ImageUtils.getExifOrientation(markSupportedInputStream);
+		} catch (ImageProcessingException | IOException ignored) {
+		} finally {
+			markSupportedInputStream.reset();
+		}
+
+		BufferedImage bufferedImage = ImageIO.read(markSupportedInputStream);
+		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
 		return new ImageEditor(bufferedImage, imageSize);
 	}
 
@@ -1193,6 +1266,28 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 应用自定义图像操作。
+	 * <p>
+	 * 允许传入任意的图像转换函数，对当前图像进行处理。
+	 * 函数同时接收当前图像和编辑器实例，便于基于编辑器状态进行复杂处理。
+	 * 处理后会自动更新输出图像的尺寸信息。
+	 * </p>
+	 *
+	 * @param operation 图像操作函数，接收当前图像和编辑器实例，返回处理后的图像
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws NullPointerException 当 operation 为 null 时抛出
+	 * @since 1.1.0
+	 */
+	public ImageEditor apply(final BiFunction<BufferedImage, ImageEditor, BufferedImage> operation) {
+		Validate.notNull(operation, "operation 不可为 null");
+
+		this.outputImage = operation.apply(this.outputImage, this);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+
+		return this;
+	}
+
+	/**
 	 * 添加图片水印（显式坐标定位）。
 	 * <p>
 	 * 直接使用传入的左上角坐标 {@code x}/{@code y} 进行定位，不使用九宫格方向。
@@ -1511,8 +1606,8 @@ public class ImageEditor {
 	 * @param y              当 {@code direction} 为 {@code null} 时的绘制起点 Y（左上角）
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code watermarkImage} 或 {@code option} 为 {@code null} 时抛出
-	 * @see ImageWatermarkOption
-	 * @see WatermarkDirection
+	 * @see io.github.pangju666.commons.image.model.ImageWatermarkOption
+	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
 	 * @deprecated
 	 */
@@ -1619,8 +1714,8 @@ public class ImageEditor {
 	 * @param y         当 {@code direction} 为 {@code null} 时的绘制起点 Y（文本基线）
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code text} 为空或 {@code option} 为 {@code null} 时抛出
-	 * @see TextWatermarkOption
-	 * @see WatermarkDirection
+	 * @see io.github.pangju666.commons.image.model.TextWatermarkOption
+	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
 	 * @deprecated
 	 */

@@ -31,16 +31,34 @@ import java.util.function.ToIntFunction;
  * 文字水印样式配置。
  *
  * <p>用于控制文字水印的透明度、字体名称、字体大小策略、字体样式、填充颜色、边距、位置（方向或自定义坐标）。</p>
+ *
  * <p>水印位置支持两种方式：</p>
  * <ul>
  *   <li>通过 {@link WatermarkDirection} 设置九宫格方向位置</li>
  *   <li>通过自定义坐标 x/y 精确设置位置</li>
  * </ul>
  *
+ * <p>字体大小计算说明：</p>
+ * <ul>
+ *   <li>使用 {@code fontSizeStrategy} 函数计算基础字体大小（单位：pt）</li>
+ *   <li>最终字体大小 = 基础大小 × {@link #FONT_SCALE}（2.45）</li>
+ *   <li>缩放系数是为了匹配 Thumbnailator 的渲染需求</li>
+ * </ul>
+ *
  * @author pangju666
+ * @see #toCaption(String, BufferedImage)
  * @since 1.0.0
  */
 public class TextWatermarkOption {
+	/**
+	 * 字体大小缩放系数。
+	 *
+	 * <p>用于将字体大小策略计算出的基础大小转换为 Thumbnailator 所需的像素尺寸。</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final float FONT_SCALE = 2.45f;
+
 	/**
 	 * 透明度（百分比）。范围：[0.0, 1.0]；默认 40%。
 	 * 控制文本整体透明度，0 表示完全透明，1 表示完全不透明。
@@ -59,14 +77,14 @@ public class TextWatermarkOption {
 	private String fontName = Font.SANS_SERIF;
 
 	/**
-	 * 字体样式，默认 {@code Font.BOLD}。
+	 * 字体样式，默认 {@code Font.PLAIN}。
 	 * 有效取值：
 	 * {@code Font.PLAIN}(0)、{@code Font.BOLD}(1)、{@code Font.ITALIC}(2)、{@code Font.BOLD | Font.ITALIC}(3)。
 	 * 越界值将被忽略并保持当前值。
 	 *
 	 * @since 1.0.0
 	 */
-	private int fontStyle = Font.BOLD;
+	private int fontStyle = Font.PLAIN;
 
 	/**
 	 * 字体颜色，默认白色。
@@ -80,7 +98,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private int inset = 20;
+	private int margin = 20;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
@@ -128,7 +146,7 @@ public class TextWatermarkOption {
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	private Color fillColor = Color.WHITE;
 	/**
-	 * 描边线宽（像素），默认 3.0。仅当 {@code stroke=true} 时生效。
+	 * 描边线宽（像素），默认 2.0。仅当 {@code stroke=true} 时生效。
 	 *
 	 * @since 1.0.0
 	 * @deprecated
@@ -152,7 +170,7 @@ public class TextWatermarkOption {
 	 * <ul>
 	 *   <li>小图（短边 &lt; 600px）：固定为 32pt</li>
 	 *   <li>中等图（600px &le; 短边 &lt; 1920px）：在 32pt 至 48pt 之间线性增长</li>
-	 *   <li>大图（短边 &ge; 1920px）：在 48pt 至 80pt 之间（随尺寸增长逐渐变缓）</li>
+	 *   <li>大图（短边 &ge; 1920px）：在 48pt 至 160pt 之间（随尺寸从 1920px 增长到 6000px 逐渐变缓）</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -161,14 +179,11 @@ public class TextWatermarkOption {
 	private ToIntFunction<ImageSize> fontSizeStrategy = imageSize -> {
 		int shorter = Math.min(imageSize.getWidth(), imageSize.getHeight());
 		if (shorter < 600) {
-			// 小图：强制 32pt
 			return 32;
 		} else if (shorter >= 1920) {
-			// 大图：48pt~80pt 缓慢增长
-			double ratio = Math.min(1.0, (shorter - 1920.0) / 3000.0);
-			return (int) Math.round(48 + ratio * (80 - 48));
+			double ratio = Math.min(1.0, (shorter - 1920.0) / (6000 - 1920.0));
+			return (int) Math.round(48 + ratio * (160 - 48));
 		} else {
-			// 中等图：32pt~48pt 线性增长
 			double ratio = (shorter - 600.0) / (1920.0 - 600.0);
 			return (int) Math.round(32 + ratio * (48 - 32));
 		}
@@ -306,19 +321,19 @@ public class TextWatermarkOption {
 	 * @return 边距值
 	 * @since 1.1.0
 	 */
-	public int getInset() {
-		return inset;
+	public int getMargin() {
+		return margin;
 	}
 
 	/**
 	 * 设置边距大小
 	 *
-	 * @param inset 边距值，必须大于等于 0
+	 * @param margin 边距值，必须大于等于 0
 	 * @since 1.1.0
 	 */
-	public void setInset(int inset) {
-		if (inset >= 0) {
-			this.inset = inset;
+	public void setMargin(int margin) {
+		if (margin >= 0) {
+			this.margin = margin;
 		}
 	}
 
@@ -501,6 +516,18 @@ public class TextWatermarkOption {
 	 * 如果设置了方向，则根据方向计算坐标；否则使用自定义坐标。
 	 * </p>
 	 *
+	 * <p>字体大小计算流程：</p>
+	 * <ol>
+	 *   <li>使用 {@code fontSizeStrategy} 函数基于目标图像尺寸计算基础字体大小（单位：pt）</li>
+	 *   <li>将基础大小乘以 {@link #FONT_SCALE}（2.45）得到最终像素尺寸</li>
+	 * </ol>
+	 *
+	 * <p>坐标计算说明：</p>
+	 * <ul>
+	 *   <li>使用自定义坐标时，Y 坐标会自动添加边距值以补偿 Thumbnailator 的渲染特点</li>
+	 *   <li>使用方向坐标时，通过 {@link WatermarkDirection#toCaptionCoordinate(ImageSize, int)} 计算</li>
+	 * </ul>
+	 *
 	 * @param text        水印文字
 	 * @param targetImage 目标图像
 	 * @return 配置好的 Caption 对象
@@ -512,24 +539,15 @@ public class TextWatermarkOption {
 		Validate.notBlank(text, "text 不可为空");
 
 		ImageSize targetImageSize = new ImageSize(targetImage.getWidth(), targetImage.getHeight());
-		Font font = new Font(fontName, fontStyle, fontSizeStrategy.applyAsInt(targetImageSize));
+		Font font = new Font(fontName, fontStyle, Math.round((fontSizeStrategy.applyAsInt(targetImageSize) *
+			FONT_SCALE)));
 
-		Coordinate coordinate = new Coordinate(x, y);
+		// Caption 计算y坐标不使用insets，需要手动添加
+		Coordinate coordinate = new Coordinate(x, y + margin);
 		if (Objects.nonNull(direction)) {
-			Graphics graphics = targetImage.getGraphics();
-			try {
-				graphics.setFont(font);
-
-				FontMetrics fontMetrics = graphics.getFontMetrics();
-				int textWidth = fontMetrics.stringWidth(text);
-				int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
-
-				coordinate = direction.toCoordinate(targetImageSize, textWidth, textHeight);
-			} finally {
-				graphics.dispose();
-			}
+			coordinate = direction.toCaptionCoordinate(targetImageSize, margin);
 		}
 
-		return new Caption(text, font, color, opacity, coordinate, inset);
+		return new Caption(text, font, color, opacity, coordinate, margin);
 	}
 }
