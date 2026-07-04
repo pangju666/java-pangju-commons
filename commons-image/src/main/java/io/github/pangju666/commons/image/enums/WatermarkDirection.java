@@ -107,14 +107,14 @@ public enum WatermarkDirection {
 		return switch (this) {
 			case TOP -> new Coordinate((imageSize.getWidth()) / 2, margin);
 			case TOP_LEFT -> new Coordinate(0, margin);
-			case TOP_RIGHT -> new Coordinate(imageSize.getWidth(),  margin);
+			case TOP_RIGHT -> new Coordinate(imageSize.getWidth(), margin);
 			case BOTTOM -> new Coordinate((imageSize.getWidth()) / 2, imageSize.getHeight() - margin);
 			case BOTTOM_LEFT -> new Coordinate(0, imageSize.getHeight() - margin);
 			case BOTTOM_RIGHT -> new Coordinate(imageSize.getWidth(), imageSize.getHeight() - margin);
 			case LEFT -> new Coordinate(0, (imageSize.getHeight()) / 2);
 			case RIGHT -> new Coordinate(imageSize.getWidth(),
 				(imageSize.getHeight()) / 2);
-			case CENTER -> new Coordinate((imageSize.getWidth()) / 2,
+			default -> new Coordinate((imageSize.getWidth()) / 2,
 				(imageSize.getHeight()) / 2);
 		};
 	}
@@ -126,7 +126,7 @@ public enum WatermarkDirection {
 	 * 对于图像水印，坐标会根据水印尺寸进行调整，确保水印正确定位。
 	 * </p>
 	 *
-	 * @param imageSize         目标图像尺寸，不能为 null
+	 * @param imageSize          目标图像尺寸，不能为 null
 	 * @param watermarkImageSize 水印图像尺寸，不能为 null
 	 * @return 图像水印的坐标位置
 	 * @since 1.1.0
@@ -146,7 +146,7 @@ public enum WatermarkDirection {
 			case LEFT -> new Coordinate(0, (imageSize.getHeight() - watermarkImageSize.getHeight()) / 2);
 			case RIGHT -> new Coordinate(imageSize.getWidth() - watermarkImageSize.getWidth(),
 				(imageSize.getHeight() - watermarkImageSize.getHeight()) / 2);
-			case CENTER -> new Coordinate((imageSize.getWidth() - watermarkImageSize.getWidth()) / 2,
+			default -> new Coordinate((imageSize.getWidth() - watermarkImageSize.getWidth()) / 2,
 				(imageSize.getHeight() - watermarkImageSize.getHeight()) / 2);
 		};
 	}

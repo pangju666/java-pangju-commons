@@ -61,10 +61,10 @@ import java.util.Objects;
 /**
  * 图像处理工具类
  * <p>
- * 提供图像信息获取功能，包括但不限于以下方面：
+ * 提供图像信息获取功能，支持多种数据源（文件、字节数组、输入流、ImageInputStream），包括但不限于以下方面：
  * <ul>
- *   <li><b>图像类型检测</b> - 检测文件、字节数组或输入流是否为图像类型（支持多种数据源）</li>
- *   <li><b>图像元数据读取</b> - 读取EXIF信息</li>
+ *   <li><b>图像类型检测</b> - 检测文件、字节数组或输入流是否为图像类型</li>
+ *   <li><b>图像元数据读取</b> - 读取 EXIF 信息，特别是方向信息</li>
  *   <li><b>图像格式检测</b> - 基于文件内容检测 MIME 类型（支持 JPEG、PNG、GIF、BMP、WebP 等）</li>
  *   <li><b>图像尺寸获取</b> - 解析原始尺寸并提取 EXIF 方向信息</li>
  *   <li><b>环境支持检查</b> - 检查当前环境是否支持读写特定格式的图像</li>
@@ -89,7 +89,15 @@ import java.util.Objects;
  * <p><b>关于图像尺寸：</b></p>
  * <p>
  * 本工具类获取的图像尺寸默认为<b>物理存储尺寸</b>。如需获取符合视觉习惯的尺寸（即应用了 EXIF 旋转后的尺寸），
- * 请结合 {@link ImageSize#getVisualSize()} 使用。
+ * 请结合 {@link ImageSize#getVisualSize()} 使用。获取尺寸时可选择是否使用元数据解析，使用元数据可提高性能，但对于
+ * 超大文件或确定无 EXIF 信息的图像，禁用元数据可进一步提高性能。
+ * </p>
+ *
+ * <p><b>关于输入流处理：</b></p>
+ * <p>
+ * 对于输入流的处理，本工具类会智能判断流是否支持 mark 操作。如果流不支持 mark 且需要读取元数据，会将流内容缓冲到内存中
+ * 以支持多次读取。建议在可能的情况下使用 {@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream}，
+ * 以获得最佳性能。
  * </p>
  *
  * <p><b>注意事项：</b></p>
@@ -119,6 +127,7 @@ import java.util.Objects;
  * @see ImageReader
  * @see ImageMetadataReader
  * @see ImageConstants
+ * @see ImageSize
  * @since 1.0.0
  */
 public class ImageUtils {
@@ -627,7 +636,7 @@ public class ImageUtils {
 		Validate.isTrue(isImage(bytes), "bytes 不是图像数据");
 
 		UnsynchronizedByteArrayInputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-		return parseSizeByByteArrayInputStream(inputStream, bytes.length, useMetadata);
+		return parseSizeByMarkSupportedInputStream(inputStream, bytes.length, useMetadata);
 	}
 
 	/**
@@ -655,17 +664,27 @@ public class ImageUtils {
 	/**
 	 * 获取输入流的图像尺寸（可配置策略）
 	 * <p>
-	 * 与 {@link #getSize(File, boolean)} 逻辑类似，但增加了对输入流的处理机制。
+	 * 根据 {@code useMetadata} 参数决定获取尺寸的策略，并处理输入流的特殊情况。
 	 * </p>
-	 * <p><b>注意：</b></p>
 	 * <ul>
-	 *   <li>无论是否使用元数据，返回的均是<b>原始存储尺寸</b>。</li>
-	 *   <li>如果元数据包含方向信息，会被封装在返回的 {@link ImageSize} 对象中。</li>
-	 *   <li>如需获取视觉方向一致的尺寸，请调用 {@link ImageSize#getVisualSize()}。</li>
+	 *   <li><b>true (推荐)：</b> 优先读取元数据（Metadata）。
+	 *       <ul>
+	 *           <li>如果元数据包含尺寸信息，直接返回（返回的是<b>原始存储尺寸</b>，不交换宽高）。</li>
+	 *           <li>同时解析 EXIF 方向信息并存储在返回的 {@link ImageSize} 对象中。</li>
+	 *           <li>如需获取视觉方向一致的尺寸，请调用 {@link ImageSize#getVisualSize()}。</li>
+	 *       </ul>
+	 *   </li>
+	 *   <li><b>false (高性能)：</b> 仅通过 ImageIO 读取图像原始尺寸。
+	 *       <ul>
+	 *           <li>忽略任何 EXIF 方向信息。</li>
+	 *           <li>返回图像存储的物理像素尺寸。</li>
+	 *       </ul>
+	 *   </li>
 	 * </ul>
+	 *
 	 * <p><b>流处理机制：</b></p>
 	 * <ul>
-	 *   <li>如果流支持 {@link InputStream#reset()}：直接在流上操作并在需要时重置。</li>
+	 *   <li>如果流支持 {@link InputStream#markSupported()}：直接在流上操作并在需要时重置。</li>
 	 *   <li>如果流不支持 mark 且 {@code useMetadata} 为 true：
 	 *       会将流内容缓冲到内存中（可能消耗较大内存），以便多次读取（一次读元数据，一次可能读 ImageIO）。
 	 *   </li>
@@ -679,18 +698,12 @@ public class ImageUtils {
 	 * @return 包含宽度和高度的 {@link ImageSize} 对象，如果无法解析则返回 null
 	 * @throws IOException              当流读取发生错误时抛出
 	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
-	 * @see #getSize(File, boolean)
+	 * @see MetadataReader
+	 * @see ImageReader
 	 * @since 1.0.0
 	 */
 	public static ImageSize getSize(final InputStream inputStream, final boolean useMetadata) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
-
-		if (inputStream instanceof ByteArrayInputStream || inputStream instanceof UnsynchronizedByteArrayInputStream) {
-			Validate.isTrue(isImage(inputStream), "inputStream 不是图像数据输入流");
-			inputStream.reset();
-
-			return parseSizeByByteArrayInputStream(inputStream, inputStream.available(), useMetadata);
-		}
 
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
@@ -701,35 +714,13 @@ public class ImageUtils {
 			}
 		}
 
-		Integer orientation = null;
-		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-
-		InputStream bytesInputStream = outputStream.toInputStream();
-		Validate.isTrue(isImage(bytesInputStream), "inputStream 不是图数据输入流");
-		bytesInputStream.reset();
-
-		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(bytesInputStream, outputStream.size());
-			ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-			if (Objects.nonNull(exifIFD0Directory)) {
-				orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
-			}
-
-			ImageSize imageSize = parseSizeByMetadata(metadata, exifIFD0Directory);
-			if (Objects.nonNull(imageSize)) {
-				return imageSize;
-			}
-		} catch (ImageProcessingException | IOException ignored) {
-		} finally {
-			bytesInputStream.reset();
+		InputStream markSupportedInputStream = inputStream;
+		if (!inputStream.markSupported()) {
+			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
+			markSupportedInputStream = outputStream.toInputStream();
 		}
 
-		try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(bytesInputStream)) {
-			if (Objects.isNull(imageInputStream)) {
-				return null;
-			}
-			return parseSizeByImageInputStream(imageInputStream, orientation);
-		}
+		return parseSizeByMarkSupportedInputStream(markSupportedInputStream, -1L, useMetadata);
 	}
 
 	/**
@@ -938,9 +929,9 @@ public class ImageUtils {
 	}
 
 	/**
-	 * 通过字节数组输入流解析图像尺寸（内部辅助方法）
+	 * 通过支持标记的输入流解析图像尺寸（内部辅助方法）
 	 * <p>
-	 * 内部辅助方法，专门处理字节数组输入流。
+	 * 内部辅助方法，专门处理支持 {@link InputStream#markSupported()} 的输入流。
 	 * 根据 {@code useMetadata} 参数决定解析策略：
 	 * <ul>
 	 *   <li>{@code true}：优先尝试解析元数据获取尺寸和方向，失败后降级为直接读取</li>
@@ -961,21 +952,21 @@ public class ImageUtils {
 	 *   <li>对于超大文件或确定无 EXIF 信息的图像，禁用元数据可提高性能</li>
 	 * </ul>
 	 *
-	 * @param inputStream  输入流，必须满足：
-	 *                     <ul>
-	 *                       <li>非 null</li>
-	 *                       <li>是{@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream} 中的一种</li>
-	 *                     </ul>
-	 * @param streamLength 输入流内容长度
-	 * @param useMetadata  是否优先尝试从元数据获取尺寸
+	 * @param inputStream 输入流，必须满足：
+	 *                    <ul>
+	 *                      <li>非 null</li>
+	 *                      <li>必须支持 mark 操作（{@link InputStream#markSupported()} 为 true）</li>
+	 *                    </ul>
+	 * @param streamLength 输入流内容长度，-1 表示未知
+	 * @param useMetadata 是否优先尝试从元数据获取尺寸
 	 * @return 图像尺寸对象，解析失败或无法识别格式时返回 null
 	 * @throws IOException 当发生 I/O 错误或流重置失败时抛出
 	 * @see InputStream#markSupported()
 	 * @see InputStream#reset()
 	 * @since 1.0.0
 	 */
-	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final long streamLength,
-	                                                           final boolean useMetadata) throws IOException {
+	protected static ImageSize parseSizeByMarkSupportedInputStream(final InputStream inputStream, final long streamLength,
+																   final boolean useMetadata) throws IOException {
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 				if (Objects.isNull(imageInputStream)) {
@@ -1014,6 +1005,12 @@ public class ImageUtils {
 		}
 	}
 
+	@Deprecated(forRemoval = true, since = "1.1.0")
+	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final long streamLength,
+	                                                           final boolean useMetadata) throws IOException {
+		return parseSizeByMarkSupportedInputStream(inputStream, streamLength, useMetadata);
+	}
+
 	/**
 	 * 通过 ImageInputStream 解析图像尺寸（内部辅助方法）
 	 * <p>
@@ -1042,7 +1039,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByImageInputStream(final ImageInputStream imageInputStream,
-	                                                       final Integer orientation) throws IOException {
+														   final Integer orientation) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
 
 		int width;
