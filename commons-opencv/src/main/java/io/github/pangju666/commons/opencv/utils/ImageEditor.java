@@ -1082,8 +1082,11 @@ public class ImageEditor {
 		if (Objects.nonNull(option.getDirection())) {
 			watermarkRect = option.getDirection().toImageWatermarkRect(outputImageSize, targetWatermarkImageSize, option.getMargin());
 		} else {
-			watermarkRect = new Rect(option.getX() + option.getMargin(), option.getY() + option.getMargin(),
-				targetWatermarkImageSize.width(), targetWatermarkImageSize.height());
+			int x = Math.max(option.getMargin(), Math.min(outputImageSize.width() - targetWatermarkImageSize.width() -
+					option.getMargin(), option.getX() + option.getMargin()));
+			int y = Math.max(option.getMargin(), Math.min(outputImageSize.height() - targetWatermarkImageSize.height() -
+					option.getMargin(), option.getY() + option.getMargin()));
+			watermarkRect = new Rect(x, y, targetWatermarkImageSize.width(), targetWatermarkImageSize.height());
 		}
 
 		Mat roi = new Mat(outputImage, watermarkRect);
@@ -1196,8 +1199,7 @@ public class ImageEditor {
 		int textW = textSize.width();
 		int textH = textSize.height();
 
-		Point point = new Point(option.getX() + option.getMargin(), option.getY() + option.getMargin() + textH);
-
+		Point point;
 		if (Objects.nonNull(option.getDirection())) {
 			point = switch (option.getDirection()) {
 				case TOP -> new Point((imageSize.width() - textW) / 2, textH + option.getMargin());
@@ -1207,9 +1209,14 @@ public class ImageEditor {
 				case BOTTOM_LEFT -> new Point(option.getMargin(), imageSize.height() - option.getMargin());
 				case BOTTOM_RIGHT -> new Point(imageSize.width() - textW - option.getMargin(),
 					imageSize.height() - option.getMargin());
-				case CENTER -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
-				default -> point;
+				case CENTER, default -> new Point((imageSize.width() - textW) / 2, (imageSize.height() + textH) / 2);
 			};
+		} else {
+			int x = Math.max(option.getMargin(), Math.min(imageSize.width() - textW - option.getMargin(),
+					option.getX() + option.getMargin()));
+			int y = Math.max(textH + option.getMargin(), Math.min(imageSize.height() - option.getMargin(),
+				option.getY() + option.getMargin()));
+			point = new Point(x, y);
 		}
 
 		if (option.getOpacity() < 1) {

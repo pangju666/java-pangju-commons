@@ -551,9 +551,26 @@ public class TextWatermarkOption {
 			FONT_SCALE)));
 
 		// Caption 计算y坐标不使用insets，需要手动添加
-		Position coordinate = new Coordinate(x, y + margin);
+		Position coordinate;
 		if (Objects.nonNull(direction)) {
 			coordinate = new Direction(direction, margin);
+		} else {
+			Graphics graphics = targetImage.getGraphics();
+			try {
+				graphics.setFont(font);
+
+				FontMetrics fontMetrics = graphics.getFontMetrics();
+				int textWidth = fontMetrics.stringWidth(text);
+				int textHeight = fontMetrics.getHeight();
+
+				int x = Math.max(0, Math.min(targetImageSize.getWidth() - textWidth - margin, this.x));
+				int y = Math.max(textHeight + margin, Math.min(targetImageSize.getHeight() - margin, this.y + margin));
+				coordinate = new Coordinate(x, y);
+			} finally {
+				if (Objects.nonNull(graphics)) {
+					graphics.dispose();
+				}
+			}
 		}
 		return new Caption(text, font, color, opacity, coordinate, margin);
 	}
