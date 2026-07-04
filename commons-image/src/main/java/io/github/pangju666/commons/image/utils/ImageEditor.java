@@ -54,6 +54,8 @@ import java.awt.image.CropImageFilter;
 import java.awt.image.ImageFilter;
 import java.io.*;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * 图像编辑器（链式调用风格）
@@ -70,6 +72,7 @@ import java.util.Objects;
  *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
  *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
  *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 校正方向，也支持手动指定方向进行校正。</li>
+ *   <li><b>自定义扩展：</b> 通过 {@link #apply(BiFunction)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
  *   <li><b>丰富操作：</b>
  *     <ul>
  *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式，默认使用高质量 Lanczos 滤波。</li>
@@ -1190,6 +1193,28 @@ public class ImageEditor {
 		Validate.notNull(caption, "caption 不可为 null");
 
 		this.outputImage = caption.apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 应用自定义图像操作。
+	 * <p>
+	 * 允许传入任意的图像转换函数，对当前图像进行处理。
+	 * 函数同时接收当前图像和编辑器实例，便于基于编辑器状态进行复杂处理。
+	 * 处理后会自动更新输出图像的尺寸信息。
+	 * </p>
+	 *
+	 * @param operation 图像操作函数，接收当前图像和编辑器实例，返回处理后的图像
+	 * @return 当前编辑器实例，用于链式调用
+	 * @throws NullPointerException 当 operation 为 null 时抛出
+	 * @since 1.1.0
+	 */
+	public ImageEditor apply(final BiFunction<BufferedImage, ImageEditor, BufferedImage> operation) {
+		Validate.notNull(operation, "operation 不可为 null");
+
+		this.outputImage = operation.apply(this.outputImage, this);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+
 		return this;
 	}
 
