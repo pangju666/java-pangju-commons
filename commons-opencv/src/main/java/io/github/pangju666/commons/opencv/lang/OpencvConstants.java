@@ -31,4 +31,15 @@ public class OpencvConstants {
 	 */
 	protected OpencvConstants() {
 	}
+
+	public static int DEFAULT_IMAGE_COLOR_TYPE = opencv_imgcodecs.IMREAD_COLOR_BGR;
+
+	public static final Set<String> SUPPORTED_IMAGE_FILE_FORMATS = Set.of("bmp", "dib", "gif", "jpeg", "jpg",
+		"jpe", "jp2", "png", "webp", "avif", "pbm", "pgm", "ppm", "pxm", "pnm", "pfm", "sr", "ras", "tiff", "tif",
+		"exr", "hdr", "pic");
+
+	public static final Set<String> SUPPORTED_IMAGE_TYPES = Set.of("image/bmp", "image/gif", "image/png",
+		"image/webp", "image/avif", "image/tiff", "image/jpeg", "image/jp2", "image/vnd.radiance", "image/x-pict",
+		"image/x-cmu-raster", "image/x-sun-raster", "image/x-exr", "image/x-portable-bitmap", "image/x-portable-graymap",
+		"image/x-portable-pixmap", "image/x-portable-anymap", "image/x-portable-floatmap");
 }
