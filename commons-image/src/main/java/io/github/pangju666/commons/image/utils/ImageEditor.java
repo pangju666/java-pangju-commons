@@ -50,6 +50,7 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
+import java.awt.image.CropImageFilter;
 import java.awt.image.ImageFilter;
 import java.io.*;
 import java.util.Objects;
@@ -67,6 +68,7 @@ import java.util.Objects;
  *   <li><b>链式调用：</b> API 设计简洁，配置与处理顺序清晰。</li>
  *   <li><b>智能格式：</b> 自动根据透明通道选择输出格式（含 Alpha 通道默认为 PNG，否则为 JPG）。</li>
  *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
+ *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
  *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 校正方向，也支持手动指定方向进行校正。</li>
  *   <li><b>丰富操作：</b>
  *     <ul>
@@ -88,6 +90,7 @@ import java.util.Objects;
  * <p><b>性能与内存：</b></p>
  * <ul>
  *   <li><b>处理顺序：</b> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
+ *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后编辑器不可再使用。</li>
  *   <li><b>流输入注意事项：</b> 当从 {@link InputStream} 创建并启用 EXIF 自动校正时：
  *     <ul>
  *       <li>推荐使用 {@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream}，可实现零拷贝重复读取。</li>
@@ -220,28 +223,6 @@ public class ImageEditor {
 	protected static final String DEFAULT_OUTPUT_FORMAT = "JPG";
 
 	/**
-	 * 灰度滤镜
-	 * <p>
-	 * 用于将彩色图像转换为灰度图像的滤镜实例。
-	 * 该滤镜在{@link #grayscale()}方法中使用。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
-
-	/**
-	 * 默认对比度过滤器
-	 * <p>
-	 * 用于调整图像对比度的滤镜实例。
-	 * 该滤镜在{@link #contrast()}方法中使用。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
-
-	/**
 	 * 原始图像尺寸
 	 * <p>
 	 * 存储输入图像的原始宽度和高度信息。
@@ -322,8 +303,8 @@ public class ImageEditor {
 	/**
 	 * 构造实例并初始化以下属性：
 	 * <ul>
-	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
-	 *   若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
+	 *   <li><b>输入/输出图像：</b> 初始时输出图像为输入图像的副本。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
+	 *       若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
 	 *   <li><b>图像尺寸：</b> 记录输入图像的<b>可视化尺寸</b>（即 {@link ImageSize#getVisualSize()}，若存在 90°/270° 旋转，宽高会自动交换）。</li>
 	 *   <li><b>输出格式：</b> 根据输入图像是否包含 Alpha 通道（透明度）自动设置默认值：
 	 *     <ul>
@@ -345,7 +326,7 @@ public class ImageEditor {
 		this.inputImage = inputImage;
 		this.inputImageSize = inputImageSize;
 
-		this.outputImage = inputImage;
+		this.outputImage = ImageUtil.createCopy(inputImage);
 		this.outputImageSize = inputImageSize;
 		this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
 
@@ -360,8 +341,8 @@ public class ImageEditor {
 	 * 输出格式也会直接使用该输入格式，而不根据图像是否含 Alpha 通道自动选择。
 	 * </p>
 	 * <ul>
-	 *   <li><b>输入/输出图像：</b> 初始时输出图像引用指向输入图像。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
-	 *   若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
+	 *   <li><b>输入/输出图像：</b> 初始时输出图像为输入图像的副本。<b>注意：</b>构造函数末尾会自动调用 {@link #correctOrientation()}，
+	 *       若存在 EXIF 方向信息，输出图像可能会被旋转或翻转。</li>
 	 *   <li><b>图像尺寸：</b> 记录输入图像的<b>可视化尺寸</b>（即 {@link ImageSize#getVisualSize()}，若存在 90°/270° 旋转，宽高会自动交换）。</li>
 	 *   <li><b>输入/输出格式：</b> 使用传入的 {@code inputFormat} 作为初始输入和输出格式。</li>
 	 * </ul>
@@ -382,7 +363,7 @@ public class ImageEditor {
 		this.inputImageSize = inputImageSize;
 		this.inputFormat = inputFormat;
 
-		this.outputImage = inputImage;
+		this.outputImage = ImageUtil.createCopy(inputImage);
 		this.outputImageSize = inputImageSize;
 		this.outputFormat = inputFormat;
 
@@ -876,7 +857,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor grayscale() {
-		Image image = ImageUtil.filter(this.outputImage, GRAY_FILTER);
+		Image image = ImageUtil.filter(this.outputImage, new GrayFilter());
 		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
@@ -890,7 +871,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor contrast() {
-		Image image = ImageUtil.filter(this.outputImage, DEFAULT_CONTRAST_FILTER);
+		Image image = ImageUtil.filter(this.outputImage, new BrightnessContrastFilter(0, 0.3f));
 		this.outputImage = ImageUtil.toBuffered(image);
 		return this;
 	}
@@ -1060,14 +1041,15 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (width >= this.outputImageSize.getWidth() || height >= this.outputImageSize.getHeight()) {
+		if (width > this.outputImageSize.getWidth() || height > this.outputImageSize.getHeight()) {
 			return this;
 		}
 
-		this.outputImage = this.outputImage.getSubimage((this.outputImageSize.getWidth() - width) / 2,
-			(this.outputImageSize.getHeight() - height) / 2, width, height);
+		// 先计算偏移量，再更新尺寸
+		int x = (this.outputImageSize.getWidth() - width) / 2;
+		int y = (this.outputImageSize.getHeight() - height) / 2;
 		this.outputImageSize = new ImageSize(width, height);
-		return this;
+		return filter(new CropImageFilter(x, y, width, height));
 	}
 
 	/**
@@ -1090,24 +1072,22 @@ public class ImageEditor {
 			"offset 不能小于0");
 
 		// 边界检测
-		if (rightOffset >= this.outputImageSize.getWidth() || leftOffset >= this.outputImageSize.getWidth() ||
-			leftOffset + rightOffset >= this.outputImageSize.getWidth() || topOffset >= this.outputImageSize.getHeight() ||
-			bottomOffset >= this.outputImageSize.getHeight() || topOffset + bottomOffset >= this.outputImageSize.getHeight()) {
+		if (leftOffset + rightOffset > this.outputImageSize.getWidth() ||
+			topOffset + bottomOffset > this.outputImageSize.getHeight()) {
 			return this;
 		}
 
 		int width = this.outputImageSize.getWidth() - leftOffset - rightOffset;
 		int height = this.outputImageSize.getHeight() - topOffset - bottomOffset;
-		this.outputImage = this.outputImage.getSubimage(leftOffset, topOffset, width, height);
 		this.outputImageSize = new ImageSize(width, height);
-		return this;
+		return filter(new CropImageFilter(leftOffset, topOffset, width, height));
 	}
 
 	/**
 	 * 按矩形区域进行裁剪。
 	 * <p>
 	 * 使用左上角坐标 {@code (x, y)} 与尺寸 {@code (width, height)} 指定裁剪矩形。
-	 * 当矩形超出图像边界（包含等于边界的情况）时，不进行裁剪并返回。
+	 * 当矩形超出图像边界时，不进行裁剪并返回。
 	 * </p>
 	 *
 	 * @param x      裁剪矩形左上角 X 坐标，必须大于等于 0
@@ -1125,15 +1105,12 @@ public class ImageEditor {
 		Validate.isTrue(height > 0, "height 不能小于0");
 
 		// 边界检测
-		if (x >= this.outputImageSize.getWidth() || width >= this.outputImageSize.getWidth() ||
-			x + width >= this.outputImageSize.getWidth() || y >= this.outputImageSize.getHeight() ||
-			height >= this.outputImageSize.getHeight() || y + height >= this.outputImageSize.getHeight()) {
+		if (x + width > this.outputImageSize.getWidth() || y + height > this.outputImageSize.getHeight()) {
 			return this;
 		}
 
-		this.outputImage = this.outputImage.getSubimage(x, y, width, height);
 		this.outputImageSize = new ImageSize(width, height);
-		return this;
+		return filter(new CropImageFilter(x, y, width, height));
 	}
 
 	/**
@@ -1429,8 +1406,17 @@ public class ImageEditor {
 
 	/**
 	 * 获取处理后的图像。
+	 * <p>
+	 * 此方法会根据输出格式的特性进行智能转换：
+	 * <ul>
+	 *   <li>如果输出格式是不支持透明通道的格式（如 JPG），且当前图像包含透明通道，
+	 *       会自动转换为不透明的图像类型，避免透明区域显示异常。</li>
+	 *   <li>对于灰度图像，会保持为灰度格式；对于彩色图像，会转换为 RGB/BGR 格式。</li>
+	 *   <li>如果不需要格式转换，会直接返回原始的输出图像。</li>
+	 * </ul>
+	 * </p>
 	 *
-	 * @return 处理后图像的 BufferedImage
+	 * @return 处理后图像的 BufferedImage，可能会根据输出格式进行类型转换
 	 * @since 1.0.0
 	 */
 	public BufferedImage toBufferedImage() {
@@ -1445,7 +1431,7 @@ public class ImageEditor {
 			} else {
 				imageType = switch (imageType) {
 					case BufferedImage.TYPE_4BYTE_ABGR, BufferedImage.TYPE_4BYTE_ABGR_PRE ->
-						BufferedImage.TYPE_3BYTE_BGR;
+						BufferedImage.TYPE_INT_BGR;
 					default -> BufferedImage.TYPE_INT_RGB;
 				};
 			}
@@ -1459,22 +1445,36 @@ public class ImageEditor {
 	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
 	 *
 	 * @return 当前编辑器实例（便于链式调用）
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public ImageEditor reset() {
-		if (this.outputImage != this.inputImage) {
-			this.outputImage.flush();
-
-			this.outputImage = this.inputImage;
-			this.outputImageSize = this.inputImageSize;
-			this.outputFormat = this.inputFormat;
-			if (StringUtils.isBlank(this.outputFormat)) {
-				this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
-			}
-			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
+		this.outputImage.flush();
+		this.outputImage = this.inputImage;
+		this.outputImageSize = this.inputImageSize;
+		this.outputFormat = this.inputFormat;
+		if (StringUtils.isBlank(this.outputFormat)) {
+			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
 		}
+		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 		return this;
+	}
+
+	/**
+	 * 释放图像资源，清空所有内部图像数据。
+	 * <p>
+	 * 调用此方法后，编辑器将不再持有任何图像数据的引用，
+	 * 有助于减少内存占用。调用后编辑器不可再使用。
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	public void release() {
+		this.inputImage.flush();
+		this.inputImage = null;
+
+		this.outputImage.flush();
+		this.outputImage = null;
 	}
 
 	/**
@@ -1739,9 +1739,10 @@ public class ImageEditor {
 	 *   <li>根据 EXIF 标准（1-8）自动应用旋转/翻转变换。</li>
 	 *   <li>对于方向值 5-8，图像宽高会发生交换。</li>
 	 *   <li>操作完成后，内部维护的 {@link ImageSize} 将更新为 {@link ImageSize#getVisualSize()}（即可视化尺寸）。</li>
+	 *   <li>同时更新 {@code inputImage} 和 {@code inputImageSize}，确保调用 {@link #reset()} 后方向校正效果不会丢失。</li>
 	 * </ul>
 	 *
-	 * <p><b>不同方法处理逻辑：</b></p>
+	 * <p><b>不同 EXIF 方向处理逻辑：</b></p>
 	 * <ul>
 	 *   <li>1: 正常方向 (不需要校正)</li>
 	 *   <li>2: 水平翻转</li>
@@ -1791,6 +1792,7 @@ public class ImageEditor {
 
 		// 防止 reset 后丢失方向矫正效果
 		inputImageSize = outputImageSize;
-		inputImage = outputImage;
+		inputImage.flush();
+		inputImage = ImageUtil.createCopy(outputImage);
 	}
 }
