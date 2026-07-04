@@ -9,6 +9,7 @@ import io.github.pangju666.commons.image.enums.WatermarkDirection
 import io.github.pangju666.commons.image.lang.ImageConstants
 import io.github.pangju666.commons.image.model.ImageWatermarkOption
 import io.github.pangju666.commons.image.model.TextWatermarkOption
+import net.coobird.thumbnailator.geometry.Positions
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -526,7 +527,7 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def option = new ImageWatermarkOption()
-				option.setDirection(WatermarkDirection.BOTTOM_RIGHT)
+				option.setDirection(Positions.BOTTOM_RIGHT)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "wm-${ext}.png")
 				editor.addImageWatermark(ImageIO.read(watermark), option)
@@ -571,7 +572,7 @@ class ImageEditorSpec extends Specification {
 			} else {
 				def editor = ImageEditor.of(src)
 				def option = new TextWatermarkOption()
-				option.setDirection(WatermarkDirection.CENTER)
+				option.setDirection(Positions.CENTER)
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "tw-${ext}.jpg")
 				editor.addTextWatermark("TEST", option)
@@ -920,7 +921,7 @@ class ImageEditorSpec extends Specification {
 				def editor = ImageEditor.of(src)
 				def wm = ImageIO.read(new File("${TEST_IMAGES_DIR}/watermark.png"))
 				def directionOption = new ImageWatermarkOption()
-				directionOption.setDirection(WatermarkDirection.TOP_RIGHT)
+				directionOption.setDirection(Positions.TOP_RIGHT)
 				def posOption = new ImageWatermarkOption()
 				posOption.setX(10)
 				posOption.setY(10)

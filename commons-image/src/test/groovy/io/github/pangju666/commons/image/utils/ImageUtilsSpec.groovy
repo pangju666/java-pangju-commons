@@ -3,6 +3,10 @@ package io.github.pangju666.commons.image.utils
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Metadata
 import io.github.pangju666.commons.image.lang.ImageConstants
+import io.github.pangju666.commons.image.model.ImageWatermarkOption
+import io.github.pangju666.commons.image.model.TextWatermarkOption
+import io.github.pangju666.commons.io.utils.FileUtils
+import net.coobird.thumbnailator.geometry.Positions
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
@@ -289,5 +293,28 @@ class ImageUtilsSpec extends Specification {
 
 		where:
 		name << ALL_IMAGES.findAll { it != "test.svg" }
+	}
+
+	def test() throws IOException {
+		setup:
+		File inputFile = new File("E:\\Roaming\\camera.jpg")
+		File outputFile = new File("E:\\Roaming\\output.png")
+		File watermarkFile = new File("E:\\Roaming\\watermark.png")
+
+		def textOption = new TextWatermarkOption()
+		//textOption.direction = Positions.TOP_LEFT
+		def imageOption = new ImageWatermarkOption()
+		imageOption.direction = Positions.TOP_LEFT
+
+		ImageEditor.of(FileUtils.readFileToByteArray(inputFile), true)
+		//.transparency(0.3)
+		//.flip(FlipDirection.HORIZONTAL)
+		//.rotate(27)
+		//.scale(500, 500)
+		.addTextWatermark("DEMO", textOption)
+			//.addImageWatermark(ImageIO.read(watermarkFile), imageOption)
+		//.cropByCenter(100, 100)
+		//.grayscale()
+			.toFile(outputFile)
 	}
 }

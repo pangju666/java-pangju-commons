@@ -212,6 +212,30 @@ import java.util.function.BiFunction;
  */
 public class ImageEditor {
 	/**
+	 * 灰度滤镜
+	 * <p>
+	 * 用于将彩色图像转换为灰度图像的滤镜实例。
+	 * 该滤镜在{@link #grayscale()}方法中使用。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
+	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
+
+	/**
+	 * 默认对比度过滤器
+	 * <p>
+	 * 用于调整图像对比度的滤镜实例。
+	 * 该滤镜在{@link #contrast()}方法中使用。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
+	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
+
+	/**
 	 * 默认的带透明通道图像输出格式
 	 * <p>
 	 * 当输入图像包含透明通道（Alpha通道）时，默认使用的输出格式。
