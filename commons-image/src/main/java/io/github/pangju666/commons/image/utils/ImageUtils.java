@@ -431,11 +431,14 @@ public class ImageUtils {
 		Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInputStream);
 		if (readers.hasNext()) {
 			ImageReader reader = readers.next();
-			ImageReaderSpi readerSpi = reader.getOriginatingProvider();
-			if (Objects.nonNull(readerSpi)) {
-				mimeTypes = ArrayUtils.nullToEmpty(readerSpi.getMIMETypes());
+			try {
+				ImageReaderSpi readerSpi = reader.getOriginatingProvider();
+				if (Objects.nonNull(readerSpi)) {
+					mimeTypes = ArrayUtils.nullToEmpty(readerSpi.getMIMETypes());
+				}
+			} finally {
+				reader.dispose();
 			}
-			reader.dispose();
 		}
 		return ArrayUtils.get(mimeTypes, 0, null);
 	}
@@ -1049,10 +1052,13 @@ public class ImageUtils {
 			return null;
 		}
 		ImageReader reader = iterator.next();
-		reader.setInput(imageInputStream);
-		width = reader.getWidth(0);
-		height = reader.getHeight(0);
-		reader.dispose();
+		try {
+			reader.setInput(imageInputStream);
+			width = reader.getWidth(0);
+			height = reader.getHeight(0);
+		} finally {
+			reader.dispose();
+		}
 
 		if (Objects.isNull(orientation)) {
 			return new ImageSize(width, height);

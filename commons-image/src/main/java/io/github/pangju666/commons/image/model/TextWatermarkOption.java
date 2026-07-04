@@ -517,13 +517,17 @@ public class TextWatermarkOption {
 		Coordinate coordinate = new Coordinate(x, y);
 		if (Objects.nonNull(direction)) {
 			Graphics graphics = targetImage.getGraphics();
-			graphics.setFont(font);
+			try {
+				graphics.setFont(font);
 
-			FontMetrics fontMetrics = graphics.getFontMetrics();
-			int textWidth = fontMetrics.stringWidth(text);
-			int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
+				FontMetrics fontMetrics = graphics.getFontMetrics();
+				int textWidth = fontMetrics.stringWidth(text);
+				int textHeight = fontMetrics.getAscent() - fontMetrics.getDescent();
 
-			coordinate = direction.toCoordinate(targetImageSize, textWidth, textHeight);
+				coordinate = direction.toCoordinate(targetImageSize, textWidth, textHeight);
+			} finally {
+				graphics.dispose();
+			}
 		}
 
 		return new Caption(text, font, color, opacity, coordinate, inset);
