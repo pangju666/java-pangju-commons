@@ -16,10 +16,10 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.enums.Direction;
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.utils.ImageUtils;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +52,7 @@ import java.util.function.IntBinaryOperator;
  * TextWatermarkOption option = new TextWatermarkOption("Arial");
  * option.setFillColor(Color.WHITE);
  * option.setStrokeColor(Color.BLACK);
- * option.setDirection(WatermarkDirection.BOTTOM_RIGHT);
+ * option.setDirection(Direction.BOTTOM_RIGHT);
  *
  * // 使用字体文件
  * TextWatermarkOption option = new TextWatermarkOption(new File("font.ttf"));
@@ -61,7 +61,7 @@ import java.util.function.IntBinaryOperator;
  *
  * @author pangju666
  * @see ImageWatermarkOption
- * @see WatermarkDirection
+ * @see Direction
  * @since 1.1.0
  */
 public class TextWatermarkOption {
@@ -140,7 +140,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected WatermarkDirection direction;
+	protected Direction direction;
 
 	/**
 	 * 自适应字体大小策略函数
@@ -380,7 +380,7 @@ public class TextWatermarkOption {
 	 * @return 位置方向枚举，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
@@ -390,7 +390,7 @@ public class TextWatermarkOption {
 	 * @param direction 位置方向枚举
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 
@@ -473,29 +473,29 @@ public class TextWatermarkOption {
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {
-			return String.format("x=%d:y=%d", x + margin, y + margin);
+			return String.format("x=%d:y=text_h+%d", x + margin, y + margin);
 		}
 
 		switch (direction) {
 			case TOP:
-				return String.format("x=%s:y=%d", "(w-text_w)/2", margin);
+				return String.format("x=(W-text_w)/2:y=text_h+%d", margin);
 			case TOP_LEFT:
-				return String.format("x=%d:y=%d", margin, margin);
+				return String.format("x=%d:y=text_h+%d", margin, margin);
 			case TOP_RIGHT:
-				return String.format("x=%s:y=%d", "w-text_w-" + margin, margin);
+				return String.format("x=W-text_w-%d:y=text_h+%d", margin, margin);
 			case BOTTOM:
-				return String.format("x=%s:y=%s", "(w-text_w)/2", "h-text_h-" + margin);
+				return String.format("x=(W-text_w)/2:y=H-text_h-%d", margin);
 			case BOTTOM_LEFT:
-				return String.format("x=%d:y=%s", margin, "h-text_h-" + margin);
+				return String.format("x=%d:y=H-text_h-%d", margin, margin);
 			case BOTTOM_RIGHT:
-				return String.format("x=%s:y=%s", "w-text_w-" + margin, "h-text_h-" + margin);
+				return String.format("x=W-text_w-%d:y=H-text_h-%d", margin, margin);
 			case LEFT:
-				return String.format("x=%d:y=%s", margin, "(h-text_h)/2");
+				return String.format("x=%d:y=(H+text_h)/2", margin);
 			case RIGHT:
-				return String.format("x=%s:y=%s", "w-text_w-" + margin, "(h-text_h)/2");
+				return String.format("x=W-text_w-%d:y=(H+text_h)/2", margin);
 			case CENTER:
 			default:
-				return String.format("x=%s:y=%s", "(w-text_w)/2", "(h-text_h)/2");
+				return "x=(W-text_w)/2:y=(H+text_h)/2";
 		}
 	}
 }

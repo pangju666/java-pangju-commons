@@ -16,9 +16,9 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.enums.Direction;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.image.enums.WatermarkDirection;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.Validate;
@@ -48,12 +48,12 @@ import java.util.function.BiFunction;
  * ImageWatermarkOption option = new ImageWatermarkOption();
  * option.setOpacity(0.5f);
  * option.setRelativeScaleFactor(0.2);
- * option.setDirection(WatermarkDirection.BOTTOM_RIGHT);
+ * option.setDirection(Direction.BOTTOM_RIGHT);
  * }</pre>
  *
  * @author pangju666
  * @see TextWatermarkOption
- * @see WatermarkDirection
+ * @see Direction
  * @since 1.1.0
  */
 public class ImageWatermarkOption {
@@ -98,7 +98,7 @@ public class ImageWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private WatermarkDirection direction;
+	private Direction direction;
 
 	/**
 	 * 水印尺寸限制策略。
@@ -243,7 +243,7 @@ public class ImageWatermarkOption {
 	 * @return 位置方向枚举，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
@@ -253,7 +253,7 @@ public class ImageWatermarkOption {
 	 * @param direction 位置方向枚举
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 
@@ -346,24 +346,24 @@ public class ImageWatermarkOption {
 
 		switch (direction) {
 			case TOP:
-				return String.format("x=%s:y=%d", "(W-w)/2", margin);
+				return String.format("x=(W-w)/2:y=%d", margin);
 			case TOP_LEFT:
 				return String.format("x=%d:y=%d", margin, margin);
 			case TOP_RIGHT:
-				return String.format("x=%s:y=%d", "W-w-" + margin, margin);
+				return String.format("x=W-w-%d:y=%d", margin, margin);
 			case BOTTOM:
-				return String.format("x=%s:y=%s", "(W-w)/2", "H-h-" + margin);
+				return String.format("x=(W-w)/2:y=H-h-%d", margin);
 			case BOTTOM_LEFT:
-				return String.format("x=%d:y=%s", margin, "H-h-" + margin);
+				return String.format("x=%d:y=H-h-%d", margin, margin);
 			case BOTTOM_RIGHT:
-				return String.format("x=%s:y=%s", "W-w-" + margin, "H-h-" + margin);
+				return String.format("x=W-w-%d:y=H-h-%d", margin, margin);
 			case LEFT:
-				return String.format("x=%d:y=%s", margin, "(H-h)/2");
+				return String.format("x=%d:y=(H-h)/2", margin);
 			case RIGHT:
-				return String.format("x=%s:y=%s", "W-w-" + margin, "(H-h)/2");
+				return String.format("x=W-w-%d:y=(H-h)/2", margin);
 			case CENTER:
 			default:
-				return String.format("x=%s:y=%s", "(W-w)/2", "(H-h)/2");
+				return "x=(W-w)/2:y=(H-h)/2";
 		}
 	}
 }
