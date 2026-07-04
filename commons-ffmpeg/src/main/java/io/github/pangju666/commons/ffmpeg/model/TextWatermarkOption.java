@@ -16,7 +16,7 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
-import io.github.pangju666.commons.ffmpeg.enums.WatermarkDirection;
+import io.github.pangju666.commons.ffmpeg.enums.Direction;
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
@@ -61,7 +61,7 @@ import java.util.function.IntBinaryOperator;
  *
  * @author pangju666
  * @see ImageWatermarkOption
- * @see WatermarkDirection
+ * @see Direction
  * @since 1.1.0
  */
 public class TextWatermarkOption {
@@ -140,7 +140,7 @@ public class TextWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	protected WatermarkDirection direction;
+	protected Direction direction;
 
 	/**
 	 * 自适应字体大小策略函数
@@ -380,7 +380,7 @@ public class TextWatermarkOption {
 	 * @return 位置方向枚举，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
@@ -390,7 +390,7 @@ public class TextWatermarkOption {
 	 * @param direction 位置方向枚举
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 

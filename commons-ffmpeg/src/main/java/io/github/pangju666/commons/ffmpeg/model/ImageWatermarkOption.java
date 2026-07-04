@@ -16,7 +16,7 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
-import io.github.pangju666.commons.ffmpeg.enums.WatermarkDirection;
+import io.github.pangju666.commons.ffmpeg.enums.Direction;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
 import io.github.pangju666.commons.image.model.ImageSize;
@@ -53,7 +53,7 @@ import java.util.function.BiFunction;
  *
  * @author pangju666
  * @see TextWatermarkOption
- * @see WatermarkDirection
+ * @see Direction
  * @since 1.1.0
  */
 public class ImageWatermarkOption {
@@ -98,7 +98,7 @@ public class ImageWatermarkOption {
 	 *
 	 * @since 1.1.0
 	 */
-	private WatermarkDirection direction;
+	private Direction direction;
 
 	/**
 	 * 水印尺寸限制策略。
@@ -243,7 +243,7 @@ public class ImageWatermarkOption {
 	 * @return 位置方向枚举，null 表示使用自定义坐标
 	 * @since 1.1.0
 	 */
-	public WatermarkDirection getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
@@ -253,7 +253,7 @@ public class ImageWatermarkOption {
 	 * @param direction 位置方向枚举
 	 * @since 1.1.0
 	 */
-	public void setDirection(WatermarkDirection direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 

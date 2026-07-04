@@ -17,14 +17,12 @@
 package io.github.pangju666.commons.ffmpeg.enums;
 
 /**
- * 水印方向枚举，定义水印在图像中的九宫格位置。
- *
- * <p>用于在图像处理时确定水印绘制的参考位置，例如左上、居中、右下等。</p>
+ * 方向枚举，定义九宫格位置。
  *
  * @author pangju666
  * @since 1.1.0
  */
-public enum WatermarkDirection {
+public enum Direction {
 	/**
 	 * 左上角，紧贴上边与左边。
 	 *
