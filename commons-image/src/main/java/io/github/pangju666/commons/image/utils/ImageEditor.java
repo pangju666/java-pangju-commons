@@ -1449,7 +1449,7 @@ public class ImageEditor {
 	 */
 	public ImageEditor reset() {
 		this.outputImage.flush();
-		this.outputImage = this.inputImage;
+		this.outputImage = ImageUtil.createCopy(this.inputImage);
 		this.outputImageSize = this.inputImageSize;
 		this.outputFormat = this.inputFormat;
 		if (StringUtils.isBlank(this.outputFormat)) {
