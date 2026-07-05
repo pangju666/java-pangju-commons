@@ -1364,7 +1364,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 x 或者 y &lt; 0 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
@@ -1385,7 +1385,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
@@ -1407,7 +1407,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null} 时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
@@ -1430,7 +1430,7 @@ public class ImageEditor {
 	 * @throws IOException 当文件读取失败时抛出
 	 * @see #addImageWatermark(BufferedImage, ImageWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
@@ -1453,7 +1453,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code direction} 为 {@code null}、或 {@code watermarkText} 为空、或 {@code option} 为 {@code null} 时抛出
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
@@ -1477,7 +1477,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 {@code x < 0} 或 {@code y < 0}，或 {@code watermarkText} 为空，或 {@code option} 为 {@code null} 时抛出
 	 * @see #addTextWatermark(String, TextWatermarkOption, WatermarkDirection, int, int)
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
@@ -1672,7 +1672,7 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.model.ImageWatermarkOption
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option,
@@ -1780,7 +1780,7 @@ public class ImageEditor {
 	 * @see io.github.pangju666.commons.image.model.TextWatermarkOption
 	 * @see io.github.pangju666.commons.image.enums.WatermarkDirection
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
