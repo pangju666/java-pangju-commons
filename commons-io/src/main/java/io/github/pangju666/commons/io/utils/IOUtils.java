@@ -135,7 +135,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @param inputStream 原始输入流（必须非null）
 	 * @return 包装后的缓冲输入流
-	 * @throws IOException 当流初始化失败时抛出
+	 * @throws IOException          当流初始化失败时抛出
 	 * @throws NullPointerException 当inputStream为null时抛出
 	 * @see #unsynchronizedBuffer(InputStream, int)
 	 * @since 1.0.0
@@ -155,16 +155,16 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * </ul>
 	 *
 	 * @param inputStream 原始输入流（必须非null）
-	 * @param bufferSize 缓冲区大小（单位：字节，必须大于0）
+	 * @param bufferSize  缓冲区大小（单位：字节，必须大于0）
 	 * @return 包装后的缓冲输入流
-	 * @throws IOException 当流初始化失败时抛出
-	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @throws IOException              当流初始化失败时抛出
+	 * @throws NullPointerException     当inputStream为null时抛出
 	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
 	 * @see #getBufferSize(long)
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream,
-																		 final int bufferSize) throws IOException {
+	                                                                     final int bufferSize) throws IOException {
 		Objects.requireNonNull(inputStream, "inputStream");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
@@ -233,11 +233,11 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @param inputStream 输入流（必须非null）
 	 * @return 包含输入流数据的字节数组输出流
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>流读取/写入失败</li>
-	 *                         <li>内存不足</li>
-	 *                     </ul>
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>流读取/写入失败</li>
+	 *                                  <li>内存不足</li>
+	 *                              </ul>
 	 * @throws NullPointerException 当inputStream为null时抛出
 	 * @see #toUnsynchronizedByteArrayOutputStream(InputStream, int)
 	 * @since 1.0.0
@@ -260,20 +260,20 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
-	 * @param bufferSize 初始缓冲区大小（单位：字节，必须大于0）
+	 * @param bufferSize  初始缓冲区大小（单位：字节，必须大于0）
 	 * @return 包含输入流数据的字节数组输出流
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>流读取/写入失败</li>
-	 *                         <li>内存不足</li>
-	 *                     </ul>
-	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>流读取/写入失败</li>
+	 *                                      <li>内存不足</li>
+	 *                                  </ul>
+	 * @throws NullPointerException     当inputStream为null时抛出
 	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
 	 * @see #getBufferSize(long)
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream,
-																							final int bufferSize) throws IOException {
+	                                                                                        final int bufferSize) throws IOException {
 		Objects.requireNonNull(inputStream, "inputStream");
 
 		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(bufferSize);
@@ -307,7 +307,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void encrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-							   final byte[] iv) throws IOException {
+	                           final byte[] iv) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Key secretKey = new SecretKeySpec(key, AES.ALGORITHM);
@@ -337,7 +337,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void decrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-							   final byte[] iv) throws IOException {
+	                           final byte[] iv) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Key secretKey = new SecretKeySpec(key, AES.ALGORITHM);
@@ -374,7 +374,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void encrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-							   final byte[] iv, final int bufferSize) throws IOException {
+	                           final byte[] iv, final int bufferSize) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Properties properties = new Properties();
@@ -408,7 +408,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void decrypt(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-							   final byte[] iv, final int bufferSize) throws IOException {
+	                           final byte[] iv, final int bufferSize) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Properties properties = new Properties();
@@ -451,7 +451,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptByCtr(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-									final byte[] iv) throws IOException {
+	                                final byte[] iv) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		try (CtrCryptoOutputStream cryptoInputStream = new CtrCryptoOutputStream(DEFAULT_PROPERTIES, outputStream, key, iv)) {
@@ -481,7 +481,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptByCtr(final InputStream inputStream, final OutputStream outputStream, final byte[] key,
-									final byte[] iv) throws IOException {
+	                                final byte[] iv) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		try (CtrCryptoInputStream cryptoInputStream = new CtrCryptoInputStream(DEFAULT_PROPERTIES, inputStream, key, iv)) {
@@ -519,7 +519,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void encryptByCtr(final InputStream inputStream, final OutputStream outputStream,
-									final byte[] key, final byte[] iv, final int bufferSize) throws IOException {
+	                                final byte[] key, final byte[] iv, final int bufferSize) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Properties properties = new Properties();
@@ -553,7 +553,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static void decryptByCtr(final InputStream inputStream, final OutputStream outputStream,
-									final byte[] key, final byte[] iv, final int bufferSize) throws IOException {
+	                                final byte[] key, final byte[] iv, final int bufferSize) throws IOException {
 		validateArgs(inputStream, outputStream, key, iv);
 
 		Properties properties = new Properties();
@@ -575,14 +575,14 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @param inputStream  输入流（必须非null）
 	 * @param outputStream 输出流（必须非null）
-	 * @param key     加密密码字节数组（必须16/24/32字节）
+	 * @param key          加密密码字节数组（必须16/24/32字节）
 	 * @param iv           初始化向量字节数组（必须16字节）
 	 * @throws NullPointerException     当inputStream/outputStream为null时抛出
 	 * @throws IllegalArgumentException 当key或iv长度不符合要求时抛出
 	 * @since 1.0.0
 	 */
 	protected static void validateArgs(final InputStream inputStream, final OutputStream outputStream,
-									   final byte[] key, final byte[] iv) {
+	                                   final byte[] key, final byte[] iv) {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 

@@ -147,7 +147,7 @@ public class TarUtils {
 		Validate.isTrue(isTar(inputFile), "inputFile 不是tar压缩文件");
 
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
 		}
 	}
@@ -167,7 +167,7 @@ public class TarUtils {
 		Validate.isTrue(isTar(bytes), "bytes 不是tar压缩文件数据");
 
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
-			 TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
 		}
 	}
@@ -194,7 +194,7 @@ public class TarUtils {
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
-					 TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
+				     TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
 					uncompress(archiveInputStream, outputDir);
 				}
 			}
@@ -223,8 +223,8 @@ public class TarUtils {
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
-					 InputStream inputStream = tarFile.getInputStream(tarEntry)) {
+				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
+				     InputStream inputStream = tarFile.getInputStream(tarEntry)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -254,7 +254,7 @@ public class TarUtils {
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
 				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
+				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
 					tarArchiveInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -282,8 +282,8 @@ public class TarUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-			 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFile, tarArchiveOutputStream);
 		}
 	}
@@ -310,7 +310,7 @@ public class TarUtils {
 			compress(inputFile, (TarArchiveOutputStream) outputStream);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-				 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
+			     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFile, tarArchiveOutputStream);
 			}
 		}
@@ -363,8 +363,8 @@ public class TarUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-			 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFiles, tarArchiveOutputStream);
 		}
 	}
@@ -390,7 +390,7 @@ public class TarUtils {
 			compress(inputFiles, (TarArchiveOutputStream) outputStream);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-				 TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
+			     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 				compress(inputFiles, tarArchiveOutputStream);
 			}
 		}

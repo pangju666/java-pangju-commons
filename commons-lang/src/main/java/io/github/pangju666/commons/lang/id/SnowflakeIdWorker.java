@@ -84,7 +84,9 @@ public final class SnowflakeIdWorker {
 	 */
 	private final long workerId;
 
-	/** 当前数据中心 ID（0 ~ 31） */
+	/**
+	 * 当前数据中心 ID（0 ~ 31）
+	 */
 	private final long datacenterId;
 
 	/**
@@ -97,7 +99,9 @@ public final class SnowflakeIdWorker {
 	 */
 	private final AtomicLong lastTimestamp = new AtomicLong(-1L);
 
-	/** 当前毫秒内的序列号（0 ~ 4095） */
+	/**
+	 * 当前毫秒内的序列号（0 ~ 4095）
+	 */
 	private final AtomicLong sequence = new AtomicLong(0L);
 
 	/**

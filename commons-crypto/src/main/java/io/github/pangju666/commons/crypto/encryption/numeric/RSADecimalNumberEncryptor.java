@@ -211,7 +211,7 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	 *
 	 * @param number 待加密数值；null 返回 null
 	 * @return 加密后的 BigDecimal（scale 与原值一致；unscaledValue 为密文字节）
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 公钥未设置或加密失败
 	 * @since 1.0.0
 	 */
@@ -249,7 +249,7 @@ public final class RSADecimalNumberEncryptor implements DecimalNumberEncryptor {
 	 *
 	 * @param encryptedNumber 由 {@link #encrypt(BigDecimal)} 生成的密文；null 返回 null
 	 * @return 原始数值
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 输入格式非法、私钥未设置/不匹配或解密失败
 	 * @since 1.0.0
 	 */

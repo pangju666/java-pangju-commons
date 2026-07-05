@@ -5,7 +5,6 @@ import com.twelvemonkeys.image.GrayFilter
 import com.twelvemonkeys.image.ResampleOp
 import io.github.pangju666.commons.image.enums.FlipDirection
 import io.github.pangju666.commons.image.enums.RotateDirection
-import io.github.pangju666.commons.image.enums.WatermarkDirection
 import io.github.pangju666.commons.image.lang.ImageConstants
 import io.github.pangju666.commons.image.model.ImageWatermarkOption
 import io.github.pangju666.commons.image.model.TextWatermarkOption

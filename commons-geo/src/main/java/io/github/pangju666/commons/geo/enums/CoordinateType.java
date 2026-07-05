@@ -41,9 +41,9 @@ import io.github.pangju666.commons.geo.utils.CoordinateUtils;
  * </ul>
  *
  * @author pangju666
- * @since 1.0.0
  * @see Coordinate
  * @see CoordinateUtils
+ * @since 1.0.0
  */
 public enum CoordinateType {
 	/**

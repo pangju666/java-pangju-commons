@@ -47,9 +47,9 @@ import java.math.BigDecimal;
  * </ul>
  *
  * @author pangju666
- * @since 1.0.0
  * @see GeoConstants
  * @see CoordinateUtils
+ * @since 1.0.0
  */
 public class Coordinate {
 	/**
@@ -81,11 +81,11 @@ public class Coordinate {
 	 *                    <li>非null</li>
 	 *                    <li>在有效范围内</li>
 	 *                  </ul>
-	 * @param latitude 纬度值，必须满足：
-	 *                 <ul>
-	 *                   <li>非null</li>
-	 *                   <li>在有效范围内</li>
-	 *                 </ul>
+	 * @param latitude  纬度值，必须满足：
+	 *                  <ul>
+	 *                    <li>非null</li>
+	 *                    <li>在有效范围内</li>
+	 *                  </ul>
 	 * @throws IllegalArgumentException 当参数不符合要求时抛出
 	 * @since 1.0.0
 	 */
@@ -107,7 +107,7 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @param longitude 经度（十进制度数），示例：116.404
-	 * @param latitude 纬度（十进制度数），示例：39.915
+	 * @param latitude  纬度（十进制度数），示例：39.915
 	 * @see #Coordinate(BigDecimal, BigDecimal)
 	 * @since 1.0.0
 	 */
@@ -123,7 +123,7 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @param longitude 经度字符串，示例：116°23'29.34"E
-	 * @param latitude 纬度字符串，示例：39°54'15.12"N
+	 * @param latitude  纬度字符串，示例：39°54'15.12"N
 	 * @throws NumberFormatException 当格式不符合规范时抛出
 	 * @see CoordinateUtils#fromDMS(String)
 	 * @since 1.0.0
@@ -148,10 +148,10 @@ public class Coordinate {
 	 * </p>
 	 *
 	 * @return 判断结果：
-	 *         <ul>
-	 *           <li>true - 境外或边界上</li>
-	 *           <li>false - 境内</li>
-	 *         </ul>
+	 * <ul>
+	 *   <li>true - 境外或边界上</li>
+	 *   <li>false - 境内</li>
+	 * </ul>
 	 * @see GeoConstants#CHINA_MIN_LONGITUDE
 	 * @see GeoConstants#CHINA_MAX_LONGITUDE
 	 * @see GeoConstants#CHINA_MIN_LATITUDE

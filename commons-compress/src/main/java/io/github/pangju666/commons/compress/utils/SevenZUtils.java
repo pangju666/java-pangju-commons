@@ -87,7 +87,7 @@ public class SevenZUtils {
 	 * @param file 待检查的文件对象
 	 * @return 当且仅当文件存在且检测为7z格式时返回true
 	 * @throws NullPointerException 当file参数为null时抛出
-	 * @throws IOException 当文件访问发生I/O异常时抛出
+	 * @throws IOException          当文件访问发生I/O异常时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean is7z(final File file) throws IOException {
@@ -146,19 +146,19 @@ public class SevenZUtils {
 	 * 从SevenZFile对象解压缩到指定目录
 	 *
 	 * @param sevenZFile 已初始化的SevenZFile对象，必须处于可读取状态且不为null
-	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
-	 * @throws NullPointerException 当sevenZFile或outputDir为null时抛出
+	 * @param outputDir  解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException     当sevenZFile或outputDir为null时抛出
 	 * @throws IllegalArgumentException 当出现以下情况时抛出：
 	 *                                  <ul>
 	 *                                      <li>outputDir存在但不是目录</li>
 	 *                                  </ul>
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>sevenZFile已关闭或不可读</li>
-	 *                         <li>输出目录不可写</li>
-	 *                         <li>解压过程中发生I/O错误</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>sevenZFile已关闭或不可读</li>
+	 *                                      <li>输出目录不可写</li>
+	 *                                      <li>解压过程中发生I/O错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 1.0.0
 	 */
 	public static void uncompress(final SevenZFile sevenZFile, final File outputDir) throws IOException {
@@ -174,8 +174,8 @@ public class SevenZUtils {
 				}
 			} else {
 				try (InputStream inputStream = sevenZFile.getInputStream(archiveEntry);
-					 FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+				     FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -210,17 +210,17 @@ public class SevenZUtils {
 	/**
 	 * 压缩文件/目录到SevenZOutputFile对象
 	 *
-	 * @param inputFile 要压缩的文件或目录，必须存在且可读
+	 * @param inputFile        要压缩的文件或目录，必须存在且可读
 	 * @param sevenZOutputFile 已初始化的SevenZOutputFile对象，必须处于可写入状态且不为null
-	 * @throws NullPointerException 当inputFile或sevenZOutputFile为null时抛出
+	 * @throws NullPointerException  当inputFile或sevenZOutputFile为null时抛出
 	 * @throws FileNotFoundException 当inputFile不存在时抛出
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不可读</li>
-	 *                         <li>sevenZOutputFile已关闭或不可写</li>
-	 *                         <li>压缩过程中发生I/O错误</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
+	 * @throws IOException           当发生以下情况时抛出：
+	 *                               <ul>
+	 *                                   <li>输入文件不可读</li>
+	 *                                   <li>sevenZOutputFile已关闭或不可写</li>
+	 *                                   <li>压缩过程中发生I/O错误</li>
+	 *                                   <li>磁盘空间不足</li>
+	 *                               </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(final File inputFile, final SevenZOutputFile sevenZOutputFile) throws IOException {
@@ -265,17 +265,17 @@ public class SevenZUtils {
 	/**
 	 * 压缩多个文件/目录到SevenZOutputFile对象
 	 *
-	 * @param inputFiles 要压缩的文件/目录集合，可为null或空集合（此时不添加任何内容）
+	 * @param inputFiles       要压缩的文件/目录集合，可为null或空集合（此时不添加任何内容）
 	 * @param sevenZOutputFile 已初始化的SevenZOutputFile对象，必须处于可写入状态且不为null
-	 * @throws NullPointerException 当sevenZOutputFile为null时抛出
+	 * @throws NullPointerException  当sevenZOutputFile为null时抛出
 	 * @throws FileNotFoundException 当集合中存在不存在的文件时抛出
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>输入文件不可读</li>
-	 *                         <li>sevenZOutputFile已关闭或不可写</li>
-	 *                         <li>压缩过程中发生I/O错误</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
+	 * @throws IOException           当发生以下情况时抛出：
+	 *                               <ul>
+	 *                                   <li>输入文件不可读</li>
+	 *                                   <li>sevenZOutputFile已关闭或不可写</li>
+	 *                                   <li>压缩过程中发生I/O错误</li>
+	 *                                   <li>磁盘空间不足</li>
+	 *                               </ul>
 	 * @since 1.0.0
 	 */
 	public static void compress(Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile) throws IOException {
@@ -298,17 +298,17 @@ public class SevenZUtils {
 	/**
 	 * 递归添加目录到7z压缩流
 	 *
-	 * @param inputFile 要添加的目录，必须存在且可读
+	 * @param inputFile  要添加的目录，必须存在且可读
 	 * @param outputFile 已初始化的SevenZOutputFile对象，必须处于可写入状态
-	 * @param parent 父目录相对路径（用于构建压缩包内路径），可为null
+	 * @param parent     父目录相对路径（用于构建压缩包内路径），可为null
 	 * @throws NullPointerException 当inputFile或outputFile为null时抛出
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>目录不可读</li>
-	 *                         <li>outputFile已关闭或不可写</li>
-	 *                         <li>压缩过程中发生I/O错误</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>目录不可读</li>
+	 *                                  <li>outputFile已关闭或不可写</li>
+	 *                                  <li>压缩过程中发生I/O错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	protected static void addDir(final File inputFile, final SevenZOutputFile outputFile, final String parent) throws IOException {
@@ -339,17 +339,17 @@ public class SevenZUtils {
 	/**
 	 * 添加单个文件到7z压缩流
 	 *
-	 * @param inputFile 要添加的文件，必须存在且可读
+	 * @param inputFile  要添加的文件，必须存在且可读
 	 * @param outputFile 已初始化的SevenZOutputFile对象，必须处于可写入状态
-	 * @param parent 父目录相对路径（用于构建压缩包内路径），可为null
+	 * @param parent     父目录相对路径（用于构建压缩包内路径），可为null
 	 * @throws NullPointerException 当inputFile或outputFile为null时抛出
-	 * @throws IOException 当发生以下情况时抛出：
-	 *                     <ul>
-	 *                         <li>文件不可读</li>
-	 *                         <li>outputFile已关闭或不可写</li>
-	 *                         <li>压缩过程中发生I/O错误</li>
-	 *                         <li>磁盘空间不足</li>
-	 *                     </ul>
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>文件不可读</li>
+	 *                                  <li>outputFile已关闭或不可写</li>
+	 *                                  <li>压缩过程中发生I/O错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 1.0.0
 	 */
 	protected static void addFile(final File inputFile, final SevenZOutputFile outputFile, final String parent) throws IOException {

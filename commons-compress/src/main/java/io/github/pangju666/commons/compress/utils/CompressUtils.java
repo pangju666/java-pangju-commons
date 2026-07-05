@@ -136,12 +136,12 @@ public class CompressUtils {
 				String baseName = FilenameUtils.getBaseName(filename);
 				File tarFile = new File(outputFile.getParentFile(), baseName + ".tmp.tar");
 				try (FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					TarUtils.compress(inputFile, bufferedOutputStream);
 				}
 				try (InputStream inputStream = FileUtils.openInputStream(tarFile);
-					 FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				     FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					GZipUtils.compress(inputStream, bufferedOutputStream);
 				} finally {
 					FileUtils.forceDelete(tarFile);
@@ -200,12 +200,12 @@ public class CompressUtils {
 				String baseName = FilenameUtils.getBaseName(filename);
 				File tarFile = new File(outputFile.getParentFile(), baseName + ".tmp.tar");
 				try (FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					TarUtils.compress(inputFiles, bufferedOutputStream);
 				}
 				try (InputStream inputStream = FileUtils.openInputStream(tarFile);
-					 FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				     FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					GZipUtils.compress(inputStream, bufferedOutputStream);
 				} finally {
 					FileUtils.forceDelete(tarFile);
@@ -331,8 +331,8 @@ public class CompressUtils {
 				String baseName = FilenameUtils.getBaseName(filename);
 				File tarFile = new File(inputFile.getParentFile(), baseName + ".tmp.tar");
 				try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-					 FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
-					 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				     FileOutputStream outputStream = FileUtils.openOutputStream(tarFile);
+				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 					GZipUtils.uncompress(inputStream, bufferedOutputStream);
 				}
 				try (InputStream inputStream = FileUtils.openInputStream(tarFile)) {

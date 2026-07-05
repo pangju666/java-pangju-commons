@@ -193,7 +193,7 @@ public final class RSAStringDigester implements StringDigester {
 	 * </ul>
 	 *
 	 * @param message 原始消息
-	 * @param digest Base64 编码的签名
+	 * @param digest  Base64 编码的签名
 	 * @return 是否匹配
 	 * @throws EncryptionInitializationException 未设置公钥
 	 * @see RSAByteDigester#matches(byte[], byte[])

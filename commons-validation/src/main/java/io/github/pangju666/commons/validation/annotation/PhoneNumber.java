@@ -41,10 +41,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see io.github.pangju666.commons.lang.pool.RegExPool#MOBILE_PHONE_STRONG
  * @see io.github.pangju666.commons.lang.pool.RegExPool#MOBILE_PHONE_WEAK
  * @see io.github.pangju666.commons.lang.pool.RegExPool#TEL_PHONE
+ * @since 1.0.0
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

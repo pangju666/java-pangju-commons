@@ -37,7 +37,9 @@ import org.bytedeco.opencv.opencv_core.Size;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * OpenCV 工具类
@@ -63,14 +65,15 @@ public class OpencvUtils {
 	 *
 	 * @since 1.1.0
 	 */
-	protected OpencvUtils() {}
+	protected OpencvUtils() {
+	}
 
 	/**
 	 * 检查 OpenCV 是否可以读取指定格式的图像文件
 	 *
 	 * @param file 图像文件，不能为 null 且必须是图像文件
 	 * @return 如果可以读取返回 true，否则返回 false
-	 * @throws IOException 如果文件操作失败时抛出
+	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -100,7 +103,7 @@ public class OpencvUtils {
 	 *
 	 * @param file 图像文件，不能为 null 且必须是图像文件
 	 * @return 图像尺寸对象，如果读取失败返回 null
-	 * @throws IOException 如果文件操作失败时抛出
+	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -120,7 +123,7 @@ public class OpencvUtils {
 	 *
 	 * @param file 图像文件，不能为 null 且必须是图像文件
 	 * @return 图像 Mat 对象
-	 * @throws IOException 如果文件操作失败时抛出
+	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -134,7 +137,7 @@ public class OpencvUtils {
 	 * @param file  图像文件，不能为 null 且必须是图像文件
 	 * @param flags 读取标志（如 IMREAD_COLOR、IMREAD_GRAYSCALE 等）
 	 * @return 图像 Mat 对象
-	 * @throws IOException 如果文件操作失败时抛出
+	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -149,7 +152,7 @@ public class OpencvUtils {
 	 *
 	 * @param inputStream 输入流，不能为 null
 	 * @return 图像 Mat 对象
-	 * @throws IOException 如果流读取失败时抛出
+	 * @throws IOException              如果流读取失败时抛出
 	 * @throws IllegalArgumentException 如果 inputStream 为 null 时抛出
 	 * @since 1.1.0
 	 */
@@ -165,7 +168,7 @@ public class OpencvUtils {
 	 * @param inputStream 输入流，不能为 null
 	 * @param flags       读取标志（如 IMREAD_COLOR、IMREAD_GRAYSCALE 等）
 	 * @return 图像 Mat 对象
-	 * @throws IOException 如果流读取失败时抛出
+	 * @throws IOException              如果流读取失败时抛出
 	 * @throws IllegalArgumentException 如果 inputStream 为 null 时抛出
 	 * @since 1.1.0
 	 */
@@ -418,8 +421,8 @@ public class OpencvUtils {
 	/**
 	 * 按比例因子缩放图像尺寸
 	 *
-	 * @param size           原始图像尺寸，不能为 null
-	 * @param scalingFactor  缩放比例因子，必须大于 0
+	 * @param size          原始图像尺寸，不能为 null
+	 * @param scalingFactor 缩放比例因子，必须大于 0
 	 * @return 缩放后的尺寸对象
 	 * @throws IllegalArgumentException 如果 size 为 null 或 scalingFactor 小于等于 0 时抛出
 	 * @since 1.1.0

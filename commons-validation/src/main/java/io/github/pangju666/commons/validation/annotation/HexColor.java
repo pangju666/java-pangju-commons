@@ -41,8 +41,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see io.github.pangju666.commons.lang.pool.RegExPool#HEX_COLOR
+ * @since 1.0.0
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

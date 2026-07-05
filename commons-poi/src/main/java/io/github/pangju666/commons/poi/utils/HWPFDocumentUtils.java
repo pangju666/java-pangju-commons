@@ -101,7 +101,7 @@ public class HWPFDocumentUtils {
 	 *
 	 * @param file DOC文件，不允许为null
 	 * @return 加载的文档对象
-	 * @throws IOException 当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是DOC格式时抛出
 	 * @since 1.0.0
 	 */
@@ -118,7 +118,7 @@ public class HWPFDocumentUtils {
 	 *
 	 * @param bytes DOC文档字节数组，不允许为空
 	 * @return 加载的文档对象
-	 * @throws IOException 当字节数组解析失败时抛出
+	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是DOC格式时抛出
 	 * @since 1.0.0
 	 */

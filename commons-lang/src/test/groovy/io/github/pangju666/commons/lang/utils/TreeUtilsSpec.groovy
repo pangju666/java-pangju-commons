@@ -72,7 +72,7 @@ class TreeUtilsSpec extends Specification {
 			new TestNode(5L, 2L, "子节点2-1"),
 			new TestNode(6L, 3L, "孙子节点1-1-1"),
 			new TestNode(7L, 99L, "孤立节点") // 不存在的父节点
-		]                                         | null | { it.name += "[已处理]" } | [
+		]                                                             | null    | { it.name += "[已处理]" } | [
 			[id: 1, name: "根节点1[已处理]", children: [
 				[id: 3, name: "子节点1-1[已处理]", children: [
 					[id: 6, name: "孙子节点1-1-1[已处理]"]

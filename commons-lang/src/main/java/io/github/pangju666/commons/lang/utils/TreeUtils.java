@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
  * <p>支持单根/多根树构建，适用于菜单、目录等树形数据结构处理</p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see TreeNode
+ * @since 1.0.0
  */
 public class TreeUtils {
 	protected TreeUtils() {
@@ -88,17 +88,17 @@ public class TreeUtils {
 	/**
 	 * 构建树形结构（支持节点转换处理）
 	 *
-	 * @param collection   扁平节点集合
-	 * @param rootNodeKey  根节点标识键值
-	 * @param convertFunc  节点转换函数
+	 * @param collection  扁平节点集合
+	 * @param rootNodeKey 根节点标识键值
+	 * @param convertFunc 节点转换函数
+	 * @param <K>         节点键类型
+	 * @param <T>         树节点类型
 	 * @return 树形结构节点列表
-	 * @param <K> 节点键类型
-	 * @param <T> 树节点类型
 	 * @since 1.0.0
 	 */
 	public static <K, T extends TreeNode<K, T>> List<T> toTree(final Collection<T> collection,
-															   final K rootNodeKey,
-															   final Consumer<T> convertFunc) {
+	                                                           final K rootNodeKey,
+	                                                           final Consumer<T> convertFunc) {
 		if (Objects.isNull(collection) || collection.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -112,16 +112,16 @@ public class TreeUtils {
 	/**
 	 * 递归设置子节点关系
 	 *
-	 * @param collection   原始节点集合
-	 * @param parentNodes  当前层父节点集合
-	 * @param convertFunc  节点转换处理函数
-	 * @param <K> 节点键类型
-	 * @param <T> 树节点类型
+	 * @param collection  原始节点集合
+	 * @param parentNodes 当前层父节点集合
+	 * @param convertFunc 节点转换处理函数
+	 * @param <K>         节点键类型
+	 * @param <T>         树节点类型
 	 * @since 1.0.0
 	 */
 	protected static <K, T extends TreeNode<K, T>> void setChildNodes(final Collection<T> collection,
-																	  final Collection<T> parentNodes,
-																	  final Consumer<T> convertFunc) {
+	                                                                  final Collection<T> parentNodes,
+	                                                                  final Consumer<T> convertFunc) {
 		if (Objects.nonNull(parentNodes) && !parentNodes.isEmpty()) {
 			parentNodes.forEach(parentNode -> {
 				List<T> childNodes = collection.stream()

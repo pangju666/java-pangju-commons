@@ -74,9 +74,9 @@ import java.util.stream.Collectors;
  * </ul>
  *
  * @author pangju666
- * @since 1.0.0
  * @see GeoConstants
  * @see Coordinate
+ * @since 1.0.0
  */
 public class CoordinateUtils {
 	/**
@@ -256,10 +256,10 @@ public class CoordinateUtils {
 	 * </ol>
 	 *
 	 * @param coordinate GCJ-02坐标，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>中国境内坐标</li>
-	 *                  </ul>
+	 *                   <ul>
+	 *                     <li>非null</li>
+	 *                     <li>中国境内坐标</li>
+	 *                   </ul>
 	 * @return WGS-84坐标系坐标，境外坐标直接返回原值
 	 * @throws IllegalArgumentException 当参数为null时抛出
 	 * @apiNote 转换精度约50-500米，无法完全还原原始WGS-84坐标
@@ -294,10 +294,10 @@ public class CoordinateUtils {
 	 * </ol>
 	 *
 	 * @param coordinate WGS-84坐标，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>中国境内坐标</li>
-	 *                  </ul>
+	 *                   <ul>
+	 *                     <li>非null</li>
+	 *                     <li>中国境内坐标</li>
+	 *                   </ul>
 	 * @return GCJ-02坐标系坐标，境外坐标直接返回原值
 	 * @throws IllegalArgumentException 当参数为null时抛出
 	 * @apiNote 中国境外坐标不做转换直接返回
@@ -700,10 +700,10 @@ public class CoordinateUtils {
 	 * </ul>
 	 *
 	 * @param coordinate 原始坐标，必须满足：
-	 *                  <ul>
-	 *                    <li>非null</li>
-	 *                    <li>中国境内坐标</li>
-	 *                  </ul>
+	 *                   <ul>
+	 *                     <li>非null</li>
+	 *                     <li>中国境内坐标</li>
+	 *                   </ul>
 	 * @return 包含经/纬度偏移量的坐标对象
 	 * @throws IllegalArgumentException 当参数为null时抛出
 	 * @apiNote 算法参考公开的GCJ-02实现
@@ -751,7 +751,7 @@ public class CoordinateUtils {
 	 * </pre>
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @param latitude  纬度偏移基数（已减35.0）
 	 * @return 计算出的经度偏移值
 	 * @since 1.0.0
 	 */
@@ -814,7 +814,7 @@ public class CoordinateUtils {
 	 * </pre>
 	 *
 	 * @param longitude 经度偏移基数（已减105.0）
-	 * @param latitude 纬度偏移基数（已减35.0）
+	 * @param latitude  纬度偏移基数（已减35.0）
 	 * @return 计算出的纬度偏移值
 	 * @since 1.0.0
 	 */
@@ -870,11 +870,11 @@ public class CoordinateUtils {
 	 * </p>
 	 *
 	 * @param coordinate 十进制度数值
-	 * @param latitude 坐标类型标记：
-	 *                <ul>
-	 *                  <li>true - 纬度</li>
-	 *                  <li>false - 经度</li>
-	 *                </ul>
+	 * @param latitude   坐标类型标记：
+	 *                   <ul>
+	 *                     <li>true - 纬度</li>
+	 *                     <li>false - 经度</li>
+	 *                   </ul>
 	 * @return 格式化后的度分秒字符串
 	 * @implNote 转换过程保留2位小数精度
 	 * @since 1.0.0

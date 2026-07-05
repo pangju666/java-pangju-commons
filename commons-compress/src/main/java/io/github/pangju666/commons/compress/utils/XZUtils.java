@@ -156,7 +156,7 @@ public class XZUtils {
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-				 XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream)) {
+			     XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream)) {
 				if (inputStream instanceof BufferedInputStream ||
 					inputStream instanceof UnsynchronizedBufferedInputStream) {
 					inputStream.transferTo(compressorOutputStream);
@@ -195,13 +195,13 @@ public class XZUtils {
 			compressorOutputStream.finish();
 		} else if (outputStream instanceof BufferedOutputStream) {
 			try (XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(outputStream);
-				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-				 XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
-				 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
+			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
 		}
@@ -224,9 +224,9 @@ public class XZUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FileOutputStream outputStream = new FileOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-			 XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
-			 InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+		     XZCompressorOutputStream compressorOutputStream = new XZCompressorOutputStream(bufferedOutputStream);
+		     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
 			bufferedInputStream.transferTo(compressorOutputStream);
 		}
 	}
@@ -268,7 +268,7 @@ public class XZUtils {
 			}
 		} else {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
-				 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
+			     XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
 				if (outputStream instanceof BufferedOutputStream) {
 					compressorInputStream.transferTo(outputStream);
 				} else {
@@ -296,7 +296,7 @@ public class XZUtils {
 		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
+		     XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream)) {
 			if (outputStream instanceof BufferedOutputStream) {
 				compressorInputStream.transferTo(outputStream);
 			} else {
@@ -324,9 +324,9 @@ public class XZUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
-			 XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream);
-			 OutputStream outputStream = FileUtils.openOutputStream(outputFile);
-			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+		     XZCompressorInputStream compressorInputStream = new XZCompressorInputStream(bufferedInputStream);
+		     OutputStream outputStream = FileUtils.openOutputStream(outputFile);
+		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 			compressorInputStream.transferTo(bufferedOutputStream);
 		}
 	}

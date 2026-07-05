@@ -23,7 +23,6 @@ import java.util.Collection;
  *
  * @param <K> 节点唯一标识类型（如Long、String等）
  * @param <T> 节点携带的业务数据类型
- *
  * @author pangju666
  * @since 1.0.0
  */

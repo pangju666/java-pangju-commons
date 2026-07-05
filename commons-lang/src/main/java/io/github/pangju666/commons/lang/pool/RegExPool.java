@@ -212,7 +212,7 @@ public class RegExPool {
 	 * <p>说明：十七位码；车辆的唯一标示</p>
 	 *
 	 * <p>示例：LDC613P23A1305189、LSJA24U62JG269225</p>
-
+	 *
 	 * @since 1.0.0
 	 */
 	public static final String VEHICLE_FRAME_NUMBER = "[A-HJ-NPR-Z0-9]{8}[0-9X][A-HJ-NPR-Z0-9]{2}\\d{6}";

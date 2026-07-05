@@ -369,6 +369,27 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 从元数据中获取 EXIF 方向信息
+	 *
+	 * @param metadata EXIF 元数据，不能为 null
+	 * @return EXIF 方向值
+	 * @throws IllegalArgumentException 如果 metadata 为 null
+	 * @since 1.1.0
+	 */
+	protected static int getExifOrientation(final Metadata metadata) {
+		Validate.notNull(metadata, "metadata 不可为 null");
+
+		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		if (Objects.nonNull(exifIFD0Directory)) {
+			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
+			if (Objects.nonNull(orientation)) {
+				return orientation;
+			}
+		}
+		return NORMAL_EXIF_ORIENTATION;
+	}
+
+	/**
 	 * 设置图像的全局透明度
 	 *
 	 * <p>如果图像没有 Alpha 通道，会自动添加</p>
@@ -1486,26 +1507,5 @@ public class ImageEditor {
 	public void release() {
 		this.outputImage.releaseReference();
 		this.inputImage.releaseReference();
-	}
-
-	/**
-	 * 从元数据中获取 EXIF 方向信息
-	 *
-	 * @param metadata EXIF 元数据，不能为 null
-	 * @return EXIF 方向值
-	 * @throws IllegalArgumentException 如果 metadata 为 null
-	 * @since 1.1.0
-	 */
-	protected static int getExifOrientation(final Metadata metadata) {
-		Validate.notNull(metadata, "metadata 不可为 null");
-
-		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-		if (Objects.nonNull(exifIFD0Directory)) {
-			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
-			if (Objects.nonNull(orientation)) {
-				return orientation;
-			}
-		}
-		return NORMAL_EXIF_ORIENTATION;
 	}
 }

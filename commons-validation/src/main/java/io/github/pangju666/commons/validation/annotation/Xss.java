@@ -20,8 +20,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see org.jsoup.Jsoup#parse(String)
+ * @since 1.0.0
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

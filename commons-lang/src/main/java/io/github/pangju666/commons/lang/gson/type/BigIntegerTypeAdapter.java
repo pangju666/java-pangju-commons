@@ -84,7 +84,7 @@ public class BigIntegerTypeAdapter extends TypeAdapter<BigInteger> {
 	 *
 	 * @param in JSON 读取器（由 Gson 管理其生命周期）
 	 * @return 解析得到的 {@link BigInteger} 或 {@code null}
-	 * @throws IOException 读取失败时抛出
+	 * @throws IOException        读取失败时抛出
 	 * @throws JsonParseException 当 token 类型不是数字、字符串或 NULL 时抛出
 	 */
 	@Override

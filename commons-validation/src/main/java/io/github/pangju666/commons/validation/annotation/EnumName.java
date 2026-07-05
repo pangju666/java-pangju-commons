@@ -33,12 +33,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * <p>
  * 支持的类型是 {@code CharSequence}。{@code null} 视为有效，空白字符串视为无效。
- * </p> 
+ * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see org.apache.commons.lang3.EnumUtils#isValidEnum(Class, String)
  * @see org.apache.commons.lang3.EnumUtils#isValidEnumIgnoreCase(Class, String)
+ * @since 1.0.0
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})

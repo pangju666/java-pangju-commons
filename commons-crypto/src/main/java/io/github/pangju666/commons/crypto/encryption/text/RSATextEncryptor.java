@@ -74,11 +74,11 @@ import java.security.interfaces.RSAPublicKey;
  * </ul>
  *
  * @author pangju666
- * @since 1.0.0
  * @see TextEncryptor
  * @see RSABinaryEncryptor
  * @see RSATransformation
  * @see RSAKeyPair
+ * @since 1.0.0
  */
 public final class RSATextEncryptor implements TextEncryptor {
 	/**
@@ -224,7 +224,7 @@ public final class RSATextEncryptor implements TextEncryptor {
 	 *
 	 * @param message 待加密文本，null 或空字符串返回空字符串
 	 * @return Base64 编码的密文
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 公钥未设置或加密失败
 	 * @apiNote 对于大文本，建议采用“RSA + 对称加密”混合方案以提升性能与安全性
 	 * @see Base64#encodeBase64String(byte[])
@@ -250,9 +250,8 @@ public final class RSATextEncryptor implements TextEncryptor {
 	 *
 	 * @param encryptedMessage Base64 格式字符串，null 或空返回空字符串
 	 * @return 原始明文（UTF-8）
-	 * @throws EncryptionInitializationException 当算法不支持或密钥规格解析失败时抛出
+	 * @throws EncryptionInitializationException       当算法不支持或密钥规格解析失败时抛出
 	 * @throws EncryptionOperationNotPossibleException 私钥未设置、输入非法或解密失败
-	
 	 * @see Base64#decodeBase64(String)
 	 * @since 1.0.0
 	 */

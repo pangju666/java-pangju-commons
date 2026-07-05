@@ -41,8 +41,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see jakarta.validation.constraints.Pattern
+ * @since 1.0.0
  */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -58,8 +58,8 @@ public @interface PatternElements {
 
 	/**
 	 * 正则匹配标志位（默认无）
-	 * @see RegExFlag
 	 *
+	 * @see RegExFlag
 	 * @since 1.0.0
 	 */
 	RegExFlag[] flags() default {};
