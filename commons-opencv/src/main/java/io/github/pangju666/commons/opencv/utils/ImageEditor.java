@@ -1225,12 +1225,12 @@ public class ImageEditor {
 			Mat textLayer = new Mat(imageSize, outputImage.type());
 
 			if (option.isStroke()) {
-				opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
-					fontScale, strokeColor, option.getThickness() + option.getStrokeSize(),
-					opencv_imgproc.LINE_AA, false);
+				opencv_imgproc.putText(textLayer, watermarkText, point, option.getFontFace(), fontScale,
+					strokeColor, option.getThickness() + option.getStrokeSize(), opencv_imgproc.LINE_AA,
+					false);
 			}
-			opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
-				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
+			opencv_imgproc.putText(textLayer, watermarkText, point, option.getFontFace(), fontScale, fillColor,
+				option.getThickness(), opencv_imgproc.LINE_AA, false);
 
 			image = new Mat();
 			opencv_core.addWeighted(outputImage, 1, textLayer, option.getOpacity(), 0, image);
@@ -1240,12 +1240,12 @@ public class ImageEditor {
 			image = outputImage.clone();
 
 			if (option.isStroke()) {
-				opencv_imgproc.putText(image, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
-					fontScale, strokeColor, option.getThickness() + option.getStrokeSize(),
-					opencv_imgproc.LINE_AA, false);
+				opencv_imgproc.putText(image, watermarkText, point, option.getFontFace(), fontScale, strokeColor,
+					option.getThickness() + option.getStrokeSize(), opencv_imgproc.LINE_AA,
+					false);
 			}
-			opencv_imgproc.putText(image, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
-				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
+			opencv_imgproc.putText(image, watermarkText, point, option.getFontFace(), fontScale, fillColor,
+				option.getThickness(), opencv_imgproc.LINE_AA, false);
 		}
 
 		this.outputImage.releaseReference();
