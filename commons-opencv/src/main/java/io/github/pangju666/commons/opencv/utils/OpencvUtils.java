@@ -41,6 +41,7 @@ import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * OpenCV 工具类
@@ -49,15 +50,18 @@ import java.io.InputStream;
  *
  * <h2>主要功能</h2>
  * <ul>
+ *   <li><strong>空值判断</strong>：支持判断 Mat 对象的空值检查</li>
  *   <li><strong>图像读写</strong>：支持从文件、输入流、字节数组、BufferedImage 读取图像</li>
+ *   <li><strong>格式支持检查</strong>：支持检查 OpenCV 是否可以读取或写入指定格式的图像</li>
  *   <li><strong>颜色转换</strong>：支持 AWT Color 与 OpenCV Scalar 之间的 BGR/RGBA 格式转换</li>
  *   <li><strong>尺寸缩放</strong>：支持按宽度、高度、比例、目标尺寸等多种缩放方式</li>
  *   <li><strong>图像增强</strong>：支持亮度对比度调整、透明度设置、透明区域清理</li>
- *   <li><strong>工具方法</strong>：支持矩阵创建、卷积核创建等</li>
+ *   <li><strong>工具方法</strong>：支持矩阵创建、卷积核创建、平移矩阵等</li>
  * </ul>
  *
  * @author pangju666
  * @see OpencvConstants
+ * @see ImageEditor
  * @since 1.1.0
  */
 public class OpencvUtils {
@@ -67,6 +71,28 @@ public class OpencvUtils {
 	 * @since 1.1.0
 	 */
 	protected OpencvUtils() {
+	}
+
+	/**
+	 * 判断图像 Mat 是否为空
+	 *
+	 * @param mat 图像 Mat 对象，允许为 null
+	 * @return 如果 mat 为 null、为空对象或没有数据，返回 true；否则返回 false
+	 * @since 1.1.0
+	 */
+	public static boolean isEmpty(final Mat mat) {
+		return Objects.isNull(mat) || mat.isNull() || mat.empty();
+	}
+
+	/**
+	 * 判断图像 Mat 是否不为空
+	 *
+	 * @param mat 图像 Mat 对象，允许为 null
+	 * @return 如果 mat 不为 null、不为空对象且有数据，返回 true；否则返回 false
+	 * @since 1.1.0
+	 */
+	public static boolean isNotEmpty(final Mat mat) {
+		return !isEmpty(mat);
 	}
 
 	/**
@@ -492,87 +518,6 @@ public class OpencvUtils {
 	}
 
 	/**
-	 * 调整图像的亮度和对比度
-	 *
-	 * <p>使用公式：g(i,j) = alpha * f(i,j) + beta</p>
-	 * <p>alpha 控制对比度（> 1 增加对比度，&lt; 1 减小对比度）</p>
-	 * <p>beta 控制亮度（正值增加亮度，负值减小亮度）</p>
-	 *
-	 * @param image 输入图像，不能为 null
-	 * @param alpha 对比度增益因子，必须大于 0
-	 * @param beta  亮度偏移值
-	 * @return 调整后的图像
-	 * @throws IllegalArgumentException 如果 image 为 null 或 alpha 小于等于 0 时抛出
-	 * @since 1.1.0
-	 */
-	public static Mat adjustBrightnessContrast(final Mat image, final float alpha, final float beta) {
-		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
-		Validate.notNull(image, "image 不可为 null");
-
-		Mat outputImage = new Mat();
-
-		try (Mat thresholdImage = new Mat()) {
-			Mat alphaMat = new Mat(Scalar.all(alpha));
-			opencv_core.multiply(image, alphaMat, thresholdImage);
-			alphaMat.releaseReference();
-
-			Mat betaMat = new Mat(Scalar.all(beta));
-			opencv_core.add(thresholdImage, betaMat, thresholdImage);
-			betaMat.releaseReference();
-
-			opencv_imgproc.threshold(thresholdImage, thresholdImage, 0, 255, opencv_imgproc.THRESH_TRUNC);
-
-			Mat subtractMat = new Mat(Scalar.all(0));
-			opencv_core.subtract(thresholdImage, subtractMat, outputImage);
-			subtractMat.releaseReference();
-
-			return outputImage;
-		}
-	}
-
-	/**
-	 * 设置图像的全局透明度
-	 *
-	 * <p>如果图像没有 Alpha 通道，会自动添加</p>
-	 *
-	 * @param image 输入图像，不能为 null
-	 * @param alpha 透明度值，范围 0.0（完全透明）- 1.0（完全不透明）
-	 * @return 设置透明度后的图像（可能是新创建的 Mat）
-	 * @throws IllegalArgumentException 如果 image 为 null 或 alpha 超出 [0, 1] 范围时抛出
-	 * @since 1.1.0
-	 */
-	public static Mat transparency(final Mat image, final float alpha) {
-		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
-		Validate.notNull(image, "image 不可为 null");
-
-		Mat outputImage = image;
-
-		if (outputImage.channels() < 4) {
-			Mat bgraMat = new Mat();
-			int type = image.type();
-			int code = opencv_imgproc.COLOR_BGR2BGRA;
-			if (type == opencv_core.CV_8UC1 || type == opencv_core.CV_16UC1 || type == opencv_core.CV_32FC1) {
-				code = opencv_imgproc.COLOR_GRAY2BGRA;
-			}
-			opencv_imgproc.cvtColor(outputImage, bgraMat, code);
-			image.releaseReference();
-			outputImage = bgraMat;
-		}
-
-		try (MatVector channels = new MatVector();
-		     Scalar alphaScalar = new Scalar(Math.floor(alpha * 255))) {
-			opencv_core.split(outputImage, channels);
-
-			try (Mat alphaChannel = channels.get(3)) {
-				alphaChannel.put(alphaScalar);
-				opencv_core.merge(channels, outputImage);
-			}
-		}
-
-		return outputImage;
-	}
-
-	/**
 	 * 清理图像的透明区域，解决白边和黑底问题
 	 *
 	 * <p>主要功能：
@@ -582,13 +527,15 @@ public class OpencvUtils {
 	 * </ul>
 	 *
 	 * <p>此方法直接修改输入的图像，不会创建新图像</p>
+	 * <p><b>注意：</b>如果图像不是 4 通道（不包含透明通道），则该方法不执行任何操作，直接返回</p>
 	 *
-	 * @param image 输入图像，不能为 null，必须是 4 通道图像（BGRA/RGBA）
-	 * @throws IllegalArgumentException 如果 image 为 null 时抛出
+	 * @param image 输入图像，不能为 null，建议使用 4 通道图像（BGRA/RGBA）
+	 * @throws IllegalArgumentException 如果 image 为 null 或为空时抛出
 	 * @since 1.1.0
 	 */
 	public static void cleanTransparency(final Mat image) {
 		Validate.notNull(image, "image 不可为 null");
+		Validate.isTrue(isNotEmpty(image), "image 不可为空");
 
 		if (image.channels() != 4) {
 			return;

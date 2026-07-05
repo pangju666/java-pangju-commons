@@ -393,6 +393,9 @@ public class ImageEditor {
 	 * 设置图像的全局透明度
 	 *
 	 * <p>如果图像没有 Alpha 通道，会自动添加</p>
+	 * <p><b>重要提示：</b>此方法只在内存中修改图像的透明度，最终效果取决于输出格式。
+	 * 如果后续保存图像时使用不支持透明通道的格式（如 JPEG），则透明度效果会丢失。
+	 * 建议使用支持透明通道的格式（如 PNG）保存图像。</p>
 	 *
 	 * @param alpha 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
 	 * @return 当前编辑器实例，支持链式调用
@@ -402,7 +405,28 @@ public class ImageEditor {
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
 
-		Mat image = OpencvUtils.transparency(this.outputImage, alpha);
+		if (outputImage.channels() < 4) {
+			Mat bgraMat = new Mat();
+			int code;
+			int type = outputImage.type();
+			if (type == opencv_core.CV_8UC1 || type == opencv_core.CV_16UC1 || type == opencv_core.CV_32FC1) {
+				code = opencv_imgproc.COLOR_GRAY2BGRA;
+			} else {
+				code = opencv_imgproc.COLOR_BGR2BGRA;
+			}
+			opencv_imgproc.cvtColor(outputImage, bgraMat, code);
+			outputImage.releaseReference();
+			outputImage = bgraMat;
+		}
+
+		MatVector channels = new MatVector(4);
+		opencv_core.split(outputImage, channels);
+
+		Mat alphaChannel = channels.get(3);
+		alphaChannel.convertTo(alphaChannel, -1, alpha, 0); // scale=0.5, shift=0
+
+		Mat image = new Mat();
+		opencv_core.merge(channels, image);
 
 		this.outputImage.releaseReference();
 		this.outputImage = image;
@@ -789,6 +813,8 @@ public class ImageEditor {
 	public ImageEditor gaussianBlur(final Size ksize, final double sigmaX) {
 		Validate.notNull(ksize, "ksize 不可为 null");
 		Validate.isTrue(sigmaX >= 0, "sigmaX 必须大于等于 0");
+		Validate.isTrue(ksize.width() % 2 != 0, "ksize 宽度必须为奇数");
+		Validate.isTrue(ksize.height() % 2 != 0, "ksize 高度必须为奇数");
 
 		Mat image = new Mat();
 
@@ -1000,7 +1026,10 @@ public class ImageEditor {
 	 * @since 1.1.0
 	 */
 	public ImageEditor contrast(final float alpha) {
-		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, alpha, 0);
+		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
+
+		Mat image = new Mat();
+		opencv_core.convertScaleAbs(outputImage, image, alpha, 0);
 
 		this.outputImage.releaseReference();
 		this.outputImage = image;
@@ -1016,7 +1045,8 @@ public class ImageEditor {
 	 * @since 1.1.0
 	 */
 	public ImageEditor brightness(final float beta) {
-		Mat image = OpencvUtils.adjustBrightnessContrast(this.outputImage, 1f, beta);
+		Mat image = new Mat();
+		opencv_core.convertScaleAbs(outputImage, image, 1, beta);
 
 		this.outputImage.releaseReference();
 		this.outputImage = image;
@@ -1087,6 +1117,7 @@ public class ImageEditor {
 	public ImageEditor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+		Validate.isTrue(OpencvUtils.isNotEmpty(watermarkImage), "watermarkImage 不可为空");
 
 		if (watermarkImage.channels() == 4) {
 			OpencvUtils.cleanTransparency(watermarkImage);
