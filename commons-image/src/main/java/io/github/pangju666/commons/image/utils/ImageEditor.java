@@ -560,7 +560,7 @@ public class ImageEditor {
 	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #correctOrientation()
-	 * @see ImageUtils#getExifOrientation(InputStream)
+	 * @see ImageUtils#getExifOrientation(byte[])
 	 * @since 1.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes, final boolean correctOrientation) throws IOException {
@@ -1598,7 +1598,7 @@ public class ImageEditor {
 	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
 	 *
 	 * @return 当前编辑器实例（便于链式调用）
-	 * @since 1.1.0
+	 * @since 1.0.0
 	 */
 	public ImageEditor reset() {
 		this.outputImage.flush();
