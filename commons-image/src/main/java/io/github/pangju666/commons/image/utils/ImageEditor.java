@@ -1210,6 +1210,24 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 添加图片水印，使用默认水印配置。
+	 * <p>
+	 * 该方法会使用 {@link ImageWatermarkOption} 的默认配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
+	 *
+	 * @param watermarkImage 水印图片，不可为 null
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ImageWatermarkOption
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final BufferedImage watermarkImage) {
+		this.outputImage = new ImageWatermarkOption().toWatermark(this.outputImageSize, watermarkImage)
+			.apply(this.outputImage);
+		return this;
+	}
+
+	/**
 	 * 添加图片水印，使用指定的水印配置选项。
 	 * <p>
 	 * 该方法会根据 {@link ImageWatermarkOption} 中的配置，自动计算水印尺寸、位置等参数，
@@ -1246,6 +1264,24 @@ public class ImageEditor {
 		Validate.notNull(watermark, "watermark 不可为 null");
 
 		this.outputImage = watermark.apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加文字水印，使用默认水印配置。
+	 * <p>
+	 * 该方法会使用 {@link TextWatermarkOption} 的默认配置，自动计算文字大小、位置、颜色等参数，
+	 * 然后将文字水印应用到当前图像上。
+	 * </p>
+	 *
+	 * @param watermarkText 水印文字内容，不可为空字符串
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see TextWatermarkOption
+	 * @since 1.1.0
+	 */
+	public ImageEditor addTextWatermark(final String watermarkText) {
+		this.outputImage = new TextWatermarkOption().toCaption(watermarkText, this.outputImage)
+			.apply(this.outputImage);
 		return this;
 	}
 

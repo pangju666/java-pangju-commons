@@ -1011,12 +1011,29 @@ public class ImageEditor {
 	}
 
 	/**
+	 * 添加图片水印（从文件加载），使用默认水印配置。
+	 *
+	 * <p>水印会根据默认配置自动调整大小、位置和透明度</p>
+	 *
+	 * @param watermarkImageFile 水印图片文件，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IOException              如果读取水印文件失败
+	 * @throws IllegalArgumentException 如果 watermarkImageFile 为 null
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final File watermarkImageFile) throws IOException {
+		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
+			return addImageWatermark(watermarkImageMat, new ImageWatermarkOption());
+		}
+	}
+
+	/**
 	 * 添加图片水印（从文件加载）
 	 *
 	 * @param watermarkImageFile 水印图片文件，不能为 null
 	 * @param option            水印配置选项，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
-	 * @throws IOException              如果读取水印文件读取失败
+	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
 	 */
@@ -1026,6 +1043,20 @@ public class ImageEditor {
 		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
 			return addImageWatermark(watermarkImageMat, option);
 		}
+	}
+
+	/**
+	 * 添加图片水印，使用默认水印配置。
+	 *
+	 * <p>水印会根据默认配置自动调整大小、位置和透明度</p>
+	 *
+	 * @param watermarkImage 水印图片 Mat，不能为 null
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 watermarkImage 为 null
+	 * @since 1.1.0
+	 */
+	public ImageEditor addImageWatermark(final Mat watermarkImage) {
+		return addImageWatermark(watermarkImage, new ImageWatermarkOption());
 	}
 
 	/**
@@ -1170,6 +1201,20 @@ public class ImageEditor {
 		blendedUint8.release();
 
 		return this;
+	}
+
+	/**
+	 * 添加文字水印，使用默认水印配置。
+	 *
+	 * <p><b>注意：OpenCV 默认不支持中文字符</p>
+	 *
+	 * @param watermarkText 水印文字，不能为 null 或空
+	 * @return 当前编辑器实例，支持链式调用
+	 * @throws IllegalArgumentException 如果 watermarkText 为 null 或空
+	 * @since 1.1.0
+	 */
+	public ImageEditor addTextWatermark(final String watermarkText) {
+		return addTextWatermark(watermarkText, new TextWatermarkOption());
 	}
 
 	/**
