@@ -106,29 +106,35 @@ public enum Direction {
 	public Rect toImageWatermarkRect(Size imageSize, Size watermarkImageSize, int margin) {
 		switch (this) {
 			case TOP:
-				return new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
-					watermarkImageSize.height() + margin, watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect((imageSize.width() - watermarkImageSize.width()) / 2, margin,
+					watermarkImageSize.width(), watermarkImageSize.height());
 			case TOP_LEFT:
-				return new Rect(0, watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(margin, margin, watermarkImageSize.width(), watermarkImageSize.height());
 			case TOP_RIGHT:
-				return new Rect(imageSize.width() - watermarkImageSize.width(),
-					watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(imageSize.width() - watermarkImageSize.width() - margin, margin,
+					watermarkImageSize.width(), watermarkImageSize.height());
 			case BOTTOM:
 				return new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
-					imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+					imageSize.height() - watermarkImageSize.height() - margin,
+					watermarkImageSize.width(), watermarkImageSize.height());
 			case BOTTOM_LEFT:
-				return new Rect(0, imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(margin, imageSize.height() - watermarkImageSize.height() - margin,
+					watermarkImageSize.width(), watermarkImageSize.height());
 			case BOTTOM_RIGHT:
-				return new Rect(imageSize.width() - watermarkImageSize.width(),
-					imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(imageSize.width() - watermarkImageSize.width() - margin,
+					imageSize.height() - watermarkImageSize.height() - margin, watermarkImageSize.width(),
+					watermarkImageSize.height());
 			case LEFT:
-				return new Rect(0, (imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(margin, (imageSize.height() - watermarkImageSize.height()) / 2,
+					watermarkImageSize.width(), watermarkImageSize.height());
 			case RIGHT:
-				return new Rect(imageSize.width() - watermarkImageSize.width(),
-					(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+				return new Rect(imageSize.width() - watermarkImageSize.width() - margin,
+					(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(),
+					watermarkImageSize.height());
 			default:
 				return new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
-					(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+					(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(),
+					watermarkImageSize.height());
 		}
 	}
 }

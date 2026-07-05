@@ -35,8 +35,6 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +48,7 @@ import java.util.Objects;
  * <h2>主要功能</h2>
  * <ul>
  *   <li><strong>空值判断</strong>：支持判断 Mat 对象的空值检查</li>
- *   <li><strong>图像读写</strong>：支持从文件、输入流、字节数组、BufferedImage 读取图像</li>
+ *   <li><strong>图像读写</strong>：支持从文件、输入流、字节数组 读取图像</li>
  *   <li><strong>格式支持检查</strong>：支持检查 OpenCV 是否可以读取或写入指定格式的图像</li>
  *   <li><strong>颜色转换</strong>：支持 AWT Color 与 OpenCV Scalar 之间的 BGR/RGBA 格式转换</li>
  *   <li><strong>尺寸缩放</strong>：支持按宽度、高度、比例、目标尺寸等多种缩放方式</li>
@@ -236,23 +234,6 @@ public class OpencvUtils {
 		     Mat bufMat = new Mat(bytePointer)) {
 			return opencv_imgcodecs.imdecode(bufMat, flags);
 		}
-	}
-
-	/**
-	 * 从 BufferedImage 读取图像，使用默认的 4 通道类型
-	 *
-	 * @param image BufferedImage 对象，不能为 null
-	 * @return 图像 Mat 对象
-	 * @throws IllegalArgumentException 如果 image 为 null 时抛出
-	 * @since 1.1.0
-	 */
-	public static Mat read(final BufferedImage image) {
-		Validate.notNull(image, "image 不可为 null");
-
-		Mat mat = new Mat(image.getWidth(), image.getHeight(), opencv_core.CV_8UC4);
-		byte[] data = ((DataBufferByte) image.getData().getDataBuffer()).getData();
-		mat.data().put(data);
-		return mat;
 	}
 
 	/**
