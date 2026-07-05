@@ -1187,7 +1187,6 @@ public class ImageEditor {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notBlank(watermarkText, "watermarkText 不可为空");
 
-		Mat image = new Mat();
 		Size imageSize = outputImage.size();
 
 		Scalar fillColor = OpencvUtils.toBGRColor(option.getFillColor());
@@ -1221,9 +1220,9 @@ public class ImageEditor {
 			point = new Point(x, y);
 		}
 
+		Mat image;
 		if (option.getOpacity() < 1) {
-			Mat textLayer = new Mat();
-			textLayer.put(Mat.zeros(imageSize, outputImage.type()));
+			Mat textLayer = new Mat(imageSize, outputImage.type());
 
 			if (option.isStroke()) {
 				opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
@@ -1233,6 +1232,7 @@ public class ImageEditor {
 			opencv_imgproc.putText(textLayer, watermarkText, point, opencv_imgproc.FONT_HERSHEY_SIMPLEX,
 				fontScale, fillColor, option.getThickness(), opencv_imgproc.LINE_AA, false);
 
+			image = new Mat();
 			opencv_core.addWeighted(outputImage, 1, textLayer, option.getOpacity(), 0, image);
 
 			textLayer.releaseReference();

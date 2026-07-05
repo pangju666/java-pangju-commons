@@ -18,7 +18,7 @@ class OpencvUtilsSpec extends Specification {
 		File watermarkFile = new File("E:\\Roaming\\output.jpg")
 
 		def textOption = new TextWatermarkOption()
-		//textOption.opacity = 0.1
+		//textOption.opacity = 1
 		def imageOption = new ImageWatermarkOption()
 		//imageOption.opacity = 1
 

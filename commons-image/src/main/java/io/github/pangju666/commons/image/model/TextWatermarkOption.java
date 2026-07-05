@@ -627,7 +627,9 @@ public class TextWatermarkOption {
 							   int insetRight, int insetTop, int insetBottom) {
 			Point point = positions.calculate(enclosingWidth, enclosingHeight, width,  height, insetLeft, insetRight, insetTop,
 				insetBottom);
-			point.y += margin;
+			if (positions != Positions.BOTTOM_CENTER && positions != Positions.BOTTOM_LEFT && positions != Positions.BOTTOM_RIGHT) {
+				point.y += margin;
+			}
 			return point;
 		}
 	}
