@@ -158,11 +158,11 @@ public class TextWatermarkOption {
 	/**
 	 * 文字线条粗细
 	 *
-	 * <p>单位：像素，默认值 3</p>
+	 * <p>单位：像素，默认值 4</p>
 	 *
 	 * @since 1.1.0
 	 */
-	private int thickness = 3;
+	private int thickness = 4;
 
 	/**
 	 * OpenCV 字体类型
