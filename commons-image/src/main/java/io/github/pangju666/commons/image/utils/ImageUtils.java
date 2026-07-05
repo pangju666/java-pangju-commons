@@ -963,7 +963,7 @@ public class ImageUtils {
 	 * @throws IOException 当发生 I/O 错误或流重置失败时抛出
 	 * @see InputStream#markSupported()
 	 * @see InputStream#reset()
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	protected static ImageSize parseSizeByMarkSupportedInputStream(final InputStream inputStream, final long streamLength,
 	                                                               final boolean useMetadata) throws IOException {
@@ -1005,6 +1005,10 @@ public class ImageUtils {
 		}
 	}
 
+	/**
+	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #parseSizeByMarkSupportedInputStream} 替代
+	 */
 	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final long streamLength,
 	                                                           final boolean useMetadata) throws IOException {
