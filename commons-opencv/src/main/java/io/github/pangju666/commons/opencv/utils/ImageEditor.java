@@ -21,7 +21,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.github.jaiimageio.impl.common.ImageUtil;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
@@ -34,23 +33,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
-import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
-import org.bytedeco.opencv.opencv_core.Point;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.IntBuffer;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -216,7 +209,7 @@ public class ImageEditor {
 	/**
 	 * 内部构造函数，用于创建图像编辑器
 	 *
-	 * @param inputImage     输入图像 Mat，不能为 null 或空
+	 * @param inputImage      输入图像 Mat，不能为 null 或空
 	 * @param exifOrientation EXIF 方向值
 	 * @param flags           图像读取标志
 	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空
@@ -373,6 +366,27 @@ public class ImageEditor {
 	 */
 	public static ImageEditor of(final Mat image) {
 		return new ImageEditor(image, 1, opencv_imgcodecs.IMREAD_UNCHANGED);
+	}
+
+	/**
+	 * 从元数据中获取 EXIF 方向信息
+	 *
+	 * @param metadata EXIF 元数据，不能为 null
+	 * @return EXIF 方向值
+	 * @throws IllegalArgumentException 如果 metadata 为 null
+	 * @since 1.1.0
+	 */
+	protected static int getExifOrientation(final Metadata metadata) {
+		Validate.notNull(metadata, "metadata 不可为 null");
+
+		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		if (Objects.nonNull(exifIFD0Directory)) {
+			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
+			if (Objects.nonNull(orientation)) {
+				return orientation;
+			}
+		}
+		return NORMAL_EXIF_ORIENTATION;
 	}
 
 	/**
@@ -766,8 +780,8 @@ public class ImageEditor {
 	/**
 	 * 对图像进行高斯模糊处理
 	 *
-	 * @param ksize   卷积核尺寸，不能为 null（宽高必须是奇数）
-	 * @param sigmaX  X 方向的高斯核标准差，必须 >= 0
+	 * @param ksize  卷积核尺寸，不能为 null（宽高必须是奇数）
+	 * @param sigmaX X 方向的高斯核标准差，必须 >= 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
@@ -907,9 +921,9 @@ public class ImageEditor {
 	/**
 	 * 对图像进行二值化处理
 	 *
-	 * @param thresh  阈值，范围 [0, 255]
-	 * @param maxVal  最大值，范围 [0, 255]
-	 * @param type    阈值处理类型（OpenCV 的 THRESH_* 常量）
+	 * @param thresh 阈值，范围 [0, 255]
+	 * @param maxVal 最大值，范围 [0, 255]
+	 * @param type   阈值处理类型（OpenCV 的 THRESH_* 常量）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
@@ -943,17 +957,17 @@ public class ImageEditor {
 	/**
 	 * 对图像进行自适应二值化处理
 	 *
-	 * @param maxValue      最大值，范围 [0, 255]
+	 * @param maxValue       最大值，范围 [0, 255]
 	 * @param adaptiveMethod 自适应方法（OpenCV 的 ADAPTIVE_THRESH_* 常量）
-	 * @param thresholdType 阈值类型（OpenCV 的 THRESH_* 常量）
-	 * @param blockSize     邻域大小，必须是 >= 3 的奇数
-	 * @param c             从均值或加权均值中减去的常量
+	 * @param thresholdType  阈值类型（OpenCV 的 THRESH_* 常量）
+	 * @param blockSize      邻域大小，必须是 >= 3 的奇数
+	 * @param c              从均值或加权均值中减去的常量
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
 	public ImageEditor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
-										 final int blockSize, final double c) {
+	                                     final int blockSize, final double c) {
 		Validate.isTrue(maxValue >= 0 && maxValue <= 255, "maxValue 取值范围必须 0 ~ 255");
 		Validate.isTrue(blockSize >= 3 && blockSize % 2 == 1, "blockSize 必须是大于等于3的奇数");
 
@@ -1031,7 +1045,7 @@ public class ImageEditor {
 	 * 添加图片水印（从文件加载）
 	 *
 	 * @param watermarkImageFile 水印图片文件，不能为 null
-	 * @param option            水印配置选项，不能为 null
+	 * @param option             水印配置选项，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果任一参数为 null
@@ -1114,9 +1128,9 @@ public class ImageEditor {
 			watermarkRect = option.getDirection().toImageWatermarkRect(outputImageSize, targetWatermarkImageSize, option.getMargin());
 		} else {
 			int x = Math.max(option.getMargin(), Math.min(outputImageSize.width() - targetWatermarkImageSize.width() -
-					option.getMargin(), option.getX() + option.getMargin()));
+				option.getMargin(), option.getX() + option.getMargin()));
 			int y = Math.max(option.getMargin(), Math.min(outputImageSize.height() - targetWatermarkImageSize.height() -
-					option.getMargin(), option.getY() + option.getMargin()));
+				option.getMargin(), option.getY() + option.getMargin()));
 			watermarkRect = new Rect(x, y, targetWatermarkImageSize.width(), targetWatermarkImageSize.height());
 		}
 
@@ -1259,7 +1273,7 @@ public class ImageEditor {
 			};
 		} else {
 			int x = Math.max(option.getMargin(), Math.min(imageSize.width() - textW - option.getMargin(),
-					option.getX() + option.getMargin()));
+				option.getX() + option.getMargin()));
 			int y = Math.max(textH + option.getMargin(), Math.min(imageSize.height() - option.getMargin(),
 				option.getY() + option.getMargin()));
 			point = new Point(x, y);
@@ -1336,7 +1350,7 @@ public class ImageEditor {
 	 * 将处理后的图像保存到文件（带编码参数）
 	 *
 	 * @param outputFile 输出文件，不能为 null
-	 * @param params      编码参数，不能为 null
+	 * @param params     编码参数，不能为 null
 	 * @return 是否保存成功
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
@@ -1374,7 +1388,7 @@ public class ImageEditor {
 	 *
 	 * @param format       图像格式，不能为 null 或空
 	 * @param outputStream 输出流，不能为 null
-	 * @param params        编码参数，不能为 null
+	 * @param params       编码参数，不能为 null
 	 * @return 是否写入成功
 	 * @throws IOException              如果写入失败
 	 * @throws IllegalArgumentException 如果任一参数无效
@@ -1473,26 +1487,5 @@ public class ImageEditor {
 	public void release() {
 		this.outputImage.releaseReference();
 		this.inputImage.releaseReference();
-	}
-
-	/**
-	 * 从元数据中获取 EXIF 方向信息
-	 *
-	 * @param metadata EXIF 元数据，不能为 null
-	 * @return EXIF 方向值
-	 * @throws IllegalArgumentException 如果 metadata 为 null
-	 * @since 1.1.0
-	 */
-	protected static int getExifOrientation(final Metadata metadata) {
-		Validate.notNull(metadata, "metadata 不可为 null");
-
-		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-		if (Objects.nonNull(exifIFD0Directory)) {
-			Integer orientation = exifIFD0Directory.getInteger(ExifDirectoryBase.TAG_ORIENTATION);
-			if (Objects.nonNull(orientation)) {
-				return orientation;
-			}
-		}
-		return NORMAL_EXIF_ORIENTATION;
 	}
 }

@@ -16,13 +16,10 @@
 
 package io.github.pangju666.commons.image.model;
 
-import com.twelvemonkeys.image.BrightnessContrastFilter;
-import com.twelvemonkeys.image.GrayFilter;
 import net.coobird.thumbnailator.filters.Caption;
 import net.coobird.thumbnailator.geometry.Coordinate;
 import net.coobird.thumbnailator.geometry.Position;
 import net.coobird.thumbnailator.geometry.Positions;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -624,8 +621,8 @@ public class TextWatermarkOption {
 		 */
 		@Override
 		public Point calculate(int enclosingWidth, int enclosingHeight, int width, int height, int insetLeft,
-							   int insetRight, int insetTop, int insetBottom) {
-			Point point = positions.calculate(enclosingWidth, enclosingHeight, width,  height, insetLeft, insetRight, insetTop,
+		                       int insetRight, int insetTop, int insetBottom) {
+			Point point = positions.calculate(enclosingWidth, enclosingHeight, width, height, insetLeft, insetRight, insetTop,
 				insetBottom);
 			if (positions != Positions.BOTTOM_CENTER && positions != Positions.BOTTOM_LEFT && positions != Positions.BOTTOM_RIGHT) {
 				point.y += margin;

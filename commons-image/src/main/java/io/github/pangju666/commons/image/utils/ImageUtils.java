@@ -952,13 +952,13 @@ public class ImageUtils {
 	 *   <li>对于超大文件或确定无 EXIF 信息的图像，禁用元数据可提高性能</li>
 	 * </ul>
 	 *
-	 * @param inputStream 输入流，必须满足：
-	 *                    <ul>
-	 *                      <li>非 null</li>
-	 *                      <li>必须支持 mark 操作（{@link InputStream#markSupported()} 为 true）</li>
-	 *                    </ul>
+	 * @param inputStream  输入流，必须满足：
+	 *                     <ul>
+	 *                       <li>非 null</li>
+	 *                       <li>必须支持 mark 操作（{@link InputStream#markSupported()} 为 true）</li>
+	 *                     </ul>
 	 * @param streamLength 输入流内容长度，-1 表示未知
-	 * @param useMetadata 是否优先尝试从元数据获取尺寸
+	 * @param useMetadata  是否优先尝试从元数据获取尺寸
 	 * @return 图像尺寸对象，解析失败或无法识别格式时返回 null
 	 * @throws IOException 当发生 I/O 错误或流重置失败时抛出
 	 * @see InputStream#markSupported()
@@ -966,7 +966,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByMarkSupportedInputStream(final InputStream inputStream, final long streamLength,
-																   final boolean useMetadata) throws IOException {
+	                                                               final boolean useMetadata) throws IOException {
 		if (!useMetadata) {
 			try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
 				if (Objects.isNull(imageInputStream)) {
@@ -1039,7 +1039,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	protected static ImageSize parseSizeByImageInputStream(final ImageInputStream imageInputStream,
-														   final Integer orientation) throws IOException {
+	                                                       final Integer orientation) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
 
 		int width;

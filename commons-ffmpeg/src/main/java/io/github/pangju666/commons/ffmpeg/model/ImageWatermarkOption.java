@@ -302,9 +302,9 @@ public class ImageWatermarkOption {
 	/**
 	 * 将图片水印配置转换为 FFmpeg 滤镜字符串
 	 *
-	 * @param watermarkImage   水印图片文件
-	 * @param videoWith   视频宽度
-	 * @param videoHeight 视频高度
+	 * @param watermarkImage 水印图片文件
+	 * @param videoWith      视频宽度
+	 * @param videoHeight    视频高度
 	 * @return FFmpeg overlay 滤镜字符串
 	 * @throws IOException              操作失败时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出

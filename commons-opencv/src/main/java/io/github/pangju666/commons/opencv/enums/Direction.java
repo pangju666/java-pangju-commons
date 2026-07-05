@@ -97,9 +97,9 @@ public enum Direction {
 	 * <p>该方法返回水印在目标图像中的放置位置（Rect），考虑了指定的边距。</p>
 	 * <p>返回的矩形包含水印的起始坐标（x, y）和尺寸（width, height）。</p>
 	 *
-	 * @param imageSize        目标图像尺寸
+	 * @param imageSize          目标图像尺寸
 	 * @param watermarkImageSize 水印图像尺寸
-	 * @param margin           水印与图像边缘的距离（单位：像素）
+	 * @param margin             水印与图像边缘的距离（单位：像素）
 	 * @return 水印放置位置的矩形
 	 * @since 1.1.0
 	 */
@@ -107,15 +107,18 @@ public enum Direction {
 		return switch (this) {
 			case TOP -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
 				watermarkImageSize.height() + margin, watermarkImageSize.width(), watermarkImageSize.height());
-			case TOP_LEFT -> new Rect(0, watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case TOP_LEFT ->
+				new Rect(0, watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
 			case TOP_RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
 				watermarkImageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
 			case BOTTOM -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,
 				imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
-			case BOTTOM_LEFT -> new Rect(0, imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
+			case BOTTOM_LEFT ->
+				new Rect(0, imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
 			case BOTTOM_RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
 				imageSize.height(), watermarkImageSize.width(), watermarkImageSize.height());
-			case LEFT -> new Rect(0, (imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
+			case LEFT ->
+				new Rect(0, (imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
 			case RIGHT -> new Rect(imageSize.width() - watermarkImageSize.width(),
 				(imageSize.height() - watermarkImageSize.height()) / 2, watermarkImageSize.width(), watermarkImageSize.height());
 			default -> new Rect((imageSize.width() - watermarkImageSize.width()) / 2,

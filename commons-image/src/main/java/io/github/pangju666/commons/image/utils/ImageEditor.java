@@ -457,7 +457,7 @@ public class ImageEditor {
 		String inputFormat = FilenameUtils.getExtension(file.getName()).toUpperCase();
 		if (!ImageConstants.getSupportedReadImageFormats().contains(inputFormat)) {
 			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
-				"不支持读取 " + mimeType+ " 类型图像");
+				"不支持读取 " + mimeType + " 类型图像");
 		}
 
 		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
@@ -501,7 +501,7 @@ public class ImageEditor {
 		String inputFormat = FilenameUtils.getExtension(file.getName()).toUpperCase();
 		if (!ImageConstants.getSupportedReadImageFormats().contains(inputFormat)) {
 			Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
-				"不支持读取 " + mimeType+ " 类型图像");
+				"不支持读取 " + mimeType + " 类型图像");
 		}
 
 		BufferedImage bufferedImage = ImageIO.read(file);
@@ -522,7 +522,7 @@ public class ImageEditor {
 	 *
 	 * @param bytes 图像字节数组，不可为 null 或空
 	 * @return 图像编辑器实例
-	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #of(byte[], boolean)
 	 * @since 1.1.0
@@ -557,7 +557,7 @@ public class ImageEditor {
 	 * @param bytes              图像字节数组，不可为 null 或空
 	 * @param correctOrientation 是否自动校正 EXIF 方向
 	 * @return 图像编辑器实例
-	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #correctOrientation()
 	 * @see ImageUtils#getExifOrientation(InputStream)
@@ -575,10 +575,10 @@ public class ImageEditor {
 	 * 适用于已知图像 EXIF 方向的场景。字节数组仅会被读取一次，性能最优。
 	 * </p>
 	 *
-	 * @param bytes            图像字节数组，不可为 null 或空
-	 * @param exifOrientation  EXIF 方向值（1-8），用于校正图像
+	 * @param bytes           图像字节数组，不可为 null 或空
+	 * @param exifOrientation EXIF 方向值（1-8），用于校正图像
 	 * @return 图像编辑器实例
-	 * @throws IOException          当读取图像失败时抛出
+	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #correctOrientation()
 	 * @since 1.1.0
@@ -656,7 +656,7 @@ public class ImageEditor {
 		Validate.isTrue(Strings.CS.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
 			"inputStream 不是图像数据输入流");
 		Validate.isTrue(ImageConstants.getSupportedReadImageTypes().contains(mimeType),
-			"不支持读取 " + mimeType+ " 类型图像");
+			"不支持读取 " + mimeType + " 类型图像");
 		markSupportedInputStream.reset();
 
 		try {
@@ -1584,8 +1584,7 @@ public class ImageEditor {
 				imageType = BufferedImage.TYPE_BYTE_GRAY;
 			} else {
 				imageType = switch (imageType) {
-					case BufferedImage.TYPE_4BYTE_ABGR, BufferedImage.TYPE_4BYTE_ABGR_PRE ->
-						BufferedImage.TYPE_INT_BGR;
+					case BufferedImage.TYPE_4BYTE_ABGR, BufferedImage.TYPE_4BYTE_ABGR_PRE -> BufferedImage.TYPE_INT_BGR;
 					default -> BufferedImage.TYPE_INT_RGB;
 				};
 			}

@@ -885,7 +885,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 */
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale, final int startPage,
-													  final int endPage) throws IOException {
+	                                                  final int endPage) throws IOException {
 		if (Objects.isNull(document)) {
 			return Collections.emptyList();
 		}

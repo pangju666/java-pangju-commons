@@ -100,11 +100,11 @@ public class VideoUtils {
 	/**
 	 * 将视频资源转码并输出到输出流
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource、outputStream 或 outputVideo 为 null 时
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource、outputStream 或 outputVideo 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -124,7 +124,7 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取视频流并输出到文件（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -136,7 +136,7 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取视频流并输出到输出流（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -148,10 +148,10 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取视频流并输出到文件（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
 	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException              当 I/O 错误发生时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -171,11 +171,11 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取视频流并输出到输出流（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -193,7 +193,7 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取音频流并输出到文件（使用源音频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -205,7 +205,7 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取音频流并输出到输出流（使用源音频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -217,10 +217,10 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取音频流并输出到文件（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
 	 * @param outputAudio 输出音频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException              当 I/O 错误发生时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -240,11 +240,11 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取音频流并输出到输出流（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @param outputAudio  输出音频配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -262,9 +262,9 @@ public class VideoUtils {
 	/**
 	 * 从开头裁剪视频到指定时长并输出到文件（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
-	 * @param duration 裁剪时长
+	 * @param duration   裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -275,9 +275,9 @@ public class VideoUtils {
 	/**
 	 * 从开头裁剪视频到指定时长并输出到输出流（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param duration 裁剪时长
+	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -288,10 +288,10 @@ public class VideoUtils {
 	/**
 	 * 裁剪指定时间段的视频并输出到文件（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
-	 * @param start 开始时间
-	 * @param end 结束时间
+	 * @param start      开始时间
+	 * @param end        结束时间
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -302,10 +302,10 @@ public class VideoUtils {
 	/**
 	 * 裁剪指定时间段的视频并输出到输出流（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param start 开始时间
-	 * @param end 结束时间
+	 * @param start        开始时间
+	 * @param end          结束时间
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -317,10 +317,10 @@ public class VideoUtils {
 	/**
 	 * 从开头裁剪视频到指定时长并输出到文件（指定输出音频配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
 	 * @param outputAudio 输出音频配置
-	 * @param duration 裁剪时长
+	 * @param duration    裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -332,10 +332,10 @@ public class VideoUtils {
 	/**
 	 * 从开头裁剪视频到指定时长并输出到输出流（指定输出音频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio 输出音频配置
-	 * @param duration 裁剪时长
+	 * @param outputAudio  输出音频配置
+	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -347,13 +347,13 @@ public class VideoUtils {
 	/**
 	 * 裁剪指定时间段的视频并输出到文件（指定输出音频配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
 	 * @param outputAudio 输出音频配置
-	 * @param start 开始时间
-	 * @param end 结束时间
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @param start       开始时间
+	 * @param end         结束时间
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -375,13 +375,13 @@ public class VideoUtils {
 	/**
 	 * 裁剪指定时间段的视频并输出到输出流（指定输出音频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio 输出音频配置
-	 * @param start 开始时间
-	 * @param end 结束时间
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @param outputAudio  输出音频配置
+	 * @param start        开始时间
+	 * @param end          结束时间
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -401,7 +401,7 @@ public class VideoUtils {
 	/**
 	 * 拼接多个视频资源并输出到文件（使用源视频配置）
 	 *
-	 * @param resources 视频资源集合
+	 * @param resources  视频资源集合
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -413,7 +413,7 @@ public class VideoUtils {
 	/**
 	 * 拼接多个视频资源并输出到输出流（使用源视频配置）
 	 *
-	 * @param resources 视频资源集合
+	 * @param resources    视频资源集合
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -425,11 +425,11 @@ public class VideoUtils {
 	/**
 	 * 拼接多个视频资源并输出到文件（指定输出配置）
 	 *
-	 * @param resources 视频资源集合
-	 * @param outputFile 输出文件
+	 * @param resources   视频资源集合
+	 * @param outputFile  输出文件
 	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resources 为 null 或包含 null 元素时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
 	 * @since 1.1.0
 	 */
@@ -450,11 +450,11 @@ public class VideoUtils {
 	/**
 	 * 拼接多个视频资源并输出到输出流（指定输出配置）
 	 *
-	 * @param resources 视频资源集合
+	 * @param resources    视频资源集合
 	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resources 或 outputStream 为 null 或 resources 包含 null 元素时
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resources 或 outputStream 为 null 或 resources 包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
 	 * @since 1.1.0
 	 */
@@ -474,9 +474,9 @@ public class VideoUtils {
 	/**
 	 * 调整视频播放速度并输出到文件（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
-	 * @param speed 播放速度（0.5-100）
+	 * @param speed      播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -487,9 +487,9 @@ public class VideoUtils {
 	/**
 	 * 调整视频播放速度并输出到输出流（使用源视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param speed 播放速度（0.5-100）
+	 * @param speed        播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -500,9 +500,9 @@ public class VideoUtils {
 	/**
 	 * 调整视频播放速度并输出到文件（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param speed 播放速度（0.5-100）
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
+	 * @param speed       播放速度（0.5-100）
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -521,11 +521,11 @@ public class VideoUtils {
 	/**
 	 * 调整视频播放速度并输出到输出流（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param speed 播放速度（0.5-100）
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param speed        播放速度（0.5-100）
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -541,8 +541,8 @@ public class VideoUtils {
 	/**
 	 * 在指定时间点抓取视频帧并输出到文件（自动检测输出格式）
 	 *
-	 * @param resource 输入视频资源
-	 * @param timestamp 时间点
+	 * @param resource   输入视频资源
+	 * @param timestamp  时间点
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -561,9 +561,9 @@ public class VideoUtils {
 	/**
 	 * 在指定时间点抓取视频帧并输出到文件（指定输出格式）
 	 *
-	 * @param resource 输入视频资源
-	 * @param timestamp 时间点
-	 * @param outputFile 输出文件
+	 * @param resource     输入视频资源
+	 * @param timestamp    时间点
+	 * @param outputFile   输出文件
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -583,11 +583,11 @@ public class VideoUtils {
 	/**
 	 * 在指定时间点抓取视频帧并输出到图像输出流（指定输出格式）
 	 *
-	 * @param resource 输入视频资源
-	 * @param timestamp 时间点
+	 * @param resource     输入视频资源
+	 * @param timestamp    时间点
 	 * @param outputStream 图像输出流
 	 * @param outputFormat 输出图片格式
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -604,11 +604,11 @@ public class VideoUtils {
 	/**
 	 * 在指定时间点抓取视频帧并输出到输出流（指定输出格式）
 	 *
-	 * @param resource 输入视频资源
-	 * @param timestamp 时间点
+	 * @param resource     输入视频资源
+	 * @param timestamp    时间点
 	 * @param outputStream 输出流
 	 * @param outputFormat 输出图片格式
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -625,11 +625,11 @@ public class VideoUtils {
 	/**
 	 * 在指定时间点抓取视频帧并返回 BufferedImage
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource  输入视频资源
 	 * @param timestamp 时间点
 	 * @return 抓取的图像
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -649,8 +649,8 @@ public class VideoUtils {
 	 * @param interval 间隔时间
 	 * @param timeUnit 时间单位
 	 * @return 抓取的图像列表
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -691,11 +691,11 @@ public class VideoUtils {
 	/**
 	 * 按指定间隔抓取视频关键帧并保存到指定目录（使用默认文件名格式化器）
 	 *
-	 * @param resource 输入视频资源
-	 * @param interval 间隔时间
-	 * @param timeUnit 时间单位
+	 * @param resource     输入视频资源
+	 * @param interval     间隔时间
+	 * @param timeUnit     时间单位
 	 * @param outputFormat 输出图片格式
-	 * @param outputDir 输出目录
+	 * @param outputDir    输出目录
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -707,14 +707,14 @@ public class VideoUtils {
 	/**
 	 * 按指定间隔抓取视频关键帧并保存到指定目录（自定义文件名格式化器）
 	 *
-	 * @param resource 输入视频资源
-	 * @param interval 间隔时间
-	 * @param timeUnit 时间单位
-	 * @param outputFormat 输出图片格式
-	 * @param outputDir 输出目录
+	 * @param resource          输入视频资源
+	 * @param interval          间隔时间
+	 * @param timeUnit          时间单位
+	 * @param outputFormat      输出图片格式
+	 * @param outputDir         输出目录
 	 * @param filenameFormatter 文件名格式化器，接收时间戳返回文件名（不含扩展名）
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -745,12 +745,12 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到文件（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param x          裁剪区域左上角 x 坐标
+	 * @param y          裁剪区域左上角 y 坐标
+	 * @param width      裁剪宽度
+	 * @param height     裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -762,12 +762,12 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到输出流（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param x            裁剪区域左上角 x 坐标
+	 * @param y            裁剪区域左上角 y 坐标
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -779,12 +779,12 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到文件（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource             输入视频资源
+	 * @param outputFile           输出文件
+	 * @param x                    裁剪区域左上角 x 坐标
+	 * @param y                    裁剪区域左上角 y 坐标
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -803,14 +803,14 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到输出流（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource             输入视频资源
+	 * @param outputStream         输出流
+	 * @param x                    裁剪区域左上角 x 坐标
+	 * @param y                    裁剪区域左上角 y 坐标
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -826,12 +826,12 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
+	 * @param x           裁剪区域左上角 x 坐标
+	 * @param y           裁剪区域左上角 y 坐标
+	 * @param width       裁剪宽度
+	 * @param height      裁剪高度
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -850,14 +850,14 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到输出流（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param x            裁剪区域左上角 x 坐标
+	 * @param y            裁剪区域左上角 y 坐标
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -873,12 +873,12 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到文件（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param topOffset 顶部偏移
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param topOffset    顶部偏移
 	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
+	 * @param leftOffset   左侧偏移
+	 * @param rightOffset  右侧偏移
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -890,12 +890,12 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到输出流（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param topOffset 顶部偏移
+	 * @param topOffset    顶部偏移
 	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
+	 * @param leftOffset   左侧偏移
+	 * @param rightOffset  右侧偏移
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -907,12 +907,12 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到文件（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param topOffset 顶部偏移
-	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
+	 * @param resource             输入视频资源
+	 * @param outputFile           输出文件
+	 * @param topOffset            顶部偏移
+	 * @param bottomOffset         底部偏移
+	 * @param leftOffset           左侧偏移
+	 * @param rightOffset          右侧偏移
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -933,14 +933,14 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到输出流（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param topOffset 顶部偏移
-	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
+	 * @param resource             输入视频资源
+	 * @param outputStream         输出流
+	 * @param topOffset            顶部偏移
+	 * @param bottomOffset         底部偏移
+	 * @param leftOffset           左侧偏移
+	 * @param rightOffset          右侧偏移
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -958,13 +958,13 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param topOffset 顶部偏移
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param topOffset    顶部偏移
 	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
-	 * @param outputVideo 输出视频配置
+	 * @param leftOffset   左侧偏移
+	 * @param rightOffset  右侧偏移
+	 * @param outputVideo  输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -984,14 +984,14 @@ public class VideoUtils {
 	/**
 	 * 通过边距偏移裁剪视频画面并输出到输出流（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param topOffset 顶部偏移
+	 * @param topOffset    顶部偏移
 	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param leftOffset   左侧偏移
+	 * @param rightOffset  右侧偏移
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1009,10 +1009,10 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到文件（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param width      裁剪宽度
+	 * @param height     裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1024,10 +1024,10 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到输出流（输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1039,10 +1039,10 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到文件（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource             输入视频资源
+	 * @param outputFile           输出文件
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1061,12 +1061,12 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到输出流（指定是否输出裁剪分辨率）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource             输入视频资源
+	 * @param outputStream         输出流
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1082,10 +1082,10 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
+	 * @param resource    输入视频资源
+	 * @param outputFile  输出文件
+	 * @param width       裁剪宽度
+	 * @param height      裁剪高度
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1104,12 +1104,12 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到输出流（指定输出视频配置）
 	 *
-	 * @param resource 输入视频资源
+	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
+	 * @param outputVideo  输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1127,7 +1127,7 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputFile 输出文件
+	 * @param outputFile    输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1141,7 +1141,7 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputStream 输出流
+	 * @param outputStream  输出流
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1155,7 +1155,7 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputFile 输出文件
+	 * @param outputFile    输出文件
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1170,7 +1170,7 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputStream 输出流
+	 * @param outputStream  输出流
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1185,8 +1185,8 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1200,8 +1200,8 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1215,11 +1215,11 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 videoResource 或 audioResource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
 	 * @since 1.1.0
 	 */
@@ -1245,11 +1245,11 @@ public class VideoUtils {
 	 *
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream、videoResource 或 audioResource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
 	 * @since 1.1.0
 	 */
@@ -1272,8 +1272,8 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到文件（使用默认权重和源视频配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputFile 输出文件
+	 * @param bgmResource   背景音乐资源
+	 * @param outputFile    输出文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1286,8 +1286,8 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到输出流（使用默认权重和源视频配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputStream 输出流
+	 * @param bgmResource   背景音乐资源
+	 * @param outputStream  输出流
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1300,9 +1300,9 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到文件（使用默认权重，指定输出配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param bgmResource   背景音乐资源
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1315,9 +1315,9 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到输出流（使用默认权重，指定输出配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param bgmResource   背景音乐资源
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1330,9 +1330,9 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到文件（指定权重，使用源视频配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputFile 输出文件
-	 * @param bgmWeight 背景音乐权重
+	 * @param bgmResource   背景音乐资源
+	 * @param outputFile    输出文件
+	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1345,9 +1345,9 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到输出流（指定权重，使用源视频配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputStream 输出流
-	 * @param bgmWeight 背景音乐权重
+	 * @param bgmResource   背景音乐资源
+	 * @param outputStream  输出流
+	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1360,10 +1360,10 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到文件（指定权重和输出配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
-	 * @param bgmWeight 背景音乐权重
+	 * @param bgmResource   背景音乐资源
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
+	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1382,11 +1382,11 @@ public class VideoUtils {
 	 * 为视频添加背景音乐并输出到输出流（指定权重和输出配置）
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
-	 * @param bgmWeight 背景音乐权重
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param bgmResource   背景音乐资源
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
+	 * @param bgmWeight     背景音乐权重
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1402,10 +1402,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（通过字体文件）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
 	 * @param watermarkText 水印文字
-	 * @param fontFile 字体文件
+	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1417,10 +1417,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（通过字体文件）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
 	 * @param watermarkText 水印文字
-	 * @param fontFile 字体文件
+	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1432,10 +1432,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（通过字体名称）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
 	 * @param watermarkText 水印文字
-	 * @param fontName 字体名称
+	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1447,10 +1447,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（通过字体名称）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
 	 * @param watermarkText 水印文字
-	 * @param fontName 字体名称
+	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1462,10 +1462,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（指定水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
 	 * @param watermarkText 水印文字
-	 * @param option 水印配置
+	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1477,10 +1477,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（指定水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
 	 * @param watermarkText 水印文字
-	 * @param option 水印配置
+	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1492,11 +1492,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（指定输出配置，通过字体文件）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param fontFile 字体文件
+	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1508,11 +1508,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（指定输出配置，通过字体文件）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param fontFile 字体文件
+	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1524,11 +1524,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（指定输出配置，通过字体名称）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param fontName 字体名称
+	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1540,11 +1540,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（指定输出配置，通过字体名称）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param fontName 字体名称
+	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1556,11 +1556,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到文件（指定输出配置和水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputFile    输出文件
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param option 水印配置
+	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1578,12 +1578,12 @@ public class VideoUtils {
 	/**
 	 * 为视频添加文字水印并输出到输出流（指定输出配置和水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param outputStream  输出流
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param option 水印配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param option        水印配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1600,8 +1600,8 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到文件（使用默认配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource       输入视频资源
+	 * @param outputFile     输出文件
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1613,8 +1613,8 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到输出流（使用默认配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
+	 * @param resource       输入视频资源
+	 * @param outputStream   输出流
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1627,10 +1627,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到文件（指定水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
+	 * @param resource       输入视频资源
+	 * @param outputFile     输出文件
 	 * @param watermarkImage 水印图片文件
-	 * @param option 水印配置
+	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1642,10 +1642,10 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到输出流（指定水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
+	 * @param resource       输入视频资源
+	 * @param outputStream   输出流
 	 * @param watermarkImage 水印图片文件
-	 * @param option 水印配置
+	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1657,9 +1657,9 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到文件（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param resource       输入视频资源
+	 * @param outputFile     输出文件
+	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1672,9 +1672,9 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到输出流（指定输出配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param resource       输入视频资源
+	 * @param outputStream   输出流
+	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
@@ -1687,11 +1687,11 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到文件（指定输出配置和水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputFile 输出文件
-	 * @param outputVideo 输出视频配置
+	 * @param resource       输入视频资源
+	 * @param outputFile     输出文件
+	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
-	 * @param option 水印配置
+	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
@@ -1709,12 +1709,12 @@ public class VideoUtils {
 	/**
 	 * 为视频添加图片水印并输出到输出流（指定输出配置和水印配置）
 	 *
-	 * @param resource 输入视频资源
-	 * @param outputStream 输出流
-	 * @param outputVideo 输出视频配置
+	 * @param resource       输入视频资源
+	 * @param outputStream   输出流
+	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
-	 * @param option 水印配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @param option         水印配置
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
@@ -1731,12 +1731,12 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行调整视频播放速度
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param speed 播放速度（0.5-100）
+	 * @param resource    输入视频资源
+	 * @param recorder    帧录制器
+	 * @param speed       播放速度（0.5-100）
 	 * @param outputVideo 输出视频配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -1763,16 +1763,16 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行通过边距偏移裁剪视频画面
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param topOffset 顶部偏移
-	 * @param bottomOffset 底部偏移
-	 * @param leftOffset 左侧偏移
-	 * @param rightOffset 右侧偏移
-	 * @param outputVideo 输出视频配置
+	 * @param resource             输入视频资源
+	 * @param recorder             帧录制器
+	 * @param topOffset            顶部偏移
+	 * @param bottomOffset         底部偏移
+	 * @param leftOffset           左侧偏移
+	 * @param rightOffset          右侧偏移
+	 * @param outputVideo          输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -1814,16 +1814,16 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行通过矩形区域裁剪视频画面
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param x 裁剪区域左上角 x 坐标
-	 * @param y 裁剪区域左上角 y 坐标
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
-	 * @param outputVideo 输出视频配置
+	 * @param resource             输入视频资源
+	 * @param recorder             帧录制器
+	 * @param x                    裁剪区域左上角 x 坐标
+	 * @param y                    裁剪区域左上角 y 坐标
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
+	 * @param outputVideo          输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -1864,14 +1864,14 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行通过中心裁剪视频画面
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param width 裁剪宽度
-	 * @param height 裁剪高度
-	 * @param outputVideo 输出视频配置
+	 * @param resource             输入视频资源
+	 * @param recorder             帧录制器
+	 * @param width                裁剪宽度
+	 * @param height               裁剪高度
+	 * @param outputVideo          输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -1911,12 +1911,12 @@ public class VideoUtils {
 	 * 内部方法：执行为视频添加背景音乐
 	 *
 	 * @param videoResource 视频资源
-	 * @param bgmResource 背景音乐资源
-	 * @param recorder 帧录制器
-	 * @param outputVideo 输出视频配置
-	 * @param bgmWeight 背景音乐权重
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 videoResource 或 bgmResource 为 null 时
+	 * @param bgmResource   背景音乐资源
+	 * @param recorder      帧录制器
+	 * @param outputVideo   输出视频配置
+	 * @param bgmWeight     背景音乐权重
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
 	 * @since 1.1.0
 	 */
@@ -1949,13 +1949,13 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行为视频添加文字水印
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param outputVideo 输出视频配置
+	 * @param resource      输入视频资源
+	 * @param recorder      帧录制器
+	 * @param outputVideo   输出视频配置
 	 * @param watermarkText 水印文字
-	 * @param option 水印配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @param option        水印配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -1977,13 +1977,13 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行为视频添加图片水印
 	 *
-	 * @param resource 输入视频资源
-	 * @param recorder 帧录制器
-	 * @param outputVideo 输出视频配置
+	 * @param resource       输入视频资源
+	 * @param recorder       帧录制器
+	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
-	 * @param option 水印配置
-	 * @throws IOException 当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
+	 * @param option         水印配置
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
 	 * @since 1.1.0
 	 */
@@ -2007,12 +2007,12 @@ public class VideoUtils {
 	/**
 	 * 内部方法：执行替换视频的音频轨
 	 *
-	 * @param videoGrabber 视频抓取器
-	 * @param audioGrabber 音频抓取器
-	 * @param recorder 帧录制器
-	 * @param outputVideo 输出视频配置
+	 * @param videoGrabber  视频抓取器
+	 * @param audioGrabber  音频抓取器
+	 * @param recorder      帧录制器
+	 * @param outputVideo   输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 videoGrabber 或 audioGrabber 为 null 时
 	 * @since 1.1.0
 	 */
