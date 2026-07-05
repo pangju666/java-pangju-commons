@@ -335,7 +335,9 @@ public class ImageEditor {
 	 * </p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
@@ -806,7 +808,9 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public ImageEditor resampleFilterType(final int filterType) {
 		if (filterType < 0 || filterType > 15) {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
@@ -1056,8 +1060,39 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor resize(final int width, final int height) {
+		return resize(width, height, ResampleOp.FILTER_LANCZOS);
+	}
+
+	/**
+	 * 按指定宽度等比例缩放图像，保持原始宽高比。
+	 *
+	 * @param width         目标宽度（像素）
+	 * @param height        目标高度（像素）
+	 * @param interpolation 插值滤波算法
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ResampleOp#FILTER_POINT
+	 * @see ResampleOp#FILTER_BOX
+	 * @see ResampleOp#FILTER_TRIANGLE
+	 * @see ResampleOp#FILTER_HERMITE
+	 * @see ResampleOp#FILTER_HANNING
+	 * @see ResampleOp#FILTER_HAMMING
+	 * @see ResampleOp#FILTER_BLACKMAN
+	 * @see ResampleOp#FILTER_GAUSSIAN
+	 * @see ResampleOp#FILTER_QUADRATIC
+	 * @see ResampleOp#FILTER_CUBIC
+	 * @see ResampleOp#FILTER_CATROM
+	 * @see ResampleOp#FILTER_MITCHELL
+	 * @see ResampleOp#FILTER_LANCZOS
+	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
+	 * @see ResampleOp#FILTER_BLACKMAN_SINC
+	 * @since 1.1.0
+	 */
+	public ImageEditor resize(final int width, final int height, final int interpolation) {
+		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+
 		this.outputImageSize = this.outputImageSize.resize(width, height);
-		this.outputImage = resample();
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+			.filter(outputImage, null);
 		return this;
 	}
 
@@ -1069,8 +1104,38 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleByWidth(final int targetWidth) {
+		return scaleByWidth(targetWidth, ResampleOp.FILTER_LANCZOS);
+	}
+
+	/**
+	 * 按指定宽度等比例缩放图像，保持原始宽高比。
+	 *
+	 * @param targetWidth   目标宽度（像素）
+	 * @param interpolation 插值滤波算法
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ResampleOp#FILTER_POINT
+	 * @see ResampleOp#FILTER_BOX
+	 * @see ResampleOp#FILTER_TRIANGLE
+	 * @see ResampleOp#FILTER_HERMITE
+	 * @see ResampleOp#FILTER_HANNING
+	 * @see ResampleOp#FILTER_HAMMING
+	 * @see ResampleOp#FILTER_BLACKMAN
+	 * @see ResampleOp#FILTER_GAUSSIAN
+	 * @see ResampleOp#FILTER_QUADRATIC
+	 * @see ResampleOp#FILTER_CUBIC
+	 * @see ResampleOp#FILTER_CATROM
+	 * @see ResampleOp#FILTER_MITCHELL
+	 * @see ResampleOp#FILTER_LANCZOS
+	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
+	 * @see ResampleOp#FILTER_BLACKMAN_SINC
+	 * @since 1.1.0
+	 */
+	public ImageEditor scaleByWidth(final int targetWidth, final int interpolation) {
+		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+
 		this.outputImageSize = this.outputImageSize.scaleByWidth(targetWidth);
-		this.outputImage = resample();
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+			.filter(outputImage, null);
 		return this;
 	}
 
@@ -1082,8 +1147,38 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor scaleByHeight(final int targetHeight) {
+		return scaleByHeight(targetHeight, ResampleOp.FILTER_LANCZOS);
+	}
+
+	/**
+	 * 按指定高度等比例缩放图像，保持原始宽高比。
+	 *
+	 * @param targetHeight  目标高度（像素）
+	 * @param interpolation 插值滤波算法
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ResampleOp#FILTER_POINT
+	 * @see ResampleOp#FILTER_BOX
+	 * @see ResampleOp#FILTER_TRIANGLE
+	 * @see ResampleOp#FILTER_HERMITE
+	 * @see ResampleOp#FILTER_HANNING
+	 * @see ResampleOp#FILTER_HAMMING
+	 * @see ResampleOp#FILTER_BLACKMAN
+	 * @see ResampleOp#FILTER_GAUSSIAN
+	 * @see ResampleOp#FILTER_QUADRATIC
+	 * @see ResampleOp#FILTER_CUBIC
+	 * @see ResampleOp#FILTER_CATROM
+	 * @see ResampleOp#FILTER_MITCHELL
+	 * @see ResampleOp#FILTER_LANCZOS
+	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
+	 * @see ResampleOp#FILTER_BLACKMAN_SINC
+	 * @since 1.1.0
+	 */
+	public ImageEditor scaleByHeight(final int targetHeight, final int interpolation) {
+		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+
 		this.outputImageSize = this.outputImageSize.scaleByHeight(targetHeight);
-		this.outputImage = resample();
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+			.filter(outputImage, null);
 		return this;
 	}
 
@@ -1095,8 +1190,38 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 */
 	public ImageEditor scale(final double scalingFactor) {
+		return scale(scalingFactor, ResampleOp.FILTER_LANCZOS);
+	}
+
+	/**
+	 * 将图像缩放到指定的比例，保持原始宽高比。
+	 *
+	 * @param scalingFactor 缩放比例
+	 * @param interpolation 插值滤波算法
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ResampleOp#FILTER_POINT
+	 * @see ResampleOp#FILTER_BOX
+	 * @see ResampleOp#FILTER_TRIANGLE
+	 * @see ResampleOp#FILTER_HERMITE
+	 * @see ResampleOp#FILTER_HANNING
+	 * @see ResampleOp#FILTER_HAMMING
+	 * @see ResampleOp#FILTER_BLACKMAN
+	 * @see ResampleOp#FILTER_GAUSSIAN
+	 * @see ResampleOp#FILTER_QUADRATIC
+	 * @see ResampleOp#FILTER_CUBIC
+	 * @see ResampleOp#FILTER_CATROM
+	 * @see ResampleOp#FILTER_MITCHELL
+	 * @see ResampleOp#FILTER_LANCZOS
+	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
+	 * @see ResampleOp#FILTER_BLACKMAN_SINC
+	 * @since 1.1.0
+	 */
+	public ImageEditor scale(final double scalingFactor, final int interpolation) {
+		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+
 		this.outputImageSize = this.outputImageSize.scale(scalingFactor);
-		this.outputImage = resample();
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+			.filter(outputImage, null);
 		return this;
 	}
 
@@ -1113,12 +1238,49 @@ public class ImageEditor {
 	 * @param targetWidth  目标宽度（像素）
 	 * @param targetHeight 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
-	 * @see ImageSize#scale(int, int)
 	 * @since 1.0.0
 	 */
 	public ImageEditor scale(final int targetWidth, final int targetHeight) {
+		return scale(targetWidth, targetHeight, ResampleOp.FILTER_LANCZOS);
+	}
+
+	/**
+	 * 双约束等比缩放（基于目标宽高值）
+	 * <p>
+	 * 在不超过目标宽高的前提下保持宽高比：
+	 * <ol>
+	 *   <li>优先适配宽度计算</li>
+	 *   <li>若高度超出则改为适配高度</li>
+	 * </ol>
+	 * </p>
+	 *
+	 * @param targetWidth  目标宽度（像素）
+	 * @param targetHeight 目标高度（像素）
+	 * @param interpolation 插值滤波算法
+	 * @return 当前编辑器实例，用于链式调用
+	 * @see ResampleOp#FILTER_POINT
+	 * @see ResampleOp#FILTER_BOX
+	 * @see ResampleOp#FILTER_TRIANGLE
+	 * @see ResampleOp#FILTER_HERMITE
+	 * @see ResampleOp#FILTER_HANNING
+	 * @see ResampleOp#FILTER_HAMMING
+	 * @see ResampleOp#FILTER_BLACKMAN
+	 * @see ResampleOp#FILTER_GAUSSIAN
+	 * @see ResampleOp#FILTER_QUADRATIC
+	 * @see ResampleOp#FILTER_CUBIC
+	 * @see ResampleOp#FILTER_CATROM
+	 * @see ResampleOp#FILTER_MITCHELL
+	 * @see ResampleOp#FILTER_LANCZOS
+	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
+	 * @see ResampleOp#FILTER_BLACKMAN_SINC
+	 * @since 1.0.0
+	 */
+	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolation) {
+		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+
 		this.outputImageSize = this.outputImageSize.scale(targetWidth, targetHeight);
-		this.outputImage = resample();
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+			.filter(outputImage, null);
 		return this;
 	}
 
@@ -1618,7 +1780,6 @@ public class ImageEditor {
 		if (StringUtils.isBlank(this.outputFormat)) {
 			this.outputFormat = inputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT;
 		}
-		this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 		return this;
 	}
@@ -1645,7 +1806,9 @@ public class ImageEditor {
 	 *
 	 * @return 重采样后的图像
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected BufferedImage resample() {
 		return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
