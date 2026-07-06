@@ -182,27 +182,27 @@ import java.util.function.Function;
  * @see ImageWatermarkOption
  * @see TextWatermarkOption
  * @see OpencvUtils
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class ImageEditor {
 	/**
 	 * 正常的 EXIF 方向值
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static final int NORMAL_EXIF_ORIENTATION = 1;
 
 	/**
 	 * 原始输入图像，用于重置操作
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected Mat inputImage;
 
 	/**
 	 * 当前处理中的输出图像
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected Mat outputImage;
 
@@ -213,7 +213,7 @@ public class ImageEditor {
 	 * @param exifOrientation EXIF 方向值
 	 * @param flags           图像读取标志
 	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected ImageEditor(Mat inputImage, int exifOrientation, int flags) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
@@ -262,7 +262,7 @@ public class ImageEditor {
 	 * @param file 图像文件，不能为 null 且必须是图像文件
 	 * @return 图像编辑器实例
 	 * @throws IOException 如果读取文件失败
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final File file) throws IOException {
 		return of(file, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
@@ -275,7 +275,7 @@ public class ImageEditor {
 	 * @param flags 图像读取标志（OpenCV 的 IMREAD_* 常量）
 	 * @return 图像编辑器实例
 	 * @throws IOException 如果读取文件失败
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final File file, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
@@ -298,7 +298,7 @@ public class ImageEditor {
 	 * @param inputStream 输入流，不能为 null
 	 * @return 图像编辑器实例
 	 * @throws IOException 如果读取流失败
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final InputStream inputStream) throws IOException {
 		return of(inputStream.readAllBytes(), OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
@@ -312,7 +312,7 @@ public class ImageEditor {
 	 * @return 图像编辑器实例
 	 * @throws IOException              如果读取流失败
 	 * @throws IllegalArgumentException 如果 inputStream 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final int flags) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -326,7 +326,7 @@ public class ImageEditor {
 	 * @param bytes 图像字节数组，不能为 null 或空
 	 * @return 图像编辑器实例
 	 * @throws IOException 如果读取失败
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes) throws IOException {
 		return of(bytes, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
@@ -340,7 +340,7 @@ public class ImageEditor {
 	 * @return 图像编辑器实例
 	 * @throws IOException              如果读取失败
 	 * @throws IllegalArgumentException 如果 bytes 为 null 或空
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes, final int flags) throws IOException {
 		int exifOrientation = NORMAL_EXIF_ORIENTATION;
@@ -362,7 +362,7 @@ public class ImageEditor {
 	 *
 	 * @param image 图像 Mat，不能为 null 或空
 	 * @return 图像编辑器实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final Mat image) {
 		return new ImageEditor(image, 1, opencv_imgcodecs.IMREAD_UNCHANGED);
@@ -374,7 +374,7 @@ public class ImageEditor {
 	 * @param metadata EXIF 元数据，不能为 null
 	 * @return EXIF 方向值
 	 * @throws IllegalArgumentException 如果 metadata 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static int getExifOrientation(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -400,7 +400,7 @@ public class ImageEditor {
 	 * @param alpha 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
@@ -440,7 +440,7 @@ public class ImageEditor {
 	 * @param direction 旋转方向枚举，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 direction 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor rotate(final RotateDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -461,7 +461,7 @@ public class ImageEditor {
 	 *
 	 * @param angle 旋转角度（度），正数为顺时针，负数为逆时针
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor rotate(final double angle) {
 		Size imageSize = outputImage.size();
@@ -505,7 +505,7 @@ public class ImageEditor {
 	 * @param direction 翻转方向枚举，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 direction 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor flip(final FlipDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -525,7 +525,7 @@ public class ImageEditor {
 	 * @param dx 水平平移距离（像素）
 	 * @param dy 垂直平移距离（像素）
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor warpAffine(final int dx, final int dy) {
 		Mat image = new Mat();
@@ -549,7 +549,7 @@ public class ImageEditor {
 	 * @param height 目标高度，必须大于 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor resize(final int width, final int height) {
 		return resize(width, height, opencv_imgproc.INTER_LINEAR);
@@ -571,7 +571,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_LINEAR_EXACT
 	 * @see opencv_imgproc#INTER_NEAREST_EXACT
 	 * @see opencv_imgproc#INTER_MAX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor resize(final int width, final int height, final int interpolation) {
 		Validate.isTrue(width > 0, "width 必须大于 0");
@@ -593,7 +593,7 @@ public class ImageEditor {
 	 * @param targetWidth 目标宽度，必须大于 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -617,7 +617,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_LINEAR_EXACT
 	 * @see opencv_imgproc#INTER_NEAREST_EXACT
 	 * @see opencv_imgproc#INTER_MAX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByWidth(final int targetWidth, final int interpolation) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -632,7 +632,7 @@ public class ImageEditor {
 	 * @param targetHeight 目标高度，必须大于 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
@@ -656,7 +656,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_LINEAR_EXACT
 	 * @see opencv_imgproc#INTER_NEAREST_EXACT
 	 * @see opencv_imgproc#INTER_MAX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByHeight(final int targetHeight, final int interpolation) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
@@ -672,7 +672,7 @@ public class ImageEditor {
 	 * @param scalingFactor 缩放比例因子，必须大于 0（例如 0.5 为缩小 50%）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
@@ -696,7 +696,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_LINEAR_EXACT
 	 * @see opencv_imgproc#INTER_NEAREST_EXACT
 	 * @see opencv_imgproc#INTER_MAX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scale(final double scalingFactor, final int interpolation) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
@@ -712,7 +712,7 @@ public class ImageEditor {
 	 * @param targetHeight 目标高度，必须大于 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -738,7 +738,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_LINEAR_EXACT
 	 * @see opencv_imgproc#INTER_NEAREST_EXACT
 	 * @see opencv_imgproc#INTER_MAX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolation) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -757,7 +757,7 @@ public class ImageEditor {
 	 * @param height 裁剪高度，必须大于 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor cropByCenter(final int width, final int height) {
 		Validate.isTrue(width > 0, "width 不能小于0");
@@ -789,7 +789,7 @@ public class ImageEditor {
 	 * @param rightOffset  右侧裁剪偏移（像素），必须 >= 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一 offset 小于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor cropByOffset(final int topOffset, final int bottomOffset, final int leftOffset, final int rightOffset) {
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
@@ -823,7 +823,7 @@ public class ImageEditor {
 	 * @param height 矩形高度，必须 > 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor cropByRect(final int x, final int y, final int width, final int height) {
 		Validate.isTrue(x >= 0, "x 不能小于0");
@@ -852,7 +852,7 @@ public class ImageEditor {
 	 * <p>支持 BGR（3通道）或 BGRA（4通道）图像的转换</p>
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor grayscale() {
 		Mat image = new Mat();
@@ -874,7 +874,7 @@ public class ImageEditor {
 	 * 对图像进行均值模糊处理（默认 5x5 卷积核）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor blur() {
 		return blur(new Size(5, 5));
@@ -886,7 +886,7 @@ public class ImageEditor {
 	 * @param ksize 卷积核尺寸，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor blur(final Size ksize) {
 		Validate.notNull(ksize, "ksize 不可为 null");
@@ -905,7 +905,7 @@ public class ImageEditor {
 	 * 对图像进行高斯模糊处理（默认 5x5 卷积核，sigma=0）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor gaussianBlur() {
 		return gaussianBlur(new Size(5, 5), 0);
@@ -917,7 +917,7 @@ public class ImageEditor {
 	 * @param ksize 卷积核尺寸，不能为 null（宽高必须是奇数）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor gaussianBlur(final Size ksize) {
 		return gaussianBlur(ksize, 0);
@@ -930,7 +930,7 @@ public class ImageEditor {
 	 * @param sigmaX X 方向的高斯核标准差，必须 >= 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor gaussianBlur(final Size ksize, final double sigmaX) {
 		Validate.notNull(ksize, "ksize 不可为 null");
@@ -952,7 +952,7 @@ public class ImageEditor {
 	 * 对图像进行中值模糊处理（默认 5x5 卷积核）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor medianBlur() {
 		return medianBlur(5);
@@ -964,7 +964,7 @@ public class ImageEditor {
 	 * @param ksize 卷积核尺寸，必须是大于 1 的奇数
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor medianBlur(final int ksize) {
 		Validate.isTrue(ksize > 1, "ksize 必须大于 1");
@@ -984,7 +984,7 @@ public class ImageEditor {
 	 * 对图像进行锐化处理（默认强度 weight=5）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor sharpen() {
 		return sharpen(5);
@@ -996,7 +996,7 @@ public class ImageEditor {
 	 * @param weight 锐化强度，必须 > 4（值越大锐化效果越强）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 weight &lt;= 4
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor sharpen(final float weight) {
 		Validate.isTrue(weight > 4, "weight 必须大于4");
@@ -1022,7 +1022,7 @@ public class ImageEditor {
 	 * 对图像进行浮雕效果处理（默认强度 strength=1.0）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor emboss() {
 		return emboss(1.0f);
@@ -1034,7 +1034,7 @@ public class ImageEditor {
 	 * @param strength 浮雕强度，必须 > 0
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 strength &lt;= 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor emboss(final float strength) {
 		Validate.isTrue(strength > 0, "strength 必须大于0");
@@ -1060,7 +1060,7 @@ public class ImageEditor {
 	 * 对图像进行自适应二值化处理（使用 Otsu 算法自动计算阈值）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor threshold() {
 		return threshold(0, 255, opencv_imgproc.THRESH_BINARY + opencv_imgproc.THRESH_OTSU);
@@ -1074,7 +1074,7 @@ public class ImageEditor {
 	 * @param type   阈值处理类型（OpenCV 的 THRESH_* 常量）
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor threshold(final double thresh, final double maxVal, final int type) {
 		Validate.isTrue(thresh >= 0 && thresh <= 255, "thresh 取值范围必须为 0~255");
@@ -1095,7 +1095,7 @@ public class ImageEditor {
 	 * 对图像进行自适应二值化处理（使用默认参数）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor adaptiveThreshold() {
 		return adaptiveThreshold(255, opencv_imgproc.ADAPTIVE_THRESH_MEAN_C,
@@ -1112,7 +1112,7 @@ public class ImageEditor {
 	 * @param c              从均值或加权均值中减去的常量
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
 	                                     final int blockSize, final double c) {
@@ -1134,7 +1134,7 @@ public class ImageEditor {
 	 * 调整图像对比度（默认 alpha=0.3）
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor contrast() {
 		return contrast(0.3f);
@@ -1145,7 +1145,7 @@ public class ImageEditor {
 	 *
 	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，&lt;1 减弱）
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor contrast(final float alpha) {
 		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
@@ -1164,7 +1164,7 @@ public class ImageEditor {
 	 *
 	 * @param beta 亮度偏移量（0 为不改变，正值增加亮度，负值减少亮度）
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor brightness(final float beta) {
 		Mat image = new Mat();
@@ -1185,7 +1185,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果 watermarkImageFile 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final File watermarkImageFile) throws IOException {
 		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
@@ -1201,7 +1201,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果任一参数为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(option, "option 不可为 null");
@@ -1219,7 +1219,7 @@ public class ImageEditor {
 	 * @param watermarkImage 水印图片 Mat，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 watermarkImage 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final Mat watermarkImage) {
 		return addImageWatermark(watermarkImage, new ImageWatermarkOption());
@@ -1234,7 +1234,7 @@ public class ImageEditor {
 	 * @param option         水印配置选项，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1378,7 +1378,7 @@ public class ImageEditor {
 	 * @param watermarkText 水印文字，不能为 null 或空
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 watermarkText 为 null 或空
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addTextWatermark(final String watermarkText) {
 		return addTextWatermark(watermarkText, new TextWatermarkOption());
@@ -1393,7 +1393,7 @@ public class ImageEditor {
 	 * @param option        水印配置选项，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1472,7 +1472,7 @@ public class ImageEditor {
 	 * @param operation 自定义处理函数，不能为 null
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 operation 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor apply(final Function<Mat, Mat> operation) {
 		Validate.notNull(operation, "operation 不可为 null");
@@ -1491,7 +1491,7 @@ public class ImageEditor {
 	 * @param outputFile 输出文件，不能为 null
 	 * @return 是否保存成功
 	 * @throws IllegalArgumentException 如果 outputFile 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean toFile(final File outputFile) {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -1506,7 +1506,7 @@ public class ImageEditor {
 	 * @param params     编码参数，不能为 null
 	 * @return 是否保存成功
 	 * @throws IllegalArgumentException 如果任一参数为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean toFile(final File outputFile, final int... params) {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -1523,7 +1523,7 @@ public class ImageEditor {
 	 * @return 是否写入成功
 	 * @throws IOException              如果写入失败
 	 * @throws IllegalArgumentException 如果任一参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean toOutputStream(final String format, final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -1545,7 +1545,7 @@ public class ImageEditor {
 	 * @return 是否写入成功
 	 * @throws IOException              如果写入失败
 	 * @throws IllegalArgumentException 如果任一参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean toOutputStream(final String format, final OutputStream outputStream, final int... params) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -1564,7 +1564,7 @@ public class ImageEditor {
 	 * @param format 图像格式，不能为 null 或空
 	 * @return 图像字节数组，失败时返回 null
 	 * @throws IllegalArgumentException 如果 format 无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public byte[] toBytes(final String format) {
 		Validate.notBlank(format, "format 不可为空");
@@ -1588,7 +1588,7 @@ public class ImageEditor {
 	 * @param params 编码参数，不能为 null
 	 * @return 图像字节数组，失败时返回 null
 	 * @throws IllegalArgumentException 如果任一参数无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public byte[] toBytes(final String format, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
@@ -1610,7 +1610,7 @@ public class ImageEditor {
 	 * 获取处理后的图像 Mat
 	 *
 	 * @return 图像 Mat 对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Mat toMat() {
 		return this.outputImage;
@@ -1620,7 +1620,7 @@ public class ImageEditor {
 	 * 重置到初始图像状态
 	 *
 	 * @return 当前编辑器实例，支持链式调用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor reset() {
 		if (this.outputImage != this.inputImage) {
@@ -1635,7 +1635,7 @@ public class ImageEditor {
 	/**
 	 * 释放所有图像资源
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void release() {
 		this.outputImage.releaseReference();

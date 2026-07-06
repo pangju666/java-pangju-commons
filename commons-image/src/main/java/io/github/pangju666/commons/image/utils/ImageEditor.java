@@ -220,7 +220,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final GrayFilter GRAY_FILTER = new GrayFilter();
 
 	/**
@@ -232,7 +232,7 @@ public class ImageEditor {
 	 *
 	 * @since 1.0.0
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final BrightnessContrastFilter DEFAULT_CONTRAST_FILTER = new BrightnessContrastFilter(0, 0.3f);
 
 	/**
@@ -334,7 +334,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected int resampleFilterType = ResampleOp.FILTER_LANCZOS;
 
 	/**
@@ -389,7 +389,7 @@ public class ImageEditor {
 	 * @param inputFormat    输入图像格式（如 "PNG"、"JPG"），不可为空字符串
 	 * @throws NullPointerException     当 inputImage 或 inputImageSize 为 null 时抛出
 	 * @throws IllegalArgumentException 当 inputFormat 为空或空白字符串时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected ImageEditor(final BufferedImage inputImage, final ImageSize inputImageSize, final String inputFormat) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
@@ -527,7 +527,7 @@ public class ImageEditor {
 	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #of(byte[], boolean)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
@@ -563,7 +563,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #correctOrientation()
 	 * @see ImageUtils#getExifOrientation(byte[])
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes, final boolean correctOrientation) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
@@ -583,7 +583,7 @@ public class ImageEditor {
 	 * @throws IOException              当读取图像失败时抛出
 	 * @throws IllegalArgumentException 当 bytes 为 null 或空时抛出
 	 * @see #correctOrientation()
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final byte[] bytes, final int exifOrientation) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
@@ -807,7 +807,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor resampleFilterType(final int filterType) {
 		if (filterType < 0 || filterType > 15) {
 			this.resampleFilterType = ResampleOp.FILTER_LANCZOS;
@@ -833,7 +833,7 @@ public class ImageEditor {
 	 * @param alpha 透明度值，范围 0.0（完全透明）到 1.0（完全不透明）
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 alpha 超出 [0.0, 1.0] 范围时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
@@ -1082,7 +1082,7 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor resize(final int width, final int height, final int interpolation) {
 		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
@@ -1125,7 +1125,7 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByWidth(final int targetWidth, final int interpolation) {
 		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
@@ -1168,7 +1168,7 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scaleByHeight(final int targetHeight, final int interpolation) {
 		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
@@ -1211,7 +1211,7 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor scale(final double scalingFactor, final int interpolation) {
 		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
@@ -1381,7 +1381,7 @@ public class ImageEditor {
 	 * @param watermarkImage 水印图片，不可为 null
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ImageWatermarkOption
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final BufferedImage watermarkImage) {
 		this.outputImage = new ImageWatermarkOption().toWatermark(this.outputImageSize, watermarkImage)
@@ -1401,7 +1401,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkImage 或 option 为 null 时抛出
 	 * @see ImageWatermarkOption
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final BufferedImage watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1420,7 +1420,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermark 为 null 时抛出
 	 * @see Watermark
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addImageWatermark(final Watermark watermark) {
 		Validate.notNull(watermark, "watermark 不可为 null");
@@ -1439,7 +1439,7 @@ public class ImageEditor {
 	 * @param watermarkText 水印文字内容，不可为空字符串
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see TextWatermarkOption
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addTextWatermark(final String watermarkText) {
 		this.outputImage = new TextWatermarkOption().toCaption(watermarkText, this.outputImage)
@@ -1459,7 +1459,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkText 为空或 option 为 null 时抛出
 	 * @see TextWatermarkOption
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1478,7 +1478,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 caption 为 null 时抛出
 	 * @see Caption
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor addTextWatermark(final Caption caption) {
 		Validate.notNull(caption, "caption 不可为 null");
@@ -1498,7 +1498,7 @@ public class ImageEditor {
 	 * @param operation 图像操作函数，接收当前图像和编辑器实例，返回处理后的图像
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws NullPointerException 当 operation 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ImageEditor apply(final BiFunction<BufferedImage, ImageEditor, BufferedImage> operation) {
 		Validate.notNull(operation, "operation 不可为 null");
@@ -1525,7 +1525,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addImageWatermark(watermarkImage, option, null, x, y);
@@ -1546,7 +1546,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 		return addImageWatermark(watermarkImage, option, direction, 0, 0);
@@ -1568,7 +1568,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, WatermarkDirection direction) throws IOException {
 		Validate.notNull(direction, "direction 不可为 null");
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
@@ -1591,7 +1591,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addImageWatermark(File watermarkFile, ImageWatermarkOption option, int x, int y) throws IOException {
 		FileUtils.checkFile(watermarkFile, "file 不可为 null");
 		return addImageWatermark(ImageIO.read(watermarkFile), option, null, x, y);
@@ -1614,7 +1614,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, WatermarkDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 		return addTextWatermark(watermarkText, option, direction, 0, 0);
@@ -1638,7 +1638,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public ImageEditor addTextWatermark(String watermarkText, TextWatermarkOption option, int x, int y) {
 		Validate.isTrue(x >= 0 && y >= 0, "水印位置必须大于0");
 		return addTextWatermark(watermarkText, option, null, x, y);
@@ -1781,7 +1781,7 @@ public class ImageEditor {
 	 * 有助于减少内存占用。调用后编辑器不可再使用。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void release() {
 		this.inputImage.flush();
@@ -1798,7 +1798,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected BufferedImage resample() {
 		return new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
@@ -1827,7 +1827,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addImageWatermark(BufferedImage, ImageWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected ImageEditor addImageWatermark(BufferedImage watermarkImage, ImageWatermarkOption option,
 	                                        WatermarkDirection direction, int x, int y) {
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
@@ -1935,7 +1935,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #addTextWatermark(String, TextWatermarkOption)} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected ImageEditor addTextWatermark(String text, TextWatermarkOption option, WatermarkDirection direction,
 	                                       int x, int y) {
 		Validate.notBlank(text, "text 不可为空");
@@ -2033,7 +2033,7 @@ public class ImageEditor {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected Color getColor(Color color, float opacity) {
 		if (color.getAlpha() == 255) {
 			// 设置不透明度

@@ -60,13 +60,13 @@ import java.util.Objects;
  * @author pangju666
  * @see OpencvConstants
  * @see ImageEditor
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class OpencvUtils {
 	/**
 	 * 私有构造函数，防止实例化
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected OpencvUtils() {
 	}
@@ -76,7 +76,7 @@ public class OpencvUtils {
 	 *
 	 * @param mat 图像 Mat 对象，允许为 null
 	 * @return 如果 mat 为 null、为空对象或没有数据，返回 true；否则返回 false
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isEmpty(final Mat mat) {
 		return Objects.isNull(mat) || mat.isNull() || mat.empty();
@@ -87,7 +87,7 @@ public class OpencvUtils {
 	 *
 	 * @param mat 图像 Mat 对象，允许为 null
 	 * @return 如果 mat 不为 null、不为空对象且有数据，返回 true；否则返回 false
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isNotEmpty(final Mat mat) {
 		return !isEmpty(mat);
@@ -100,7 +100,7 @@ public class OpencvUtils {
 	 * @return 如果可以读取返回 true，否则返回 false
 	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean canRead(final File file) throws IOException {
 		Validate.isTrue(FileUtils.isImageType(file), "file 不是一个图像文件");
@@ -114,7 +114,7 @@ public class OpencvUtils {
 	 * @param format 图像格式扩展名（如 "jpg"、"png"），不能为空白
 	 * @return 如果可以写入返回 true，否则返回 false
 	 * @throws IllegalArgumentException 如果 format 为空白时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean canWrite(final String format) {
 		Validate.notBlank(format, "format 不可为空");
@@ -130,7 +130,7 @@ public class OpencvUtils {
 	 * @return 图像尺寸对象，如果读取失败返回 null
 	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Size getSize(final File file) throws IOException {
 		Validate.isTrue(FileUtils.isImageType(file), "file 不是一个图像文件");
@@ -150,7 +150,7 @@ public class OpencvUtils {
 	 * @return 图像 Mat 对象
 	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final File file) throws IOException {
 		return read(file, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
@@ -164,7 +164,7 @@ public class OpencvUtils {
 	 * @return 图像 Mat 对象
 	 * @throws IOException              如果文件操作失败时抛出
 	 * @throws IllegalArgumentException 如果 file 不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final File file, final int flags) throws IOException {
 		Validate.isTrue(FileUtils.isImageType(file), "file 不是一个图像文件");
@@ -179,7 +179,7 @@ public class OpencvUtils {
 	 * @return 图像 Mat 对象
 	 * @throws IOException              如果流读取失败时抛出
 	 * @throws IllegalArgumentException 如果 inputStream 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -195,7 +195,7 @@ public class OpencvUtils {
 	 * @return 图像 Mat 对象
 	 * @throws IOException              如果流读取失败时抛出
 	 * @throws IllegalArgumentException 如果 inputStream 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final InputStream inputStream, final int flags) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -209,7 +209,7 @@ public class OpencvUtils {
 	 * @param bytes 图像字节数组，不能为 null 或空
 	 * @return 图像 Mat 对象
 	 * @throws IllegalArgumentException 如果 bytes 为 null 或空，或者不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final byte[] bytes) {
 		return read(bytes, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
@@ -222,7 +222,7 @@ public class OpencvUtils {
 	 * @param flags 读取标志（如 IMREAD_COLOR、IMREAD_GRAYSCALE 等）
 	 * @return 图像 Mat 对象
 	 * @throws IllegalArgumentException 如果 bytes 为 null 或空，或者不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat read(final byte[] bytes, final int flags) {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
@@ -243,7 +243,7 @@ public class OpencvUtils {
 	 * @param color AWT 颜色对象，不能为 null
 	 * @return BGRA 格式的 Scalar 对象（蓝、绿、红、Alpha）
 	 * @throws IllegalArgumentException 如果 color 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toBGRAColor(final Color color) {
 		Validate.notNull(color, "color 不可为 null");
@@ -258,7 +258,7 @@ public class OpencvUtils {
 	 * @return BGRA 格式的 Scalar 对象
 	 * @throws IllegalArgumentException 如果 colorStr 为空白时抛出
 	 * @see Color#decode(String)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toBGRAColor(final String colorStr) {
 		Validate.notBlank(colorStr, "colorStr 不可为空");
@@ -272,7 +272,7 @@ public class OpencvUtils {
 	 * @param color AWT 颜色对象，不能为 null
 	 * @return BGR 格式的 Scalar 对象（蓝、绿、红，Alpha=255）
 	 * @throws IllegalArgumentException 如果 color 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toBGRColor(final Color color) {
 		Validate.notNull(color, "color 不可为 null");
@@ -287,7 +287,7 @@ public class OpencvUtils {
 	 * @return BGR 格式的 Scalar 对象
 	 * @throws IllegalArgumentException 如果 colorStr 为空白时抛出
 	 * @see Color#decode(String)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toBGRColor(final String colorStr) {
 		Validate.notBlank(colorStr, "colorStr 不可为空");
@@ -301,7 +301,7 @@ public class OpencvUtils {
 	 * @param color AWT 颜色对象，不能为 null
 	 * @return RGBA 格式的 Scalar 对象（红、绿、蓝、Alpha）
 	 * @throws IllegalArgumentException 如果 color 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toRGBAColor(final Color color) {
 		Validate.notNull(color, "color 不可为 null");
@@ -316,7 +316,7 @@ public class OpencvUtils {
 	 * @return RGBA 格式的 Scalar 对象
 	 * @throws IllegalArgumentException 如果 colorStr 为空白时抛出
 	 * @see Color#decode(String)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toRGBAColor(final String colorStr) {
 		Validate.notBlank(colorStr, "colorStr 不可为空");
@@ -330,7 +330,7 @@ public class OpencvUtils {
 	 * @param color AWT 颜色对象，不能为 null
 	 * @return RGB 格式的 Scalar 对象（红、绿、蓝，Alpha=255）
 	 * @throws IllegalArgumentException 如果 color 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toRGBColor(final Color color) {
 		Validate.notNull(color, "color 不可为 null");
@@ -345,7 +345,7 @@ public class OpencvUtils {
 	 * @return RGB 格式的 Scalar 对象
 	 * @throws IllegalArgumentException 如果 colorStr 为空白时抛出
 	 * @see Color#decode(String)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Scalar toRGBColor(final String colorStr) {
 		Validate.notBlank(colorStr, "colorStr 不可为空");
@@ -359,7 +359,7 @@ public class OpencvUtils {
 	 * @param kernelData 卷积核数据数组，不能为 null 或空，必须包含 9 个元素
 	 * @return 3x3 的 Mat 卷积核
 	 * @throws IllegalArgumentException 如果 kernelData 为 null 或空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat getKernel(final float[] kernelData) {
 		Validate.isTrue(ArrayUtils.isNotEmpty(kernelData), "kernelData 不可为空");
@@ -383,7 +383,7 @@ public class OpencvUtils {
 	 * @param targetWidth 目标宽度，必须大于 0
 	 * @return 缩放后的尺寸对象
 	 * @throws IllegalArgumentException 如果 size 为 null 或 targetWidth 小于等于 0 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Size scaleByWidth(final Size size, final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -408,7 +408,7 @@ public class OpencvUtils {
 	 * @param targetHeight 目标高度，必须大于 0
 	 * @return 缩放后的尺寸对象
 	 * @throws IllegalArgumentException 如果 size 为 null 或 targetHeight 小于等于 0 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Size scaleByHeight(final Size size, final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
@@ -433,7 +433,7 @@ public class OpencvUtils {
 	 * @param scalingFactor 缩放比例因子，必须大于 0
 	 * @return 缩放后的尺寸对象
 	 * @throws IllegalArgumentException 如果 size 为 null 或 scalingFactor 小于等于 0 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Size scale(final Size size, final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
@@ -453,7 +453,7 @@ public class OpencvUtils {
 	 * @param targetHeight 目标高度，必须大于 0
 	 * @return 缩放后的尺寸对象
 	 * @throws IllegalArgumentException 如果 size 为 null 或 targetWidth/targetHeight 小于等于 0 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Size scale(final Size size, final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
@@ -481,7 +481,7 @@ public class OpencvUtils {
 	 * @param dx X 轴平移量
 	 * @param dy Y 轴平移量
 	 * @return 2x3 的平移变换矩阵
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Mat getMatrixMat(final int dx, final int dy) {
 		Mat matrixMat = new Mat(2, 3, opencv_core.CV_64F);
@@ -512,7 +512,7 @@ public class OpencvUtils {
 	 *
 	 * @param image 输入图像，不能为 null，建议使用 4 通道图像（BGRA/RGBA）
 	 * @throws IllegalArgumentException 如果 image 为 null 或为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cleanTransparency(final Mat image) {
 		Validate.notNull(image, "image 不可为 null");

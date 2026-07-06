@@ -33,7 +33,7 @@ import org.bytedeco.opencv.global.opencv_core;
  *
  * @author pangju666
  * @see org.bytedeco.opencv.global.opencv_core#rotate
- * @since 1.1.0
+ * @since 2.1.0
  */
 public enum RotateDirection {
 	/**
@@ -41,7 +41,7 @@ public enum RotateDirection {
 	 *
 	 * <p>对应 OpenCV 的 ROTATE_90_CLOCKWISE</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	CLOCKWISE_90(opencv_core.ROTATE_90_CLOCKWISE),
 
@@ -50,7 +50,7 @@ public enum RotateDirection {
 	 *
 	 * <p>对应 OpenCV 的 ROTATE_90_COUNTERCLOCKWISE</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	COUNTER_CLOCKWISE_90(opencv_core.ROTATE_90_COUNTERCLOCKWISE),
 
@@ -59,7 +59,7 @@ public enum RotateDirection {
 	 *
 	 * <p>对应 OpenCV 的 ROTATE_180</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	UPSIDE_DOWN(opencv_core.ROTATE_180);
 
@@ -72,7 +72,7 @@ public enum RotateDirection {
 	 * 私有构造函数
 	 *
 	 * @param code OpenCV 旋转代码
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	RotateDirection(int code) {
 		this.code = code;
@@ -82,7 +82,7 @@ public enum RotateDirection {
 	 * 获取 OpenCV 内部旋转代码
 	 *
 	 * @return 旋转代码值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getCode() {
 		return code;

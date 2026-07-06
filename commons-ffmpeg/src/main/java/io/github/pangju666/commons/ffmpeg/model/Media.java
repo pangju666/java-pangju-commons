@@ -47,7 +47,7 @@ import java.util.Map;
  * @see Video
  * @see org.bytedeco.javacv.FFmpegFrameGrabber
  * @see org.bytedeco.ffmpeg.avcodec.AVCodec
- * @since 1.1.0
+ * @since 2.1.0
  */
 public abstract class Media {
 	/**
@@ -55,7 +55,7 @@ public abstract class Media {
 	 * <p>格式名称与FFmpeg原生格式标识保持一致，便于后续编解码操作</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getFormat()} 获取或手动设置</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final String format;
 
@@ -64,7 +64,7 @@ public abstract class Media {
 	 * <p>元数据直接从FFmpegFrameGrabber解析而来，键名与FFmpeg输出的元数据字段一致</p>
 	 * <p>该值始终为不可修改的 {@link Collections#unmodifiableMap(Map)}，防止外部篡改</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Map<String, String> metadata;
 
@@ -73,7 +73,7 @@ public abstract class Media {
 	 * <p>编码器名称与FFmpeg编码器标识保持一致，用于指定编解码算法</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodecName()} 或 {@link FFmpegFrameGrabber#getVideoCodecName()} 获取</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final String codecName;
 
@@ -82,7 +82,7 @@ public abstract class Media {
 	 * <p>数值型ID可直接用于FFmpeg底层API调用，比名称更精准</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodec()} 或 {@link FFmpegFrameGrabber#getVideoCodec()} 获取，默认值为 0</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int codecId;
 
@@ -97,7 +97,7 @@ public abstract class Media {
 	 * @param codecName 编码器名称
 	 * @param metadata  媒体元数据
 	 * @param codecId   编码器ID
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected Media(String format, String codecName, Map<String, String> metadata, int codecId) {
 		this.format = format;
@@ -110,7 +110,7 @@ public abstract class Media {
 	 * 获取媒体格式
 	 *
 	 * @return 格式名称（如mp3、wav），未解析时返回null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String getFormat() {
 		return format;
@@ -121,7 +121,7 @@ public abstract class Media {
 	 * <p>返回的是不可修改的Map，防止外部篡改元数据内容</p>
 	 *
 	 * @return 元数据键值对集合，空集合表示无元数据
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Map<String, String> getMetadata() {
 		return metadata;
@@ -131,7 +131,7 @@ public abstract class Media {
 	 * 获取编码器名称
 	 *
 	 * @return 编码器名称（如mp3、aac），未解析时返回null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String getCodecName() {
 		return codecName;
@@ -142,7 +142,7 @@ public abstract class Media {
 	 * <p>默认值为0，表示未解析或不支持的编码器类型</p>
 	 *
 	 * @return FFmpeg定义的编码器ID，默认0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getCodecId() {
 		return codecId;
@@ -168,7 +168,7 @@ public abstract class Media {
 	 * @param <T> 构建器自身类型（用于链式调用）
 	 * @param <V> 媒体对象类型（Audio/Video等具体实现类）
 	 * @author pangju666
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static abstract class Builder<T extends Builder<T, V>, V extends Media> {
 		/**
@@ -176,7 +176,7 @@ public abstract class Media {
 		 * <p>格式名称与FFmpeg原生格式标识保持一致，便于后续编解码操作
 		 * <p>该值通过 {@link FFmpegFrameGrabber#getFormat()} 获取或手动设置
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected String format;
 
@@ -184,7 +184,7 @@ public abstract class Media {
 		 * 媒体元数据（如标题、作者、时长、比特率等键值对）
 		 * <p>元数据直接从FFmpegFrameGrabber解析而来，键名与FFmpeg输出的元数据字段一致
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Map<String, String> metadata;
 
@@ -193,7 +193,7 @@ public abstract class Media {
 		 * <p>编码器名称与FFmpeg编码器标识保持一致，用于指定编解码算法
 		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodecName()} 或 {@link FFmpegFrameGrabber#getVideoCodecName()} 获取
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected String codecName;
 
@@ -202,7 +202,7 @@ public abstract class Media {
 		 * <p>数值型ID可直接用于FFmpeg底层API调用，比名称更精准
 		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodec()} 或 {@link FFmpegFrameGrabber#getVideoCodec()} 获取，默认值为 0
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int codecId;
 
@@ -212,7 +212,7 @@ public abstract class Media {
 		 * 创建一个空白的构建器，所有属性设置为默认值，用于全新构建媒体对象。
 		 * </p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Builder() {
 			this.metadata = Collections.emptyMap();
@@ -228,7 +228,7 @@ public abstract class Media {
 		 *
 		 * @param media 源媒体对象，<b>不可为 null</b>
 		 * @throws IllegalArgumentException 当 media 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Builder(V media) {
 			Validate.notNull(media, "media 不可为 null");
@@ -249,7 +249,7 @@ public abstract class Media {
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
 		 * @throws FFmpegFrameGrabber.Exception 当 grabber 操作失败时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 			Validate.notNull(grabber, "grabber 不可为 null");
@@ -269,7 +269,7 @@ public abstract class Media {
 		 * @param format 格式名称（如mp3、wav），不可为空白
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当format为null或空白时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public T format(String format) {
 			Validate.notBlank(format, "format 不可为空");
@@ -286,7 +286,7 @@ public abstract class Media {
 		 * @param metadata 元数据键值对，不可为 null
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 metadata 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public T metadata(Map<String, String> metadata) {
 			Validate.notNull(metadata, "metadata 不可为 null");
@@ -302,7 +302,7 @@ public abstract class Media {
 		 * @param codec FFmpeg 的 AVCodec 对象，<b>不可为 null</b>
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 codec 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public T codec(AVCodec codec) {
 			Validate.notNull(codec, "codec 不可为 null");
@@ -319,7 +319,7 @@ public abstract class Media {
 		 * @param codecId 编码器ID（FFmpeg定义的AVCodecID数值），不可小于0
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当codecId小于0时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public T codecId(int codecId) {
 			Validate.isTrue(codecId >= 0, "codecId 不可小于0");
@@ -333,7 +333,7 @@ public abstract class Media {
 		 * <p>返回最终构建完成的媒体对象，后续构建器的修改不会影响该对象</p>
 		 *
 		 * @return 构建完成的媒体对象（Audio/Video等具体实现类）
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public abstract V build();
 
@@ -342,7 +342,7 @@ public abstract class Media {
 		 * <p>泛型自限定的核心方法，子类无需重写，自动返回自身类型</p>
 		 *
 		 * @return 构建器自身
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@SuppressWarnings("unchecked")
 		protected T self() {

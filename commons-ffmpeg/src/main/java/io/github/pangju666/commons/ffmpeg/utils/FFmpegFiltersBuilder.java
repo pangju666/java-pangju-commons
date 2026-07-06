@@ -74,41 +74,41 @@ import java.util.*;
  * }</pre>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public abstract class FFmpegFiltersBuilder {
 	/**
 	 * 别名列表，用于构建输入标签顺序
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final List<Alias> aliasList = new ArrayList<>();
 
 	/**
 	 * 已存在的别名集合，用于去重
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Set<String> aliasSet = new HashSet<>();
 
 	/**
 	 * 别名与对应的滤镜链的映射关系
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Map<String, List<String>> aliasFiltersMap = new HashMap<>();
 
 	/**
 	 * 全局滤镜列表
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final List<String> globalFilterList = new ArrayList<>();
 
 	/**
 	 * 输入源的索引计数器
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected int indexInputs;
 
@@ -116,7 +116,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * 创建视频滤镜构建器
 	 *
 	 * @return 视频滤镜构建器实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static FFmpegFiltersBuilder video() {
 		return new Video();
@@ -126,7 +126,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * 创建音频滤镜构建器
 	 *
 	 * @return 音频滤镜构建器实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static FFmpegFiltersBuilder audio() {
 		return new Audio();
@@ -136,7 +136,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * 添加输入源
 	 *
 	 * @return 当前构建器实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addInput() {
 		aliasList.add(null);
@@ -152,7 +152,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param filter 输入源滤镜字符串
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addInput(String alias, String filter) {
 		Validate.notBlank(alias, "alias 不可为空");
@@ -178,7 +178,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param args       滤镜参数
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addInput(String alias, String filterName, String... args) {
 		Validate.notBlank(filterName, "filterName 不可为空");
@@ -197,7 +197,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @return 当前构建器实例
 	 * @throws IOException              文件操作失败时抛出
 	 * @throws IllegalArgumentException 当文件无效时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -214,7 +214,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @return 当前构建器实例
 	 * @throws IOException              文件操作失败时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, File file, String filter) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -232,7 +232,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @return 当前构建器实例
 	 * @throws IOException              文件操作失败时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, File file, String filterName, String... args) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -247,7 +247,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param filePath 文件路径
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当文件路径为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, String filePath) {
 		return addSource(alias, String.format("movie='%s'", FFmpegUtils.getSafeFileSourcePath(filePath)));
@@ -261,7 +261,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param filter   滤镜字符串
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当文件路径为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, String filePath, String filter) {
 		Validate.notBlank(filter, "filter 不可为空");
@@ -279,7 +279,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param args       滤镜参数
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当文件路径为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addFileSource(String alias, String filePath, String filterName, String... args) {
 		Validate.notBlank(filterName, "filterName 不可为空");
@@ -296,7 +296,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param filter 滤镜字符串
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addSource(String alias, String filter) {
 		Validate.notBlank(alias, "alias 不可为空");
@@ -321,7 +321,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param args       滤镜参数
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addSource(String alias, String filterName, String... args) {
 		Validate.notBlank(filterName, "filterName 不可为空");
@@ -339,7 +339,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param filter 滤镜字符串
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder appendAliasFilter(String alias, String filter) {
 		Validate.notBlank(alias, "alias 不可为空");
@@ -360,7 +360,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param args       滤镜参数
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder appendAliasFilter(String alias, String filterName, String... args) {
 		Validate.notBlank(filterName, "filterName 不可为空");
@@ -375,7 +375,7 @@ public abstract class FFmpegFiltersBuilder {
 	 *
 	 * @param filter 滤镜字符串
 	 * @return 当前构建器实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addGlobalFilter(String filter) {
 		if (StringUtils.isNotBlank(filter)) {
@@ -392,7 +392,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * @param args       滤镜参数
 	 * @return 当前构建器实例
 	 * @throws IllegalArgumentException 当参数为空时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public FFmpegFiltersBuilder addGlobalFilter(String filterName, String... args) {
 		Validate.notBlank(filterName, "filterName 不可为空");
@@ -405,7 +405,7 @@ public abstract class FFmpegFiltersBuilder {
 	 * 构建最终的 FFmpeg 滤镜链字符串
 	 *
 	 * @return FFmpeg 滤镜链字符串，没有全局滤镜时返回 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String build() {
 		if (globalFilterList.isEmpty()) {
@@ -461,7 +461,7 @@ public abstract class FFmpegFiltersBuilder {
 	 *
 	 * @param n 输入索引
 	 * @return 输入标签字符串
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected abstract String getIndexInputTag(int n);
 
@@ -469,14 +469,14 @@ public abstract class FFmpegFiltersBuilder {
 	 * 获取输出标签
 	 *
 	 * @return 输出标签字符串
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected abstract String getOutputTag();
 
 	/**
 	 * 视频滤镜构建器实现
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static class Video extends FFmpegFiltersBuilder {
 		@Override
@@ -493,7 +493,7 @@ public abstract class FFmpegFiltersBuilder {
 	/**
 	 * 音频滤镜构建器实现
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static class Audio extends FFmpegFiltersBuilder {
 		@Override
@@ -512,7 +512,7 @@ public abstract class FFmpegFiltersBuilder {
 	 *
 	 * @param alias   别名名称
 	 * @param isInput 是否为输入源
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected record Alias(String alias, Boolean isInput) {
 	}

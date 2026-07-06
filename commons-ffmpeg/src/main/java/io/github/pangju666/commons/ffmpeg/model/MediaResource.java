@@ -75,7 +75,7 @@ import java.util.UUID;
  * }</pre>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class MediaResource {
 	/**
@@ -84,7 +84,7 @@ public class MediaResource {
 	 * 格式：media-resource-加上UUID，可通过此前缀统一清理临时文件。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final String TMP_FILE_PREFIX = "media-resource-";
 
@@ -99,7 +99,7 @@ public class MediaResource {
 	 * </ul>
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Object source;
 
@@ -109,7 +109,7 @@ public class MediaResource {
 	 * 该值在实例创建时即确定，不会随源数据变化而更新。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final long size;
 
@@ -125,7 +125,7 @@ public class MediaResource {
 	 * </ul>
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final String mimeType;
 
@@ -136,7 +136,7 @@ public class MediaResource {
 	 * @param source   媒体源对象（仅支持 File、byte[]、InputStream 类型）
 	 * @param size     资源大小（单位：字节）
 	 * @param mimeType 媒体 MIME 类型
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected MediaResource(Object source, long size, String mimeType) {
 		this.source = source;
@@ -155,7 +155,7 @@ public class MediaResource {
 	 * @return 封装后的 MediaResource 实例
 	 * @throws IOException              文件读取、MIME 类型检测失败时抛出
 	 * @throws IllegalArgumentException 入参为空/非有效文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static MediaResource of(final File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -173,7 +173,7 @@ public class MediaResource {
 	 * @param bytes 媒体字节数组，<b>不可为 null</b>，长度可以为 0
 	 * @return 封装后的 MediaResource 实例
 	 * @throws IllegalArgumentException 入参为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static MediaResource of(final byte[] bytes) {
 		Validate.notNull(bytes, "bytes 不可为 null");
@@ -198,7 +198,7 @@ public class MediaResource {
 	 * @return 封装后的 MediaResource 实例，内部包含可重复读取的流
 	 * @throws IOException              流读取、缓冲、MIME 类型检测失败时抛出
 	 * @throws IllegalArgumentException 入参为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static MediaResource of(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -240,7 +240,7 @@ public class MediaResource {
 	 *
 	 * @return 媒体对应的文件对象；未知资源类型返回 {@code null}
 	 * @throws IOException 临时文件创建、内容写入失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public File getFile() throws IOException {
 		if (source instanceof File file) {
@@ -273,7 +273,7 @@ public class MediaResource {
 	 *
 	 * @return 媒体输入流；未知资源类型返回 {@code null}
 	 * @throws IOException 文件流打开失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public InputStream getInputStream() throws IOException {
 		if (source instanceof File file) {
@@ -303,7 +303,7 @@ public class MediaResource {
 	 *
 	 * @return 媒体字节数组；未知资源类型返回 {@code null}
 	 * @throws IOException 读取文件/流失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public byte[] getBytes() throws IOException {
 		if (source instanceof File file) {
@@ -324,7 +324,7 @@ public class MediaResource {
 	 * <p>该值在实例创建时已通过 Apache Tika 检测并缓存</p>
 	 *
 	 * @return MIME 类型字符串，例如：audio/wav、video/mp4；检测失败可能返回 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String getMimeType() {
 		return mimeType;
@@ -335,7 +335,7 @@ public class MediaResource {
 	 * <p>该值在实例创建时已计算并缓存，不会随源数据变化而更新</p>
 	 *
 	 * @return 资源大小（单位：字节）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public long getSize() {
 		return size;
@@ -346,7 +346,7 @@ public class MediaResource {
 	 * <p>通过检查 MIME 类型是否以 "audio/" 开头来判断</p>
 	 *
 	 * @return true = 音频资源，false = 非音频或 MIME 类型未知
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isAudio() {
 		return Strings.CS.startsWith(mimeType, IOConstants.AUDIO_MIME_TYPE_PREFIX);
@@ -357,7 +357,7 @@ public class MediaResource {
 	 * <p>通过检查 MIME 类型是否以 "video/" 开头来判断</p>
 	 *
 	 * @return true = 视频资源，false = 非视频或 MIME 类型未知
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isVideo() {
 		return Strings.CS.startsWith(mimeType, IOConstants.VIDEO_MIME_TYPE_PREFIX);
@@ -367,7 +367,7 @@ public class MediaResource {
 	 * 判断媒体资源是否来自本地文件
 	 *
 	 * @return true = 本地文件来源，false = 字节数组或输入流来源
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isFile() {
 		return Objects.nonNull(source) && source instanceof File;

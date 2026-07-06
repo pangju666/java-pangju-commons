@@ -50,7 +50,7 @@ import java.util.function.ObjLongConsumer;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class FFmpegUtils {
 	protected FFmpegUtils() {
@@ -66,7 +66,7 @@ public class FFmpegUtils {
 	 * @param filePath 原始文件路径
 	 * @return 安全的文件路径字符串
 	 * @throws IllegalArgumentException 当 filePath 为空或空白时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getSafeFileSourcePath(final String filePath) {
 		Validate.notBlank(filePath, "filePath 不可为空");
@@ -81,7 +81,7 @@ public class FFmpegUtils {
 	 * @return 微秒级时间戳
 	 * @throws NullPointerException     当 duration 为 null 时
 	 * @throws IllegalArgumentException 当 duration 为负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static long toTimestamp(final Duration duration) {
 		Validate.notNull(duration, "duration 不可为null");
@@ -103,7 +103,7 @@ public class FFmpegUtils {
 	 * @throws NullPointerException         当 mainGrabber 或 bgmGrabber 为 null 时
 	 * @throws IllegalArgumentException     当 mainGrabber 或 bgmGrabber 无音频流时
 	 * @throws FFmpegFrameGrabber.Exception 当抓取器启动失败时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAddBgmFilter(final FFmpegFrameGrabber mainGrabber, final FFmpegFrameGrabber bgmGrabber,
 	                                     final float bgmWeight) throws FFmpegFrameGrabber.Exception {
@@ -142,7 +142,7 @@ public class FFmpegUtils {
 	 *
 	 * @param db 音量变化的分贝值（正数表示增加的分贝值，负数表示减少的分贝值）
 	 * @return 音量滤镜字符串
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getVolumeFilter(final float db) {
 		return getVolumeFilter(db, VolumePrecision.FLOAT);
@@ -155,7 +155,7 @@ public class FFmpegUtils {
 	 * @param precision 数值精度
 	 * @return 音量滤镜字符串
 	 * @throws NullPointerException 当 precision 或 db 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getVolumeFilter(final Number db, final VolumePrecision precision) {
 		Validate.notNull(precision, "duration 不可为 null");
@@ -185,7 +185,7 @@ public class FFmpegUtils {
 	 * @param weights           各输入流的权重数组
 	 * @return amix 滤镜字符串
 	 * @throws IllegalArgumentException 当 inputs 小于 2 或 dropoutTransition 为负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAmixFilter(final int inputs, final int dropoutTransition, final float... weights) {
 		return getAmixFilter(inputs, dropoutTransition, AmixDuration.FIRST, weights);
@@ -201,7 +201,7 @@ public class FFmpegUtils {
 	 * @return amix 滤镜字符串
 	 * @throws NullPointerException     当 duration 为 null 时
 	 * @throws IllegalArgumentException 当 inputs 小于 2 或 dropoutTransition 为负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAmixFilter(final int inputs, final int dropoutTransition, final AmixDuration duration,
 	                                   final float... weights) {
@@ -235,7 +235,7 @@ public class FFmpegUtils {
 	 * @param lengthInTime 音频时长（微秒）
 	 * @return aloop 滤镜字符串
 	 * @throws IllegalArgumentException 当 sampleRate 或 lengthInTime 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAloopFilter(final int sampleRate, final long lengthInTime) {
 		return getAloopFilter(-1, sampleRate, lengthInTime);
@@ -249,7 +249,7 @@ public class FFmpegUtils {
 	 * @param lengthInTime 音频时长（微秒）
 	 * @return aloop 滤镜字符串
 	 * @throws IllegalArgumentException 当 loop 小于 -1，或 sampleRate/lengthInTime 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAloopFilter(final int loop, final int sampleRate, final long lengthInTime) {
 		Validate.isTrue(loop >= -1, "loop 必须大于等于 -1");
@@ -267,7 +267,7 @@ public class FFmpegUtils {
 	 * @return atrim 滤镜字符串
 	 * @throws NullPointerException     当 duration 为 null 时
 	 * @throws IllegalArgumentException 当 duration 为 0 或负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAtrimFilter(final Duration duration) {
 		Validate.notNull(duration, "duration 不可为null");
@@ -284,7 +284,7 @@ public class FFmpegUtils {
 	 * @return atrim 滤镜字符串
 	 * @throws NullPointerException     当 start 或 end 为 null 时
 	 * @throws IllegalArgumentException 当 start 为负数，或 end 为 0/负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAtrimFilter(final Duration start, final Duration end) {
 		Validate.notNull(start, "start 不可为null");
@@ -301,7 +301,7 @@ public class FFmpegUtils {
 	 * @param lengthInTime 裁剪时间戳（微秒）
 	 * @return atrim 滤镜字符串
 	 * @throws IllegalArgumentException 当 lengthInTime 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAtrimFilter(final long lengthInTime) {
 		Validate.isTrue(lengthInTime > 0, "lengthInTime 必须大于 0");
@@ -316,7 +316,7 @@ public class FFmpegUtils {
 	 * @param endTimestamp   结束时间戳（微秒）
 	 * @return atrim 滤镜字符串
 	 * @throws IllegalArgumentException 当 startTimestamp/endTimestamp 小于等于 0 或 endTimestamp 小于等于 startTimestamp 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAtrimFilter(final long startTimestamp, final long endTimestamp) {
 		Validate.isTrue(startTimestamp > 0, "startTimestamp 必须大于 0");
@@ -333,7 +333,7 @@ public class FFmpegUtils {
 	 * @return trim 滤镜字符串
 	 * @throws NullPointerException     当 duration 为 null 时
 	 * @throws IllegalArgumentException 当 duration 为 0 或负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getTrimFilter(final Duration duration) {
 		Validate.notNull(duration, "duration 不可为null");
@@ -350,7 +350,7 @@ public class FFmpegUtils {
 	 * @return trim 滤镜字符串
 	 * @throws NullPointerException     当 start 或 end 为 null 时
 	 * @throws IllegalArgumentException 当 start 为负数，或 end 为 0/负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getTrimFilter(final Duration start, final Duration end) {
 		Validate.notNull(start, "start 不可为null");
@@ -367,7 +367,7 @@ public class FFmpegUtils {
 	 * @param lengthInTime 裁剪时间戳（微秒）
 	 * @return trim 滤镜字符串
 	 * @throws IllegalArgumentException 当 lengthInTime 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getTrimFilter(final long lengthInTime) {
 		Validate.isTrue(lengthInTime > 0, "lengthInTime 必须大于 0");
@@ -382,7 +382,7 @@ public class FFmpegUtils {
 	 * @param endTimestamp   结束时间戳（微秒）
 	 * @return trim 滤镜字符串
 	 * @throws IllegalArgumentException 当 startTimestamp/endTimestamp 小于等于 0 或 endTimestamp 小于等于 startTimestamp 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getTrimFilter(final long startTimestamp, final long endTimestamp) {
 		Validate.isTrue(startTimestamp > 0, "startTimestamp 必须大于 0");
@@ -398,7 +398,7 @@ public class FFmpegUtils {
 	 * @param speed 播放速度（0.5 - 100）
 	 * @return atempo 滤镜字符串
 	 * @throws IllegalArgumentException 当 speed 超出 [0.5, 100] 范围时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getAtempoFilter(final float speed) {
 		Validate.isTrue(speed >= 0.5, "speed 必须大于等于 0.5");
@@ -416,7 +416,7 @@ public class FFmpegUtils {
 	 * @param height 裁剪高度
 	 * @return crop 滤镜字符串
 	 * @throws IllegalArgumentException 当 x/y 为负数，或 width/height 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getCropFilter(final int x, final int y, final int width, final int height) {
 		Validate.isTrue(x >= 0, "x 必须大于等于 0");
@@ -436,7 +436,7 @@ public class FFmpegUtils {
 	 * @param speed 播放速度（大于 0）
 	 * @return setpts 滤镜字符串
 	 * @throws IllegalArgumentException 当 speed 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getSetptsFilter(final float speed) {
 		Validate.isTrue(speed > 0, "speed 必须大于 0");
@@ -452,7 +452,7 @@ public class FFmpegUtils {
 	 * @param frameRate 目标帧率
 	 * @return fps 滤镜字符串
 	 * @throws IllegalArgumentException 当 frameRate 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String getFpsFilter(final double frameRate) {
 		Validate.isTrue(frameRate > 0, "frameRate 必须大于 0");
@@ -471,7 +471,7 @@ public class FFmpegUtils {
 	 * @param recorderStarted 录制器是否已启动
 	 * @param <T>             媒体类型
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void applyAudioFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                                      final T outputMedia, final String audioFilters, final FrameType frameType,
@@ -490,7 +490,7 @@ public class FFmpegUtils {
 	 * @param recorderStarted 录制器是否已启动
 	 * @param <T>             媒体类型
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void applyVideoFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                                      final T outputMedia, final String videoFilters, final FrameType frameType,
@@ -510,7 +510,7 @@ public class FFmpegUtils {
 	 * @param recorderStarted 录制器是否已启动
 	 * @param <T>             媒体类型
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void applyFilter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                                 final T outputMedia, final String videoFilters,
@@ -533,7 +533,7 @@ public class FFmpegUtils {
 	 * @param <T>             媒体类型
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 grabber、recorder 或 frameType 为 null，或 videoFilters 和 audioFilters 同时为空时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void applyFilter(final FFmpegFrameGrabber grabber,
 	                                                 final FFmpegFrameRecorder recorder, final T filterMedia,
@@ -589,7 +589,7 @@ public class FFmpegUtils {
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 grabbers、frameType、filterMedia、outputMedia 或 recorder 为 null，
 	 *                              或 grabbers 包含 null 元素，或 videoFilters 和 audioFilters 同时为空时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void applyFilter(final List<FFmpegFrameGrabber> grabbers,
 	                                                 final FFmpegFrameRecorder recorder, final T filterMedia,
@@ -660,7 +660,7 @@ public class FFmpegUtils {
 	 * @param recorderStarted 录制器是否已启动
 	 * @param <T>             媒体类型
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                         final T outputMedia, final Duration duration, final FrameType frameType,
@@ -682,7 +682,7 @@ public class FFmpegUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 start 或 end 为 null 时
 	 * @throws IllegalArgumentException 当 start 为负数，或 end 为 0/负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                         final T outputMedia, final Duration start, final Duration end,
@@ -709,7 +709,7 @@ public class FFmpegUtils {
 	 * @param <T>             媒体类型
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 grabber 或 recorder 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void cut(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                         final T outputMedia, long startTimestamp, long endTimestamp,
@@ -762,7 +762,7 @@ public class FFmpegUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resources、frameType 或 recorder 为 null，或 resources 包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void concatByResource(final Collection<MediaResource> resources,
 	                                                      final FFmpegFrameRecorder recorder, final T outputMedia,
@@ -800,7 +800,7 @@ public class FFmpegUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 grabbers、frameType 或 recorder 为 null，或 grabbers 包含 null 元素时
 	 * @throws IllegalArgumentException 当 grabbers 为空时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void concat(final Collection<FFmpegFrameGrabber> grabbers,
 	                                            final FFmpegFrameRecorder recorder, final T outputMedia,
@@ -840,7 +840,7 @@ public class FFmpegUtils {
 	 * @param <T>             媒体类型
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 grabber、recorder 或 frameType 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void transcode(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                               final T outputMedia, final FrameType frameType,
@@ -866,7 +866,7 @@ public class FFmpegUtils {
 	 * @return 已打开的帧抓取器
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 resource 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static FFmpegFrameGrabber openFrameGrabber(final MediaResource resource) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -894,7 +894,7 @@ public class FFmpegUtils {
 	 * @throws IllegalArgumentException     当 videoFilters 和 audioFilters 同时为空，
 	 *                                      或 grabber 和 filterMedia 同时为 null，
 	 *                                      或 audioInputs/videoInputs 为负数时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> FFmpegFrameFilter openFrameFilter(final String videoFilters, final String audioFilters,
 	                                                                  final FFmpegFrameGrabber grabber, final T filterMedia,
@@ -920,7 +920,7 @@ public class FFmpegUtils {
 	 * @throws FrameGrabber.Exception        当抓取失败时
 	 * @throws NullPointerException          当 recorder、videoGrabber 或 audioGrabber 为 null 时
 	 * @throws IllegalArgumentException      当 videoGrabber 无视频流或 audioGrabber 无音频流时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber videoGrabber,
 	                                final FFmpegFrameGrabber audioGrabber) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
@@ -964,7 +964,7 @@ public class FFmpegUtils {
 	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
 	 * @throws FrameGrabber.Exception        当抓取失败时
 	 * @throws NullPointerException          当 recorder、grabber 或 frameType 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
 	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
@@ -996,7 +996,7 @@ public class FFmpegUtils {
 	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
 	 * @throws FFmpegFrameFilter.Exception   当滤镜操作失败时
 	 * @throws NullPointerException          当 recorder、filter 或 frameType 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameFilter filter,
 	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameFilter.Exception {
@@ -1013,7 +1013,7 @@ public class FFmpegUtils {
 	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
 	 * @throws FFmpegFrameFilter.Exception   当滤镜操作失败时
 	 * @throws NullPointerException          当 recorder、filter 或 frameType 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameFilter filter,
 	                                final FrameType frameType, final boolean flushRecorder) throws FFmpegFrameRecorder.Exception, FFmpegFrameFilter.Exception {
@@ -1045,7 +1045,7 @@ public class FFmpegUtils {
 	 * @param <T>         媒体类型
 	 * @throws FFmpegFrameRecorder.Exception 当录制器启动失败时
 	 * @throws FFmpegFrameGrabber.Exception  当抓取器操作失败时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
 	                                                   final T outputMedia, final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameGrabber.Exception {
@@ -1065,7 +1065,7 @@ public class FFmpegUtils {
 	 * @throws FFmpegFrameGrabber.Exception  当抓取器操作失败时
 	 * @throws NullPointerException          当 recorder 为 null 时
 	 * @throws IllegalArgumentException      当 outputMedia 与 (videoGrabber 和 audioGrabber) 同时为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder,
 	                                                   final FFmpegFrameGrabber videoGrabber,
@@ -1152,7 +1152,7 @@ public class FFmpegUtils {
 	 * @throws NullPointerException         当 filter 为 null 时
 	 * @throws IllegalArgumentException     当 audioInputs/videoInputs 为负数，
 	 *                                      或 grabber 和 filterMedia 同时为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static <T extends Media> void startFilter(final FFmpegFrameFilter filter, final FFmpegFrameGrabber grabber,
 	                                                 final T filterMedia, final int audioInputs, final int videoInputs)
@@ -1207,7 +1207,7 @@ public class FFmpegUtils {
 	 *
 	 * @param grabber 帧抓取器
 	 * @return 如果未启动返回 true，否则返回 false
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isNotStarted(final FFmpegFrameGrabber grabber) {
 		return Objects.isNull(grabber.getFormatContext()) || grabber.getFormatContext().isNull();
@@ -1222,7 +1222,7 @@ public class FFmpegUtils {
 	 * @throws FrameGrabber.Exception   当抓取失败时
 	 * @throws NullPointerException     当 grabber 或 timestamp 为 null 时
 	 * @throws IllegalArgumentException 当 timestamp 超过媒体总时长时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static BufferedImage grabImageAtTimestamp(final FFmpegFrameGrabber grabber, final Duration timestamp) throws FrameGrabber.Exception {
 		Validate.notNull(grabber, "grabber 不可为 null");
@@ -1252,7 +1252,7 @@ public class FFmpegUtils {
 	 * @throws FrameGrabber.Exception   当抓取失败时
 	 * @throws NullPointerException     当 grabber 或 timeUnit 为 null 时
 	 * @throws IllegalArgumentException 当 interval 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> grabImagePeriodically(final FFmpegFrameGrabber grabber, final long interval,
 	                                                        final TimeUnit timeUnit) throws FrameGrabber.Exception {
@@ -1300,7 +1300,7 @@ public class FFmpegUtils {
 	 * @throws FrameGrabber.Exception   当抓取失败时
 	 * @throws NullPointerException     当 grabber、timeUnit 或 consumer 为 null 时
 	 * @throws IllegalArgumentException 当 interval 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImagePeriodically(final FFmpegFrameGrabber grabber, final long interval, final TimeUnit timeUnit,
 	                                         final ObjLongConsumer<BufferedImage> consumer) throws FrameGrabber.Exception {
@@ -1340,7 +1340,7 @@ public class FFmpegUtils {
 	/**
 	 * 启用 FFmpeg 日志（默认警告级别）
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void enableLog() {
 		enableLog(avutil.AV_LOG_WARNING);
@@ -1350,7 +1350,7 @@ public class FFmpegUtils {
 	 * 启用 FFmpeg 日志（指定级别）
 	 *
 	 * @param level 日志级别（使用 FFmpeg 的 AV_LOG_* 常量）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void enableLog(int level) {
 		FFmpegLogCallback.set();
@@ -1361,32 +1361,32 @@ public class FFmpegUtils {
 	 * 音频混合时长模式枚举
 	 *
 	 * @author pangju666
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public enum AmixDuration {
 		/**
 		 * 使用第一个输入流的时长
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		FIRST("first"),
 		/**
 		 * 使用最长输入流的时长
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		LONGEST("longest"),
 		/**
 		 * 使用最短输入流的时长
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		SHORTEST("shortest");
 
 		/**
 		 * FFmpeg 滤镜参数值
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public final String value;
 
@@ -1399,25 +1399,25 @@ public class FFmpegUtils {
 	 * 音量滤镜精度枚举
 	 *
 	 * @author pangju666
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public enum VolumePrecision {
 		/**
 		 * 整数精度
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		FIXED,
 		/**
 		 * 单精度浮点
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		FLOAT,
 		/**
 		 * 双精度浮点
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		DOUBLE
 	}

@@ -28,27 +28,27 @@ import org.bytedeco.javacv.FrameGrabber;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public enum FrameType {
 	/**
 	 * 音频帧类型
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	AUDIO,
 
 	/**
 	 * 视频帧类型
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	VIDEO,
 
 	/**
 	 * 全部帧类型（包含音频和视频）
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	ALL;
 
@@ -58,7 +58,7 @@ public enum FrameType {
 	 * @param grabber FFmpeg 帧抓取器，不可为 null
 	 * @return 抓取到的 Frame 对象，可能为 null
 	 * @throws FrameGrabber.Exception 抓取过程中发生异常时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Frame grabFrame(FFmpegFrameGrabber grabber) throws FrameGrabber.Exception {
 		return switch (this) {
@@ -74,7 +74,7 @@ public enum FrameType {
 	 * @param filter FFmpeg 帧过滤器，不可为 null
 	 * @return 拉取到的 Frame 对象，可能为 null
 	 * @throws FFmpegFrameFilter.Exception 拉取过程中发生异常时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Frame pullFrame(FFmpegFrameFilter filter) throws FFmpegFrameFilter.Exception {
 		if (this == AUDIO) {

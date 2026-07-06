@@ -48,7 +48,7 @@ import java.util.function.ToDoubleBiFunction;
  *
  * @author pangju666
  * @see Direction
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class TextWatermarkOption {
 	/**
@@ -56,21 +56,21 @@ public class TextWatermarkOption {
 	 *
 	 * <p>用于将磅值（pt）转换为 OpenCV 的 fontScale</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final double STD_FONT_DIV = 14.0;
 
 	/**
 	 * 手写体字体的缩放除数
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final double SCRIPT_FONT_DIV = 15.0;
 
 	/**
 	 * 小号字体的缩放除数
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final double SMALL_FONT_DIV = 12.0;
 
@@ -79,7 +79,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>范围：0.0（完全透明）- 1.0（完全不透明），默认值 0.4</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private float opacity = 0.4f;
 
@@ -88,7 +88,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>单位：像素，默认值 20</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int margin = 20;
 
@@ -97,7 +97,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>仅在未设置方向时使用，默认值 0</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int x = 0;
 
@@ -106,7 +106,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>仅在未设置方向时使用，默认值 0</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int y = 0;
 
@@ -115,7 +115,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>优先使用此参数设置水印位置，未设置时使用自定义坐标</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Direction direction;
 
@@ -124,7 +124,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>默认值：黑色</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Color strokeColor = Color.BLACK;
 
@@ -133,7 +133,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>默认值：白色</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Color fillColor = Color.WHITE;
 
@@ -142,7 +142,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>单位：像素，默认值 2</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int strokeSize = 2;
 
@@ -151,7 +151,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>默认值：true（启用）</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private boolean stroke = true;
 
@@ -160,7 +160,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>单位：像素，默认值 4</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int thickness = 4;
 
@@ -169,7 +169,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>默认值：FONT_HERSHEY_SIMPLEX</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int fontFace = opencv_imgproc.FONT_HERSHEY_SIMPLEX;
 
@@ -180,7 +180,7 @@ public class TextWatermarkOption {
 	 * <p>输入参数：(目标图像尺寸, 字体类型)，返回值：fontScale</p>
 	 * <p>默认策略会根据图像尺寸动态计算，并根据字体类型使用不同的缩放除数。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private ToDoubleBiFunction<Size, Integer> fontScaleStrategy = (size, fontFace) -> {
 		int shorter = Math.min(size.width(), size.height());
@@ -210,7 +210,7 @@ public class TextWatermarkOption {
 	 * 获取水印透明度
 	 *
 	 * @return 透明度值，范围 0.0 - 1.0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public float getOpacity() {
 		return opacity;
@@ -220,7 +220,7 @@ public class TextWatermarkOption {
 	 * 设置水印透明度
 	 *
 	 * @param opacity 透明度值，范围 0.0 - 1.0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setOpacity(float opacity) {
 		if (opacity >= 0f && opacity <= 1) {
@@ -232,7 +232,7 @@ public class TextWatermarkOption {
 	 * 获取水印边距
 	 *
 	 * @return 边距值（单位：像素）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getMargin() {
 		return margin;
@@ -242,7 +242,7 @@ public class TextWatermarkOption {
 	 * 设置水印边距
 	 *
 	 * @param margin 边距值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setMargin(int margin) {
 		if (margin >= 0) {
@@ -254,7 +254,7 @@ public class TextWatermarkOption {
 	 * 获取自定义 X 坐标
 	 *
 	 * @return X 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getX() {
 		return x;
@@ -264,7 +264,7 @@ public class TextWatermarkOption {
 	 * 设置自定义 X 坐标
 	 *
 	 * @param x X 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setX(int x) {
 		if (x >= 0) {
@@ -276,7 +276,7 @@ public class TextWatermarkOption {
 	 * 获取自定义 Y 坐标
 	 *
 	 * @return Y 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getY() {
 		return y;
@@ -286,7 +286,7 @@ public class TextWatermarkOption {
 	 * 设置自定义 Y 坐标
 	 *
 	 * @param y Y 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setY(int y) {
 		if (y >= 0) {
@@ -298,7 +298,7 @@ public class TextWatermarkOption {
 	 * 获取水印位置方向
 	 *
 	 * @return 位置方向枚举，可能为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Direction getDirection() {
 		return direction;
@@ -308,7 +308,7 @@ public class TextWatermarkOption {
 	 * 设置水印位置方向
 	 *
 	 * @param direction 位置方向枚举
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setDirection(Direction direction) {
 		this.direction = direction;
@@ -318,7 +318,7 @@ public class TextWatermarkOption {
 	 * 是否启用描边
 	 *
 	 * @return true 表示启用描边，false 表示禁用
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isStroke() {
 		return stroke;
@@ -328,7 +328,7 @@ public class TextWatermarkOption {
 	 * 设置是否启用描边
 	 *
 	 * @param stroke 是否启用描边
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setStroke(boolean stroke) {
 		this.stroke = stroke;
@@ -338,7 +338,7 @@ public class TextWatermarkOption {
 	 * 获取描边大小
 	 *
 	 * @return 描边大小（单位：像素）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getStrokeSize() {
 		return strokeSize;
@@ -348,7 +348,7 @@ public class TextWatermarkOption {
 	 * 设置描边大小
 	 *
 	 * @param strokeSize 描边大小，必须大于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setStrokeSize(int strokeSize) {
 		if (strokeSize > 0) {
@@ -360,7 +360,7 @@ public class TextWatermarkOption {
 	 * 获取描边颜色
 	 *
 	 * @return 描边颜色对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Color getStrokeColor() {
 		return strokeColor;
@@ -370,7 +370,7 @@ public class TextWatermarkOption {
 	 * 设置描边颜色
 	 *
 	 * @param strokeColor 描边颜色对象，不能为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setStrokeColor(Color strokeColor) {
 		if (Objects.nonNull(strokeColor)) {
@@ -382,7 +382,7 @@ public class TextWatermarkOption {
 	 * 获取填充颜色（文字颜色）
 	 *
 	 * @return 填充颜色对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Color getFillColor() {
 		return fillColor;
@@ -392,7 +392,7 @@ public class TextWatermarkOption {
 	 * 设置填充颜色（文字颜色）
 	 *
 	 * @param fillColor 填充颜色对象，不能为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setFillColor(Color fillColor) {
 		if (Objects.nonNull(fillColor)) {
@@ -404,7 +404,7 @@ public class TextWatermarkOption {
 	 * 获取文字线条粗细
 	 *
 	 * @return 线条粗细值（单位：像素）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getThickness() {
 		return thickness;
@@ -414,7 +414,7 @@ public class TextWatermarkOption {
 	 * 设置文字线条粗细
 	 *
 	 * @param thickness 线条粗细值，必须大于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setThickness(int thickness) {
 		if (thickness > 0) {
@@ -426,7 +426,7 @@ public class TextWatermarkOption {
 	 * 获取字体缩放策略
 	 *
 	 * @return 字体缩放策略函数，输入参数：(目标图像尺寸, 字体类型)，返回值：fontScale
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public ToDoubleBiFunction<Size, Integer> getFontScaleStrategy() {
 		return fontScaleStrategy;
@@ -436,7 +436,7 @@ public class TextWatermarkOption {
 	 * 设置字体缩放策略
 	 *
 	 * @param fontScaleStrategy 字体缩放策略函数
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setFontScaleStrategy(ToDoubleBiFunction<Size, Integer> fontScaleStrategy) {
 		this.fontScaleStrategy = fontScaleStrategy;
@@ -446,7 +446,7 @@ public class TextWatermarkOption {
 	 * 获取 OpenCV 字体类型
 	 *
 	 * @return 字体类型常量（来自 opencv_imgproc）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getFontFace() {
 		return fontFace;
@@ -456,7 +456,7 @@ public class TextWatermarkOption {
 	 * 设置 OpenCV 字体类型
 	 *
 	 * @param fontFace 字体类型常量（来自 opencv_imgproc）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setFontFace(int fontFace) {
 		this.fontFace = fontFace;

@@ -75,14 +75,14 @@ import java.util.Objects;
  * @see Audio
  * @see Video.Builder
  * @see FFmpegFrameGrabber
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class Video extends Media {
 	/**
 	 * 标准AAC音频配置 - 适用于480P视频
 	 * <p>AAC编码，96kbps码率，默认采样率44.1kHz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_AAC_480P = Audio.builder()
 		.aac()
@@ -93,7 +93,7 @@ public class Video extends Media {
 	 * 标准AAC音频配置 - 适用于720P视频
 	 * <p>AAC编码，128kbps码率，默认采样率44.1kHz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_AAC_720P = Audio.builder()
 		.aac()
@@ -104,7 +104,7 @@ public class Video extends Media {
 	 * 标准AAC音频配置 - 适用于1080P视频
 	 * <p>AAC编码，192kbps码率，48kHz采样率，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_AAC_1080P = Audio.builder()
 		.aac()
@@ -116,7 +116,7 @@ public class Video extends Media {
 	 * 标准AAC音频配置 - 适用于2K视频
 	 * <p>AAC编码，256kbps码率，48kHz采样率，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_AAC_2K = Audio.builder()
 		.aac()
@@ -128,7 +128,7 @@ public class Video extends Media {
 	 * 标准OPUS音频配置 - 适用于480P视频
 	 * <p>OPUS编码，80kbps码率，默认采样率44.1kHz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_OPUS_480P = Audio.builder()
 		.opus()
@@ -139,7 +139,7 @@ public class Video extends Media {
 	 * 标准OPUS音频配置 - 适用于720P视频
 	 * <p>OPUS编码，96kbps码率，默认采样率44.1kHz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_OPUS_720P = Audio.builder()
 		.opus()
@@ -150,7 +150,7 @@ public class Video extends Media {
 	 * 标准OPUS音频配置 - 适用于1080P视频
 	 * <p>OPUS编码，128kbps码率，48kHz采样率，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_OPUS_1080P = Audio.builder()
 		.opus()
@@ -162,7 +162,7 @@ public class Video extends Media {
 	 * 标准OPUS音频配置 - 适用于2K视频
 	 * <p>OPUS编码，192kbps码率，48kHz采样率，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_OPUS_2K = Audio.builder()
 		.opus()
@@ -174,7 +174,7 @@ public class Video extends Media {
 	 * 标准FLAC无损音频配置 - 适用于视频
 	 * <p>FLAC编码，48kHz采样率，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AUDIO_FLAC_VIDEO = Audio.builder()
 		.flac()
@@ -185,7 +185,7 @@ public class Video extends Media {
 	 * 标准MP4 480P视频配置（标准码率）
 	 * <p>MP4容器+H264编码，640×480，1.5Mbps，30fps，配AAC 480P音频
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P = Video.builder()
 		.mp4WithH264()
@@ -198,7 +198,7 @@ public class Video extends Media {
 	 * 标准MP4 720P视频配置（标准码率）
 	 * <p>MP4容器+H264编码，1280×720，3Mbps，30fps，配AAC 720P音频
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P = Video.builder()
 		.mp4WithH264()
@@ -211,7 +211,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P视频配置（标准码率）
 	 * <p>MP4容器+H264编码，1920×1080，6Mbps，30fps，配AAC 1080P音频
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P = Video.builder()
 		.mp4WithH264()
@@ -224,7 +224,7 @@ public class Video extends Media {
 	 * 标准MP4 2K视频配置（标准码率）
 	 * <p>MP4容器+H264编码，2560×1440，12Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K = Video.builder()
 		.mp4WithH264()
@@ -237,7 +237,7 @@ public class Video extends Media {
 	 * 标准MP4 480P竖屏视频配置（标准码率）
 	 * <p>MP4容器+H264编码，480×640，1.5Mbps，30fps，配AAC 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -250,7 +250,7 @@ public class Video extends Media {
 	 * 标准MP4 720P竖屏视频配置（标准码率）
 	 * <p>MP4容器+H264编码，720×1280，3Mbps，30fps，配AAC 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -263,7 +263,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P竖屏视频配置（标准码率）
 	 * <p>MP4容器+H264编码，1080×1920，6Mbps，30fps，配AAC 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -276,7 +276,7 @@ public class Video extends Media {
 	 * 标准MP4 2K竖屏视频配置（标准码率）
 	 * <p>MP4容器+H264编码，1440×2560，12Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -289,7 +289,7 @@ public class Video extends Media {
 	 * 标准MP4 480P视频配置（低码率）
 	 * <p>MP4容器+H264编码，640×480，1Mbps，30fps，配AAC 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P_LOW = Video.builder()
 		.mp4WithH264()
@@ -302,7 +302,7 @@ public class Video extends Media {
 	 * 标准MP4 720P视频配置（低码率）
 	 * <p>MP4容器+H264编码，1280×720，2Mbps，30fps，配AAC 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P_LOW = Video.builder()
 		.mp4WithH264()
@@ -315,7 +315,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P视频配置（低码率）
 	 * <p>MP4容器+H264编码，1920×1080，4Mbps，30fps，配AAC 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P_LOW = Video.builder()
 		.mp4WithH264()
@@ -328,7 +328,7 @@ public class Video extends Media {
 	 * 标准MP4 2K视频配置（低码率）
 	 * <p>MP4容器+H264编码，2560×1440，8Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K_LOW = Video.builder()
 		.mp4WithH264()
@@ -341,7 +341,7 @@ public class Video extends Media {
 	 * 标准MP4 480P竖屏视频配置（低码率）
 	 * <p>MP4容器+H264编码，480×640，1Mbps，30fps，配AAC 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P_LOW_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -354,7 +354,7 @@ public class Video extends Media {
 	 * 标准MP4 720P竖屏视频配置（低码率）
 	 * <p>MP4容器+H264编码，720×1280，2Mbps，30fps，配AAC 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P_LOW_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -367,7 +367,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P竖屏视频配置（低码率）
 	 * <p>MP4容器+H264编码，1080×1920，4Mbps，30fps，配AAC 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P_LOW_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -380,7 +380,7 @@ public class Video extends Media {
 	 * 标准MP4 2K竖屏视频配置（低码率）
 	 * <p>MP4容器+H264编码，1440×2560，8Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K_LOW_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -393,7 +393,7 @@ public class Video extends Media {
 	 * 标准MP4 480P视频配置（高码率）
 	 * <p>MP4容器+H264编码，640×480，2Mbps，30fps，配AAC 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P_HIGH = Video.builder()
 		.mp4WithH264()
@@ -406,7 +406,7 @@ public class Video extends Media {
 	 * 标准MP4 720P视频配置（高码率）
 	 * <p>MP4容器+H264编码，1280×720，4Mbps，30fps，配AAC 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P_HIGH = Video.builder()
 		.mp4WithH264()
@@ -419,7 +419,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P视频配置（高码率）
 	 * <p>MP4容器+H264编码，1920×1080，8Mbps，30fps，配AAC 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P_HIGH = Video.builder()
 		.mp4WithH264()
@@ -432,7 +432,7 @@ public class Video extends Media {
 	 * 标准MP4 2K视频配置（高码率）
 	 * <p>MP4容器+H264编码，2560×1440，16Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K_HIGH = Video.builder()
 		.mp4WithH264()
@@ -445,7 +445,7 @@ public class Video extends Media {
 	 * 标准MP4 480P竖屏视频配置（高码率）
 	 * <p>MP4容器+H264编码，480×640，2Mbps，30fps，配AAC 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_480P_HIGH_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -458,7 +458,7 @@ public class Video extends Media {
 	 * 标准MP4 720P竖屏视频配置（高码率）
 	 * <p>MP4容器+H264编码，720×1280，4Mbps，30fps，配AAC 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_720P_HIGH_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -471,7 +471,7 @@ public class Video extends Media {
 	 * 标准MP4 1080P竖屏视频配置（高码率）
 	 * <p>MP4容器+H264编码，1080×1920，8Mbps，30fps，配AAC 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_1080P_HIGH_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -484,7 +484,7 @@ public class Video extends Media {
 	 * 标准MP4 2K竖屏视频配置（高码率）
 	 * <p>MP4容器+H264编码，1440×2560，16Mbps，30fps，配AAC 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MP4_2K_HIGH_VERTICAL = Video.builder()
 		.mp4WithH264()
@@ -497,7 +497,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，640×480，1.3Mbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P = Video.builder()
 		.webmWithVP9()
@@ -510,7 +510,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，1280×720，2.6Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P = Video.builder()
 		.webmWithVP9()
@@ -523,7 +523,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，1920×1080，5.2Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P = Video.builder()
 		.webmWithVP9()
@@ -536,7 +536,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，2560×1440，10.5Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K = Video.builder()
 		.webmWithVP9()
@@ -549,7 +549,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P竖屏视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，480×640，1.3Mbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -562,7 +562,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P竖屏视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，720×1280，2.6Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -575,7 +575,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P竖屏视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，1080×1920，5.2Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -588,7 +588,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K竖屏视频配置（标准码率）
 	 * <p>WEBM容器+VP9编码，1440×2560，10.5Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -601,7 +601,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，640×480，750kbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P_LOW = Video.builder()
 		.webmWithVP9()
@@ -614,7 +614,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，1280×720，1.5Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P_LOW = Video.builder()
 		.webmWithVP9()
@@ -627,7 +627,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，1920×1080，3Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P_LOW = Video.builder()
 		.webmWithVP9()
@@ -640,7 +640,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，2560×1440，6Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K_LOW = Video.builder()
 		.webmWithVP9()
@@ -653,7 +653,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P竖屏视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，480×640，750kbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P_LOW_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -666,7 +666,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P竖屏视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，720×1280，1.5Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P_LOW_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -679,7 +679,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P竖屏视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，1080×1920，3Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P_LOW_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -692,7 +692,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K竖屏视频配置（低码率）
 	 * <p>WEBM容器+VP9编码，1440×2560，6Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K_LOW_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -705,7 +705,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，640×480，1.8Mbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P_HIGH = Video.builder()
 		.webmWithVP9()
@@ -718,7 +718,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，1280×720，3.5Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P_HIGH = Video.builder()
 		.webmWithVP9()
@@ -731,7 +731,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，1920×1080，7Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P_HIGH = Video.builder()
 		.webmWithVP9()
@@ -744,7 +744,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，2560×1440，14Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K_HIGH = Video.builder()
 		.webmWithVP9()
@@ -757,7 +757,7 @@ public class Video extends Media {
 	 * 标准WEBM 480P竖屏视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，480×640，1.8Mbps，30fps，配OPUS 480P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_480P_HIGH_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -770,7 +770,7 @@ public class Video extends Media {
 	 * 标准WEBM 720P竖屏视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，720×1280，3.5Mbps，30fps，配OPUS 720P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_720P_HIGH_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -783,7 +783,7 @@ public class Video extends Media {
 	 * 标准WEBM 1080P竖屏视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，1080×1920，7Mbps，30fps，配OPUS 1080P音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_1080P_HIGH_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -796,7 +796,7 @@ public class Video extends Media {
 	 * 标准WEBM 2K竖屏视频配置（高码率）
 	 * <p>WEBM容器+VP9编码，1440×2560，14Mbps，30fps，配OPUS 2K音频</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video WEBM_2K_HIGH_VERTICAL = Video.builder()
 		.webmWithVP9()
@@ -810,7 +810,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，640×480，900kbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_480P = Video.builder()
 		.mkvWithH265()
@@ -824,7 +824,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，1280×720，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_720P = Video.builder()
 		.mkvWithH265()
@@ -838,7 +838,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，1920×1080，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_1080P = Video.builder()
 		.mkvWithH265()
@@ -852,7 +852,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，2560×1440，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_2K = Video.builder()
 		.mkvWithH265()
@@ -866,7 +866,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，480×640，900kbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_480P_VERTICAL = Video.builder()
 		.mkvWithH265()
@@ -880,7 +880,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，720×1280，1.8Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_720P_VERTICAL = Video.builder()
 		.mkvWithH265()
@@ -894,7 +894,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，1080×1920，3.6Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_1080P_VERTICAL = Video.builder()
 		.mkvWithH265()
@@ -908,7 +908,7 @@ public class Video extends Media {
 	 * <p>MKV容器+H265编码，1440×2560，7.2Mbps，30fps，配FLAC无损音频</p>
 	 *
 	 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Video MKV_2K_VERTICAL = Video.builder()
 		.mkvWithH265()
@@ -921,7 +921,7 @@ public class Video extends Media {
 	 * 视频总播放时长
 	 * <p>null / {@link Duration#ZERO} 代表无有效时长（如实时流、直播流）</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Duration duration;
 
@@ -929,7 +929,7 @@ public class Video extends Media {
 	 * 视频帧率，单位 fps（帧/秒）
 	 * <p>常见取值：24、25、30、60，数值越高画面越流畅、体积越大</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final double frameRate;
 
@@ -937,7 +937,7 @@ public class Video extends Media {
 	 * 视频宽度，单位像素
 	 * <p>常见分辨率：1920（1080p）、1280（720p）、3840（4K）</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int width;
 
@@ -945,7 +945,7 @@ public class Video extends Media {
 	 * 视频高度，单位像素
 	 * <p>常见分辨率：1080（1080p）、720（720p）、2160（4K）</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int height;
 
@@ -953,7 +953,7 @@ public class Video extends Media {
 	 * 视频码率，单位 bps
 	 * <p>码率越高画质越好、体积越大，需根据分辨率和帧率合理设置</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int bitrate;
 
@@ -961,7 +961,7 @@ public class Video extends Media {
 	 * 视频中的音频信息
 	 * <p>null 表示视频无音频轨道</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Audio audio;
 
@@ -978,7 +978,7 @@ public class Video extends Media {
 	 * @param height    视频高度
 	 * @param bitrate   视频码率
 	 * @param audio     音频信息
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected Video(String format, String codecName, Map<String, String> metadata, int codecId, Duration duration,
 	                double frameRate, int width, int height, int bitrate, Audio audio) {
@@ -995,7 +995,7 @@ public class Video extends Media {
 	 * 创建新的视频构建器
 	 *
 	 * @return 空的Video.Builder实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder() {
 		return new Video.Builder();
@@ -1008,7 +1008,7 @@ public class Video extends Media {
 	 * @param video 源视频对象，不可为null
 	 * @return 基于现有视频的Video.Builder实例
 	 * @throws IllegalArgumentException 当video为null时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder(Video video) {
 		return new Video.Builder(video);
@@ -1022,7 +1022,7 @@ public class Video extends Media {
 	 * @return 已解析的Video.Builder实例
 	 * @throws IllegalArgumentException     当grabber为null时抛出
 	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return new Video.Builder().parse(grabber);
@@ -1036,7 +1036,7 @@ public class Video extends Media {
 	 * @return 已解析的Video.Builder实例
 	 * @throws IllegalArgumentException 当file为null或无效时抛出
 	 * @throws IOException              当文件读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder(File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -1055,7 +1055,7 @@ public class Video extends Media {
 	 * @return 已解析的Video.Builder实例
 	 * @throws IllegalArgumentException 当bytes为null时抛出
 	 * @throws IOException              当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder(byte[] bytes) throws IOException {
 		Validate.notNull(bytes, "bytes 不可为 null");
@@ -1074,7 +1074,7 @@ public class Video extends Media {
 	 * @return 已解析的Video.Builder实例
 	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @throws IOException              当读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video.Builder builder(InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -1093,7 +1093,7 @@ public class Video extends Media {
 	 * @return 解析得到的 Video 对象
 	 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
 	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return builder(grabber).build();
@@ -1107,7 +1107,7 @@ public class Video extends Media {
 	 * @return 解析得到的 Video 对象
 	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
 	 * @throws IOException              当文件读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video parse(File file) throws IOException {
 		return builder(file).build();
@@ -1121,7 +1121,7 @@ public class Video extends Media {
 	 * @return 解析得到的 Video 对象
 	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
 	 * @throws IOException              当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video parse(byte[] bytes) throws IOException {
 		return builder(bytes).build();
@@ -1135,7 +1135,7 @@ public class Video extends Media {
 	 * @return 解析得到的 Video 对象
 	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
 	 * @throws IOException              当读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Video parse(InputStream inputStream) throws IOException {
 		return builder(inputStream).build();
@@ -1145,7 +1145,7 @@ public class Video extends Media {
 	 * 获取视频总时长
 	 *
 	 * @return 时长对象；null 表示未解析到时长
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Duration getDuration() {
 		return duration;
@@ -1155,7 +1155,7 @@ public class Video extends Media {
 	 * 获取视频帧率
 	 *
 	 * @return 帧率（fps）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public double getFrameRate() {
 		return frameRate;
@@ -1165,7 +1165,7 @@ public class Video extends Media {
 	 * 获取视频宽度
 	 *
 	 * @return 宽度（像素）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getWidth() {
 		return width;
@@ -1175,7 +1175,7 @@ public class Video extends Media {
 	 * 获取视频高度
 	 *
 	 * @return 高度（像素）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getHeight() {
 		return height;
@@ -1185,7 +1185,7 @@ public class Video extends Media {
 	 * 获取视频码率
 	 *
 	 * @return 码率（bps）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getBitrate() {
 		return bitrate;
@@ -1195,7 +1195,7 @@ public class Video extends Media {
 	 * 获取视频中的音频信息
 	 *
 	 * @return 音频对象；null 表示无音频轨道
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Audio getAudio() {
 		return audio;
@@ -1205,7 +1205,7 @@ public class Video extends Media {
 	 * 判断视频是否包含音频轨道
 	 *
 	 * @return true = 有音频，false = 无音频
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean hasAudio() {
 		return Objects.nonNull(audio);
@@ -1216,7 +1216,7 @@ public class Video extends Media {
 	 * <p>检查 duration 是否不为 null、不为零时长且不为负数</p>
 	 *
 	 * @return true = 非空且时长不为 0 且不为负数；false = 无有效时长
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean hasDuration() {
 		return duration != null && !duration.isZero() && !duration.isNegative();
@@ -1227,7 +1227,7 @@ public class Video extends Media {
 	 * <p>当高度大于宽度时判定为竖屏</p>
 	 *
 	 * @return true表示竖屏，false表示横屏或正方形
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isVertical() {
 		return height > width;
@@ -1238,7 +1238,7 @@ public class Video extends Media {
 	 * <p>当宽度等于高度时判定为正方形</p>
 	 *
 	 * @return true表示正方形，false表示非正方形
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isSquare() {
 		return width == height;
@@ -1285,14 +1285,14 @@ public class Video extends Media {
 	 * @author pangju666
 	 * @see Media.Builder
 	 * @see Video
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static class Builder extends Media.Builder<Video.Builder, Video> {
 		/**
 		 * 视频总播放时长
 		 * <p>null / {@link Duration#ZERO} 代表无有效时长（如实时流、直播流）</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Duration duration;
 
@@ -1300,7 +1300,7 @@ public class Video extends Media {
 		 * 视频帧率，单位 fps（帧/秒）
 		 * <p>常见取值：24、25、30、60，数值越高画面越流畅、体积越大</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected double frameRate;
 
@@ -1308,7 +1308,7 @@ public class Video extends Media {
 		 * 视频宽度，单位像素
 		 * <p>常见分辨率：1920（1080p）、1280（720p）、3840（4K）</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int width;
 
@@ -1316,7 +1316,7 @@ public class Video extends Media {
 		 * 视频高度，单位像素
 		 * <p>常见分辨率：1080（1080p）、720（720p）、2160（4K）</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int height;
 
@@ -1324,7 +1324,7 @@ public class Video extends Media {
 		 * 视频码率，单位 bps
 		 * <p>码率越高画质越好、体积越大，需根据分辨率和帧率合理设置</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int bitrate;
 
@@ -1332,14 +1332,14 @@ public class Video extends Media {
 		 * 视频中的音频信息
 		 * <p>null 表示视频无音频轨道</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Audio audio;
 
 		/**
 		 * 默认构造函数，使用默认参数初始化
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder() {
 			super();
@@ -1354,7 +1354,7 @@ public class Video extends Media {
 		 * 复制构造函数，基于现有视频对象创建
 		 *
 		 * @param video 源视频对象，不可为 null
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder(Video video) {
 			super(video);
@@ -1370,7 +1370,7 @@ public class Video extends Media {
 		 * 设置为MP4格式+H264编码
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mp4WithH264() {
 			this.format = FFmpegConstants.VIDEO_MP4_FORMAT;
@@ -1383,7 +1383,7 @@ public class Video extends Media {
 		 *
 		 * @return 构建器自身，用于链式调用
 		 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mp4WithH265() {
 			this.format = FFmpegConstants.VIDEO_MP4_FORMAT;
@@ -1395,7 +1395,7 @@ public class Video extends Media {
 		 * 设置为WEBM格式+VP9编码
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder webmWithVP9() {
 			this.format = FFmpegConstants.VIDEO_WEBM_FORMAT;
@@ -1407,7 +1407,7 @@ public class Video extends Media {
 		 * 设置为MKV格式+H264编码
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mkvWithH264() {
 			this.format = FFmpegConstants.VIDEO_MKV_FORMAT;
@@ -1420,7 +1420,7 @@ public class Video extends Media {
 		 *
 		 * @return 构建器自身，用于链式调用
 		 * @apiNote 需要导入<b>ffmpeg-platform-gpl</b>包
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mkvWithH265() {
 			this.format = FFmpegConstants.VIDEO_MKV_FORMAT;
@@ -1432,7 +1432,7 @@ public class Video extends Media {
 		 * 设置为2K横屏分辨率（2560×1440）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution2k() {
 			return resolution(2560, 1440);
@@ -1442,7 +1442,7 @@ public class Video extends Media {
 		 * 设置为1080P横屏分辨率（1920×1080）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution1080p() {
 			return resolution(1920, 1080);
@@ -1452,7 +1452,7 @@ public class Video extends Media {
 		 * 设置为720P横屏分辨率（1280×720）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution720p() {
 			return resolution(1280, 720);
@@ -1462,7 +1462,7 @@ public class Video extends Media {
 		 * 设置为480P横屏分辨率（640×480）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution480p() {
 			return resolution(640, 480);
@@ -1472,7 +1472,7 @@ public class Video extends Media {
 		 * 设置为2K竖屏分辨率（1440×2560）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution2kVertical() {
 			return resolution(1440, 2560);
@@ -1482,7 +1482,7 @@ public class Video extends Media {
 		 * 设置为1080P竖屏分辨率（1080×1920）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution1080pVertical() {
 			return resolution(1080, 1920);
@@ -1492,7 +1492,7 @@ public class Video extends Media {
 		 * 设置为720P竖屏分辨率（720×1280）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution720pVertical() {
 			return resolution(720, 1280);
@@ -1502,7 +1502,7 @@ public class Video extends Media {
 		 * 设置为480P竖屏分辨率（480×640）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution480pVertical() {
 			return resolution(480, 640);
@@ -1515,7 +1515,7 @@ public class Video extends Media {
 		 * @param height 视频高度，必须大于等于 0
 		 * @return 当前构建器，支持链式调用
 		 * @throws IllegalArgumentException 当 width 或 height 小于 0 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder resolution(int width, int height) {
 			Validate.isTrue(width >= 0, "width 必须为非负数");
@@ -1531,7 +1531,7 @@ public class Video extends Media {
 		 *
 		 * @param targetWidth 目标宽度（像素）
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder scaleByWidth(final int targetWidth) {
 			if (width <= 0 || height <= 0) {
@@ -1548,7 +1548,7 @@ public class Video extends Media {
 		 *
 		 * @param targetHeight 目标高度（像素）
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder scaleByHeight(final int targetHeight) {
 			if (width <= 0 || height <= 0) {
@@ -1566,7 +1566,7 @@ public class Video extends Media {
 		 * @param targetWidth  目标宽度（像素）
 		 * @param targetHeight 目标高度（像素）
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder scale(final int targetWidth, final int targetHeight) {
 			if (width <= 0 || height <= 0) {
@@ -1583,7 +1583,7 @@ public class Video extends Media {
 		 *
 		 * @param ratio 缩放比例（大于0）
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder scale(final double ratio) {
 			if (width <= 0 || height <= 0) {
@@ -1598,7 +1598,7 @@ public class Video extends Media {
 		 * 设置电影标准帧率 24fps（影视胶片制式）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder frameRate24() {
 			return frameRate(24);
@@ -1608,7 +1608,7 @@ public class Video extends Media {
 		 * 设置PAL电视标准帧率 25fps（国内广电、短视频通用）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder frameRate25() {
 			return frameRate(25);
@@ -1618,7 +1618,7 @@ public class Video extends Media {
 		 * 设置通用短视频/直播标准帧率 30fps（互联网视频主流）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder frameRate30() {
 			return frameRate(30);
@@ -1628,7 +1628,7 @@ public class Video extends Media {
 		 * 设置高刷高清帧率 60fps（游戏、高清短视频、慢动作）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder frameRate60() {
 			return frameRate(60);
@@ -1640,7 +1640,7 @@ public class Video extends Media {
 		 * @param frameRate 帧率（fps），<b>必须大于 0</b>
 		 * @return 当前构建器，支持链式调用
 		 * @throws IllegalArgumentException 帧率小于等于 0 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder frameRate(double frameRate) {
 			Validate.isTrue(frameRate > 0, "frameRate 必须大于 0");
@@ -1654,7 +1654,7 @@ public class Video extends Media {
 		 * @param bitrate 码率（bps），<b>必须为非负数</b>
 		 * @return 当前构建器，支持链式调用
 		 * @throws IllegalArgumentException 码率为负数时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder bitrate(int bitrate) {
 			Validate.isTrue(bitrate >= 0, "bitrate 必须为非负数");
@@ -1668,7 +1668,7 @@ public class Video extends Media {
 		 * @param audio 音频对象，不可为 null
 		 * @return 当前构建器，支持链式调用
 		 * @throws IllegalArgumentException 当 audio 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder audio(Audio audio) {
 			Validate.notNull(audio, "audio 不可为 null");
@@ -1680,7 +1680,7 @@ public class Video extends Media {
 		 * 构建最终的 Video 对象
 		 *
 		 * @return 构建完成的 Video 对象
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@Override
 		public Video build() {
@@ -1695,7 +1695,7 @@ public class Video extends Media {
 		 * @param grabber FFmpeg 帧抓取器，不可为 null
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 grabber 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@Override
 		protected Video.Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {

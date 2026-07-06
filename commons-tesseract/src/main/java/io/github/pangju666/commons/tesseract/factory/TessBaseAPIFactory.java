@@ -47,14 +47,14 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	/**
 	 * Tesseract 语言数据包路径
 	 * <p>指向包含 .traineddata 文件的目录</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private final String dataPath;
 
@@ -62,7 +62,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * OCR 识别语言
 	 * <p>语言代码，多个语言用 + 号连接，如 "chi_sim+eng"</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private final String language;
 
@@ -75,7 +75,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * </p>
 	 *
 	 * @throws IOException 当复制语言数据包文件失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public TessBaseAPIFactory() throws IOException {
 		File dataDir = new File(FilenameUtils.separatorsToUnix(FileUtils.getTempDirectoryPath()), "tesseract_data");
@@ -119,7 +119,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * @throws NullPointerException     当 dataPath 或 language 为 null 时抛出
 	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
 	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public TessBaseAPIFactory(String dataPath, String language) {
 		Validate.notBlank(language, "language 不能为空");
@@ -140,7 +140,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 *
 	 * @return 初始化完成的 TessBaseAPI 实例
 	 * @throws IllegalArgumentException 当 Tesseract 初始化失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public TessBaseAPI create() {
@@ -158,7 +158,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 *
 	 * @param obj 要包装的 TessBaseAPI 对象
 	 * @return 包装后的 PooledObject 对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public PooledObject<TessBaseAPI> wrap(TessBaseAPI obj) {
@@ -171,7 +171,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * 调用 {@link TessBaseAPI#Clear()} 清除识别数据，调用 {@link TessBaseAPI#releaseReference()} 释放引用。</p>
 	 *
 	 * @param object 要钝化的 PooledObject 对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public void passivateObject(PooledObject<TessBaseAPI> object) {
@@ -187,7 +187,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 *
 	 * @param object 要验证的 PooledObject 对象
 	 * @return true 表示对象有效，false 表示对象无效
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public boolean validateObject(PooledObject<TessBaseAPI> object) {
@@ -201,7 +201,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * 调用 {@link TessBaseAPI#End()} 方法完全销毁 TessBaseAPI 实例。</p>
 	 *
 	 * @param object 要销毁的 PooledObject 对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public void destroyObject(PooledObject<TessBaseAPI> object) {

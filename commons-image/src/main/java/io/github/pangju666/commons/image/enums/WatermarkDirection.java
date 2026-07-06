@@ -25,7 +25,7 @@ package io.github.pangju666.commons.image.enums;
  * @since 1.0.0
  * @deprecated 请使用 {@link net.coobird.thumbnailator.geometry.Positions} 替代
  */
-@Deprecated(forRemoval = true, since = "1.1.0")
+@Deprecated(forRemoval = true, since = "2.1.0")
 public enum WatermarkDirection {
 	/**
 	 * 左上角，紧贴上边与左边。
@@ -80,5 +80,5 @@ public enum WatermarkDirection {
 	 *
 	 * @since 1.0.0
 	 */
-	BOTTOM_LEFT;
+	BOTTOM_LEFT
 }

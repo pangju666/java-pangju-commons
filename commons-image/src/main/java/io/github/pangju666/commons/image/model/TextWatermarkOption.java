@@ -57,7 +57,7 @@ public class TextWatermarkOption {
 	 *
 	 * <p>用于将字体大小策略计算出的基础大小转换为 Thumbnailator 所需的像素尺寸。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final float FONT_SCALE = 2.45f;
 
@@ -91,35 +91,35 @@ public class TextWatermarkOption {
 	/**
 	 * 字体颜色，默认白色。
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Color color = Color.WHITE;
 
 	/**
 	 * 边距大小，默认 20
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int margin = 20;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int x = 0;
 
 	/**
 	 * Y 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int y = 0;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Positions direction;
 
@@ -133,7 +133,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	private Color strokeColor = Color.BLACK;
 
 	/**
@@ -146,7 +146,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	private Color fillColor = Color.WHITE;
 
 	/**
@@ -155,7 +155,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	private float strokeWidth = 2.0f;
 
 	/**
@@ -164,7 +164,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	private boolean stroke = true;
 
 	/**
@@ -301,7 +301,7 @@ public class TextWatermarkOption {
 	 * 获取填充颜色。
 	 *
 	 * @return 填充颜色对象
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Color getColor() {
 		return color;
@@ -312,7 +312,7 @@ public class TextWatermarkOption {
 	 * 参数为 {@code null} 时忽略。
 	 *
 	 * @param color 字体颜色
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setColor(Color color) {
 		if (Objects.nonNull(color)) {
@@ -324,7 +324,7 @@ public class TextWatermarkOption {
 	 * 获取边距大小
 	 *
 	 * @return 边距值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getMargin() {
 		return margin;
@@ -334,7 +334,7 @@ public class TextWatermarkOption {
 	 * 设置边距大小
 	 *
 	 * @param margin 边距值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setMargin(int margin) {
 		if (margin >= 0) {
@@ -346,7 +346,7 @@ public class TextWatermarkOption {
 	 * 获取 X 坐标位置
 	 *
 	 * @return X 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getX() {
 		return x;
@@ -356,7 +356,7 @@ public class TextWatermarkOption {
 	 * 设置 X 坐标位置，仅在未设置方向时生效
 	 *
 	 * @param x X 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setX(int x) {
 		if (x >= 0) {
@@ -368,7 +368,7 @@ public class TextWatermarkOption {
 	 * 获取 Y 坐标位置
 	 *
 	 * @return Y 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getY() {
 		return y;
@@ -378,7 +378,7 @@ public class TextWatermarkOption {
 	 * 设置 Y 坐标位置，仅在未设置方向时生效
 	 *
 	 * @param y Y 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setY(int y) {
 		if (y >= 0) {
@@ -390,7 +390,7 @@ public class TextWatermarkOption {
 	 * 获取水印位置方向
 	 *
 	 * @return 水印方向，null 表示使用自定义坐标
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Positions getDirection() {
 		return direction;
@@ -400,7 +400,7 @@ public class TextWatermarkOption {
 	 * 设置水印位置方向，设置为 null 表示使用自定义坐标
 	 *
 	 * @param direction 水印方向
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setDirection(Positions direction) {
 		this.direction = direction;
@@ -413,7 +413,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public boolean isStroke() {
 		return stroke;
 	}
@@ -426,7 +426,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public void setStroke(boolean stroke) {
 		this.stroke = stroke;
 	}
@@ -438,7 +438,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public float getStrokeWidth() {
 		return strokeWidth;
 	}
@@ -451,7 +451,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public void setStrokeWidth(float strokeWidth) {
 		if (strokeWidth > 0f) {
 			this.strokeWidth = strokeWidth;
@@ -465,7 +465,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public Color getStrokeColor() {
 		return strokeColor;
 	}
@@ -479,7 +479,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public void setStrokeColor(Color strokeColor) {
 		if (Objects.nonNull(strokeColor)) {
 			this.strokeColor = strokeColor;
@@ -493,7 +493,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public Color getFillColor() {
 		return fillColor;
 	}
@@ -507,7 +507,7 @@ public class TextWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public void setFillColor(Color fillColor) {
 		if (Objects.nonNull(fillColor)) {
 			this.fillColor = fillColor;
@@ -537,7 +537,7 @@ public class TextWatermarkOption {
 	 * @param targetImage 目标图像
 	 * @return 配置好的 Caption 对象
 	 * @throws IllegalArgumentException 如果任一参数为 null 或文字为空
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Caption toCaption(String text, BufferedImage targetImage) {
 		Validate.notNull(targetImage, "targetImage 不可为 null");
@@ -578,7 +578,7 @@ public class TextWatermarkOption {
 	 * <p>工作原理：使用 {@link Positions} 计算出基础位置后，再在 Y 轴上添加指定的边距值。</p>
 	 *
 	 * @author pangju666
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static final class Direction implements Position {
 		/**
@@ -596,7 +596,7 @@ public class TextWatermarkOption {
 		 *
 		 * @param positions 基础九宫格位置，不能为空
 		 * @param margin    Y 轴边距值
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Direction(Positions positions, int margin) {
 			this.positions = positions;
@@ -617,7 +617,7 @@ public class TextWatermarkOption {
 		 * @param insetTop        上边距
 		 * @param insetBottom     下边距
 		 * @return 计算出的最终位置点
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@Override
 		public Point calculate(int enclosingWidth, int enclosingHeight, int width, int height, int insetLeft,

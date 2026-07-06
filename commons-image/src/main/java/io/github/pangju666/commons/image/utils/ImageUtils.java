@@ -257,7 +257,7 @@ public class ImageUtils {
 	 * @throws IllegalArgumentException 当 file 为 null 时抛出
 	 * @see FileUtils#isImageType(File)
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isImage(final File file) throws IOException {
 		return FileUtils.isImageType(file);
@@ -280,7 +280,7 @@ public class ImageUtils {
 	 * @return true 表示数据为图像类型，false 表示不是或检测失败
 	 * @see IOConstants#getDefaultTika()
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isImage(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -305,7 +305,7 @@ public class ImageUtils {
 	 * @throws IOException 当读取流失败时抛出
 	 * @see IOConstants#getDefaultTika()
 	 * @see IOConstants#IMAGE_MIME_TYPE_PREFIX
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static boolean isImage(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
@@ -963,7 +963,7 @@ public class ImageUtils {
 	 * @throws IOException 当发生 I/O 错误或流重置失败时抛出
 	 * @see InputStream#markSupported()
 	 * @see InputStream#reset()
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static ImageSize parseSizeByMarkSupportedInputStream(final InputStream inputStream, final long streamLength,
 	                                                               final boolean useMetadata) throws IOException {
@@ -1009,7 +1009,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #parseSizeByMarkSupportedInputStream} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static ImageSize parseSizeByByteArrayInputStream(final InputStream inputStream, final long streamLength,
 	                                                           final boolean useMetadata) throws IOException {
 		return parseSizeByMarkSupportedInputStream(inputStream, streamLength, useMetadata);

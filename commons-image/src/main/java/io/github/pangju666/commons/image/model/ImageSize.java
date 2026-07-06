@@ -330,7 +330,7 @@ public class ImageSize {
 	 * </p>
 	 *
 	 * @return true 表示图像方向正常；false 表示需要根据 EXIF 方向进行校正
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isNormalOrientation() {
 		return orientation == ImageConstants.NORMAL_EXIF_ORIENTATION;

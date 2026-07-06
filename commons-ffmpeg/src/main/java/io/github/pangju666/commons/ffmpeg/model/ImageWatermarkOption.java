@@ -54,49 +54,49 @@ import java.util.function.BiFunction;
  * @author pangju666
  * @see TextWatermarkOption
  * @see Direction
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class ImageWatermarkOption {
 	/**
 	 * 水印相对于视频的相对尺寸，默认 0.15
 	 * <p>表示水印宽度或高度占视频相应边的比例</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private double relativeScaleFactor = 0.15;
 
 	/**
 	 * 水印透明度，范围 0.0-1.0，默认 0.4
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private float opacity = 0.4f;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int x = 0;
 
 	/**
 	 * Y 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int y = 0;
 
 	/**
 	 * 边距大小，默认 10
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int margin = 10;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Direction direction;
 
@@ -112,7 +112,7 @@ public class ImageWatermarkOption {
 	 * </ul>
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> sizeLimitStrategy = (width, height) -> {
 		int shorter = Math.min(width, height);
@@ -129,7 +129,7 @@ public class ImageWatermarkOption {
 	 * 获取水印相对尺寸
 	 *
 	 * @return 相对尺寸比例值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public double getRelativeScaleFactor() {
 		return relativeScaleFactor;
@@ -141,7 +141,7 @@ public class ImageWatermarkOption {
 	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
 	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setRelativeScaleFactor(double relativeScaleFactor) {
 		if (relativeScaleFactor > 0) {
@@ -153,7 +153,7 @@ public class ImageWatermarkOption {
 	 * 获取水印透明度
 	 *
 	 * @return 透明度值，范围 0.0-1.0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public float getOpacity() {
 		return opacity;
@@ -163,7 +163,7 @@ public class ImageWatermarkOption {
 	 * 设置水印透明度
 	 *
 	 * @param opacity 透明度值，范围 0.0-1.0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setOpacity(float opacity) {
 		if (opacity >= 0f && opacity <= 1) {
@@ -175,7 +175,7 @@ public class ImageWatermarkOption {
 	 * 获取 X 坐标
 	 *
 	 * @return X 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getX() {
 		return x;
@@ -185,7 +185,7 @@ public class ImageWatermarkOption {
 	 * 设置 X 坐标
 	 *
 	 * @param x X 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setX(int x) {
 		if (x >= 0) {
@@ -197,7 +197,7 @@ public class ImageWatermarkOption {
 	 * 获取 Y 坐标
 	 *
 	 * @return Y 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getY() {
 		return y;
@@ -207,7 +207,7 @@ public class ImageWatermarkOption {
 	 * 设置 Y 坐标
 	 *
 	 * @param y Y 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setY(int y) {
 		if (y >= 0) {
@@ -219,7 +219,7 @@ public class ImageWatermarkOption {
 	 * 获取边距大小
 	 *
 	 * @return 边距值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getMargin() {
 		return margin;
@@ -229,7 +229,7 @@ public class ImageWatermarkOption {
 	 * 设置边距大小
 	 *
 	 * @param margin 边距值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setMargin(int margin) {
 		if (margin >= 0) {
@@ -241,7 +241,7 @@ public class ImageWatermarkOption {
 	 * 获取水印位置方向
 	 *
 	 * @return 位置方向枚举，null 表示使用自定义坐标
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Direction getDirection() {
 		return direction;
@@ -251,7 +251,7 @@ public class ImageWatermarkOption {
 	 * 设置水印位置方向
 	 *
 	 * @param direction 位置方向枚举
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setDirection(Direction direction) {
 		this.direction = direction;
@@ -261,7 +261,7 @@ public class ImageWatermarkOption {
 	 * 获取当前的水印尺寸限制策略。
 	 *
 	 * @return 计算最小/最大尺寸的策略函数
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> getSizeLimitStrategy() {
 		return sizeLimitStrategy;
@@ -274,7 +274,7 @@ public class ImageWatermarkOption {
 	 * </p>
 	 *
 	 * @param sizeLimitStrategy 水印尺寸限制策略，不能为 null；如果为 null 则忽略并保持原策略
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setSizeLimitStrategy(BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> sizeLimitStrategy) {
 		if (Objects.nonNull(sizeLimitStrategy)) {
@@ -286,7 +286,7 @@ public class ImageWatermarkOption {
 	 * 获取当前的水印尺寸限制策略。
 	 *
 	 * @return 计算最小/最大尺寸的策略函数
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String toFFmpegFilter(File imageFile, FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
@@ -308,7 +308,7 @@ public class ImageWatermarkOption {
 	 * @return FFmpeg overlay 滤镜字符串
 	 * @throws IOException              操作失败时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public String toFFmpegFilter(File watermarkImage, int videoWith, int videoHeight) throws IOException {
 		Validate.isTrue(videoWith > 0, "videoWith 必须大于0");
@@ -337,7 +337,7 @@ public class ImageWatermarkOption {
 	 * 计算位置参数
 	 *
 	 * @return FFmpeg overlay 滤镜的位置参数字符串
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected String computePositionArgs() {
 		if (Objects.isNull(direction)) {

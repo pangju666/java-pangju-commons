@@ -70,14 +70,14 @@ import java.util.Map;
  * @author pangju666
  * @see Media
  * @see Audio.Builder
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class Audio extends Media {
 	/**
 	 * 标准 WAV 音频配置
 	 * <p>使用 PCM 16-bit LE 编码，默认采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio WAV = Audio.builder()
 		.wav()
@@ -87,7 +87,7 @@ public class Audio extends Media {
 	 * 标准 FLAC 音频配置
 	 * <p>无损压缩格式，默认采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio FLAC = Audio.builder()
 		.flac()
@@ -97,7 +97,7 @@ public class Audio extends Media {
 	 * 标准 MP3 音频配置（128kbps）
 	 * <p>适用于一般音质需求，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio MP3 = Audio.builder()
 		.mp3()
@@ -108,7 +108,7 @@ public class Audio extends Media {
 	 * 高音质 MP3 音频配置（192kbps）
 	 * <p>适用于较高音质需求，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio MP3_HIGH = Audio.builder()
 		.mp3()
@@ -119,7 +119,7 @@ public class Audio extends Media {
 	 * 标准 OPUS 音频配置（96kbps）
 	 * <p>适用于网络音频传输，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio OPUS = Audio.builder()
 		.opus()
@@ -130,7 +130,7 @@ public class Audio extends Media {
 	 * 高音质 OPUS 音频配置（192kbps）
 	 * <p>适用于高音质网络传输，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio OPUS_HIGH = Audio.builder()
 		.opus()
@@ -141,7 +141,7 @@ public class Audio extends Media {
 	 * 标准 AAC 音频配置（128kbps）
 	 * <p>适用于一般音质需求，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AAC = Audio.builder()
 		.aac()
@@ -152,7 +152,7 @@ public class Audio extends Media {
 	 * 高音质 AAC 音频配置（256kbps）
 	 * <p>适用于较高音质需求，采样率 44100Hz，立体声</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Audio AAC_HIGH = Audio.builder()
 		.aac()
@@ -162,28 +162,28 @@ public class Audio extends Media {
 	/**
 	 * 音频时长
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final Duration duration;
 
 	/**
 	 * 采样率（Hz），如 44100、48000 等
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int sampleRate;
 
 	/**
 	 * 声道数，1 为单声道，2 为立体声，大于 2 为多声道
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int channels;
 
 	/**
 	 * 比特率（bps），表示音频数据传输速率
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int bitrate;
 
@@ -198,7 +198,7 @@ public class Audio extends Media {
 	 * @param sampleRate 采样率
 	 * @param channels   声道数
 	 * @param bitrate    比特率
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected Audio(String format, String codecName, Map<String, String> metadata, int codecId, Duration duration,
 	                int sampleRate, int channels, int bitrate) {
@@ -213,7 +213,7 @@ public class Audio extends Media {
 	 * 创建新的音频构建器
 	 *
 	 * @return 空的 Audio.Builder 实例
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder() {
 		return new Audio.Builder();
@@ -226,7 +226,7 @@ public class Audio extends Media {
 	 * @param audio 源音频对象，不可为 null
 	 * @return 基于现有音频的 Audio.Builder 实例
 	 * @throws IllegalArgumentException 当 audio 为 null 时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder(Audio audio) {
 		return new Audio.Builder(audio);
@@ -240,7 +240,7 @@ public class Audio extends Media {
 	 * @return 已解析的 Audio.Builder 实例
 	 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
 	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return new Audio.Builder().parse(grabber);
@@ -254,7 +254,7 @@ public class Audio extends Media {
 	 * @return 已解析的 Audio.Builder 实例
 	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
 	 * @throws IOException              当文件读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder(File file) throws IOException {
 		FileUtils.checkFile(file, "file 不可为 null");
@@ -273,7 +273,7 @@ public class Audio extends Media {
 	 * @return 已解析的 Audio.Builder 实例
 	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
 	 * @throws IOException              当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder(byte[] bytes) throws IOException {
 		Validate.notNull(bytes, "bytes 不可为 null");
@@ -292,7 +292,7 @@ public class Audio extends Media {
 	 * @return 已解析的 Audio.Builder 实例
 	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
 	 * @throws IOException              当读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio.Builder builder(InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -311,7 +311,7 @@ public class Audio extends Media {
 	 * @return 解析得到的 Audio 对象
 	 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
 	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
 		return builder(grabber).build();
@@ -325,7 +325,7 @@ public class Audio extends Media {
 	 * @return 解析得到的 Audio 对象
 	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
 	 * @throws IOException              当文件读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio parse(File file) throws IOException {
 		return builder(file).build();
@@ -339,7 +339,7 @@ public class Audio extends Media {
 	 * @return 解析得到的 Audio 对象
 	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
 	 * @throws IOException              当解析失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio parse(byte[] bytes) throws IOException {
 		return builder(bytes).build();
@@ -353,7 +353,7 @@ public class Audio extends Media {
 	 * @return 解析得到的 Audio 对象
 	 * @throws IllegalArgumentException 当 inputStream 为 null 时抛出
 	 * @throws IOException              当读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static Audio parse(InputStream inputStream) throws IOException {
 		return builder(inputStream).build();
@@ -363,7 +363,7 @@ public class Audio extends Media {
 	 * 获取音频时长
 	 *
 	 * @return 音频时长，可能为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Duration getDuration() {
 		return duration;
@@ -373,7 +373,7 @@ public class Audio extends Media {
 	 * 获取采样率（Hz）
 	 *
 	 * @return 采样率，如 44100、48000
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getSampleRate() {
 		return sampleRate;
@@ -383,7 +383,7 @@ public class Audio extends Media {
 	 * 获取声道数
 	 *
 	 * @return 声道数，1 为单声道，2 为立体声
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getChannels() {
 		return channels;
@@ -393,7 +393,7 @@ public class Audio extends Media {
 	 * 获取比特率（bps）
 	 *
 	 * @return 比特率，如 64000（64kbps）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getBitrate() {
 		return bitrate;
@@ -403,7 +403,7 @@ public class Audio extends Media {
 	 * 判断是否为单声道音频
 	 *
 	 * @return true 表示单声道，false 表示非单声道
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isMono() {
 		return this.channels == 1;
@@ -413,7 +413,7 @@ public class Audio extends Media {
 	 * 判断是否为立体声音频
 	 *
 	 * @return true 表示立体声，false 表示非立体声
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isStereo() {
 		return this.channels == 2;
@@ -424,7 +424,7 @@ public class Audio extends Media {
 	 * <p>检查 duration 是否不为 null、不为零时长且不为负数</p>
 	 *
 	 * @return true 表示有有效时长，false 表示无有效时长
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean hasDuration() {
 		return duration != null && !duration.isZero() && !duration.isNegative();
@@ -476,34 +476,34 @@ public class Audio extends Media {
 	 * @author pangju666
 	 * @see Media.Builder
 	 * @see Audio
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static class Builder extends Media.Builder<Audio.Builder, Audio> {
 		/**
 		 * 音频时长
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected Duration duration;
 
 		/**
 		 * 采样率（Hz）
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int sampleRate;
 
 		/**
 		 * 声道数
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int channels;
 
 		/**
 		 * 比特率（bps）
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		protected int bitrate;
 
@@ -511,7 +511,7 @@ public class Audio extends Media {
 		 * 创建空的音频构建器
 		 * <p>使用默认值：采样率 44100Hz，立体声，比特率 0</p>
 		 *
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder() {
 			super();
@@ -526,7 +526,7 @@ public class Audio extends Media {
 		 *
 		 * @param audio 源音频对象，不可为 null
 		 * @throws IllegalArgumentException 当 audio 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder(Audio audio) {
 			super(audio);
@@ -541,7 +541,7 @@ public class Audio extends Media {
 		 * <p>使用 PCM 16-bit LE 编码，适合无损音频处理</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder wav() {
 			this.format = FFmpegConstants.AUDIO_WAV_FORMAT;
@@ -554,7 +554,7 @@ public class Audio extends Media {
 		 * <p>使用 FLAC 无损压缩编码</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder flac() {
 			this.format = FFmpegConstants.AUDIO_FLAC_FORMAT;
@@ -567,7 +567,7 @@ public class Audio extends Media {
 		 * <p>使用 MP3 有损压缩编码</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mp3() {
 			this.format = FFmpegConstants.AUDIO_MP3_FORMAT;
@@ -580,7 +580,7 @@ public class Audio extends Media {
 		 * <p>使用 OPUS 编码，适合网络传输</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder opus() {
 			this.format = FFmpegConstants.AUDIO_OPUS_FORMAT;
@@ -593,7 +593,7 @@ public class Audio extends Media {
 		 * <p>使用 AAC 编码，适合移动设备</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder aac() {
 			this.format = FFmpegConstants.AUDIO_AAC_FORMAT;
@@ -605,7 +605,7 @@ public class Audio extends Media {
 		 * 设置CD标准44100Hz采样率（通用音乐标准）
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder cd() {
 			this.sampleRate = FFmpegConstants.AUDIO_STANDARD_SAMPLE_RATE;
@@ -616,7 +616,7 @@ public class Audio extends Media {
 		 * 设置影视标准48000Hz音频采样率，适配视频、短视频、影视配乐场景
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder film() {
 			this.sampleRate = FFmpegConstants.VIDEO_STANDARD_SAMPLE_RATE;
@@ -628,7 +628,7 @@ public class Audio extends Media {
 		 * <p>快捷方法，等效于调用 channels(1)</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder mono() {
 			return channels(1);
@@ -639,7 +639,7 @@ public class Audio extends Media {
 		 * <p>快捷方法，等效于调用 channels(2)</p>
 		 *
 		 * @return 构建器自身，用于链式调用
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder stereo() {
 			return channels(2);
@@ -651,7 +651,7 @@ public class Audio extends Media {
 		 * @param sampleRate 采样率（Hz），必须大于 0
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 sampleRate 小于等于 0 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder sampleRate(int sampleRate) {
 			Validate.isTrue(sampleRate > 0, "sampleRate 必须大于 0");
@@ -665,7 +665,7 @@ public class Audio extends Media {
 		 * @param channels 声道数，必须大于 0
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 channels 小于等于 0 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder channels(int channels) {
 			Validate.isTrue(channels > 0, "channels 必须大于 0");
@@ -679,7 +679,7 @@ public class Audio extends Media {
 		 * @param bitrate 比特率（bps），必须为非负数
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 bitrate 为负数时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		public Builder bitrate(int bitrate) {
 			Validate.isTrue(bitrate >= 0, "bitrate 必须为非负数");
@@ -691,7 +691,7 @@ public class Audio extends Media {
 		 * 构建最终的 Audio 对象
 		 *
 		 * @return 构建完成的 Audio 对象
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@Override
 		public Audio build() {
@@ -706,7 +706,7 @@ public class Audio extends Media {
 		 * @param grabber FFmpeg 帧抓取器，不可为 null
 		 * @return 构建器自身，用于链式调用
 		 * @throws IllegalArgumentException 当 grabber 为 null 时抛出
-		 * @since 1.1.0
+		 * @since 2.1.0
 		 */
 		@Override
 		protected Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {

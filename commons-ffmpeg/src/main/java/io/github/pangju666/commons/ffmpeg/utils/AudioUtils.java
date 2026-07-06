@@ -48,13 +48,13 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class AudioUtils {
 	/**
 	 * 默认背景音乐权重
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final float DEFAULT_BGM_WEIGHT = 0.4f;
 
@@ -70,7 +70,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputAudio 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void transcode(final MediaResource resource, final File outputFile, final Audio outputAudio) throws IOException {
 		Validate.notNull(outputAudio, "outputAudio 不可为 null");
@@ -96,7 +96,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource、outputStream 或 outputAudio 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void transcode(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio) throws IOException {
 		Validate.notNull(outputAudio, "outputAudio 不可为 null");
@@ -118,7 +118,7 @@ public class AudioUtils {
 	 * @param outputFile 输出文件
 	 * @param duration   裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Duration duration) throws IOException {
 		cut(resource, outputFile, (Audio) null, Duration.ZERO, duration);
@@ -131,7 +131,7 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
 		cut(resource, outputStream, (Audio) null, Duration.ZERO, duration);
@@ -145,7 +145,7 @@ public class AudioUtils {
 	 * @param start      开始时间
 	 * @param end        结束时间
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
 		cut(resource, outputFile, null, start, end);
@@ -159,7 +159,7 @@ public class AudioUtils {
 	 * @param start        开始时间
 	 * @param end          结束时间
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration start,
 	                       final Duration end) throws IOException {
@@ -174,7 +174,7 @@ public class AudioUtils {
 	 * @param outputAudio 输出音频配置
 	 * @param duration    裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
 	                       final Duration duration) throws IOException {
@@ -189,7 +189,7 @@ public class AudioUtils {
 	 * @param outputAudio  输出音频配置
 	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
 	                       final Duration duration) throws IOException {
@@ -207,7 +207,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
 	                       final Duration start, final Duration end) throws IOException {
@@ -235,7 +235,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
 	                       final Duration start, final Duration end) throws IOException {
@@ -256,7 +256,7 @@ public class AudioUtils {
 	 * @param resources  音频资源集合
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final File outputFile) throws IOException {
 		concat(resources, outputFile, null);
@@ -268,7 +268,7 @@ public class AudioUtils {
 	 * @param resources    音频资源集合
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final OutputStream outputStream) throws IOException {
 		concat(resources, outputStream, null);
@@ -283,7 +283,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final File outputFile, final Audio outputAudio) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
@@ -308,7 +308,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resources、outputStream 为 null 或 resources 包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final OutputStream outputStream,
 	                          final Audio outputAudio) throws IOException {
@@ -330,7 +330,7 @@ public class AudioUtils {
 	 * @param bgmResource  背景音乐资源
 	 * @param outputFile   输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final File outputFile) throws IOException {
@@ -344,7 +344,7 @@ public class AudioUtils {
 	 * @param bgmResource  背景音乐资源
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream) throws IOException {
@@ -359,7 +359,7 @@ public class AudioUtils {
 	 * @param outputFile   输出文件
 	 * @param outputAudio  输出音频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final File outputFile, final Audio outputAudio) throws IOException {
@@ -374,7 +374,7 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param outputAudio  输出音频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final Audio outputAudio) throws IOException {
@@ -389,7 +389,7 @@ public class AudioUtils {
 	 * @param outputFile   输出文件
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final File outputFile, final float bgmWeight) throws IOException {
@@ -404,7 +404,7 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final float bgmWeight) throws IOException {
@@ -420,7 +420,7 @@ public class AudioUtils {
 	 * @param outputAudio  输出音频配置
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final File outputFile, final Audio outputAudio, final float bgmWeight) throws IOException {
@@ -443,7 +443,7 @@ public class AudioUtils {
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final Audio outputAudio, final float bgmWeight) throws IOException {
@@ -461,7 +461,7 @@ public class AudioUtils {
 	 * @param outputFile 输出文件
 	 * @param speed      播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final File outputFile, final float speed) throws IOException {
 		adjustSpeed(resource, outputFile, speed, null);
@@ -474,7 +474,7 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param speed        播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final OutputStream outputStream, final float speed) throws IOException {
 		adjustSpeed(resource, outputStream, speed, null);
@@ -490,7 +490,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final File outputFile, final float speed,
 	                               final Audio outputAudio) throws IOException {
@@ -517,7 +517,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final OutputStream outputStream, final float speed,
 	                               final Audio outputAudio) throws IOException {
@@ -539,7 +539,7 @@ public class AudioUtils {
 	 * @param outputFile 输出文件
 	 * @param db         音量变化的分贝值
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustVolume(final MediaResource resource, final File outputFile, final float db) throws IOException {
 		adjustVolume(resource, outputFile, db, null);
@@ -552,7 +552,7 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param db           音量变化的分贝值
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustVolume(final MediaResource resource, final OutputStream outputStream, final float db) throws IOException {
 		adjustVolume(resource, outputStream, db, null);
@@ -568,7 +568,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustVolume(final MediaResource resource, final File outputFile, final float db,
 	                                final Audio outputAudio) throws IOException {
@@ -595,7 +595,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustVolume(final MediaResource resource, final OutputStream outputStream, final float db,
 	                                final Audio outputAudio) throws IOException {
@@ -621,7 +621,7 @@ public class AudioUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 mainResource 或 bgmResource 为 null 时
 	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型，或 bgmWeight 小于等于 0 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doAddBgm(final MediaResource mainResource, final MediaResource bgmResource,
 	                               final FFmpegFrameRecorder recorder, final Audio outputAudio, final float bgmWeight) throws IOException {

@@ -21,7 +21,6 @@ import net.coobird.thumbnailator.filters.Watermark;
 import net.coobird.thumbnailator.geometry.Coordinate;
 import net.coobird.thumbnailator.geometry.Position;
 import net.coobird.thumbnailator.geometry.Positions;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -59,7 +58,7 @@ public class ImageWatermarkOption {
 	 * 水印的相对缩放比例（相对原图尺寸）。
 	 * 默认值：0.15；建议范围：[0.0, 1.0]
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private double relativeScaleFactor = 0.15;
 
@@ -74,28 +73,28 @@ public class ImageWatermarkOption {
 	/**
 	 * 边距大小，默认 10
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int margin = 10;
 
 	/**
 	 * X 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int x = 0;
 
 	/**
 	 * Y 坐标位置，仅在未设置方向时生效
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private int y = 0;
 
 	/**
 	 * 水印位置方向，null 表示使用自定义坐标
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private Positions direction;
 
@@ -128,7 +127,7 @@ public class ImageWatermarkOption {
 	 * 获取水印的相对缩放比例。
 	 *
 	 * @return 相对缩放比例（如 0.15 表示水印大小约为原图的 15%）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public double getRelativeScaleFactor() {
 		return relativeScaleFactor;
@@ -140,7 +139,7 @@ public class ImageWatermarkOption {
 	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
 	 *
 	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setRelativeScaleFactor(double relativeScaleFactor) {
 		if (relativeScaleFactor > 0) {
@@ -155,7 +154,7 @@ public class ImageWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #getRelativeScaleFactor} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public double getRelativeScale() {
 		return relativeScaleFactor;
 	}
@@ -169,7 +168,7 @@ public class ImageWatermarkOption {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #setRelativeScaleFactor} 替代
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public void setRelativeScale(double relativeScale) {
 		if (relativeScale > 0) {
 			this.relativeScaleFactor = relativeScale;
@@ -229,7 +228,7 @@ public class ImageWatermarkOption {
 	 * 获取边距大小
 	 *
 	 * @return 边距值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getMargin() {
 		return margin;
@@ -239,7 +238,7 @@ public class ImageWatermarkOption {
 	 * 设置边距大小
 	 *
 	 * @param margin 边距值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setMargin(int margin) {
 		if (margin >= 0) {
@@ -251,7 +250,7 @@ public class ImageWatermarkOption {
 	 * 获取 X 坐标位置
 	 *
 	 * @return X 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getX() {
 		return x;
@@ -261,7 +260,7 @@ public class ImageWatermarkOption {
 	 * 设置 X 坐标位置，仅在未设置方向时生效
 	 *
 	 * @param x X 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setX(int x) {
 		if (x >= 0) {
@@ -273,7 +272,7 @@ public class ImageWatermarkOption {
 	 * 获取 Y 坐标位置
 	 *
 	 * @return Y 坐标值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getY() {
 		return y;
@@ -283,7 +282,7 @@ public class ImageWatermarkOption {
 	 * 设置 Y 坐标位置，仅在未设置方向时生效
 	 *
 	 * @param y Y 坐标值，必须大于等于 0
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setY(int y) {
 		if (y >= 0) {
@@ -295,7 +294,7 @@ public class ImageWatermarkOption {
 	 * 获取水印位置方向
 	 *
 	 * @return 水印方向，null 表示使用自定义坐标
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Positions getDirection() {
 		return direction;
@@ -305,7 +304,7 @@ public class ImageWatermarkOption {
 	 * 设置水印位置方向，设置为 null 表示使用自定义坐标
 	 *
 	 * @param direction 水印方向
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setDirection(Positions direction) {
 		this.direction = direction;
@@ -331,7 +330,7 @@ public class ImageWatermarkOption {
 	 * @param watermarkImage  水印图像
 	 * @return 配置好的 Watermark 对象
 	 * @throws IllegalArgumentException 如果任一参数为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Watermark toWatermark(ImageSize targetImageSize, BufferedImage watermarkImage) {
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");

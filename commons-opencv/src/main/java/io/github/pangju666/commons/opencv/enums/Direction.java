@@ -25,69 +25,69 @@ import org.bytedeco.opencv.opencv_core.Size;
  * <p>提供九宫格位置定位。</p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public enum Direction {
 	/**
 	 * 左上角
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	TOP_LEFT,
 
 	/**
 	 * 顶部居中
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	TOP,
 
 	/**
 	 * 右上角
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	TOP_RIGHT,
 
 	/**
 	 * 右侧居中
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	RIGHT,
 
 	/**
 	 * 中心
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	CENTER,
 
 	/**
 	 * 左侧居中
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	LEFT,
 
 	/**
 	 * 底部居中
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	BOTTOM,
 
 	/**
 	 * 右下角
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	BOTTOM_RIGHT,
 
 	/**
 	 * 左下角
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	BOTTOM_LEFT;
 
@@ -101,7 +101,7 @@ public enum Direction {
 	 * @param watermarkImageSize 水印图像尺寸
 	 * @param margin             水印与图像边缘的距离（单位：像素）
 	 * @return 水印放置位置的矩形
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Rect toImageWatermarkRect(Size imageSize, Size watermarkImageSize, int margin) {
 		return switch (this) {

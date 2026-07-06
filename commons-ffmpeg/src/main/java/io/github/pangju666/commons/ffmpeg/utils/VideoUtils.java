@@ -60,13 +60,13 @@ import java.util.function.ObjLongConsumer;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class VideoUtils {
 	/**
 	 * 受保护的构造函数，防止实例化
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected VideoUtils() {
 	}
@@ -80,7 +80,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputVideo 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void transcode(final MediaResource resource, final File outputFile, final Video outputVideo) throws IOException {
 		Validate.notNull(outputVideo, "outputVideo 不可为 null");
@@ -106,7 +106,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource、outputStream 或 outputVideo 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void transcode(final MediaResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -127,7 +127,7 @@ public class VideoUtils {
 	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractVideo(final MediaResource resource, final File outputFile) throws IOException {
 		extractVideo(resource, outputFile, null);
@@ -139,7 +139,7 @@ public class VideoUtils {
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractVideo(final MediaResource resource, final OutputStream outputStream) throws IOException {
 		extractVideo(resource, outputStream, null);
@@ -153,7 +153,7 @@ public class VideoUtils {
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractVideo(final MediaResource resource, final File outputFile, final Video outputVideo) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -177,7 +177,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractVideo(final MediaResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -196,7 +196,7 @@ public class VideoUtils {
 	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractAudio(final MediaResource resource, final File outputFile) throws IOException {
 		extractAudio(resource, outputFile, null);
@@ -208,7 +208,7 @@ public class VideoUtils {
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractAudio(final MediaResource resource, final OutputStream outputStream) throws IOException {
 		extractAudio(resource, outputStream, null);
@@ -222,7 +222,7 @@ public class VideoUtils {
 	 * @param outputAudio 输出音频配置
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractAudio(final MediaResource resource, final File outputFile, final Audio outputAudio) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -246,7 +246,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void extractAudio(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -266,7 +266,7 @@ public class VideoUtils {
 	 * @param outputFile 输出文件
 	 * @param duration   裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Duration duration) throws IOException {
 		cut(resource, outputFile, (Audio) null, Duration.ZERO, duration);
@@ -279,7 +279,7 @@ public class VideoUtils {
 	 * @param outputStream 输出流
 	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
 		cut(resource, outputStream, (Audio) null, Duration.ZERO, duration);
@@ -293,7 +293,7 @@ public class VideoUtils {
 	 * @param start      开始时间
 	 * @param end        结束时间
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
 		cut(resource, outputFile, null, start, end);
@@ -307,7 +307,7 @@ public class VideoUtils {
 	 * @param start        开始时间
 	 * @param end          结束时间
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Duration start,
 	                       final Duration end) throws IOException {
@@ -322,7 +322,7 @@ public class VideoUtils {
 	 * @param outputAudio 输出音频配置
 	 * @param duration    裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
 	                       final Duration duration) throws IOException {
@@ -337,7 +337,7 @@ public class VideoUtils {
 	 * @param outputAudio  输出音频配置
 	 * @param duration     裁剪时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
 	                       final Duration duration) throws IOException {
@@ -355,7 +355,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final File outputFile, final Audio outputAudio,
 	                       final Duration start, final Duration end) throws IOException {
@@ -383,7 +383,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 outputStream 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cut(final MediaResource resource, final OutputStream outputStream, final Audio outputAudio,
 	                       final Duration start, final Duration end) throws IOException {
@@ -404,7 +404,7 @@ public class VideoUtils {
 	 * @param resources  视频资源集合
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final File outputFile) throws IOException {
 		concat(resources, outputFile, null);
@@ -416,7 +416,7 @@ public class VideoUtils {
 	 * @param resources    视频资源集合
 	 * @param outputStream 输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final OutputStream outputStream) throws IOException {
 		concat(resources, outputStream, null);
@@ -431,7 +431,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final File outputFile, final Video outputVideo) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
@@ -456,7 +456,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resources 或 outputStream 为 null 或 resources 包含 null 元素时
 	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void concat(final Collection<MediaResource> resources, final OutputStream outputStream,
 	                          final Video outputVideo) throws IOException {
@@ -478,7 +478,7 @@ public class VideoUtils {
 	 * @param outputFile 输出文件
 	 * @param speed      播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final File outputFile, final float speed) throws IOException {
 		adjustSpeed(resource, outputFile, speed, null);
@@ -491,7 +491,7 @@ public class VideoUtils {
 	 * @param outputStream 输出流
 	 * @param speed        播放速度（0.5-100）
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final OutputStream outputStream, final float speed) throws IOException {
 		adjustSpeed(resource, outputStream, speed, null);
@@ -505,7 +505,7 @@ public class VideoUtils {
 	 * @param speed       播放速度（0.5-100）
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final File outputFile, final float speed,
 	                               final Video outputVideo) throws IOException {
@@ -527,7 +527,7 @@ public class VideoUtils {
 	 * @param outputVideo  输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void adjustSpeed(final MediaResource resource, final OutputStream outputStream, final float speed,
 	                               final Video outputVideo) throws IOException {
@@ -545,7 +545,7 @@ public class VideoUtils {
 	 * @param timestamp  时间点
 	 * @param outputFile 输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImageAtTimestamp(final MediaResource resource, final Duration timestamp,
 	                                        final File outputFile) throws IOException {
@@ -566,7 +566,7 @@ public class VideoUtils {
 	 * @param outputFile   输出文件
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImageAtTimestamp(final MediaResource resource, final Duration timestamp,
 	                                        final File outputFile, final String outputFormat) throws IOException {
@@ -589,7 +589,7 @@ public class VideoUtils {
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImageAtTimestamp(final MediaResource resource, final Duration timestamp,
 	                                        final ImageOutputStream outputStream, final String outputFormat) throws IOException {
@@ -610,7 +610,7 @@ public class VideoUtils {
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImageAtTimestamp(final MediaResource resource, final Duration timestamp,
 	                                        final OutputStream outputStream, final String outputFormat) throws IOException {
@@ -631,7 +631,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static BufferedImage grabImageAtTimestamp(final MediaResource resource, final Duration timestamp) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -652,7 +652,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> grabImagePeriodically(final MediaResource resource, final long interval,
 	                                                        final TimeUnit timeUnit) throws IOException {
@@ -674,7 +674,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 consumer 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImagePeriodically(final MediaResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final ObjLongConsumer<BufferedImage> consumer) throws IOException {
@@ -697,7 +697,7 @@ public class VideoUtils {
 	 * @param outputFormat 输出图片格式
 	 * @param outputDir    输出目录
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImagePeriodically(final MediaResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final String outputFormat, final File outputDir) throws IOException {
@@ -716,7 +716,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void grabImagePeriodically(final MediaResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final String outputFormat, final File outputDir,
@@ -752,7 +752,7 @@ public class VideoUtils {
 	 * @param width      裁剪宽度
 	 * @param height     裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final File outputFile, final int x, final int y,
 	                              final int width, final int height) throws IOException {
@@ -769,7 +769,7 @@ public class VideoUtils {
 	 * @param width        裁剪宽度
 	 * @param height       裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final OutputStream outputStream, final int x, final int y,
 	                              final int width, final int height) throws IOException {
@@ -787,7 +787,7 @@ public class VideoUtils {
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final File outputFile, final int x, final int y,
 	                              final int width, final int height, final boolean outputCropResolution) throws IOException {
@@ -812,7 +812,7 @@ public class VideoUtils {
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final OutputStream outputStream, final int x, final int y,
 	                              final int width, final int height, final boolean outputCropResolution) throws IOException {
@@ -834,7 +834,7 @@ public class VideoUtils {
 	 * @param height      裁剪高度
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final File outputFile, final int x, final int y,
 	                              final int width, final int height, final Video outputVideo) throws IOException {
@@ -859,7 +859,7 @@ public class VideoUtils {
 	 * @param outputVideo  输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByRect(final MediaResource resource, final OutputStream outputStream, final int x, final int y,
 	                              final int width, final int height, final Video outputVideo) throws IOException {
@@ -880,7 +880,7 @@ public class VideoUtils {
 	 * @param leftOffset   左侧偏移
 	 * @param rightOffset  右侧偏移
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset) throws IOException {
@@ -897,7 +897,7 @@ public class VideoUtils {
 	 * @param leftOffset   左侧偏移
 	 * @param rightOffset  右侧偏移
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final OutputStream outputStream, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset) throws IOException {
@@ -915,7 +915,7 @@ public class VideoUtils {
 	 * @param rightOffset          右侧偏移
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
@@ -942,7 +942,7 @@ public class VideoUtils {
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final OutputStream outputStream, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
@@ -966,7 +966,7 @@ public class VideoUtils {
 	 * @param rightOffset  右侧偏移
 	 * @param outputVideo  输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
@@ -993,7 +993,7 @@ public class VideoUtils {
 	 * @param outputVideo  输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByOffset(final MediaResource resource, final OutputStream outputStream,
 	                                final int topOffset, final int bottomOffset, final int leftOffset,
@@ -1014,7 +1014,7 @@ public class VideoUtils {
 	 * @param width      裁剪宽度
 	 * @param height     裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final File outputFile, final int width,
 	                                final int height) throws IOException {
@@ -1029,7 +1029,7 @@ public class VideoUtils {
 	 * @param width        裁剪宽度
 	 * @param height       裁剪高度
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final OutputStream outputStream, final int width,
 	                                final int height) throws IOException {
@@ -1045,7 +1045,7 @@ public class VideoUtils {
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final File outputFile, final int width,
 	                                final int height, final boolean outputCropResolution) throws IOException {
@@ -1068,7 +1068,7 @@ public class VideoUtils {
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final OutputStream outputStream, final int width,
 	                                final int height, final boolean outputCropResolution) throws IOException {
@@ -1088,7 +1088,7 @@ public class VideoUtils {
 	 * @param height      裁剪高度
 	 * @param outputVideo 输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final File outputFile, final int width,
 	                                final int height, final Video outputVideo) throws IOException {
@@ -1111,7 +1111,7 @@ public class VideoUtils {
 	 * @param outputVideo  输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void cropByCenter(final MediaResource resource, final OutputStream outputStream, final int width,
 	                                final int height, final Video outputVideo) throws IOException {
@@ -1129,7 +1129,7 @@ public class VideoUtils {
 	 * @param audioResource 音频资源
 	 * @param outputFile    输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final File outputFile) throws IOException {
@@ -1143,7 +1143,7 @@ public class VideoUtils {
 	 * @param audioResource 音频资源
 	 * @param outputStream  输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final OutputStream outputStream) throws IOException {
@@ -1158,7 +1158,7 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final File outputFile, final boolean loopFillAudio) throws IOException {
@@ -1173,7 +1173,7 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final OutputStream outputStream, final boolean loopFillAudio) throws IOException {
@@ -1188,7 +1188,7 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final File outputFile, final Video outputVideo) throws IOException {
@@ -1203,7 +1203,7 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final OutputStream outputStream, final Video outputVideo) throws IOException {
@@ -1221,7 +1221,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final File outputFile, final Video outputVideo, final boolean loopFillAudio) throws IOException {
@@ -1251,7 +1251,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void replaceAudio(final MediaResource videoResource, final MediaResource audioResource,
 	                                final OutputStream outputStream, final Video outputVideo, final boolean loopFillAudio) throws IOException {
@@ -1275,7 +1275,7 @@ public class VideoUtils {
 	 * @param bgmResource   背景音乐资源
 	 * @param outputFile    输出文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final File outputFile) throws IOException {
@@ -1289,7 +1289,7 @@ public class VideoUtils {
 	 * @param bgmResource   背景音乐资源
 	 * @param outputStream  输出流
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream) throws IOException {
@@ -1304,7 +1304,7 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final File outputFile, final Video outputVideo) throws IOException {
@@ -1319,7 +1319,7 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param outputVideo   输出视频配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final Video outputVideo) throws IOException {
@@ -1334,7 +1334,7 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final File outputFile, final float bgmWeight) throws IOException {
@@ -1349,7 +1349,7 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final float bgmWeight) throws IOException {
@@ -1365,7 +1365,7 @@ public class VideoUtils {
 	 * @param outputVideo   输出视频配置
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final File outputFile, final Video outputVideo, final float bgmWeight) throws IOException {
@@ -1388,7 +1388,7 @@ public class VideoUtils {
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                          final OutputStream outputStream, final Video outputVideo, final float bgmWeight) throws IOException {
@@ -1407,7 +1407,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final File fontFile) throws IOException {
@@ -1422,7 +1422,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final File fontFile) throws IOException {
@@ -1437,7 +1437,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final String fontName) throws IOException {
@@ -1452,7 +1452,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final String fontName) throws IOException {
@@ -1467,7 +1467,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
@@ -1482,7 +1482,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
@@ -1498,7 +1498,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
 	                                    final String watermarkText, final File fontFile) throws IOException {
@@ -1514,7 +1514,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                    final Video outputVideo, final String watermarkText, final File fontFile) throws IOException {
@@ -1530,7 +1530,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
 	                                    final String watermarkText, final String fontName) throws IOException {
@@ -1546,7 +1546,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                    final Video outputVideo, final String watermarkText, final String fontName) throws IOException {
@@ -1562,7 +1562,7 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
 	                                    final String watermarkText, final TextWatermarkOption option) throws IOException {
@@ -1585,7 +1585,7 @@ public class VideoUtils {
 	 * @param option        水印配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addTextWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                    final Video outputVideo, final String watermarkText,
@@ -1604,7 +1604,7 @@ public class VideoUtils {
 	 * @param outputFile     输出文件
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final File outputFile, final File watermarkImage) throws IOException {
 		addImageWatermark(resource, outputFile, null, watermarkImage, new ImageWatermarkOption());
@@ -1617,7 +1617,7 @@ public class VideoUtils {
 	 * @param outputStream   输出流
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                     final File watermarkImage) throws IOException {
@@ -1632,7 +1632,7 @@ public class VideoUtils {
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final File outputFile, final File watermarkImage,
 	                                     final ImageWatermarkOption option) throws IOException {
@@ -1647,7 +1647,7 @@ public class VideoUtils {
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                     final File watermarkImage, final ImageWatermarkOption option) throws IOException {
@@ -1662,7 +1662,7 @@ public class VideoUtils {
 	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
 	                                     final File watermarkImage) throws IOException {
@@ -1677,7 +1677,7 @@ public class VideoUtils {
 	 * @param outputVideo    输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                     final Video outputVideo, final File watermarkImage) throws IOException {
@@ -1693,7 +1693,7 @@ public class VideoUtils {
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException 当 I/O 错误发生时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final File outputFile, final Video outputVideo,
 	                                     final File watermarkImage, final ImageWatermarkOption option) throws IOException {
@@ -1716,7 +1716,7 @@ public class VideoUtils {
 	 * @param option         水印配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 outputStream 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static void addImageWatermark(final MediaResource resource, final OutputStream outputStream,
 	                                     final Video outputVideo, final File watermarkImage,
@@ -1738,7 +1738,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doAdjustSpeed(final MediaResource resource, final FFmpegFrameRecorder recorder, final float speed,
 	                                    final Video outputVideo) throws IOException {
@@ -1774,7 +1774,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doCropByOffset(final MediaResource resource, final FFmpegFrameRecorder recorder,
 	                                     final int topOffset, final int bottomOffset, final int leftOffset,
@@ -1825,7 +1825,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doCropByRect(final MediaResource resource, final FFmpegFrameRecorder recorder,
 	                                   final int x, final int y, final int width, final int height,
@@ -1873,7 +1873,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doCropByCenter(final MediaResource resource, final FFmpegFrameRecorder recorder,
 	                                     final int width, final int height, final Video outputVideo,
@@ -1918,7 +1918,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
 	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doAddBgm(final MediaResource videoResource, final MediaResource bgmResource,
 	                               final FFmpegFrameRecorder recorder, final Video outputVideo, final float bgmWeight) throws IOException {
@@ -1957,7 +1957,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doAddTextWatermark(final MediaResource resource, final FFmpegFrameRecorder recorder,
 	                                         final Video outputVideo, final String watermarkText,
@@ -1985,7 +1985,7 @@ public class VideoUtils {
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 为 null 时
 	 * @throws IllegalArgumentException 当 resource 不是视频类型时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doAddImageWatermark(final MediaResource resource, final FFmpegFrameRecorder recorder,
 	                                          final Video outputVideo, final File watermarkImage,
@@ -2014,7 +2014,7 @@ public class VideoUtils {
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 videoGrabber 或 audioGrabber 为 null 时
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static void doReplaceAudio(final FFmpegFrameGrabber videoGrabber, final FFmpegFrameGrabber audioGrabber,
 	                                     final FFmpegFrameRecorder recorder, final Video outputVideo,

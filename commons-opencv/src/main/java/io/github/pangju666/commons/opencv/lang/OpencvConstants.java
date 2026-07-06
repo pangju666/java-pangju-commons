@@ -27,7 +27,7 @@ import java.util.Set;
  * <p>提供 OpenCV 图像处理常用的常量配置，包括透明颜色、默认图像读取模式、支持的图像格式和 MIME 类型等。</p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class OpencvConstants {
 	/**
@@ -35,7 +35,7 @@ public class OpencvConstants {
 	 *
 	 * <p>RGBA 格式的完全透明色：(0, 0, 0, 0)</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Scalar TRANSPARENT_COLOR = new Scalar(0, 0, 0, 0);
 	/**
@@ -44,7 +44,7 @@ public class OpencvConstants {
 	 * <p>包含所有 OpenCV 支持读写的图像文件扩展名，不区分大小写。</p>
 	 * <p>常见格式包括：bmp, jpg, png, webp, tiff, gif 等。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Set<String> SUPPORTED_IMAGE_FILE_FORMATS = Set.of("bmp", "dib", "gif", "jpeg", "jpg",
 		"jpe", "jp2", "png", "webp", "avif", "pbm", "pgm", "ppm", "pxm", "pnm", "pfm", "sr", "ras", "tiff", "tif",
@@ -54,7 +54,7 @@ public class OpencvConstants {
 	 *
 	 * <p>包含所有 OpenCV 支持读写的图像 MIME 类型，用于内容类型检查。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Set<String> SUPPORTED_IMAGE_TYPES = Set.of("image/bmp", "image/gif", "image/png",
 		"image/webp", "image/avif", "image/tiff", "image/jpeg", "image/jp2", "image/vnd.radiance", "image/x-pict",
@@ -65,14 +65,14 @@ public class OpencvConstants {
 	 *
 	 * <p>默认使用 BGR 彩色模式读取图像（opencv_imgcodecs.IMREAD_COLOR_BGR）</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static int DEFAULT_IMAGE_COLOR_TYPE = opencv_imgcodecs.IMREAD_COLOR_BGR;
 
 	/**
 	 * 私有构造函数，防止实例化
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected OpencvConstants() {
 	}

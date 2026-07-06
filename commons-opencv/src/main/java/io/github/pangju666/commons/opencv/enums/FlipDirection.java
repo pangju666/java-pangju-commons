@@ -30,7 +30,7 @@ package io.github.pangju666.commons.opencv.enums;
  *
  * @author pangju666
  * @see org.bytedeco.opencv.global.opencv_core#flip
- * @since 1.1.0
+ * @since 2.1.0
  */
 public enum FlipDirection {
 	/**
@@ -38,7 +38,7 @@ public enum FlipDirection {
 	 *
 	 * <p>对应 OpenCV 的 flipCode = 1，图像左右镜像</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	HORIZONTAL(1),
 
@@ -47,7 +47,7 @@ public enum FlipDirection {
 	 *
 	 * <p>对应 OpenCV 的 flipCode = -1，图像上下镜像</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	VERTICAL(-1);
 
@@ -60,7 +60,7 @@ public enum FlipDirection {
 	 * 私有构造函数
 	 *
 	 * @param code OpenCV 翻转代码
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	FlipDirection(int code) {
 		this.code = code;
@@ -70,7 +70,7 @@ public enum FlipDirection {
 	 * 获取 OpenCV 内部翻转代码
 	 *
 	 * @return 翻转代码值
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getCode() {
 		return code;

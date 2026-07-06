@@ -39,7 +39,7 @@ import java.util.Set;
  * </p>
  *
  * @author pangju666
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class TesseractConstants {
 	/**
@@ -49,7 +49,7 @@ public class TesseractConstants {
 	 * 用于校验输入的图片资源是否为支持的类型。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Set<String> SUPPORTED_IMAGE_TYPES = Set.of(
 		"image/png", "image/jpeg", "image/jp2", "image/tiff", "image/gif", "image/webp", "image/bmp", "image/x-portable-anymap"
@@ -63,7 +63,7 @@ public class TesseractConstants {
 	 * 所有扩展名均为小写形式。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final Set<String> SUPPORTED_IMAGE_FILE_FORMATS = Set.of(
 		"png", "jpg", "jpeg", "jp2", "jpf", "tiff", "tif", "gif", "webp", "bmp", "pnm"
@@ -91,7 +91,7 @@ public class TesseractConstants {
 	 * </ul>
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static final GenericObjectPoolConfig<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL_CONFIG = new GenericObjectPoolConfig<>();
 
@@ -103,7 +103,7 @@ public class TesseractConstants {
 	 * 该对象池会在首次调用 {@link #getDefaultTessBaseApiPool} 方法时初始化。
 	 * </p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	private static volatile GenericObjectPool<TessBaseAPI> DEFAULT_TESS_BASE_API_POOL;
 
@@ -148,7 +148,7 @@ public class TesseractConstants {
 	 *
 	 * @return 初始化后的 TessBaseAPI 对象池单例
 	 * @throws RuntimeException 当对象池初始化失败时抛出，原因为 IOException
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static GenericObjectPool<TessBaseAPI> getDefaultTessBaseApiPool() {
 		if (Objects.isNull(DEFAULT_TESS_BASE_API_POOL)) {
