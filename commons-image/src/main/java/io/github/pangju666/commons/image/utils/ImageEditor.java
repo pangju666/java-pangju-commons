@@ -1068,7 +1068,7 @@ public class ImageEditor {
 	 *
 	 * @param width         目标宽度（像素）
 	 * @param height        目标高度（像素）
-	 * @param interpolation 插值滤波算法
+	 * @param resampleFilterType 插值滤波算法
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -1087,11 +1087,11 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.1.0
 	 */
-	public ImageEditor resize(final int width, final int height, final int interpolation) {
-		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+	public ImageEditor resize(final int width, final int height, final int resampleFilterType) {
+		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
 
 		this.outputImageSize = this.outputImageSize.resize(width, height);
-		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
 		return this;
 	}
@@ -1111,7 +1111,7 @@ public class ImageEditor {
 	 * 按指定宽度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param targetWidth   目标宽度（像素）
-	 * @param interpolation 插值滤波算法
+	 * @param resampleFilterType 插值滤波算法
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -1130,11 +1130,11 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByWidth(final int targetWidth, final int interpolation) {
-		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+	public ImageEditor scaleByWidth(final int targetWidth, final int resampleFilterType) {
+		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
 
 		this.outputImageSize = this.outputImageSize.scaleByWidth(targetWidth);
-		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
 		return this;
 	}
@@ -1154,7 +1154,7 @@ public class ImageEditor {
 	 * 按指定高度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param targetHeight  目标高度（像素）
-	 * @param interpolation 插值滤波算法
+	 * @param resampleFilterType 插值滤波算法
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -1173,11 +1173,11 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByHeight(final int targetHeight, final int interpolation) {
-		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+	public ImageEditor scaleByHeight(final int targetHeight, final int resampleFilterType) {
+		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
 
 		this.outputImageSize = this.outputImageSize.scaleByHeight(targetHeight);
-		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
 		return this;
 	}
@@ -1197,7 +1197,7 @@ public class ImageEditor {
 	 * 将图像缩放到指定的比例，保持原始宽高比。
 	 *
 	 * @param scalingFactor 缩放比例
-	 * @param interpolation 插值滤波算法
+	 * @param resampleFilterType 插值滤波算法
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -1216,11 +1216,11 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final double scalingFactor, final int interpolation) {
-		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+	public ImageEditor scale(final double scalingFactor, final int resampleFilterType) {
+		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
 
 		this.outputImageSize = this.outputImageSize.scale(scalingFactor);
-		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
 		return this;
 	}
@@ -1256,7 +1256,7 @@ public class ImageEditor {
 	 *
 	 * @param targetWidth  目标宽度（像素）
 	 * @param targetHeight 目标高度（像素）
-	 * @param interpolation 插值滤波算法
+	 * @param resampleFilterType 插值滤波算法
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
@@ -1275,11 +1275,11 @@ public class ImageEditor {
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
 	 * @since 1.0.0
 	 */
-	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolation) {
-		Validate.isTrue(interpolation >= 0 && interpolation <= 15, "interpolation 取值范围在0-15之间");
+	public ImageEditor scale(final int targetWidth, final int targetHeight, final int resampleFilterType) {
+		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
 
 		this.outputImageSize = this.outputImageSize.scale(targetWidth, targetHeight);
-		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), interpolation)
+		this.outputImage = new ResampleOp(outputImageSize.getWidth(), outputImageSize.getHeight(), resampleFilterType)
 			.filter(outputImage, null);
 		return this;
 	}

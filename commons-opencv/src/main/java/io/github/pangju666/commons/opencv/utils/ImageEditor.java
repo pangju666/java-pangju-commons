@@ -560,7 +560,7 @@ public class ImageEditor {
 	 *
 	 * @param width         目标宽度，必须大于 0
 	 * @param height        目标高度，必须大于 0
-	 * @param interpolation 插值滤波算法
+	 * @param interpolationFlag 插值滤波算法
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
@@ -573,13 +573,13 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor resize(final int width, final int height, final int interpolation) {
+	public ImageEditor resize(final int width, final int height, final int interpolationFlag) {
 		Validate.isTrue(width > 0, "width 必须大于 0");
 		Validate.isTrue(height > 0, "height 必须大于 0");
-		Validate.isTrue(interpolation >= 0 && interpolation <= 7, "interpolation 必须在0-7之间");
+		Validate.isTrue(interpolationFlag >= 0 && interpolationFlag <= 7, "interpolation 必须在0-7之间");
 
 		Mat image = new Mat();
-		opencv_imgproc.resize(outputImage, image, new Size(width, height), 0, 0, interpolation);
+		opencv_imgproc.resize(outputImage, image, new Size(width, height), 0, 0, interpolationFlag);
 
 		this.outputImage.releaseReference();
 		this.outputImage = image;
@@ -606,7 +606,7 @@ public class ImageEditor {
 	 * 按目标宽度等比例缩放图像
 	 *
 	 * @param targetWidth   目标宽度，必须大于 0
-	 * @param interpolation 插值滤波算法
+	 * @param interpolationFlag 插值滤波算法
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
@@ -619,11 +619,11 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByWidth(final int targetWidth, final int interpolation) {
+	public ImageEditor scaleByWidth(final int targetWidth, final int interpolationFlag) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
 		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
-		return resize(size.width(), size.height(), interpolation);
+		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
 	/**
@@ -645,7 +645,7 @@ public class ImageEditor {
 	 * 按目标高度等比例缩放图像
 	 *
 	 * @param targetHeight  目标高度，必须大于 0
-	 * @param interpolation 插值滤波算法
+	 * @param interpolationFlag 插值滤波算法
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
@@ -658,11 +658,11 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByHeight(final int targetHeight, final int interpolation) {
+	public ImageEditor scaleByHeight(final int targetHeight, final int interpolationFlag) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
 		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
-		return resize(size.width(), size.height(), interpolation);
+		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
 
@@ -685,7 +685,7 @@ public class ImageEditor {
 	 * 按比例因子缩放图像
 	 *
 	 * @param scalingFactor 缩放比例因子，必须大于 0（例如 0.5 为缩小 50%）
-	 * @param interpolation 插值滤波算法
+	 * @param interpolationFlag 插值滤波算法
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
@@ -698,11 +698,11 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final double scalingFactor, final int interpolation) {
+	public ImageEditor scale(final double scalingFactor, final int interpolationFlag) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
 		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
-		return resize(size.width(), size.height(), interpolation);
+		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
 	/**
@@ -727,7 +727,7 @@ public class ImageEditor {
 	 *
 	 * @param targetWidth   目标宽度，必须大于 0
 	 * @param targetHeight  目标高度，必须大于 0
-	 * @param interpolation 插值滤波算法
+	 * @param interpolationFlag 插值滤波算法
 	 * @return 当前编辑器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
@@ -740,12 +740,12 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolation) {
+	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolationFlag) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
 		Size size = OpencvUtils.scale(outputImage.size(), targetWidth, targetHeight);
-		return resize(size.width(), size.height(), interpolation);
+		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
 	/**
