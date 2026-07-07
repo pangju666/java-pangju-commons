@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  *   <li>元数据解析：集成 Apache Tika 进行元数据提取</li>
  *   <li>健壮删除：增强删除策略，可处理被占用文件</li>
  *   <li>文件加解密：提供 AES/CBC 与 AES/CTR 文件加/解密便捷方法（委托 {@link IOUtils}，流式处理）</li>
- *   <li>快速摘要：基于 xxHash64 的三段采样文件摘要</li>
+ *   <li>文件摘要计算：基于三段采样策略的高效文件摘要计算</li>
  * </ul>
  *
  * <h3>加解密说明</h3>
@@ -90,91 +90,189 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * <p>用于快速计算文件摘要，兼顾性能与较低碰撞率。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DEFAULT_HASH_FUNC}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final LongHashFunction HASH_FUNC = LongHashFunction.xx();
 	/**
 	 * 采样字节数
 	 * <p>分别从文件头/中/尾各读取该大小的字节用于摘要计算。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DEFAULT_SAMPLE_SIZE}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final int SAMPLE_SIZE = 64;
 	/**
 	 * 空文件摘要固定值
 	 * <p>当文件大小为 0 时直接返回该 16 位十六进制字符串。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#EMPTY_DIGEST}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final String EMPTY_FILE_DIGEST = "0000000000000000";
 	/**
 	 * 摘要输出格式
 	 * <p>使用 16 位十六进制、左侧 0 填充（`%016x`）。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DIGEST_FORMAT}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final String FILE_DIGEST_FORMAT = "%016x";
 
 	protected FileUtils() {
 	}
 
 	/**
-	 * 计算文件摘要
-	 * <p>基于文件大小与三段采样（头/中/尾各 {@link #SAMPLE_SIZE} 字节）组合后使用 xxHash64 计算，输出 16 位十六进制字符串。</p>
-	 *
-	 * <h3>处理规则</h3>
+	 * 计算文件摘要（使用默认采样大小和哈希函数）
+	 * <p>实现特性：</p>
 	 * <ul>
-	 *   <li>空文件返回固定值 {@link #EMPTY_FILE_DIGEST}</li>
-	 *   <li>中段位置在避开头尾的区间居中选取</li>
+	 *     <li>使用默认采样大小 {@link IOConstants#DEFAULT_SAMPLE_SIZE}</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于文件通道随机访问，内存友好</li>
 	 * </ul>
 	 *
-	 * @param file 目标文件，不能为空
-	 * @return 16 位十六进制摘要字符串（左侧 0 填充）
-	 * @throws IOException 读写通道异常
-	 * @since 1.0.0
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>空文件返回固定值 {@link IOConstants#EMPTY_DIGEST}</li>
+	 *     <li>文件大小小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>文件大小大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>中段位置在避开头尾的区间居中选取</li>
+	 * </ul>
+	 *
+	 * @param file 目标文件（必须非null且存在）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file为null时抛出
+	 * @throws IllegalArgumentException 当file不存在或不是文件时抛出
+	 * @see #computeDigest(File, int)
+	 * @see #computeDigest(File, int, LongHashFunction)
+	 * @since 1.1.0
 	 */
 	public static String computeDigest(final File file) throws IOException {
+		return computeDigest(file, IOConstants.DEFAULT_SAMPLE_SIZE, IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算文件摘要（使用自定义采样大小和默认哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于文件通道随机访问，内存友好</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据文件特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 * </ul>
+	 *
+	 * @param file       目标文件（必须非null且存在）
+	 * @param sampleSize 采样大小（字节，必须大于0）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file为null时抛出
+	 * @throws IllegalArgumentException 当file不存在、不是文件或sampleSize小于等于0时抛出
+	 * @see #computeDigest(File)
+	 * @see #computeDigest(File, int, LongHashFunction)
+	 * @since 1.1.0
+	 */
+	public static String computeDigest(final File file, final int sampleSize) throws IOException {
+		return computeDigest(file, sampleSize, IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算文件摘要（使用自定义采样大小和哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小和哈希函数</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于文件通道随机访问，内存友好</li>
+	 *     <li>适合大文件处理，无需加载全部内容到内存</li>
+	 * </ul>
+	 *
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>空文件返回固定值 {@link IOConstants#EMPTY_DIGEST}</li>
+	 *     <li>文件大小小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>文件大小大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>中段位置在避开头尾的区间居中选取</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据文件特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 *     <li>摘要包含文件大小信息，确保相同内容不同大小的文件摘要不同</li>
+	 * </ul>
+	 *
+	 * @param file       目标文件（必须非null且存在）
+	 * @param sampleSize 采样大小（字节，必须大于0）
+	 * @param hashFunc   哈希函数（必须非null）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file或hashFunc为null时抛出
+	 * @throws IllegalArgumentException 当file不存在、不是文件、sampleSize小于等于0时抛出
+	 * @see #computeDigest(File)
+	 * @see #computeDigest(File, int)
+	 * @since 1.1.0
+	 */
+	public static String computeDigest(final File file, final int sampleSize, final LongHashFunction hashFunc) throws IOException {
 		checkFile(file, "file不可为 null");
+		Validate.notNull(hashFunc, "hashFunc 不可为 null");
+		Validate.isTrue(sampleSize > 0, "sampleSize 必须大于0");
 
 		long fileSize = file.length();
 		if (fileSize == 0) {
-			return EMPTY_FILE_DIGEST;
+			return IOConstants.EMPTY_DIGEST;
 		}
 
-		byte[] head = new byte[SAMPLE_SIZE];
-		byte[] mid = new byte[SAMPLE_SIZE];
-		byte[] tail = new byte[SAMPLE_SIZE];
+		int totalSampleSize = 3 * sampleSize;
+		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + totalSampleSize);
+		buffer.putLong(fileSize);
 
 		try (RandomAccessFile raf = new RandomAccessFile(file, "r");
 		     FileChannel channel = raf.getChannel()) {
+			if (fileSize <= totalSampleSize) {
+				ByteBuffer fullBuffer = ByteBuffer.allocate((int) fileSize);
+				while (fullBuffer.hasRemaining()) {
+					channel.read(fullBuffer);
+				}
+				fullBuffer.flip();
 
-			// 读取开头
-			readFully(channel, 0, head);
-
-			// 读取结尾
-			long tailPos = Math.max(0, fileSize - SAMPLE_SIZE);
-			readFully(channel, tailPos, tail);
-
-			// 读取中间（避开头尾）
-			long midPos;
-			if (fileSize <= 2L * SAMPLE_SIZE) {
-				// 文件太小，中间与头重叠
-				midPos = 0;
+				buffer.put(fullBuffer);
 			} else {
-				// 在 [SAMPLE_SIZE, fileSize - SAMPLE_SIZE) 区间居中
-				midPos = SAMPLE_SIZE + (fileSize - 2L * SAMPLE_SIZE) / 2;
+				// 长文件：分别读取头、中、尾三段
+				byte[] head = new byte[sampleSize];
+				byte[] mid = new byte[sampleSize];
+				byte[] tail = new byte[sampleSize];
+
+				// 头部 0 位置读取
+				readFully(channel, 0, head);
+
+				// 尾部起始位置
+				long tailPos = fileSize - sampleSize;
+				readFully(channel, tailPos, tail);
+
+				// 中间起始位置，避开头尾两段
+				long midPos = sampleSize + (fileSize - totalSampleSize) / 2;
+				readFully(channel, midPos, mid);
+
+				buffer.put(head);
+				buffer.put(mid);
+				buffer.put(tail);
 			}
-			readFully(channel, midPos, mid);
 		}
 
-		// 合并：[fileSize][head][mid][tail]
-		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + 3 * SAMPLE_SIZE);
-		buffer.putLong(fileSize);
-		buffer.put(head);
-		buffer.put(mid);
-		buffer.put(tail);
-
-		long hash = HASH_FUNC.hashBytes(buffer.array());
-		return String.format(FILE_DIGEST_FORMAT, hash); // 16 位 0 补齐
+		buffer.flip();
+		byte[] validBytes = Arrays.copyOf(buffer.array(), buffer.remaining());
+		long hash = hashFunc.hashBytes(validBytes);
+		return String.format(IOConstants.DIGEST_FORMAT, hash);
 	}
 
 	/**
@@ -1174,25 +1272,35 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 从指定位置读取固定长度字节
-	 * <p>循环读取至缓冲区填满或到达 EOF，允许部分读取。</p>
+	 * 从文件通道指定位置完整读取数据到缓冲区
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>确保读取指定长度的全部字节</li>
+	 *     <li>支持从任意偏移位置读取</li>
+	 *     <li>读取不足时抛出异常</li>
+	 * </ul>
 	 *
-	 * @param channel  文件通道
-	 * @param position 起始读取位置（字节偏移）
-	 * @param buffer   目标缓冲区（长度即期望读取量）
-	 * @throws IOException 通道读写异常
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>读取位置超出文件范围时抛出IOException</li>
+	 *     <li>缓冲区大小应与预期读取字节数一致</li>
+	 * </ul>
+	 *
+	 * @param channel 文件通道（必须非null）
+	 * @param position 读取起始位置（字节偏移）
+	 * @param buf      目标缓冲区（必须非null）
+	 * @throws IOException 当读取失败或读取字节数不足时抛出
 	 * @since 1.0.0
 	 */
-	protected static void readFully(final FileChannel channel, final long position, final byte[] buffer) throws IOException {
-		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		int totalRead = 0;
-		while (totalRead < buffer.length) {
-			channel.position(position + totalRead);
-			int read = channel.read(bb);
-			if (read <= 0) {
-				break;
+	protected static void readFully(final FileChannel channel, final long position, final byte[] buf) throws IOException {
+		ByteBuffer buffer = ByteBuffer.wrap(buf);
+		long readPos = position;
+		while (buffer.hasRemaining()) {
+			int read = channel.read(buffer, readPos);
+			if (read == -1) {
+				throw new IOException("文件偏移 " + position + " 处可读字节不足");
 			}
-			totalRead += read;
+			readPos += read;
 		}
 	}
 }

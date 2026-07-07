@@ -1,6 +1,6 @@
 package io.github.pangju666.commons.io.utils
 
-
+import net.openhft.hashing.LongHashFunction
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
@@ -33,6 +33,126 @@ class FileUtilsSpec extends Specification {
 		then:
 		d1.size() == 16
 		d1 != d2
+	}
+
+	def "computeDigest 小文件读取全部数据"() {
+		given:
+		File f = tempDir.resolve("small.txt").toFile()
+		f.text = "small file content"
+
+		when:
+		def digest1 = FileUtils.computeDigest(f)
+		def digest2 = FileUtils.computeDigest(f)
+
+		then:
+		digest1 == digest2
+		digest1.size() == 16
+	}
+
+	def "computeDigest 大文件使用三段采样"() {
+		given:
+		File f = tempDir.resolve("large.dat").toFile()
+		def data = new byte[10000]
+		new Random().nextBytes(data)
+		f.bytes = data
+
+		when:
+		def digest1 = FileUtils.computeDigest(f)
+		def digest2 = FileUtils.computeDigest(f)
+
+		then:
+		digest1 == digest2
+		digest1.size() == 16
+	}
+
+	def "computeDigest 自定义采样大小"() {
+		given:
+		File f = tempDir.resolve("sample.dat").toFile()
+		def data = new byte[1000]
+		new Random().nextBytes(data)
+		f.bytes = data
+
+		when:
+		def digest1 = FileUtils.computeDigest(f, 100)
+		def digest2 = FileUtils.computeDigest(f, 200)
+
+		then:
+		digest1 != digest2
+	}
+
+	def "computeDigest 自定义哈希函数"() {
+		given:
+		File f = tempDir.resolve("hash.dat").toFile()
+		f.text = "hash test content"
+		def hashFunc = LongHashFunction.xx()
+
+		when:
+		def digest = FileUtils.computeDigest(f, 1024, hashFunc)
+
+		then:
+		digest.size() == 16
+	}
+
+	def "computeDigest null文件抛异常"() {
+		when:
+		FileUtils.computeDigest(null as File)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "computeDigest null哈希函数抛异常"() {
+		given:
+		File f = tempDir.resolve("nullhash.txt").toFile()
+		f.text = "test"
+
+		when:
+		FileUtils.computeDigest(f, 1024, null)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "computeDigest 非法采样大小抛异常"() {
+		given:
+		File f = tempDir.resolve("invalidsize.txt").toFile()
+		f.text = "test"
+
+		when:
+		FileUtils.computeDigest(f, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "computeDigest 相同内容相同大小摘要相同"() {
+		given:
+		File f1 = tempDir.resolve("same1.txt").toFile()
+		File f2 = tempDir.resolve("same2.txt").toFile()
+		f1.text = "identical content"
+		f2.text = "identical content"
+
+		when:
+		def digest1 = FileUtils.computeDigest(f1)
+		def digest2 = FileUtils.computeDigest(f2)
+
+		then:
+		digest1 == digest2
+	}
+
+	def "computeDigest 相同内容不同大小摘要不同"() {
+		given:
+		File f1 = tempDir.resolve("diff1.txt").toFile()
+		File f2 = tempDir.resolve("diff2.txt").toFile()
+		f1.text = "content"
+		f2.text = "content "
+
+		when:
+		def digest1 = FileUtils.computeDigest(f1)
+		def digest2 = FileUtils.computeDigest(f2)
+
+		then:
+		digest1 != digest2
 	}
 
 	@Unroll

@@ -1,5 +1,7 @@
 package io.github.pangju666.commons.io.utils
 
+
+import net.openhft.hashing.LongHashFunction
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream
 import org.apache.commons.lang3.RandomUtils
 import spock.lang.Specification
@@ -335,5 +337,133 @@ class IOUtilsSpec extends Specification {
 
 		then:
 		thrown(NullPointerException)
+	}
+
+	def "computeDigest 空流返回空摘要"() {
+		when:
+		def digest = IOUtils.computeDigest(new ByteArrayInputStream(new byte[0]), 0)
+
+		then:
+		digest == "0000000000000000"
+	}
+
+	def "computeDigest 小流读取全部数据"() {
+		given:
+		def data = "small data".bytes
+
+		when:
+		def digest1 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+		def digest2 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+
+		then:
+		digest1 == digest2
+		digest1.size() == 16
+	}
+
+	def "computeDigest 大流使用三段采样"() {
+		given:
+		def data = new byte[10000]
+		new Random().nextBytes(data)
+
+		when:
+		def digest1 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+		def digest2 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+
+		then:
+		digest1 == digest2
+		digest1.size() == 16
+	}
+
+	def "computeDigest 未知长度一次性读取"() {
+		given:
+		def data = "test data".bytes
+
+		when:
+		def digest = IOUtils.computeDigest(new ByteArrayInputStream(data), -1)
+
+		then:
+		digest.size() == 16
+	}
+
+	def "computeDigest 自定义采样大小"() {
+		given:
+		def data = new byte[1000]
+		new Random().nextBytes(data)
+
+		when:
+		def digest1 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length, 100)
+		def digest2 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length, 200)
+
+		then:
+		digest1 != digest2
+	}
+
+	def "computeDigest 自定义哈希函数"() {
+		given:
+		def data = "hash test".bytes
+		def hashFunc = LongHashFunction.xx()
+
+		when:
+		def digest = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length, 1024, hashFunc)
+
+		then:
+		digest.size() == 16
+	}
+
+	def "computeDigest null输入流抛异常"() {
+		when:
+		IOUtils.computeDigest(null as InputStream, 100)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "computeDigest null哈希函数抛异常"() {
+		when:
+		IOUtils.computeDigest(new ByteArrayInputStream("test".bytes), 4, 1024, null)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "computeDigest 非法采样大小抛异常"() {
+		when:
+		IOUtils.computeDigest(new ByteArrayInputStream("test".bytes), 4, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "computeDigest 非法流长度抛异常"() {
+		when:
+		IOUtils.computeDigest(new ByteArrayInputStream("test".bytes), -2)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "computeDigest 相同内容相同长度摘要相同"() {
+		given:
+		def data = "same content".bytes
+
+		when:
+		def digest1 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+		def digest2 = IOUtils.computeDigest(new ByteArrayInputStream(data), data.length)
+
+		then:
+		digest1 == digest2
+	}
+
+	def "computeDigest 相同内容不同长度摘要不同"() {
+		given:
+		def data1 = "content".bytes
+		def data2 = "content ".bytes
+
+		when:
+		def digest1 = IOUtils.computeDigest(new ByteArrayInputStream(data1), data1.length)
+		def digest2 = IOUtils.computeDigest(new ByteArrayInputStream(data2), data2.length)
+
+		then:
+		digest1 != digest2
 	}
 }
