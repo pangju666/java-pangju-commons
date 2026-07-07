@@ -258,11 +258,11 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(data)
 
 		when:
-		def stream1 = resource.newInputStream()
+		def stream1 = resource.openInputStream()
 		def bytes1 = stream1.readAllBytes()
 		stream1.close()
 
-		def stream2 = resource.newInputStream()
+		def stream2 = resource.openInputStream()
 		def bytes2 = stream2.readAllBytes()
 		stream2.close()
 
@@ -278,7 +278,7 @@ class IOResourceSpec extends Specification {
 		resource.close()
 
 		when:
-		resource.newInputStream()
+		resource.openInputStream()
 
 		then:
 		thrown(IOException)

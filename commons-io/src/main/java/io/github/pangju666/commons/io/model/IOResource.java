@@ -415,7 +415,7 @@ public class IOResource implements Closeable {
 	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public InputStream newInputStream() throws IOException {
+	public InputStream openInputStream() throws IOException {
 		checkClosed();
 
 		if (Objects.nonNull(file)) {
