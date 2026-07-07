@@ -6,6 +6,7 @@ import com.twelvemonkeys.image.ResampleOp
 import io.github.pangju666.commons.image.enums.FlipDirection
 import io.github.pangju666.commons.image.enums.RotateDirection
 import io.github.pangju666.commons.image.lang.ImageConstants
+import io.github.pangju666.commons.image.model.ImageIOResource
 import io.github.pangju666.commons.image.model.ImageWatermarkOption
 import io.github.pangju666.commons.image.model.TextWatermarkOption
 import net.coobird.thumbnailator.geometry.Positions
@@ -1279,5 +1280,335 @@ class ImageEditorSpec extends Specification {
 
 		where:
 		name << ALL_IMAGES
+	}
+
+	@Unroll
+	def "of(ImageIOResource) 使用 ImageIOResource 构建：#name"() {
+		given:
+		"准备 ImageIOResource 与参数"
+		def f = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(new ImageIOResource(f))
+			} else {
+				def resource = new ImageIOResource(f)
+				def editor = ImageEditor.of(resource)
+				def img = editor.toBufferedImage()
+				assert img != null
+				def ow = IMAGE_SIZE_EXPECTED[name][0]
+				def oh = IMAGE_SIZE_EXPECTED[name][1]
+				assert img.getWidth() == ow
+				assert img.getHeight() == oh
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof Exception
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << ALL_IMAGES
+	}
+
+	def "of(ImageIOResource) null 资源抛异常"() {
+		when:
+		"传入 null 资源"
+		ImageEditor.of(null as ImageIOResource)
+
+		then:
+		"抛出 NullPointerException"
+		thrown(NullPointerException)
+	}
+
+	@Unroll
+	def "of(ImageIOResource) 自动解析 EXIF 方向：#name"() {
+		given:
+		"准备 ImageIOResource 与参数"
+		def f = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(new ImageIOResource(f, true))
+			} else {
+				def origin = ImageIO.read(f)
+				def resource = new ImageIOResource(f, true)
+				def editor = ImageEditor.of(resource)
+				def img = editor.toBufferedImage()
+				assert img != null
+				def orientation = resource.getExifOrientation()
+				if (orientation in [5, 6, 7, 8]) {
+					assert img.getWidth() == origin.getHeight()
+					assert img.getHeight() == origin.getWidth()
+				} else {
+					assert img.getWidth() == origin.getWidth()
+					assert img.getHeight() == origin.getHeight()
+				}
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof Exception
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << ALL_IMAGES
+	}
+
+	@Unroll
+	def "transparency 调整透明度：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(file)
+			} else {
+				def editor = ImageEditor.of(file)
+				editor.transparency(0.5f)
+				def img = editor.toBufferedImage()
+				assert img != null
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	def "transparency 超出范围抛异常"() {
+		given:
+		"准备源文件"
+		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageEditor.of(file)
+		editor.transparency(1.5f)
+
+		then:
+		"抛出异常"
+		thrown(IllegalArgumentException)
+	}
+
+	@Unroll
+	def "addImageWatermark(BufferedImage) 使用默认配置：#name"() {
+		given:
+		"准备源文件与水印"
+		def src = new File("${TEST_IMAGES_DIR}/${name}")
+		def watermark = new File("${TEST_IMAGES_DIR}/watermark.png")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(src)
+			} else {
+				def editor = ImageEditor.of(src)
+				def wm = ImageIO.read(watermark)
+				editor.addImageWatermark(wm)
+				def img = editor.toBufferedImage()
+				assert img != null
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	@Unroll
+	def "addImageWatermark(BufferedImage,ImageWatermarkOption) 使用指定配置：#name"() {
+		given:
+		"准备源文件与水印"
+		def src = new File("${TEST_IMAGES_DIR}/${name}")
+		def watermark = new File("${TEST_IMAGES_DIR}/watermark.png")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(src)
+			} else {
+				def editor = ImageEditor.of(src)
+				def wm = ImageIO.read(watermark)
+				def option = new ImageWatermarkOption()
+				option.setDirection(Positions.TOP_LEFT)
+				editor.addImageWatermark(wm, option)
+				def img = editor.toBufferedImage()
+				assert img != null
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	def "addImageWatermark(BufferedImage,ImageWatermarkOption) null option 抛异常"() {
+		given:
+		"准备源文件与水印"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+		def watermark = new File("${TEST_IMAGES_DIR}/watermark.png")
+
+		when:
+		"执行处理"
+		def editor = ImageEditor.of(src)
+		def wm = ImageIO.read(watermark)
+		editor.addImageWatermark(wm, null)
+
+		then:
+		"抛出异常"
+		thrown(NullPointerException)
+	}
+
+	@Unroll
+	def "addTextWatermark(String) 使用默认配置：#name"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(src)
+			} else {
+				def editor = ImageEditor.of(src)
+				editor.addTextWatermark("TEST")
+				def img = editor.toBufferedImage()
+				assert img != null
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	@Unroll
+	def "addTextWatermark(String,TextWatermarkOption) 使用指定配置：#name"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageEditor.of(src)
+			} else {
+				def editor = ImageEditor.of(src)
+				def option = new TextWatermarkOption()
+				option.setDirection(Positions.BOTTOM_RIGHT)
+				editor.addTextWatermark("HELLO", option)
+				def img = editor.toBufferedImage()
+				assert img != null
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	def "addTextWatermark(String,TextWatermarkOption) null option 抛异常"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageEditor.of(src)
+		editor.addTextWatermark("TEST", null)
+
+		then:
+		"抛出异常"
+		thrown(NullPointerException)
 	}
 }

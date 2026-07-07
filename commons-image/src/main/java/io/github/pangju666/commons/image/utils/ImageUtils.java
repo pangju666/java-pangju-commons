@@ -720,7 +720,7 @@ public class ImageUtils {
 		InputStream markSupportedInputStream = inputStream;
 		if (!inputStream.markSupported()) {
 			UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-			markSupportedInputStream = outputStream.toInputStream();
+			markSupportedInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(outputStream.toByteArray());
 		}
 
 		return parseSizeByMarkSupportedInputStream(markSupportedInputStream, -1L, useMetadata);
