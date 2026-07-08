@@ -1352,7 +1352,7 @@ class ImageEditorSpec extends Specification {
 				def editor = ImageEditor.of(resource)
 				def img = editor.toBufferedImage()
 				assert img != null
-				def orientation = resource.getExifOrientation()
+				def orientation = resource.getImageSize().getOrientation()
 				if (orientation in [5, 6, 7, 8]) {
 					assert img.getWidth() == origin.getHeight()
 					assert img.getHeight() == origin.getWidth()

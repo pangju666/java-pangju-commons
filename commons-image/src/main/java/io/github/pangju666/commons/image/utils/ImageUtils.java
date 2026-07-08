@@ -34,6 +34,8 @@ import com.drew.metadata.photoshop.PsdHeaderDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
 import com.twelvemonkeys.image.ImageUtil;
+import io.github.pangju666.commons.image.enums.FlipDirection;
+import io.github.pangju666.commons.image.enums.RotateDirection;
 import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.io.lang.IOConstants;
@@ -929,6 +931,57 @@ public class ImageUtils {
 			}
 		}
 		return ImageConstants.NORMAL_EXIF_ORIENTATION;
+	}
+
+	/**
+	 * 根据 EXIF 方向值校正图像方向
+	 * <p>根据 EXIF 标准（1-8）对图像应用相应的旋转或翻转操作，使图像在视觉上呈现为正确的方向。</p>
+	 *
+	 * <p><b>不同 EXIF 方向处理逻辑：</b></p>
+	 * <ul>
+	 *   <li>1: 正常方向（不处理，直接返回原图）</li>
+	 *   <li>2: 水平翻转</li>
+	 *   <li>3: 旋转 180 度</li>
+	 *   <li>4: 垂直翻转</li>
+	 *   <li>5: 顺时针旋转 90 度后水平翻转</li>
+	 *   <li>6: 顺时针旋转 90 度</li>
+	 *   <li>7: 逆时针旋转 90 度后水平翻转</li>
+	 *   <li>8: 逆时针旋转 90 度</li>
+	 * </ul>
+	 *
+	 * @param image           要校正的图像，不可为 null
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @return 校正后的图像
+	 * @throws NullPointerException     当 image 为 null 时抛出
+	 * @throws IllegalArgumentException 当 exifOrientation 不在 1-8 范围内时抛出
+	 * @since 1.1.0
+	 */
+	public static BufferedImage correctOrientation(final BufferedImage image, final int exifOrientation) {
+		Validate.notNull(image, "image 不可为 null");
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+
+		switch (exifOrientation) {
+			case 2:
+				return ImageUtil.createFlipped(image, FlipDirection.HORIZONTAL.getAxis());
+			case 3:
+				return ImageUtil.createRotated(image, RotateDirection.UPSIDE_DOWN.getRadians());
+			case 4:
+				return ImageUtil.createFlipped(image, FlipDirection.VERTICAL.getAxis());
+			case 5:
+				BufferedImage clockwise90Image = ImageUtil.createRotated(image,
+					RotateDirection.CLOCKWISE_90.getRadians());
+				return ImageUtil.createFlipped(clockwise90Image, FlipDirection.HORIZONTAL.getAxis());
+			case 6:
+				return ImageUtil.createRotated(image, RotateDirection.CLOCKWISE_90.getRadians());
+			case 7:
+				BufferedImage counterClockwise90Image = ImageUtil.createRotated(image,
+					RotateDirection.COUNTER_CLOCKWISE_90.getRadians());
+				return ImageUtil.createFlipped(counterClockwise90Image, FlipDirection.HORIZONTAL.getAxis());
+			case 8:
+				return ImageUtil.createRotated(image, RotateDirection.COUNTER_CLOCKWISE_90.getRadians());
+			default:
+				return image;
+		}
 	}
 
 	/**

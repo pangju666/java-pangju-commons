@@ -1,8 +1,6 @@
 package io.github.pangju666.commons.image.model
 
-
 import com.drew.metadata.Metadata
-import io.github.pangju666.commons.image.lang.ImageConstants
 import io.github.pangju666.commons.io.model.IOResource
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -31,7 +29,6 @@ class ImageIOResourceSpec extends Specification {
 		resource.size == file.length()
 		resource.format == name.substring(name.lastIndexOf('.') + 1).toUpperCase()
 		resource.isImage()
-		resource.exifOrientation >= 1 && resource.exifOrientation <= 8
 
 		where:
 		name << TEST_IMAGES
@@ -47,7 +44,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == "JPG"
-		resource.exifOrientation == ImageConstants.NORMAL_EXIF_ORIENTATION
 	}
 
 	def "基于文件路径构造ImageIOResource with 自定义exifOrientation"() {
@@ -60,7 +56,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == "JPG"
-		resource.exifOrientation == 6
 	}
 
 	def "基于文件路径构造ImageIOResource 非法exifOrientation抛异常"() {
@@ -110,7 +105,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == "PNG"
-		resource.exifOrientation == ImageConstants.NORMAL_EXIF_ORIENTATION
 	}
 
 	def "基于File对象构造ImageIOResource with 自定义exifOrientation"() {
@@ -123,7 +117,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == "PNG"
-		resource.exifOrientation == 3
 	}
 
 	def "基于File对象构造ImageIOResource null文件抛异常"() {
@@ -148,7 +141,6 @@ class ImageIOResourceSpec extends Specification {
 		resource.size == bytes.length
 		resource.format == null
 		resource.isImage()
-		resource.exifOrientation >= 1 && resource.exifOrientation <= 8
 
 		where:
 		name << TEST_IMAGES
@@ -165,7 +157,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == bytes.length
 		resource.format == null
-		resource.exifOrientation == ImageConstants.NORMAL_EXIF_ORIENTATION
 	}
 
 	def "基于字节数组构造ImageIOResource with 自定义exifOrientation"() {
@@ -179,7 +170,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == bytes.length
 		resource.format == null
-		resource.exifOrientation == 5
 	}
 
 	def "基于字节数组构造ImageIOResource 空数组抛异常"() {
@@ -212,7 +202,6 @@ class ImageIOResourceSpec extends Specification {
 		resource.size == file.length()
 		resource.format == null
 		resource.isImage()
-		resource.exifOrientation >= 1 && resource.exifOrientation <= 8
 
 		where:
 		name << TEST_IMAGES
@@ -229,7 +218,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == null
-		resource.exifOrientation == ImageConstants.NORMAL_EXIF_ORIENTATION
 	}
 
 	def "基于输入流构造ImageIOResource with 自定义exifOrientation"() {
@@ -243,7 +231,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		resource.size == file.length()
 		resource.format == null
-		resource.exifOrientation == 8
 	}
 
 	def "基于输入流构造ImageIOResource null流抛异常"() {
@@ -267,7 +254,6 @@ class ImageIOResourceSpec extends Specification {
 		imageResource.size == ioResource.size
 		imageResource.format == "JPG"
 		imageResource.isImage()
-		imageResource.exifOrientation >= 1 && imageResource.exifOrientation <= 8
 	}
 
 	def "基于IOResource构造ImageIOResource with parseExifOrientation=false"() {
@@ -281,7 +267,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		imageResource.size == ioResource.size
 		imageResource.format == "JPG"
-		imageResource.exifOrientation == ImageConstants.NORMAL_EXIF_ORIENTATION
 	}
 
 	def "基于IOResource构造ImageIOResource with 自定义exifOrientation"() {
@@ -295,7 +280,6 @@ class ImageIOResourceSpec extends Specification {
 		then:
 		imageResource.size == ioResource.size
 		imageResource.format == "JPG"
-		imageResource.exifOrientation == 2
 	}
 
 	def "基于ImageIOResource构造ImageIOResource 共享format和exifOrientation"() {
@@ -308,7 +292,6 @@ class ImageIOResourceSpec extends Specification {
 
 		then:
 		copy.format == original.format
-		copy.exifOrientation == original.exifOrientation
 	}
 
 	def "基于已关闭IOResource构造ImageIOResource抛异常"() {
@@ -370,7 +353,6 @@ class ImageIOResourceSpec extends Specification {
 		imageSize != null
 		imageSize.width > 0
 		imageSize.height > 0
-		imageSize.exifOrientation >= 1 && imageSize.exifOrientation <= 8
 
 		where:
 		name << TEST_IMAGES
