@@ -1044,13 +1044,11 @@ public class ImageIOResource extends IOResource {
 	public BufferedImage getBufferedImageCopy() throws IOException {
 		checkClosed();
 
-		synchronized (this) {
-			BufferedImage src = image;
-			if (Objects.isNull(src)) {
-				src = getBufferedImage();
-			}
-			return ImageUtil.createCopy(src);
+		BufferedImage src = this.image;
+		if (Objects.isNull(src)) {
+			src = getBufferedImage();
 		}
+		return ImageUtil.createCopy(src);
 	}
 
 	/**
