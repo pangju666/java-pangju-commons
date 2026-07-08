@@ -598,10 +598,12 @@ public class ImageEditor {
 	 * @return 图像编辑器实例
 	 * @throws IOException          当读取输入流出错时
 	 * @throws NullPointerException 当 inputStream 为 null 时抛出
+	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final int exifOrientation) throws IOException {
 		Validate.notNull(inputStream, "inputStream不可为 null");
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		if (Objects.isNull(bufferedImage)) {
@@ -677,10 +679,12 @@ public class ImageEditor {
 	 * @param exifOrientation  外部获取的 EXIF 方向值（1-8），用于校正图像
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 imageInputStream 为 null 时抛出
+	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @throws IOException          当读取图像失败时抛出
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final ImageInputStream imageInputStream, final int exifOrientation) throws IOException {
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
 
 		BufferedImage bufferedImage = ImageIO.read(imageInputStream);
@@ -721,10 +725,12 @@ public class ImageEditor {
 	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 bufferedImage 为 null 时抛出
+	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final BufferedImage bufferedImage, final int exifOrientation) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
 		ImageSize imageSize = new ImageSize(bufferedImage.getWidth(), bufferedImage.getHeight(), exifOrientation);
 		return new ImageEditor(bufferedImage, imageSize);
