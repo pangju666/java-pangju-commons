@@ -593,7 +593,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file)
 
 		when:
-		def imageInputStream = resource.openImageInputStream()
+		def imageInputStream = resource.newImageInputStream()
 
 		then:
 		imageInputStream != null
@@ -610,7 +610,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(bytes)
 
 		when:
-		def imageInputStream = resource.openImageInputStream()
+		def imageInputStream = resource.newImageInputStream()
 
 		then:
 		imageInputStream != null
@@ -627,7 +627,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.close()
 
 		when:
-		resource.openImageInputStream()
+		resource.newImageInputStream()
 
 		then:
 		thrown(IOException)

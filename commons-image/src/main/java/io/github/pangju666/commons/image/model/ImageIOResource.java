@@ -24,6 +24,8 @@ import io.github.pangju666.commons.image.lang.ImageConstants;
 import io.github.pangju666.commons.image.utils.ImageUtils;
 import io.github.pangju666.commons.io.model.IOResource;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.Validate;
 
 import javax.imageio.ImageIO;
@@ -37,14 +39,14 @@ import java.util.Objects;
 /**
  * 图像IO资源封装类
  * <p>继承自 {@link IOResource}，提供图像特定的功能封装，包括图像尺寸获取、元数据解析、
- * EXIF方向信息处理、BufferedImage缓存与深拷贝等功能。</p>
+ * EXIF方向自动校正、BufferedImage缓存与深拷贝等功能。</p>
  *
  * <h3>核心特性：</h3>
  * <ul>
  *     <li><strong>图像尺寸获取</strong> - 支持从元数据或BufferedImage获取图像尺寸</li>
  *     <li><strong>元数据解析</strong> - 基于Metadata Extractor解析图像元数据</li>
- *     <li><strong>EXIF方向处理</strong> - 支持EXIF方向信息的读取和设置</li>
- *     <li><strong>BufferedImage缓存</strong> - 可选的BufferedImage缓存机制</li>
+ *     <li><strong>EXIF方向自动校正</strong> - 可选择在构造时自动校正EXIF方向，缓存校正后的图像</li>
+ *     <li><strong>BufferedImage缓存</strong> - 缓存解码后的图像，避免重复解码</li>
  *     <li><strong>BufferedImage深拷贝</strong> - 提供深拷贝方法，避免修改缓存的原始图像</li>
  *     <li><strong>格式识别</strong> - 自动识别图像格式（文件模式）</li>
  *     <li><strong>ImageInputStream支持</strong> - 提供ImageInputStream接口</li>
@@ -64,7 +66,7 @@ import java.util.Objects;
  *     <li>资源关闭后禁止执行任何操作</li>
  *     <li>BufferedImage在资源关闭时会被flush</li>
  *     <li>字节数组和输入流模式无法自动识别格式</li>
- *     <li>EXIF方向值必须介于1-8之间</li>
+ *     <li>当启用方向校正时，会自动解码图像并缓存校正后的结果</li>
  *     <li>使用深拷贝方法会消耗更多内存，仅在需要修改图像时使用</li>
  * </ul>
  *
@@ -73,13 +75,6 @@ import java.util.Objects;
  */
 public class ImageIOResource extends IOResource {
 	/**
-	 * EXIF方向值
-	 * <p>取值范围1-8，表示图像的旋转和翻转信息</p>
-	 *
-	 * @since 1.1.0
-	 */
-	protected final Integer exifOrientation;
-	/**
 	 * 图像格式
 	 * <p>文件模式自动识别（如JPEG、PNG），字节数组/输入流模式为null</p>
 	 *
@@ -87,19 +82,25 @@ public class ImageIOResource extends IOResource {
 	 */
 	protected final String format;
 	/**
+	 * EXIF 方向是否已校正
+	 * <p>标记图像是否已进行 EXIF 方向校正。</p>
+	 *
+	 * <p>取值说明：</p>
+	 * <ul>
+	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
+	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 * </ul>
+	 *
+	 * @since 1.1.0
+	 */
+	protected final boolean orientationCorrected;
+	/**
 	 * 图像尺寸
-	 * <p>包含宽度、高度和EXIF方向信息</p>
+	 * <p>包含宽度和高度信息，当启用方向校正时为校正后的尺寸</p>
 	 *
 	 * @since 1.1.0
 	 */
 	protected volatile ImageSize imageSize;
-	/**
-	 * 缓存的BufferedImage
-	 * <p>用于避免重复解码图像</p>
-	 *
-	 * @since 1.1.0
-	 */
-	protected volatile BufferedImage bufferedImage;
 	/**
 	 * 图像元数据
 	 * <p>基于Metadata Extractor解析的图像元数据</p>
@@ -107,17 +108,25 @@ public class ImageIOResource extends IOResource {
 	 * @since 1.1.0
 	 */
 	protected volatile Metadata metadata;
+	/**
+	 * 缓存的BufferedImage
+	 * <p>用于避免重复解码图像，当启用方向校正时为校正后的图像</p>
+	 *
+	 * @since 1.1.0
+	 */
+	protected volatile BufferedImage image;
 
 	/**
-	 * 基于IOResource构造ImageIOResource（自动解析EXIF方向）
-	 * <p>从现有IOResource创建ImageIOResource，自动解析EXIF方向信息。</p>
+	 * 基于IOResource构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从现有IOResource创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
 	 *     <li>文件模式自动识别格式</li>
-	 *     <li>自动解析EXIF方向信息</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>orientationCorrected 字段将被设置为 true</li>
 	 * </ul>
 	 *
 	 * @param resource 源资源（必须非null且未关闭）
@@ -126,60 +135,32 @@ public class ImageIOResource extends IOResource {
 	 * @since 1.1.0
 	 */
 	public ImageIOResource(IOResource resource) throws IOException {
-		super(resource);
-
-		if (resource instanceof ImageIOResource) {
-			this.format = ((ImageIOResource) resource).format;
-			this.exifOrientation = ((ImageIOResource) resource).exifOrientation;
-		} else {
-			if (Objects.nonNull(file)) {
-				validateImageType("resource 不是图像资源");
-
-				this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
-
-				int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-				try {
-					this.metadata = ImageMetadataReader.readMetadata(file);
-					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
-				} catch (ImageProcessingException ignored) {
-				}
-				this.exifOrientation = exifOrientation;
-			} else {
-				this.format = null;
-
-				validateImageType("resource 不是图像资源");
-
-				int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-				try (InputStream inputStream = toInputStream(this.bytes)) {
-					this.metadata = ImageMetadataReader.readMetadata(inputStream);
-					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
-				} catch (ImageProcessingException ignored) {
-				}
-				this.exifOrientation = exifOrientation;
-			}
-		}
+		this(resource, true);
 	}
 
 	/**
-	 * 基于IOResource构造ImageIOResource（可选解析EXIF方向）
-	 * <p>从现有IOResource创建ImageIOResource，可选择是否解析EXIF方向信息。</p>
+	 * 基于IOResource构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从现有IOResource创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
 	 *     <li>文件模式自动识别格式</li>
-	 *     <li>根据参数决定是否解析EXIF方向</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>orientationCorrected 字段将被设置为 correctOrientation 参数值</li>
 	 * </ul>
 	 *
-	 * @param resource             源资源（必须非null且未关闭）
-	 * @param parseExifOrientation 是否解析EXIF方向信息
+	 * @param resource           源资源（必须非null且未关闭）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当resource已关闭或不是图像资源时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(IOResource resource, boolean parseExifOrientation) throws IOException {
+	public ImageIOResource(IOResource resource, boolean correctOrientation) throws IOException {
 		super(resource);
+
+		this.orientationCorrected = correctOrientation;
 
 		if (Objects.nonNull(file)) {
 			if (!(resource instanceof ImageIOResource)) {
@@ -189,14 +170,23 @@ public class ImageIOResource extends IOResource {
 			this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
 
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-			if (parseExifOrientation) {
+			if (correctOrientation) {
 				try {
 					this.metadata = ImageMetadataReader.readMetadata(file);
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 				}
 			}
-			this.exifOrientation = exifOrientation;
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				BufferedImage image = ImageIO.read(this.file);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
 		} else {
 			this.format = null;
 
@@ -205,36 +195,51 @@ public class ImageIOResource extends IOResource {
 			}
 
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-			if (parseExifOrientation) {
-				try (InputStream inputStream = toInputStream(this.bytes)) {
-					this.metadata = ImageMetadataReader.readMetadata(inputStream);
+			if (correctOrientation) {
+				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 				}
 			}
-			this.exifOrientation = exifOrientation;
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				try (InputStream bufferedInputStream = newBufferedInputStream()) {
+					BufferedImage image = ImageIO.read(bufferedInputStream);
+					if (Objects.isNull(image)) {
+						throw new IOException("图片读取失败");
+					}
+
+					this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+					this.image = ImageUtils.correctOrientation(image, exifOrientation);
+				}
+			}
 		}
 	}
 
 	/**
 	 * 基于IOResource构造ImageIOResource（指定EXIF方向）
-	 * <p>从现有IOResource创建ImageIOResource，使用指定的EXIF方向值。</p>
+	 * <p>从现有IOResource创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
 	 *     <li>文件模式自动识别格式</li>
-	 *     <li>不自动解析EXIF方向，使用指定值</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>orientationCorrected 字段将被设置为 true</li>
 	 * </ul>
 	 *
 	 * @param resource        源资源（必须非null且未关闭）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
+	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当resource已关闭、不是图像资源或exifOrientation不在1-8范围内时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(IOResource resource, int exifOrientation) {
+	public ImageIOResource(IOResource resource, int exifOrientation) throws IOException {
 		super(resource);
+
+		this.orientationCorrected = true;
 
 		if (Objects.nonNull(file)) {
 			if (!(resource instanceof ImageIOResource)) {
@@ -250,18 +255,36 @@ public class ImageIOResource extends IOResource {
 			this.format = null;
 		}
 
-		this.exifOrientation = exifOrientation;
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			BufferedImage image;
+			if (Objects.nonNull(this.file)) {
+				image = ImageIO.read(this.file);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+				}
+			} else {
+				try (InputStream inputStream = newBufferedInputStream()) {
+					image = ImageIO.read(inputStream);
+				}
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败");
+				}
+			}
+
+			this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+			this.image = ImageUtils.correctOrientation(image, exifOrientation);
+		}
 	}
 
 	/**
-	 * 基于文件路径构造ImageIOResource（自动解析EXIF方向）
-	 * <p>从文件路径创建ImageIOResource，自动解析EXIF方向信息。</p>
+	 * 基于文件路径构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从文件路径创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>自动解析EXIF方向信息</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param filePath 文件路径（必须非空）
@@ -274,49 +297,59 @@ public class ImageIOResource extends IOResource {
 	}
 
 	/**
-	 * 基于文件路径构造ImageIOResource（可选解析EXIF方向）
-	 * <p>从文件路径创建ImageIOResource，可选择是否解析EXIF方向信息。</p>
+	 * 基于文件路径构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从文件路径创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>根据参数决定是否解析EXIF方向</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
-	 * @param filePath             文件路径（必须非空）
-	 * @param parseExifOrientation 是否解析EXIF方向信息
+	 * @param filePath           文件路径（必须非空）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当filePath为空或文件不是图像文件时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(String filePath, boolean parseExifOrientation) throws IOException {
+	public ImageIOResource(String filePath, boolean correctOrientation) throws IOException {
 		super(filePath, false);
 
 		validateImageType("file 不是图像文件");
 
 		this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
+		this.orientationCorrected = correctOrientation;
 
-		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		if (parseExifOrientation) {
+		if (correctOrientation) {
+			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try {
-				this.metadata = ImageMetadataReader.readMetadata(file);
+				this.metadata = ImageMetadataReader.readMetadata(this.file);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 			}
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				BufferedImage image = ImageIO.read(this.file);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
 		}
-		this.exifOrientation = exifOrientation;
 	}
 
 	/**
 	 * 基于文件路径构造ImageIOResource（指定EXIF方向）
-	 * <p>从文件路径创建ImageIOResource，使用指定的EXIF方向值。</p>
+	 * <p>从文件路径创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>不自动解析EXIF方向，使用指定值</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param filePath        文件路径（必须非空）
@@ -331,20 +364,30 @@ public class ImageIOResource extends IOResource {
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		validateImageType("file 不是图像文件");
 
-		this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
-		this.exifOrientation = exifOrientation;
+		this.format = FilenameUtils.getExtension(this.file.getName()).toUpperCase();
+		this.orientationCorrected = true;
+
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			BufferedImage image = ImageIO.read(this.file);
+			if (Objects.isNull(image)) {
+				throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+			}
+
+			this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+			this.image = ImageUtils.correctOrientation(image, exifOrientation);
+		}
 	}
 
 
 	/**
-	 * 基于File对象构造ImageIOResource（自动解析EXIF方向）
-	 * <p>从File对象创建ImageIOResource，自动解析EXIF方向信息。</p>
+	 * 基于File对象构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从File对象创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>自动解析EXIF方向信息</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param file 文件对象（必须非null）
@@ -357,49 +400,59 @@ public class ImageIOResource extends IOResource {
 	}
 
 	/**
-	 * 基于File对象构造ImageIOResource（可选解析EXIF方向）
-	 * <p>从File对象创建ImageIOResource，可选择是否解析EXIF方向信息。</p>
+	 * 基于File对象构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从File对象创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>根据参数决定是否解析EXIF方向</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
-	 * @param file                 文件对象（必须非null）
-	 * @param parseExifOrientation 是否解析EXIF方向信息
+	 * @param file               文件对象（必须非null）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null或文件不是图像文件时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(File file, boolean parseExifOrientation) throws IOException {
+	public ImageIOResource(File file, boolean correctOrientation) throws IOException {
 		super(file, false);
 
 		validateImageType("file 不是图像文件");
 
 		this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
+		this.orientationCorrected = correctOrientation;
 
-		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		if (parseExifOrientation) {
+		if (correctOrientation) {
+			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try {
-				this.metadata = ImageMetadataReader.readMetadata(file);
+				this.metadata = ImageMetadataReader.readMetadata(this.file);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 			}
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				BufferedImage image = ImageIO.read(this.file);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
 		}
-		this.exifOrientation = exifOrientation;
 	}
 
 	/**
 	 * 基于File对象构造ImageIOResource（指定EXIF方向）
-	 * <p>从File对象创建ImageIOResource，使用指定的EXIF方向值。</p>
+	 * <p>从File对象创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>不自动解析EXIF方向，使用指定值</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param file            文件对象（必须非null）
@@ -415,18 +468,28 @@ public class ImageIOResource extends IOResource {
 		validateImageType("file 不是图像文件");
 
 		this.format = FilenameUtils.getExtension(file.getName()).toUpperCase();
-		this.exifOrientation = exifOrientation;
+		this.orientationCorrected = true;
+
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			BufferedImage image = ImageIO.read(this.file);
+			if (Objects.isNull(image)) {
+				throw new IOException("图片读取失败，文件路径：" + this.file.getAbsolutePath());
+			}
+
+			this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+			this.image = ImageUtils.correctOrientation(image, exifOrientation);
+		}
 	}
 
 	/**
-	 * 基于字节数组构造ImageIOResource（自动解析EXIF方向）
-	 * <p>从字节数组创建ImageIOResource，自动解析EXIF方向信息。</p>
+	 * 基于字节数组构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从字节数组创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>自动解析EXIF方向信息</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param bytes 字节数组（必须非空）
@@ -439,75 +502,100 @@ public class ImageIOResource extends IOResource {
 	}
 
 	/**
-	 * 基于字节数组构造ImageIOResource（可选解析EXIF方向）
-	 * <p>从字节数组创建ImageIOResource，可选择是否解析EXIF方向信息。</p>
+	 * 基于字节数组构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从字节数组创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>根据参数决定是否解析EXIF方向</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
-	 * @param bytes                字节数组（必须非空）
-	 * @param parseExifOrientation 是否解析EXIF方向信息
+	 * @param bytes              字节数组（必须非空）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当bytes为空或数据不是图像数据时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(byte[] bytes, boolean parseExifOrientation) throws IOException {
+	public ImageIOResource(byte[] bytes, boolean correctOrientation) throws IOException {
 		super(bytes);
 
 		validateImageType("bytes 不是图像数据");
 
 		this.format = null;
+		this.orientationCorrected = correctOrientation;
 
-		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		if (parseExifOrientation) {
-			try (InputStream inputStream = toInputStream(this.bytes)) {
-				this.metadata = ImageMetadataReader.readMetadata(inputStream);
+		if (correctOrientation) {
+			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
+			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 			}
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				try (InputStream bufferedInputStream = newBufferedInputStream()) {
+					BufferedImage image = ImageIO.read(bufferedInputStream);
+					if (Objects.isNull(image)) {
+						throw new IOException("图片读取失败");
+					}
+
+					this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+					this.image = ImageUtils.correctOrientation(image, exifOrientation);
+				}
+			}
 		}
-		this.exifOrientation = exifOrientation;
 	}
 
 	/**
 	 * 基于字节数组构造ImageIOResource（指定EXIF方向）
-	 * <p>从字节数组创建ImageIOResource，使用指定的EXIF方向值。</p>
+	 * <p>从字节数组创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>不自动解析EXIF方向，使用指定值</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param bytes           字节数组（必须非空）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
+	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当bytes为空、数据不是图像数据或exifOrientation不在1-8范围内时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(byte[] bytes, int exifOrientation) {
+	public ImageIOResource(byte[] bytes, int exifOrientation) throws IOException {
 		super(bytes);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		validateImageType("bytes 不是图像数据");
 
 		this.format = null;
-		this.exifOrientation = exifOrientation;
+		this.orientationCorrected = true;
+
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			try (InputStream inputStream = newBufferedInputStream()) {
+				BufferedImage image = ImageIO.read(inputStream);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败");
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
+		}
 	}
 
 	/**
-	 * 基于输入流构造ImageIOResource（自动解析EXIF方向）
-	 * <p>从输入流创建ImageIOResource，自动解析EXIF方向信息。</p>
+	 * 基于输入流构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从输入流创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>自动解析EXIF方向信息</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
@@ -520,49 +608,61 @@ public class ImageIOResource extends IOResource {
 	}
 
 	/**
-	 * 基于输入流构造ImageIOResource（可选解析EXIF方向）
-	 * <p>从输入流创建ImageIOResource，可选择是否解析EXIF方向信息。</p>
+	 * 基于输入流构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从输入流创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>根据参数决定是否解析EXIF方向</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
-	 * @param inputStream          输入流（必须非null）
-	 * @param parseExifOrientation 是否解析EXIF方向信息
+	 * @param inputStream        输入流（必须非null）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null或数据不是图像数据时抛出
 	 * @since 1.1.0
 	 */
-	public ImageIOResource(InputStream inputStream, boolean parseExifOrientation) throws IOException {
+	public ImageIOResource(InputStream inputStream, boolean correctOrientation) throws IOException {
 		super(inputStream);
 
 		validateImageType("inputStream 不是图像数据输入流");
 
 		this.format = null;
+		this.orientationCorrected = correctOrientation;
 
-		int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-		if (parseExifOrientation) {
-			try (InputStream tmpInputStream = toInputStream(this.bytes)) {
-				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream);
+		if (correctOrientation) {
+			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
+			try (InputStream tmpInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream, size);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 			}
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				try (InputStream bufferedInputStream = newBufferedInputStream()) {
+					BufferedImage image = ImageIO.read(bufferedInputStream);
+					if (Objects.isNull(image)) {
+						throw new IOException("图片读取失败");
+					}
+
+					this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+					this.image = ImageUtils.correctOrientation(image, exifOrientation);
+				}
+			}
 		}
-		this.exifOrientation = exifOrientation;
 	}
 
 	/**
 	 * 基于输入流构造ImageIOResource（指定EXIF方向）
-	 * <p>从输入流创建ImageIOResource，使用指定的EXIF方向值。</p>
+	 * <p>从输入流创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
 	 *     <li>无法自动识别格式，format为null</li>
-	 *     <li>不自动解析EXIF方向，使用指定值</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param inputStream     输入流（必须非null）
@@ -578,42 +678,167 @@ public class ImageIOResource extends IOResource {
 		validateImageType("inputStream 不是图像数据输入流");
 
 		this.format = null;
-		this.exifOrientation = exifOrientation;
+		this.orientationCorrected = true;
+
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			try (InputStream tmpInputStream = newBufferedInputStream()) {
+				BufferedImage image = ImageIO.read(tmpInputStream);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败");
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
+		}
 	}
 
 	/**
-	 * 获取图像尺寸
-	 * <p>优先从元数据获取尺寸，若元数据中不存在则从BufferedImage获取。</p>
+	 * 基于ImageInputStream构造ImageIOResource（自动校正EXIF方向）
+	 * <p>从ImageInputStream创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>自动验证数据是否为图像类型</li>
+	 *     <li>无法自动识别格式，format为null</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>输入流位置会被重置到原始位置</li>
+	 * </ul>
+	 *
+	 * @param inputStream ImageInputStream（必须非null）
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws IllegalArgumentException 当inputStream为null或数据不是图像数据时抛出
+	 * @since 1.1.0
+	 */
+	public ImageIOResource(ImageInputStream inputStream) throws IOException {
+		this(inputStream, true);
+	}
+
+	/**
+	 * 基于ImageInputStream构造ImageIOResource（可选校正EXIF方向）
+	 * <p>从ImageInputStream创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>自动验证数据是否为图像类型</li>
+	 *     <li>无法自动识别格式，format为null</li>
+	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>输入流位置会被重置到原始位置</li>
+	 * </ul>
+	 *
+	 * @param imageInputStream   ImageInputStream（必须非null）
+	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws IllegalArgumentException 当imageInputStream为null或数据不是图像数据时抛出
+	 * @since 1.1.0
+	 */
+	public ImageIOResource(ImageInputStream imageInputStream, boolean correctOrientation) throws IOException {
+		super(parse(imageInputStream), null);
+
+		this.format = null;
+		this.orientationCorrected = correctOrientation;
+
+		if (correctOrientation) {
+			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
+			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
+				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
+			} catch (ImageProcessingException ignored) {
+			}
+
+			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+				try (InputStream bufferedInputStream = newBufferedInputStream()) {
+					BufferedImage image = ImageIO.read(bufferedInputStream);
+					if (Objects.isNull(image)) {
+						throw new IOException("图片读取失败");
+					}
+
+					this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+					this.image = ImageUtils.correctOrientation(image, exifOrientation);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 基于ImageInputStream构造ImageIOResource（指定EXIF方向）
+	 * <p>从ImageInputStream创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>自动验证数据是否为图像类型</li>
+	 *     <li>无法自动识别格式，format为null</li>
+	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>输入流位置会被重置到原始位置</li>
+	 * </ul>
+	 *
+	 * @param imageInputStream ImageInputStream（必须非null）
+	 * @param exifOrientation  EXIF方向值（必须介于1-8之间）
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws IllegalArgumentException 当imageInputStream为null、数据不是图像数据或exifOrientation不在1-8范围内时抛出
+	 * @since 1.1.0
+	 */
+	public ImageIOResource(ImageInputStream imageInputStream, int exifOrientation) throws IOException {
+		super(parse(imageInputStream), null);
+
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+
+		this.format = null;
+		this.orientationCorrected = true;
+
+		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
+			try (InputStream inputStream = newBufferedInputStream()) {
+				BufferedImage image = ImageIO.read(inputStream);
+				if (Objects.isNull(image)) {
+					throw new IOException("图片读取失败");
+				}
+
+				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
+				this.image = ImageUtils.correctOrientation(image, exifOrientation);
+			}
+		}
+	}
+
+	/**
+	 * 解析ImageInputStream为ByteArrayOutputStream
+	 * <p>从ImageInputStream读取全部数据并转换为ByteArrayOutputStream。</p>
 	 *
 	 * <p>实现特性：</p>
 	 * <ul>
-	 *     <li>线程安全，使用synchronized保护</li>
-	 *     <li>结果会被缓存，避免重复计算</li>
-	 *     <li>包含EXIF方向信息</li>
+	 *     <li>自动根据流大小计算合适的缓冲区大小</li>
+	 *     <li>读取完成后会重置流位置到原始位置</li>
+	 *     <li>使用try-finally确保流位置被正确恢复</li>
 	 * </ul>
 	 *
-	 * @return 图像尺寸对象（包含宽度、高度和EXIF方向）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @param imageInputStream ImageInputStream（必须非null）
+	 * @return 包含流数据的ByteArrayOutputStream
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
 	 * @since 1.1.0
 	 */
-	public ImageSize getImageSize() throws IOException {
-		checkClosed();
+	protected static ByteArrayOutputStream parse(final ImageInputStream imageInputStream) throws IOException {
+		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
 
-		synchronized (this) {
-			if (Objects.nonNull(imageSize)) {
-				return imageSize;
+		long oldPos = imageInputStream.getStreamPosition();
+		imageInputStream.seek(0);
+
+		try {
+			int bufferSize = IOUtils.DEFAULT_BUFFER_SIZE;
+			long totalSize = imageInputStream.length();
+			if (totalSize != -1) {
+				bufferSize = IOUtils.getBufferSize(totalSize);
+			}
+			ByteArrayOutputStream bos = new ByteArrayOutputStream(bufferSize);
+
+			byte[] buffer = new byte[bufferSize];
+			int length;
+			while ((length = imageInputStream.read(buffer)) != -1) {
+				bos.write(buffer, 0, length);
 			}
 
-			if (Objects.nonNull(metadata)) {
-				imageSize = ImageUtils.getSize(metadata);
-			}
-
-			if (Objects.isNull(imageSize)) {
-				BufferedImage image = getBufferedImage();
-				imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation);
-			}
-
-			return imageSize;
+			return bos;
+		} finally {
+			imageInputStream.seek(oldPos);
 		}
 	}
 
@@ -629,6 +854,66 @@ public class ImageIOResource extends IOResource {
 		checkClosed();
 
 		this.imageSize = imageSize;
+	}
+
+	/**
+	 * 获取图像尺寸
+	 * <p>优先从缓存获取尺寸，若未缓存则从元数据获取，若元数据中不存在则从BufferedImage获取。</p>
+	 *
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>线程安全，使用synchronized保护</li>
+	 *     <li>结果会被缓存，避免重复计算</li>
+	 *     <li>当启用方向校正时，返回校正后的尺寸</li>
+	 * </ul>
+	 *
+	 * @return 图像尺寸对象（包含宽度、高度和EXIF方向）
+	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @since 1.1.0
+	 */
+	public ImageSize getImageSize() throws IOException {
+		checkClosed();
+
+		synchronized (this) {
+			if (Objects.nonNull(imageSize)) {
+				return imageSize;
+			}
+
+			Metadata metadata = getMetadata();
+			imageSize = ImageUtils.getSize(metadata);
+
+			if (Objects.isNull(imageSize)) {
+				BufferedImage image = getBufferedImage();
+				imageSize = new ImageSize(image.getWidth(), image.getHeight(), ImageUtils.getExifOrientation(metadata));
+			}
+
+			return imageSize;
+		}
+	}
+
+	/**
+	 * 设置图像元数据
+	 * <p>用于手动设置图像元数据，覆盖自动解析的值。</p>
+	 *
+	 * @param metadata 图像元数据对象
+	 * @throws IOException 当资源已关闭时抛出
+	 * @since 1.1.0
+	 */
+	public void setMetadata(Metadata metadata) throws IOException {
+		checkClosed();
+
+		this.metadata = metadata;
+	}
+
+	/**
+	 * 获取图像格式
+	 * <p>文件模式自动识别格式（如JPEG、PNG），字节数组/输入流模式返回null。</p>
+	 *
+	 * @return 图像格式字符串（大写），字节数组/输入流模式返回null
+	 * @since 1.1.0
+	 */
+	public String getFormat() {
+		return format;
 	}
 
 	/**
@@ -661,39 +946,14 @@ public class ImageIOResource extends IOResource {
 					metadata = new Metadata();
 				}
 			} else {
-				try (InputStream inputStream = toInputStream(bytes)) {
-					metadata = ImageMetadataReader.readMetadata(inputStream);
+				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					metadata = ImageMetadataReader.readMetadata(inputStream, size);
 				} catch (ImageProcessingException ignored) {
 					metadata = new Metadata();
 				}
 			}
 			return metadata;
 		}
-	}
-
-	/**
-	 * 设置图像元数据
-	 * <p>用于手动设置图像元数据，覆盖自动解析的值。</p>
-	 *
-	 * @param metadata 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
-	 */
-	public void setMetadata(Metadata metadata) throws IOException {
-		checkClosed();
-
-		this.metadata = metadata;
-	}
-
-	/**
-	 * 获取图像格式
-	 * <p>文件模式自动识别格式（如JPEG、PNG），字节数组/输入流模式返回null。</p>
-	 *
-	 * @return 图像格式字符串（大写），字节数组/输入流模式返回null
-	 * @since 1.1.0
-	 */
-	public String getFormat() {
-		return format;
 	}
 
 	/**
@@ -704,10 +964,11 @@ public class ImageIOResource extends IOResource {
 	 * <ul>
 	 *     <li>线程安全，使用synchronized保护</li>
 	 *     <li>结果会被缓存，避免重复解码</li>
+	 *     <li>当启用方向校正时，返回校正后的图像</li>
 	 *     <li>读取失败时抛出IOException</li>
 	 * </ul>
 	 *
-	 * @return BufferedImage对象
+	 * @return BufferedImage对象（当启用方向校正时为校正后的图像）
 	 * @throws IOException 当资源已关闭或图像读取失败时抛出
 	 * @since 1.1.0
 	 */
@@ -715,24 +976,24 @@ public class ImageIOResource extends IOResource {
 		checkClosed();
 
 		synchronized (this) {
-			if (Objects.nonNull(bufferedImage)) {
-				return bufferedImage;
+			if (Objects.nonNull(image)) {
+				return image;
 			}
 
 			if (Objects.nonNull(file)) {
-				bufferedImage = ImageIO.read(file);
-				if (Objects.isNull(bufferedImage)) {
+				image = ImageIO.read(file);
+				if (Objects.isNull(image)) {
 					throw new IOException("图片读取失败，文件路径：" + file.getAbsolutePath());
 				}
 			} else {
-				try (InputStream inputStream = toInputStream(this.bytes)) {
-					bufferedImage = ImageIO.read(inputStream);
-					if (Objects.isNull(bufferedImage)) {
+				try (InputStream bufferedInputStream = newBufferedInputStream()) {
+					image = ImageIO.read(bufferedInputStream);
+					if (Objects.isNull(image)) {
 						throw new IOException("图片读取失败");
 					}
 				}
 			}
-			return bufferedImage;
+			return image;
 		}
 	}
 
@@ -750,6 +1011,7 @@ public class ImageIOResource extends IOResource {
 	 *   <li>先检查资源关闭状态，再获取锁（提高性能）</li>
 	 *   <li>如果缓存为空，先调用 {@link #getBufferedImage()} 加载图像</li>
 	 *   <li>返回的副本与缓存完全独立，修改副本不影响缓存</li>
+	 *   <li>当启用方向校正时，返回校正后图像的深拷贝</li>
 	 * </ul>
 	 *
 	 * <p><b>使用场景：</b></p>
@@ -766,7 +1028,7 @@ public class ImageIOResource extends IOResource {
 	 *   <li>资源关闭后调用会抛出异常</li>
 	 * </ul>
 	 *
-	 * @return BufferedImage的深拷贝副本
+	 * @return BufferedImage的深拷贝副本（当启用方向校正时为校正后图像的深拷贝）
 	 * @throws IOException 当资源已关闭或图像读取失败时抛出
 	 * @see #getBufferedImage()
 	 * @see ImageUtil#createCopy(BufferedImage)
@@ -776,7 +1038,7 @@ public class ImageIOResource extends IOResource {
 		checkClosed();
 
 		synchronized (this) {
-			BufferedImage src = bufferedImage;
+			BufferedImage src = image;
 			if (Objects.isNull(src)) {
 				src = getBufferedImage();
 			}
@@ -785,7 +1047,24 @@ public class ImageIOResource extends IOResource {
 	}
 
 	/**
-	 * 打开ImageInputStream
+	 * 判断 EXIF 方向是否已校正
+	 * <p>返回图像是否已进行 EXIF 方向校正。</p>
+	 *
+	 * <p>返回值说明：</p>
+	 * <ul>
+	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
+	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 * </ul>
+	 *
+	 * @return 如果 EXIF 方向已校正返回 true，否则返回 false
+	 * @since 1.1.0
+	 */
+	public boolean isOrientationCorrected() {
+		return orientationCorrected;
+	}
+
+	/**
+	 * 创建ImageInputStream
 	 * <p>创建ImageInputStream用于图像处理，每次调用创建新实例。</p>
 	 *
 	 * <p>注意事项：</p>
@@ -798,43 +1077,14 @@ public class ImageIOResource extends IOResource {
 	 * @throws IOException 当资源已关闭或流创建失败时抛出
 	 * @since 1.1.0
 	 */
-	public ImageInputStream openImageInputStream() throws IOException {
+	public ImageInputStream newImageInputStream() throws IOException {
 		checkClosed();
 
 		if (Objects.nonNull(file)) {
 			return ImageIO.createImageInputStream(file);
 		} else {
-			return ImageIO.createImageInputStream(toInputStream(bytes));
+			return ImageIO.createImageInputStream(newBufferedInputStream());
 		}
-	}
-
-	/**
-	 * 关闭资源
-	 * <p>释放图像相关资源，包括flush BufferedImage、清空元数据和尺寸缓存。</p>
-	 *
-	 * <p>清理操作：</p>
-	 * <ul>
-	 *     <li>flush BufferedImage（释放图像内存）</li>
-	 *     <li>清空metadata缓存</li>
-	 *     <li>清空imageSize缓存</li>
-	 *     <li>清空bufferedImage缓存</li>
-	 *     <li>调用父类close方法</li>
-	 * </ul>
-	 *
-	 * @throws IOException 当资源关闭失败时抛出
-	 * @since 1.1.0
-	 */
-	@Override
-	public synchronized void close() throws IOException {
-		if (Objects.nonNull(this.bufferedImage)) {
-			this.bufferedImage.flush();
-		}
-
-		this.metadata = null;
-		this.bufferedImage = null;
-		this.imageSize = null;
-
-		super.close();
 	}
 
 	/**
@@ -854,5 +1104,34 @@ public class ImageIOResource extends IOResource {
 	protected void validateImageType(String message) {
 		Validate.isTrue(isImage(), message);
 		Validate.isTrue(ImageUtils.isSupportReadType(mimeType), "不支持读取 " + mimeType + " 类型图像");
+	}
+
+	/**
+	 * 关闭资源
+	 * <p>释放图像相关资源，包括flush BufferedImage、清空元数据和尺寸缓存。</p>
+	 *
+	 * <p>清理操作：</p>
+	 * <ul>
+	 *     <li>flush BufferedImage（释放图像内存）</li>
+	 *     <li>清空metadata缓存</li>
+	 *     <li>清空imageSize缓存</li>
+	 *     <li>清空image缓存</li>
+	 *     <li>调用父类close方法</li>
+	 * </ul>
+	 *
+	 * @throws IOException 当资源关闭失败时抛出
+	 * @since 1.1.0
+	 */
+	@Override
+	public synchronized void close() throws IOException {
+		if (Objects.nonNull(this.image)) {
+			this.image.flush();
+		}
+
+		this.metadata = null;
+		this.image = null;
+		this.imageSize = null;
+
+		super.close();
 	}
 }

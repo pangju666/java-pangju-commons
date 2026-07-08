@@ -401,7 +401,7 @@ public class ImageUtils {
 	 * @since 1.0.0
 	 */
 	public static String getMimeType(final InputStream inputStream) throws IOException {
-		Validate.notNull(inputStream, "imageInputStream 不可为 null");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof BufferedInputStream ||
 			inputStream instanceof UnsynchronizedBufferedInputStream) {
