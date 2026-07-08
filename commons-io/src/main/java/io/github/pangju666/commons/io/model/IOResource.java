@@ -20,12 +20,15 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,7 +40,7 @@ import java.util.UUID;
  * <ul>
  *     <li><strong>多数据源支持</strong> - 支持文件、字节数组、输入流等多种数据源</li>
  *     <li><strong>自动类型检测</strong> - 基于Apache Tika自动识别MIME类型</li>
- *     <li><strong>内容缓存</strong> - 可选的内容缓存机制，优化重复访问性能</li>
+ *     <li><strong>可选缓存</strong> - 文件模式可选择是否将内容缓存到内存</li>
  *     <li><strong>摘要计算</strong> - 支持基于三段采样策略的摘要计算</li>
  *     <li><strong>资源管理</strong> - 实现Closeable接口，支持资源自动清理</li>
  *     <li><strong>临时文件管理</strong> - 自动管理临时文件的创建和删除</li>
@@ -55,7 +58,7 @@ import java.util.UUID;
  * <ul>
  *     <li>资源关闭后禁止执行任何操作</li>
  *     <li>临时文件在资源关闭时自动删除</li>
- *     <li>大文件建议使用文件模式而非字节数组模式</li>
+ *     <li>大文件建议使用文件模式且不缓存以避免内存占用过高</li>
  * </ul>
  *
  * @author pangju666
@@ -80,20 +83,7 @@ public class IOResource implements Closeable {
 	 * @since 1.1.0
 	 */
 	protected static final String TMP_FILE_EXTENSION = "tmp";
-	/**
-	 * 输入流缓冲阈值（字节）
-	 * <p>超过此阈值时使用缓冲输入流以提高性能</p>
-	 *
-	 * @since 1.1.0
-	 */
-	protected static volatile int INPUT_STREAM_THRESHOLD = IOUtils.DEFAULT_BUFFER_SIZE;
 
-	/**
-	 * 是否缓存内容
-	 *
-	 * @since 1.1.0
-	 */
-	protected final boolean cacheContent;
 	/**
 	 * MIME类型
 	 *
@@ -106,6 +96,12 @@ public class IOResource implements Closeable {
 	 * @since 1.1.0
 	 */
 	protected final long size;
+	/**
+	 * 字节数组缓存
+	 *
+	 * @since 1.1.0
+	 */
+	protected final ByteArrayOutputStream byteArrayOutputStream;
 
 	/**
 	 * 文件引用
@@ -113,12 +109,6 @@ public class IOResource implements Closeable {
 	 * @since 1.1.0
 	 */
 	protected volatile File file;
-	/**
-	 * 字节数组缓存
-	 *
-	 * @since 1.1.0
-	 */
-	protected volatile byte[] bytes;
 	/**
 	 * 摘要值
 	 *
@@ -139,40 +129,64 @@ public class IOResource implements Closeable {
 	protected volatile boolean closed = false;
 
 	/**
+	 * 复制构造函数（不缓存内容）
+	 * <p>等同于 {@code new IOResource(resource, false)}。</p>
+	 *
+	 * @param resource 源资源（必须非null且未关闭）
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IllegalArgumentException 当resource已关闭时抛出
+	 * @since 1.1.0
+	 */
+	public IOResource(IOResource resource) throws IOException {
+		this(resource, false);
+	}
+
+	/**
 	 * 复制构造函数
-	 * <p>从现有IOResource创建副本，共享底层文件或字节数组。</p>
+	 * <p>从现有IOResource创建副本。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
-	 *     <li>非临时文件共享文件引用</li>
-	 *     <li>临时文件或字节数组模式共享字节数组</li>
+	 *     <li>非临时文件且不缓存时共享文件引用</li>
+	 *     <li>非临时文件且缓存时读取文件内容到字节数组</li>
+	 *     <li>临时文件或字节数组模式读取内容到字节数组</li>
 	 * </ul>
 	 *
 	 * @param resource 源资源（必须非null且未关闭）
+	 * @param cacheContent 是否缓存内容（仅对文件模式有效）
+	 * @throws IOException 当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当resource已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public IOResource(IOResource resource) {
+	public IOResource(IOResource resource, boolean cacheContent) throws IOException {
 		if (resource.closed) {
 			throw new IllegalArgumentException("resource 已关闭");
 		}
 
 		this.size = resource.size;
 		this.mimeType = resource.mimeType;
-		this.cacheContent = resource.cacheContent;
 		this.digest = resource.digest;
 
 		if (Objects.nonNull(resource.file) && !resource.isTempFile()) {
 			this.file = resource.file;
+			if (cacheContent) {
+				this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(file.length()));
+				try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(file)) {
+					this.byteArrayOutputStream.write(inputStream);
+				}
+			} else {
+				this.byteArrayOutputStream = null;
+			}
 		} else {
-			this.bytes = resource.bytes;
+			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(resource.size));
+			this.byteArrayOutputStream.write(resource.openInputStream());
 		}
 	}
 
 	/**
 	 * 基于文件路径构造IOResource（不缓存内容）
-	 * <p>自动检测文件MIME类型和大小。</p>
+	 * <p>等同于 {@code new IOResource(filePath, false)}。</p>
 	 *
 	 * @param filePath 文件路径（必须非空）
 	 * @throws IOException              当文件读取失败时抛出
@@ -189,7 +203,7 @@ public class IOResource implements Closeable {
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
-	 *     <li>cacheContent为true时，首次读取字节数组后会缓存</li>
+	 *     <li>cacheContent为true时，构造时立即读取文件内容到内存</li>
 	 *     <li>大文件建议设置为false以避免内存占用过高</li>
 	 * </ul>
 	 *
@@ -203,15 +217,24 @@ public class IOResource implements Closeable {
 		Validate.notBlank(filePath, "filePath 不可为空");
 
 		this.file = new File(filePath);
+		FileUtils.checkFile(file, StringUtils.EMPTY);
+
 		this.mimeType = FileUtils.getMimeType(file);
 		this.size = file.length();
 
-		this.cacheContent = cacheContent;
+		if (cacheContent) {
+			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(file.length()));
+			try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(file)) {
+				this.byteArrayOutputStream.write(inputStream);
+			}
+		} else {
+			this.byteArrayOutputStream = null;
+		}
 	}
 
 	/**
 	 * 基于File对象构造IOResource（不缓存内容）
-	 * <p>自动检测文件MIME类型和大小。</p>
+	 * <p>等同于 {@code new IOResource(file, false)}。</p>
 	 *
 	 * @param file 文件对象（必须非null）
 	 * @throws IOException 当文件读取失败时抛出
@@ -227,7 +250,7 @@ public class IOResource implements Closeable {
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
-	 *     <li>cacheContent为true时，首次读取字节数组后会缓存</li>
+	 *     <li>cacheContent为true时，构造时立即读取文件内容到内存</li>
 	 *     <li>大文件建议设置为false以避免内存占用过高</li>
 	 * </ul>
 	 *
@@ -241,24 +264,34 @@ public class IOResource implements Closeable {
 		this.mimeType = FileUtils.getMimeType(file);
 		this.size = file.length();
 
-		this.cacheContent = cacheContent;
+		if (cacheContent) {
+			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(file.length()));
+			try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(file)) {
+				this.byteArrayOutputStream.write(inputStream);
+			}
+		} else {
+			this.byteArrayOutputStream = null;
+		}
 	}
 
 	/**
 	 * 基于字节数组构造IOResource
-	 * <p>自动检测MIME类型，内容不缓存（已在内存中）。</p>
+	 * <p>自动检测MIME类型，内容存储在内存中。</p>
 	 *
 	 * @param bytes 字节数组（必须非空）
 	 * @throws IllegalArgumentException 当bytes为空时抛出
 	 * @since 1.1.0
 	 */
-	public IOResource(byte[] bytes) {
+	public IOResource(byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
-		this.bytes = bytes;
+		this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(bytes.length));
+		this.byteArrayOutputStream.write(bytes);
+
 		this.size = bytes.length;
-		this.mimeType = IOConstants.getDefaultTika().detect(bytes);
-		this.cacheContent = false;
+		try (InputStream inputStream = this.byteArrayOutputStream.toInputStream()) {
+			this.mimeType = IOConstants.getDefaultTika().detect(inputStream);
+		}
 	}
 
 	/**
@@ -267,38 +300,51 @@ public class IOResource implements Closeable {
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
-	 *     <li>输入流会被完全读取并关闭</li>
+	 *     <li>输入流会被完全读取，但不会自动关闭</li>
 	 *     <li>大流可能导致内存不足，建议使用文件模式</li>
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
 	 * @throws IOException          当流读取失败时抛出
-	 * @throws NullPointerException 当inputStream为null时抛出
+	 * @throws IllegalArgumentException 当inputStream为null时抛出
 	 * @since 1.1.0
 	 */
 	public IOResource(InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
-		this.bytes = outputStream.toByteArray();
-		this.size = bytes.length;
-		this.mimeType = IOConstants.getDefaultTika().detect(bytes);
-		this.cacheContent = false;
+		this.byteArrayOutputStream = new ByteArrayOutputStream();
+		this.byteArrayOutputStream.write(inputStream);
+
+		this.size = this.byteArrayOutputStream.size();
+		try (InputStream tmpInputStream = this.byteArrayOutputStream.toInputStream()) {
+			this.mimeType = IOConstants.getDefaultTika().detect(tmpInputStream);
+		}
 	}
 
 	/**
-	 * 设置输入流缓冲阈值
-	 * <p>当资源大小超过此阈值时，输入流会使用缓冲以提高性能。</p>
+	 * 基于{@link ByteArrayOutputStream}构造IOResource
+	 * <p>用于子类内部构造，自动检测MIME类型（如果未指定）。</p>
 	 *
-	 * @param threshold 阈值（字节，必须大于0）
-	 * @throws IllegalArgumentException 当threshold小于等于0时抛出
+	 * @param byteArrayOutputStream 字节数组输出流（必须非null）
+	 * @param mimeType MIME类型（可为空，为空时自动检测）
+	 * @throws IllegalArgumentException 当byteArrayOutputStream为null时抛出
 	 * @since 1.1.0
 	 */
-	public static void setInputStreamThreshold(int threshold) {
-		Validate.isTrue(threshold > 0, "threshold 必须大于0");
+	protected IOResource(ByteArrayOutputStream byteArrayOutputStream, String mimeType) throws IOException {
+		Validate.notNull(byteArrayOutputStream, "byteArrayOutputStream 不可为 null");
 
-		INPUT_STREAM_THRESHOLD = threshold;
+		this.byteArrayOutputStream = byteArrayOutputStream;
+
+		this.size = this.byteArrayOutputStream.size();
+		if (StringUtils.isBlank(mimeType)) {
+			try (InputStream tmpInputStream = this.byteArrayOutputStream.toInputStream()) {
+				this.mimeType = IOConstants.getDefaultTika().detect(tmpInputStream);
+			}
+		} else {
+			this.mimeType = mimeType;
+		}
 	}
+
 
 	/**
 	 * 获取资源摘要
@@ -307,8 +353,8 @@ public class IOResource implements Closeable {
 	 * <p>实现特性：</p>
 	 * <ul>
 	 *     <li>首次计算后缓存结果</li>
-	 *     <li>文件模式使用FileUtils.computeDigest</li>
-	 *     <li>字节数组模式使用IOUtils.computeDigest</li>
+	 *     <li>文件模式使用{@link FileUtils#computeDigest}</li>
+	 *     <li>字节数组模式使用{@link IOUtils#computeDigest}</li>
 	 * </ul>
 	 *
 	 * @return 摘要字符串
@@ -326,7 +372,7 @@ public class IOResource implements Closeable {
 			if (Objects.nonNull(file)) {
 				digest = FileUtils.computeDigest(file);
 			} else {
-				try (InputStream inputStream = toInputStream(bytes)) {
+				try (InputStream inputStream = byteArrayOutputStream.toInputStream()) {
 					digest = IOUtils.computeDigest(inputStream, size);
 				}
 			}
@@ -393,7 +439,9 @@ public class IOResource implements Closeable {
 
 			File tempFile = new File(FileUtils.getTempDirectory(),
 				TMP_FILE_PREFIX + UUID.randomUUID() + FilenameUtils.EXTENSION_SEPARATOR_STR + TMP_FILE_EXTENSION);
-			FileUtils.writeByteArrayToFile(tempFile, bytes);
+			try (InputStream inputStream = byteArrayOutputStream.toInputStream()) {
+				FileUtils.copyInputStreamToFile(inputStream, tempFile);
+			}
 			file = tempFile;
 			tempFileFlag = true;
 			return file;
@@ -402,12 +450,12 @@ public class IOResource implements Closeable {
 
 	/**
 	 * 创建新的输入流
-	 * <p>根据资源大小自动选择是否使用缓冲。</p>
+	 * <p>根据资源类型返回相应的输入流。</p>
 	 *
 	 * <p>实现特性：</p>
 	 * <ul>
-	 *     <li>文件模式使用FileUtils.openBufferedFileChannelInputStream或FileUtils.openInputStream</li>
-	 *     <li>字节数组模式使用缓冲或非缓冲ByteArrayInputStream</li>
+	 *     <li>文件模式使用{@link FileUtils#openInputStream}</li>
+	 *     <li>字节数组模式使用{@link ByteArrayOutputStream#toInputStream()}</li>
 	 *     <li>每次调用返回新的输入流实例</li>
 	 * </ul>
 	 *
@@ -419,21 +467,46 @@ public class IOResource implements Closeable {
 		checkClosed();
 
 		if (Objects.nonNull(file)) {
-			return toInputStream(file);
+			return FileUtils.openInputStream(file);
 		} else {
-			return toInputStream(bytes);
+			return byteArrayOutputStream.toInputStream();
+		}
+	}
+
+	/**
+	 * 创建新的缓冲输入流
+	 * <p>始终返回缓冲输入流以提高读取性能。</p>
+	 *
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>文件模式使用{@link FileUtils#openBufferedFileChannelInputStream}</li>
+	 *     <li>字节数组模式使用{@link ByteArrayOutputStream#toInputStream()}</li>
+	 *     <li>每次调用返回新的输入流实例</li>
+	 * </ul>
+	 *
+	 * @return 缓冲输入流
+	 * @throws IOException 当资源已关闭时抛出
+	 * @since 1.1.0
+	 */
+	public InputStream newBufferedInputStream() throws IOException {
+		checkClosed();
+
+		if (Objects.nonNull(file)) {
+			return FileUtils.openBufferedFileChannelInputStream(file);
+		} else {
+			return byteArrayOutputStream.toInputStream();
 		}
 	}
 
 	/**
 	 * 获取字节数组
-	 * <p>如果当前为文件模式，会读取文件内容。</p>
+	 * <p>如果当前为文件模式且未缓存，会读取文件内容。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
-	 *     <li>文件模式首次调用时读取文件</li>
-	 *     <li>如果cacheContent为true，读取后会缓存</li>
-	 *     <li>字节数组模式直接返回缓存</li>
+	 *     <li>文件模式且已缓存时直接返回字节数组</li>
+	 *     <li>文件模式且未缓存时读取文件内容（不缓存）</li>
+	 *     <li>字节数组模式直接返回字节数组</li>
 	 * </ul>
 	 *
 	 * @return 字节数组
@@ -444,15 +517,10 @@ public class IOResource implements Closeable {
 		checkClosed();
 
 		synchronized (this) {
-			if (Objects.nonNull(bytes)) {
-				return bytes;
+			if (Objects.nonNull(byteArrayOutputStream)) {
+				return byteArrayOutputStream.toByteArray();
 			}
-
-			byte[] readBytes = FileUtils.readFileToByteArray(file);
-			if (cacheContent) {
-				this.bytes = readBytes;
-			}
-			return readBytes;
+			return FileUtils.readFileToByteArray(file);
 		}
 	}
 
@@ -542,44 +610,14 @@ public class IOResource implements Closeable {
 			FileUtils.forceDeleteIfExist(file);
 		}
 
+		if (Objects.nonNull(byteArrayOutputStream)) {
+			byteArrayOutputStream.close();
+		}
+
 		file = null;
 		digest = null;
-		bytes = null;
 		tempFileFlag = false;
 		closed = true;
-	}
-
-	/**
-	 * 将字节数组转换为输入流
-	 * <p>根据大小自动选择是否使用缓冲。</p>
-	 *
-	 * @param bytes 字节数组
-	 * @return 输入流
-	 * @since 1.1.0
-	 */
-	protected InputStream toInputStream(byte[] bytes) {
-		if (size > INPUT_STREAM_THRESHOLD) {
-			return IOUtils.buffer(new ByteArrayInputStream(bytes), IOUtils.getBufferSize(size));
-		} else {
-			return new ByteArrayInputStream(bytes);
-		}
-	}
-
-	/**
-	 * 将文件转换为输入流
-	 * <p>根据大小自动选择缓冲或非缓冲输入流。</p>
-	 *
-	 * @param file 文件对象
-	 * @return 输入流
-	 * @throws IOException 当文件打开失败时抛出
-	 * @since 1.1.0
-	 */
-	protected InputStream toInputStream(File file) throws IOException {
-		if (size > INPUT_STREAM_THRESHOLD) {
-			return FileUtils.openBufferedFileChannelInputStream(file);
-		} else {
-			return FileUtils.openInputStream(file);
-		}
 	}
 
 	/**

@@ -24,6 +24,7 @@ import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.apache.commons.crypto.utils.AES;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedBufferedReader;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -34,6 +35,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
@@ -44,15 +46,16 @@ import java.util.Set;
 
 /**
  * 增强型IO流操作工具类（继承自 {@link org.apache.commons.io.IOUtils}）
- * <p>提供基于Apache Commons Crypto的AES加解密能力扩展，主要特性：</p>
+ * <p>提供基于Apache Commons Crypto的AES加解密能力扩展及流处理优化，主要特性：</p>
  *
  * <h3>核心功能模块：</h3>
  * <ul>
- *     <li><strong>AES加解密体系</strong> - 支持CBC/CTR两种加密模式</li>
- *     <li><strong>密码规范管理</strong> - 强制校验密钥长度（128/192/256位）</li>
+ *     <li><strong>AES加解密体系</strong> - 支持CBC/CTR两种加密模式，支持自定义缓冲区大小</li>
+ *     <li><strong>密码规范管理</strong> - 强制校验密钥长度（128/192/256位）和IV长度（16字节）</li>
  *     <li><strong>流式处理优化</strong> - 内存友好的大文件处理能力</li>
- *     <li><strong>非同步流支持</strong> - 提供非线程安全的缓冲流实现</li>
- *     <li><strong>流摘要计算</strong> - 基于三段采样策略的高效摘要计算</li>
+ *     <li><strong>非同步流支持</strong> - 提供非线程安全的缓冲流实现，性能优于同步版本</li>
+ *     <li><strong>流摘要计算</strong> - 基于三段采样策略的高效摘要计算，适合大文件</li>
+ *     <li><strong>缓冲区大小计算</strong> - 根据文件大小自动推荐合适的缓冲区大小</li>
  * </ul>
  *
  * @author pangju666
@@ -80,15 +83,65 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	protected static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
 
+	/**
+	 * 4KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_4 = 4 * 1024;
+	/**
+	 * 8KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_8 = 8 * 1024;
+	/**
+	 * 32KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_32 = 32 * 1024;
+	/**
+	 * 64KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_64 = 64 * 1024;
+	/**
+	 * 128KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_128 = 128 * 1024;
+	/**
+	 * 256KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_256 = 256 * 1024;
+	/**
+	 * 1MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_1 = 1024 * 1024;
+	/**
+	 * 10MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_10 = 10 * MB_1;
+	/**
+	 * 100MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_100 = 100 * MB_1;
+	/**
+	 * 1GB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int GB_1 = 1024 * MB_1;
 
 	static {
@@ -300,6 +353,48 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 		} else {
 			return KB_256;
 		}
+	}
+
+	/**
+	 * 创建非同步缓冲读取器（使用默认缓冲区大小）
+	 * <p>默认缓冲区大小为 {@link IOUtils#DEFAULT_BUFFER_SIZE}</p>
+	 *
+	 * @param reader 原始读取器（必须非null）
+	 * @return 包装后的缓冲读取器
+	 * @throws NullPointerException 当reader为null时抛出
+	 * @see #unsynchronizedBuffer(Reader, int)
+	 * @since 1.1.0
+	 */
+	public static UnsynchronizedBufferedReader unsynchronizedBuffer(final Reader reader) {
+		return unsynchronizedBuffer(reader, DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建非同步缓冲读取器（自定义缓冲区大小）
+	 * <p>特性说明：</p>
+	 * <ul>
+	 *     <li>非线程安全实现，适合单线程使用</li>
+	 *     <li>不进行同步操作，性能优于同步缓冲流</li>
+	 *     <li>如果读取器已经是非同步缓冲流则直接返回</li>
+	 *     <li>缓冲区大小应根据数据量合理设置</li>
+	 * </ul>
+	 *
+	 * @param reader     原始读取器（必须非null）
+	 * @param bufferSize 缓冲区大小（单位：字符，必须大于0）
+	 * @return 包装后的缓冲读取器
+	 * @throws NullPointerException     当reader为null时抛出
+	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
+	 * @see #getBufferSize(long)
+	 * @since 1.1.0
+	 */
+	public static UnsynchronizedBufferedReader unsynchronizedBuffer(final Reader reader, final int bufferSize) {
+		Objects.requireNonNull(reader, "reader");
+		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
+
+		if (reader instanceof UnsynchronizedBufferedReader) {
+			return (UnsynchronizedBufferedReader) reader;
+		}
+		return new UnsynchronizedBufferedReader(reader, bufferSize);
 	}
 
 	/**
