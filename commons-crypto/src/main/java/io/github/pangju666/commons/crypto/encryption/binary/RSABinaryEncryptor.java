@@ -369,7 +369,7 @@ public final class RSABinaryEncryptor implements BinaryEncryptor {
 		}
 		int inputLength = input.length;
 		int offsetLength = 0;
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(Math.max(size, 32));
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(inputLength);
 		while (inputLength - offsetLength > 0) {
 			byte[] bytes;
 			if (inputLength - offsetLength > size) {
