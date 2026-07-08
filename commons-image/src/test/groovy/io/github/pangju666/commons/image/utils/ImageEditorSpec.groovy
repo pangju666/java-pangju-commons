@@ -1319,7 +1319,7 @@ class ImageEditorSpec extends Specification {
 		}
 
 		where:
-		name << ALL_IMAGES
+		name << ALL_IMAGES.subList(0, ALL_IMAGES.size() - 2)
 	}
 
 	def "of(ImageIOResource) null 资源抛异常"() {

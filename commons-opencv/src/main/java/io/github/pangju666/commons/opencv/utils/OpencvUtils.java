@@ -19,7 +19,11 @@ package io.github.pangju666.commons.opencv.utils;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.opencv.enums.FlipDirection;
+import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -48,11 +52,11 @@ import java.util.Objects;
  * <h2>主要功能</h2>
  * <ul>
  *   <li><strong>空值判断</strong>：支持判断 Mat 对象的空值检查</li>
- *   <li><strong>图像读写</strong>：支持从文件、输入流、字节数组 读取图像</li>
+ *   <li><strong>图像读写</strong>：支持从文件、输入流、字节数组读取图像</li>
  *   <li><strong>格式支持检查</strong>：支持检查 OpenCV 是否可以读取或写入指定格式的图像</li>
  *   <li><strong>颜色转换</strong>：支持 AWT Color 与 OpenCV Scalar 之间的 BGR/RGBA 格式转换</li>
  *   <li><strong>尺寸缩放</strong>：支持按宽度、高度、比例、目标尺寸等多种缩放方式</li>
- *   <li><strong>图像增强</strong>：支持亮度对比度调整、透明度设置、透明区域清理</li>
+ *   <li><strong>图像增强</strong>：支持透明区域清理、EXIF 方向校正</li>
  *   <li><strong>工具方法</strong>：支持矩阵创建、卷积核创建、平移矩阵等</li>
  * </ul>
  *
@@ -118,8 +122,8 @@ public class OpencvUtils {
 	public static boolean canWrite(final String format) {
 		Validate.notBlank(format, "format 不可为空");
 
-		return opencv_imgcodecs.haveImageWriter(format.toLowerCase().startsWith(
-			FilenameUtils.EXTENSION_SEPARATOR_STR) ? StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR + format);
+		return opencv_imgcodecs.haveImageWriter((format.toLowerCase().startsWith(
+			FilenameUtils.EXTENSION_SEPARATOR_STR) ? StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR) + format);
 	}
 
 	/**
@@ -183,7 +187,7 @@ public class OpencvUtils {
 	public static Mat read(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		return read(inputStream.readAllBytes(), OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
+		return read(inputStream, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
 	/**
@@ -199,7 +203,11 @@ public class OpencvUtils {
 	public static Mat read(final InputStream inputStream, final int flags) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		return read(inputStream.readAllBytes(), flags);
+		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
+		try (BytePointer bytePointer = new BytePointer(outputStream.toByteArray());
+		     Mat bytesMat = new Mat(bytePointer)) {
+			return opencv_imgcodecs.imdecode(bytesMat, flags);
+		}
 	}
 
 	/**
@@ -228,11 +236,11 @@ public class OpencvUtils {
 
 		String mimeType = IOConstants.getDefaultTika().detect(bytes);
 		Validate.isTrue(StringUtils.startsWith(mimeType, IOConstants.IMAGE_MIME_TYPE_PREFIX),
-			"file 不是一个图像文件");
+			"bytes 不是一个图像数据");
 
 		try (BytePointer bytePointer = new BytePointer(bytes);
-		     Mat bufMat = new Mat(bytePointer)) {
-			return opencv_imgcodecs.imdecode(bufMat, flags);
+		     Mat bytesMat = new Mat(bytePointer)) {
+			return opencv_imgcodecs.imdecode(bytesMat, flags);
 		}
 	}
 
@@ -560,5 +568,70 @@ public class OpencvUtils {
 		zeroMat.release();
 		rgbMask.release();
 		blackRgb.release();
+	}
+
+	/**
+	 * 根据 EXIF 方向值校正图像方向
+	 * <p>根据 EXIF 方向值（1-8）对图像进行相应的旋转和翻转操作。</p>
+	 *
+	 * <p>EXIF 方向值说明：</p>
+	 * <ul>
+	 *   <li>1：正常方向，无需处理</li>
+	 *   <li>2：水平翻转</li>
+	 *   <li>3：旋转 180 度</li>
+	 *   <li>4：垂直翻转</li>
+	 *   <li>5：顺时针旋转 90 度后水平翻转</li>
+	 *   <li>6：顺时针旋转 90 度</li>
+	 *   <li>7：逆时针旋转 90 度后水平翻转</li>
+	 *   <li>8：逆时针旋转 90 度</li>
+	 * </ul>
+	 *
+	 * @param image           图像 Mat 对象，不能为 null
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @return 校正后的图像 Mat 对象
+	 * @throws IllegalArgumentException 如果 image 为 null 或 exifOrientation 不在 1-8 范围内时抛出
+	 * @since 1.1.0
+	 */
+	public static Mat correctOrientation(final Mat image, final int exifOrientation) {
+		Validate.notNull(image, "image 不可为 null");
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+
+		Mat outputImage = image;
+		switch (exifOrientation) {
+			case 2:
+				opencv_core.flip(image, outputImage, FlipDirection.HORIZONTAL.getCode());
+				break;
+			case 3:
+				opencv_core.rotate(image, outputImage, RotateDirection.UPSIDE_DOWN.getCode());
+				break;
+			case 4:
+				opencv_core.flip(image, outputImage, FlipDirection.VERTICAL.getCode());
+				break;
+			case 5:
+				opencv_core.rotate(image, outputImage, RotateDirection.CLOCKWISE_90.getCode());
+
+				Mat clockwise90Mat = new Mat();
+				opencv_core.flip(outputImage, clockwise90Mat, FlipDirection.HORIZONTAL.getCode());
+
+				outputImage = clockwise90Mat;
+				break;
+			case 6:
+				opencv_core.rotate(image, outputImage, RotateDirection.CLOCKWISE_90.getCode());
+				break;
+			case 7:
+				opencv_core.rotate(image, outputImage, RotateDirection.COUNTER_CLOCKWISE_90.getCode());
+
+				Mat counterClockwise90Mat = new Mat();
+				opencv_core.flip(outputImage, counterClockwise90Mat, FlipDirection.HORIZONTAL.getCode());
+
+				outputImage = counterClockwise90Mat;
+				break;
+			case 8:
+				opencv_core.rotate(image, outputImage, RotateDirection.COUNTER_CLOCKWISE_90.getCode());
+				break;
+			default:
+				break;
+		}
+		return outputImage;
 	}
 }
