@@ -25,10 +25,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -180,7 +177,7 @@ public class IOResource implements Closeable {
 			}
 		} else {
 			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(resource.size));
-			this.byteArrayOutputStream.write(resource.openInputStream());
+			this.byteArrayOutputStream.write(resource.newBufferedInputStream());
 		}
 	}
 
@@ -455,7 +452,7 @@ public class IOResource implements Closeable {
 	 * <p>实现特性：</p>
 	 * <ul>
 	 *     <li>文件模式使用{@link FileUtils#openInputStream}</li>
-	 *     <li>字节数组模式使用{@link ByteArrayOutputStream#toInputStream()}</li>
+	 *     <li>字节数组模式使用{@link ByteArrayOutputStream#toByteArray()}</li>
 	 *     <li>每次调用返回新的输入流实例</li>
 	 * </ul>
 	 *
@@ -469,7 +466,7 @@ public class IOResource implements Closeable {
 		if (Objects.nonNull(file)) {
 			return FileUtils.openInputStream(file);
 		} else {
-			return byteArrayOutputStream.toInputStream();
+			return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 		}
 	}
 
