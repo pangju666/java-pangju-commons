@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  *   <li>文件加解密：提供 AES/CBC 与 AES/CTR 文件加/解密便捷方法（委托 {@link IOUtils}，流式处理）</li>
  *   <li>文件摘要计算：基于三段采样策略的高效文件摘要计算</li>
  *   <li>文件重命名：安全的文件重命名操作，避免覆盖</li>
- *   <li>缓冲区计算：根据文件大小自动计算合适的缓冲区大小</li>
+ *   <li>缓冲流创建：提供便捷的缓冲输入/输出流创建方法</li>
  * </ul>
  *
  * <h3>加解密说明</h3>
@@ -348,8 +348,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 创建缓冲输出流（自动计算缓冲区大小）
-	 * <p>根据文件大小自动选择合适的缓冲区大小。</p>
+	 * 创建缓冲输出流
+	 * <p>使用默认缓冲区大小 {@link IOUtils#DEFAULT_BUFFER_SIZE}。</p>
 	 *
 	 * @param file 目标文件（必须存在且可写）
 	 * @return 缓冲输出流
@@ -359,12 +359,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static BufferedOutputStream newBufferedOutputStream(final File file) throws IOException {
 		Validate.notNull(file, "file不可为 null");
 
-		return new BufferedOutputStream(openOutputStream(file), IOUtils.getBufferSize(file.length()));
+		return new BufferedOutputStream(openOutputStream(file), IOUtils.DEFAULT_BUFFER_SIZE);
 	}
 
 	/**
-	 * 创建缓冲输出流（自动计算缓冲区大小）
-	 * <p>根据文件大小自动选择合适的缓冲区大小。</p>
+	 * 创建缓冲输出流
+	 * <p>使用默认缓冲区大小 {@link IOUtils#DEFAULT_BUFFER_SIZE}。</p>
 	 *
 	 * @param file   目标文件（必须存在且可写）
 	 * @param append 是否追加模式
@@ -375,7 +375,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static BufferedOutputStream newBufferedOutputStream(final File file, final boolean append) throws IOException {
 		Validate.notNull(file, "file不可为 null");
 
-		return new BufferedOutputStream(openOutputStream(file, append), IOUtils.getBufferSize(file.length()));
+		return new BufferedOutputStream(openOutputStream(file, append), IOUtils.DEFAULT_BUFFER_SIZE);
 	}
 
 	/**
