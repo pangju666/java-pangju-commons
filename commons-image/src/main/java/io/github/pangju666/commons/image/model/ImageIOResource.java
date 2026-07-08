@@ -175,6 +175,7 @@ public class ImageIOResource extends IOResource {
 					this.metadata = ImageMetadataReader.readMetadata(file);
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
+					this.metadata = new Metadata();
 				}
 			}
 
@@ -200,6 +201,7 @@ public class ImageIOResource extends IOResource {
 					this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
+					this.metadata = new Metadata();
 				}
 			}
 
@@ -327,6 +329,7 @@ public class ImageIOResource extends IOResource {
 				this.metadata = ImageMetadataReader.readMetadata(this.file);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
+				this.metadata = new Metadata();
 			}
 
 			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
@@ -430,6 +433,7 @@ public class ImageIOResource extends IOResource {
 				this.metadata = ImageMetadataReader.readMetadata(this.file);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
+				this.metadata = new Metadata();
 			}
 
 			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
@@ -532,6 +536,7 @@ public class ImageIOResource extends IOResource {
 				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
+				this.metadata = new Metadata();
 			}
 
 			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
@@ -638,6 +643,7 @@ public class ImageIOResource extends IOResource {
 				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream, size);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
+				this.metadata = new Metadata();
 			}
 
 			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
@@ -744,6 +750,7 @@ public class ImageIOResource extends IOResource {
 				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
+				this.metadata = new Metadata();
 			}
 
 			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
