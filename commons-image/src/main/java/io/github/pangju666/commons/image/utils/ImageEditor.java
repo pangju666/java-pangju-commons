@@ -127,12 +127,11 @@ import java.util.function.BiFunction;
  * // 1. 构建实例（推荐方式）
  * // 使用 ImageIOResource 构建（推荐）
  * ImageEditor.of(new ImageIOResource(new File("input.jpg")));
- * ImageEditor.of(new ImageIOResource(new File("input.jpg"), true));  // 自动解析 EXIF
+ * ImageEditor.of(new ImageIOResource(new File("input.jpg"), false));  // 不矫正 EXIF 方向
  * ImageEditor.of(new ImageIOResource(new File("input.jpg"), 6));     // 指定 EXIF 方向
  *
  * // 从输入流构建
  * ImageEditor.of(inputStream);
- * ImageEditor.of(inputStream, true);  // 自动校正 EXIF 方向
  * ImageEditor.of(inputStream, 6);     // 指定 EXIF 方向
  *
  * // 从 ImageInputStream 构建
@@ -505,19 +504,19 @@ public class ImageEditor {
 	}
 
 	/**
-	 * 从输入流构建实例（默认不校正 EXIF 方向）。
+	 * 从输入流构建实例（使用默认 EXIF 方向）。
 	 * <p>
-	 * 此方法为 {@link #of(InputStream, boolean)} 的便捷调用，等同于 {@code of(inputStream, false)}。
+	 * 此方法使用默认的 EXIF 方向值（正常方向）构建图像编辑器，不进行 EXIF 方向校正。
 	 * </p>
 	 *
 	 * @param inputStream 输入流，不可为 null
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
-	 * @see #of(InputStream, boolean)
+	 * @see #of(InputStream, int)
 	 * @since 1.0.0
 	 */
 	public static ImageEditor of(final InputStream inputStream) throws IOException {
-		return of(inputStream, false);
+		return of(inputStream, ImageConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
@@ -548,7 +547,9 @@ public class ImageEditor {
 	 * @throws IOException 当读取输入流出错时
 	 * @see ImageUtils#getExifOrientation(InputStream)
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #of(ImageIOResource)} 替代
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static ImageEditor of(final InputStream inputStream, final boolean correctOrientation) throws IOException {
 		Validate.notNull(inputStream, "inputStream不可为 null");
 
