@@ -513,12 +513,10 @@ public class IOResource implements Closeable {
 	public byte[] getBytes() throws IOException {
 		checkClosed();
 
-		synchronized (this) {
-			if (Objects.nonNull(byteArrayOutputStream)) {
-				return byteArrayOutputStream.toByteArray();
-			}
-			return FileUtils.readFileToByteArray(file);
+		if (Objects.nonNull(byteArrayOutputStream)) {
+			return byteArrayOutputStream.toByteArray();
 		}
+		return FileUtils.readFileToByteArray(file);
 	}
 
 	/**
