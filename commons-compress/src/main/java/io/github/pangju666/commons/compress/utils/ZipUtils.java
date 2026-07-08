@@ -185,7 +185,7 @@ public class ZipUtils {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 		Validate.isTrue(isZip(inputFile), "inputFile 不是zip压缩文件");
 
-		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
 			uncompress(zipArchiveInputStream, outputDir);
 		}
@@ -302,8 +302,7 @@ public class ZipUtils {
 				}
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
-				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
+				try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(file);
 				     InputStream inputStream = zipFile.getInputStream(zipEntry)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
@@ -343,8 +342,7 @@ public class ZipUtils {
 				}
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
-				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
+				try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(file)) {
 					tarArchiveInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -372,8 +370,7 @@ public class ZipUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFile, zipArchiveOutputStream);
 		}
@@ -457,8 +454,7 @@ public class ZipUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFiles, zipArchiveOutputStream);
 		}
@@ -579,7 +575,7 @@ public class ZipUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
-		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			String entryName = inputFile.getName();
 			if (StringUtils.isNotBlank(parent)) {
 				if (parent.endsWith(CompressConstants.PATH_SEPARATOR)) {

@@ -146,7 +146,7 @@ public class TarUtils {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 		Validate.isTrue(isTar(inputFile), "inputFile 不是tar压缩文件");
 
-		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 			uncompress(tarArchiveInputStream, outputDir);
 		}
@@ -222,8 +222,7 @@ public class TarUtils {
 				}
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
-				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream);
+				try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(file);
 				     InputStream inputStream = tarFile.getInputStream(tarEntry)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
@@ -253,8 +252,7 @@ public class TarUtils {
 				}
 			} else {
 				FileUtils.forceMkdir(file.getParentFile());
-				try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-				     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(fileOutputStream)) {
+				try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(file)) {
 					tarArchiveInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -281,8 +279,7 @@ public class TarUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFile, tarArchiveOutputStream);
 		}
@@ -362,8 +359,7 @@ public class TarUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FileOutputStream outputStream = FileUtils.openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
 			compress(inputFiles, tarArchiveOutputStream);
 		}
@@ -484,7 +480,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(File inputFile, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {
-		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			String entryName = inputFile.getName();
 			if (StringUtils.isNotBlank(parent)) {
 				if (parent.endsWith(CompressConstants.PATH_SEPARATOR)) {
