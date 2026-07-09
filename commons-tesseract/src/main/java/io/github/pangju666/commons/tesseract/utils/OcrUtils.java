@@ -20,7 +20,9 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.tesseract.lang.TesseractConstants;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.leptonica.PIX;
@@ -30,7 +32,6 @@ import org.bytedeco.tesseract.TessBaseAPI;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,25 +43,49 @@ import java.util.Objects;
  * 基于 Tesseract OCR 引擎提供图片文字识别功能的工具类。
  * 支持从多种来源（InputStream、ImageInputStream、字节数组、文件、RenderedImage）读取图片并进行文字识别。
  * </p>
- * <p>
- * 主要功能：
+ *
+ * <h2>主要功能</h2>
  * <ul>
- *   <li>从 InputStream 读取图片并进行 OCR 识别</li>
- *   <li>从 ImageInputStream 读取图片并进行 OCR 识别</li>
- *   <li>从字节数组读取图片并进行 OCR 识别</li>
- *   <li>从 File 读取图片并进行 OCR 识别</li>
- *   <li>从 RenderedImage 读取图片并进行 OCR 识别</li>
+ *   <li><strong>多源输入支持：</strong>支持从 InputStream、ImageInputStream、字节数组、文件、RenderedImage 等多种来源读取图片</li>
+ *   <li><strong>格式验证：</strong>自动检测并验证图片格式，仅支持 Tesseract 支持的图像类型</li>
+ *   <li><strong>对象池管理：</strong>内置对象池管理 TessBaseAPI 实例，提高性能和资源利用率</li>
+ *   <li><strong>灵活使用方式：</strong>提供便捷方式和手动管理两种使用模式</li>
  * </ul>
- * </p>
+ *
+ * <h2>支持的图像格式</h2>
  * <p>
- * 该工具类提供两种使用方式：
- * <ul>
- *   <li>便捷方式：直接调用不需要 tessBaseAPI 参数的方法，会自动从对象池获取和归还对象</li>
- *   <li>手动管理：调用需要 tessBaseAPI 参数的方法，自行管理对象生命周期</li>
- * </ul>
+ * 支持的图像格式由 Tesseract 引擎决定，常见的支持格式包括：
+ * BMP、JPEG、PNG、TIFF、GIF、WEBP 等。
+ * 工具类会自动检测 MIME 类型并验证格式是否受支持。
  * </p>
  *
+ * <h2>使用方式</h2>
+ * <p>
+ * 该工具类提供两种使用方式：
+ * </p>
+ * <ul>
+ *   <li><strong>便捷方式：</strong>直接调用不需要 {@code tessBaseAPI} 参数的方法，会自动从对象池获取和归还对象</li>
+ *   <li><strong>手动管理：</strong>调用需要 {@code tessBaseAPI} 参数的方法，自行管理对象生命周期，适合批量处理场景</li>
+ * </ul>
+ *
+ * <h2>示例代码</h2>
+ * <pre>{@code
+ * // 便捷方式 - 自动管理对象池
+ * String text = OcrUtils.ocrImage(imageFile);
+ *
+ * // 手动管理 - 适合批量处理
+ * TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
+ * try {
+ *     String text1 = OcrUtils.ocrImage(tessBaseAPI, imageFile1);
+ *     String text2 = OcrUtils.ocrImage(tessBaseAPI, imageFile2);
+ * } finally {
+ *     TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
+ * }
+ * }</pre>
+ *
  * @author pangju666
+ * @see TessBaseAPI
+ * @see TesseractConstants
  * @since 1.1.0
  */
 public class OcrUtils {
@@ -81,8 +106,8 @@ public class OcrUtils {
 	 *
 	 * @param image RenderedImage 图片对象，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当转换图片、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
+	 * @throws Exception           当转换图片、识别失败或对象池操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final RenderedImage image) throws Exception {
@@ -102,16 +127,16 @@ public class OcrUtils {
 	 * 该方法会保留输入流的原始位置。
 	 * </p>
 	 *
-	 * @param inputStream 图片输入流，不可为 null
+	 * @param imageInputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当读取输入流、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
+	 * @throws Exception           当读取输入流、识别失败或对象池操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(final ImageInputStream inputStream) throws Exception {
+	public static String ocrImage(final ImageInputStream imageInputStream) throws Exception {
 		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
 		try {
-			return ocrImage(tessBaseAPI, inputStream);
+			return ocrImage(tessBaseAPI, imageInputStream);
 		} finally {
 			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
 		}
@@ -128,8 +153,9 @@ public class OcrUtils {
 	 *
 	 * @param imageData 图片字节数组，不可为 null 或空
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当解析图片、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
+	 * @throws Exception           当解析图片、识别失败或对象池操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws IllegalArgumentException 当参数为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final byte[] imageData) throws Exception {
@@ -152,8 +178,9 @@ public class OcrUtils {
 	 *
 	 * @param imageFile 图片文件，不可为 null，必须存在且可读
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当读取文件、解析图片、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
+	 * @throws Exception           当读取文件、解析图片、识别失败或对象池操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws IllegalArgumentException 当图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final File imageFile) throws Exception {
@@ -175,8 +202,8 @@ public class OcrUtils {
 	 *
 	 * @param inputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当读取输入流、解析图片、识别失败或对象池操作失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
+	 * @throws Exception           当读取输入流、解析图片、识别失败或对象池操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final InputStream inputStream) throws Exception {
@@ -197,15 +224,16 @@ public class OcrUtils {
 	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
 	 * @param image       RenderedImage 图片对象，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当转换图片或识别失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
+	 * @throws Exception           当转换图片或识别失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final RenderedImage image) throws Exception {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
 		Validate.notNull(image, "image 不可为 null");
 
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		UnsynchronizedByteArrayOutputStream bos = IOUtils.toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE);
 		ImageIO.write(image, "png", bos);
 		return ocrImage(tessBaseAPI, bos.toByteArray());
 	}
@@ -217,31 +245,30 @@ public class OcrUtils {
 	 * 该方法会保留输入流的原始位置。
 	 * </p>
 	 *
-	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
-	 * @param inputStream 图片输入流，不可为 null
+	 * @param tessBaseAPI      已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param imageInputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception                当读取输入流或识别失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 时抛出
+	 * @throws Exception           当读取输入流或识别失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
-	public static String ocrImage(final TessBaseAPI tessBaseAPI, final ImageInputStream inputStream) throws Exception {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final ImageInputStream imageInputStream) throws Exception {
+		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 
-		long oldPos = inputStream.getStreamPosition();
-		inputStream.seek(0);
+		long oldPos = imageInputStream.getStreamPosition();
+		imageInputStream.seek(0);
 
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		byte[] buffer = new byte[IOUtils.DEFAULT_BUFFER_SIZE];
-		int length;
-		while ((length = inputStream.read(buffer)) != -1) {
-			bos.write(buffer, 0, length);
-		}
-
-		try {
+		try (UnsynchronizedByteArrayOutputStream bos = IOUtils.toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE)) {
+			byte[] buffer = new byte[IOUtils.DEFAULT_BUFFER_SIZE];
+			int length;
+			while ((length = imageInputStream.read(buffer)) != -1) {
+				bos.write(buffer, 0, length);
+			}
 			return ocrImage(tessBaseAPI, bos.toByteArray());
 		} finally {
-			inputStream.seek(oldPos);
+			imageInputStream.seek(oldPos);
 		}
 	}
 
@@ -256,14 +283,19 @@ public class OcrUtils {
 	 * @param inputStream 图片输入流，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
 	 * @throws IOException              当读取输入流或解析图片失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 或不合法时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final InputStream inputStream) throws IOException {
-		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		return ocrImage(tessBaseAPI, inputStream.readAllBytes());
+		UnsynchronizedByteArrayOutputStream outputStream = IOUtils.toUnsynchronizedByteArrayOutputStream(inputStream);
+		try (BytePointer bytePointer = new BytePointer(outputStream.toByteArray());
+		     PIX image = leptonica.pixReadMem(bytePointer, outputStream.size())) {
+			return ocrImage(tessBaseAPI, image);
+		}
 	}
 
 	/**
@@ -278,21 +310,20 @@ public class OcrUtils {
 	 * @param imageData   图片字节数组，不可为 null 或空
 	 * @return 识别出的文字内容（UTF-8 编码）
 	 * @throws IOException              当解析图片或识别失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null、为空或图片类型不支持时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws IllegalArgumentException 当参数为空或图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final byte[] imageData) throws IOException {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
 		Validate.isTrue(ArrayUtils.isNotEmpty(imageData), "imageData 不可为空");
+
 		String mimeType = IOConstants.getDefaultTika().detect(imageData);
 		Validate.isTrue(TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
 
 		try (PIX image = leptonica.pixReadMem(new BytePointer(imageData), imageData.length)) {
-			if (Objects.isNull(image) || image.isNull()) {
-				throw new IOException("图片读取失败");
-			}
-			tessBaseAPI.SetImage(image);
-			return tessBaseAPI.GetUTF8Text().getString();
+			return ocrImage(tessBaseAPI, image);
 		}
 	}
 
@@ -308,21 +339,58 @@ public class OcrUtils {
 	 * @param imageFile   图片文件，不可为 null，必须存在且可读
 	 * @return 识别出的文字内容（UTF-8 编码）
 	 * @throws IOException              当读取文件或解析图片失败时抛出
-	 * @throws IllegalArgumentException 当参数为 null 或图片类型不支持时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws IllegalArgumentException 当图片类型不支持时抛出
 	 * @since 1.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final File imageFile) throws IOException {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
+
 		String mimeType = FileUtils.getMimeType(imageFile);
 		Validate.isTrue(TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType), "不是受支持的图像类型");
 
 		try (PIX image = leptonica.pixRead(imageFile.getAbsolutePath())) {
-			if (Objects.isNull(image) || image.isNull()) {
-				throw new IOException("图片读取失败");
-			}
-			tessBaseAPI.SetInputImage(image);
+			return ocrImage(tessBaseAPI, image);
+		}
+	}
 
-			return tessBaseAPI.GetUTF8Text().getString();
+	/**
+	 * 从 PIX 图片对象进行 OCR 识别
+	 * <p>
+	 * 这是所有 OCR 识别方法的核心实现。
+	 * 将 PIX 图片对象设置到 TessBaseAPI 中，然后调用 GetUTF8Text 获取识别结果。
+	 * </p>
+	 *
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *   <li>验证 TessBaseAPI 实例的有效性（非 null 且非 isNull）</li>
+	 *   <li>验证 PIX 图片对象的有效性（非 null 且非 isNull）</li>
+	 *   <li>自动管理 BytePointer 资源</li>
+	 *   <li>当识别结果为 null 时返回空字符串</li>
+	 * </ul>
+	 *
+	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
+	 * @param image       Leptonica PIX 图片对象，不可为 null
+	 * @return 识别出的文字内容（UTF-8 编码），如果识别失败返回空字符串
+	 * @throws IOException          当图片读取失败时抛出
+	 * @throws NullPointerException 当 tessBaseAPI 为 null 时抛出
+	 * @since 1.1.0
+	 */
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final PIX image) throws IOException {
+		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
+		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
+
+		if (Objects.isNull(image) || image.isNull()) {
+			throw new IOException("图片读取失败");
+		}
+		tessBaseAPI.SetImage(image);
+
+		try (BytePointer result = tessBaseAPI.GetUTF8Text()) {
+			if (Objects.isNull(result) || result.isNull()) {
+				return StringUtils.EMPTY;
+			}
+			return result.getString();
 		}
 	}
 }
