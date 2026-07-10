@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.io.lang;
 
+import net.openhft.hashing.LongHashFunction;
 import org.apache.tika.Tika;
 
 import java.util.Objects;
@@ -27,6 +28,32 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class IOConstants {
+	/**
+	 * 默认采样字节数
+	 *
+	 * @since 2.1.0
+	 */
+	public static final int DEFAULT_SAMPLE_SIZE = 64;
+	/**
+	 * 默认64 位 xxHash 函数
+	 * <p>用于快速计算摘要，兼顾性能与较低碰撞率。</p>
+	 *
+	 * @since 2.1.0
+	 */
+	public static final LongHashFunction DEFAULT_HASH_FUNC = LongHashFunction.xx();
+	/**
+	 * 空摘要固定值
+	 *
+	 * @since 2.1.0
+	 */
+	public static final String EMPTY_DIGEST = "0000000000000000";
+	/**
+	 * 摘要输出格式
+	 * <p>使用 16 位十六进制、左侧 0 填充（`%016x`）。</p>
+	 *
+	 * @since 2.1.0
+	 */
+	public static final String DIGEST_FORMAT = "%016x";
 	/**
 	 * 任意文件类型
 	 *

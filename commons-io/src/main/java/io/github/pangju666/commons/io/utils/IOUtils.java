@@ -16,12 +16,15 @@
 
 package io.github.pangju666.commons.io.utils;
 
+import io.github.pangju666.commons.io.lang.IOConstants;
+import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.apache.commons.crypto.utils.AES;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedBufferedReader;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,22 +35,26 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
-import java.util.Objects;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
 
 /**
  * 增强型IO流操作工具类（继承自 {@link org.apache.commons.io.IOUtils}）
- * <p>提供基于Apache Commons Crypto的AES加解密能力扩展，主要特性：</p>
+ * <p>提供基于Apache Commons Crypto的AES加解密能力扩展及流处理优化，主要特性：</p>
  *
  * <h3>核心功能模块：</h3>
  * <ul>
- *     <li><strong>AES加解密体系</strong> - 支持CBC/CTR两种加密模式</li>
- *     <li><strong>密码规范管理</strong> - 强制校验密钥长度（128/192/256位）</li>
+ *     <li><strong>AES加解密体系</strong> - 支持CBC/CTR两种加密模式，支持自定义缓冲区大小</li>
+ *     <li><strong>密码规范管理</strong> - 强制校验密钥长度（128/192/256位）和IV长度（16字节）</li>
  *     <li><strong>流式处理优化</strong> - 内存友好的大文件处理能力</li>
- *     <li><strong>非同步流支持</strong> - 提供非线程安全的缓冲流实现</li>
+ *     <li><strong>非同步流支持</strong> - 提供非线程安全的缓冲流实现，性能优于同步版本</li>
+ *     <li><strong>流摘要计算</strong> - 基于三段采样策略的高效摘要计算，适合大文件</li>
+ *     <li><strong>缓冲区大小计算</strong> - 根据文件大小自动推荐合适的缓冲区大小</li>
  * </ul>
  *
  * @author pangju666
@@ -75,15 +82,65 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	protected static final Set<Integer> AES_KEY_LENGTHS = Set.of(16, 24, 32);
 
+	/**
+	 * 4KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_4 = 4 * 1024;
+	/**
+	 * 8KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_8 = 8 * 1024;
+	/**
+	 * 32KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_32 = 32 * 1024;
+	/**
+	 * 64KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_64 = 64 * 1024;
+	/**
+	 * 128KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_128 = 128 * 1024;
+	/**
+	 * 256KB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int KB_256 = 256 * 1024;
+	/**
+	 * 1MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_1 = 1024 * 1024;
+	/**
+	 * 10MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_10 = 10 * MB_1;
+	/**
+	 * 100MB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int MB_100 = 100 * MB_1;
+	/**
+	 * 1GB常量
+	 *
+	 * @since 1.0.0
+	 */
 	protected static final int GB_1 = 1024 * MB_1;
 
 	static {
@@ -91,6 +148,174 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	protected IOUtils() {
+	}
+
+	/**
+	 * 计算输入流的摘要（使用默认采样大小和哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用默认采样大小 {@link IOConstants#DEFAULT_SAMPLE_SIZE}</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>支持已知和未知流长度</li>
+	 * </ul>
+	 *
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>流长度小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>流长度大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>未知流长度时：一次性读取全部数据（适合小流）</li>
+	 * </ul>
+	 *
+	 * @param inputStream  输入流（必须非null）
+	 * @param streamLength 流长度（字节），-1表示未知长度
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws NullPointerException     当inputStream为null时抛出
+	 * @throws IllegalArgumentException 当streamLength小于-1时抛出
+	 * @see #computeDigest(InputStream, long, int)
+	 * @see #computeDigest(InputStream, long, int, LongHashFunction)
+	 * @since 2.1.0
+	 */
+	public static String computeDigest(final InputStream inputStream, final long streamLength) throws IOException {
+		return computeDigest(inputStream, streamLength, IOConstants.DEFAULT_SAMPLE_SIZE,
+			IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算输入流的摘要（使用自定义采样大小和默认哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>支持已知和未知流长度</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据数据特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 *     <li>未知流长度时会一次性读取全部数据，大流建议传入准确长度</li>
+	 * </ul>
+	 *
+	 * @param inputStream  输入流（必须非null）
+	 * @param streamLength 流长度（字节），-1表示未知长度
+	 * @param sampleSize   采样大小（字节，必须大于0）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws NullPointerException     当inputStream为null时抛出
+	 * @throws IllegalArgumentException 当streamLength小于-1或sampleSize小于等于0时抛出
+	 * @see #computeDigest(InputStream, long)
+	 * @see #computeDigest(InputStream, long, int, LongHashFunction)
+	 * @since 2.1.0
+	 */
+	public static String computeDigest(final InputStream inputStream, final long streamLength, final int sampleSize) throws IOException {
+		return computeDigest(inputStream, streamLength, sampleSize, IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算输入流的摘要（使用自定义采样大小和哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小和哈希函数</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>支持已知和未知流长度</li>
+	 *     <li>内存友好，适合大文件处理</li>
+	 * </ul>
+	 *
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>流长度为0时：返回空摘要 {@link IOConstants#EMPTY_DIGEST}</li>
+	 *     <li>流长度小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>流长度大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>未知流长度（-1）时：一次性读取全部数据（适合小流，大流建议传入准确长度）</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据数据特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 *     <li>未知流长度时会一次性读取全部数据，大流建议传入准确长度避免OOM</li>
+	 *     <li>摘要包含流长度信息，确保相同内容不同长度的流摘要不同</li>
+	 * </ul>
+	 *
+	 * @param inputStream  输入流（必须非null）
+	 * @param streamLength 流长度（字节），-1表示未知长度
+	 * @param sampleSize   采样大小（字节，必须大于0）
+	 * @param hashFunc     哈希函数（必须非null）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当流读取失败时抛出
+	 * @throws NullPointerException     当inputStream或hashFunc为null时抛出
+	 * @throws IllegalArgumentException 当streamLength小于-1、sampleSize小于等于0时抛出
+	 * @see #computeDigest(InputStream, long)
+	 * @see #computeDigest(InputStream, long, int)
+	 * @since 2.1.0
+	 */
+	public static String computeDigest(final InputStream inputStream, final long streamLength, final int sampleSize,
+	                                   final LongHashFunction hashFunc) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		Validate.notNull(hashFunc, "hashFunc 不可为 null");
+		Validate.isTrue(sampleSize > 0, "sampleSize 必须大于0");
+		Validate.isTrue(streamLength >= -1, "streamLength 必须大于等于 -1");
+
+		int totalSampleSize = 3 * sampleSize;
+		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + totalSampleSize);
+		buffer.putLong(streamLength);
+
+		if (streamLength == -1) {
+			// 未知流长度：一次性全读，适合小流；大流建议传入准确长度避免OOM
+			UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(inputStream);
+			byte[] bytes = outputStream.toByteArray();
+			int bytesLength = bytes.length;
+
+			if (bytesLength == 0) {
+				return IOConstants.EMPTY_DIGEST;
+			}
+
+			if (bytesLength <= totalSampleSize) {
+				buffer.put(bytes);
+			} else {
+				byte[] head = Arrays.copyOfRange(bytes, 0, sampleSize);
+
+				int midOffset = sampleSize + ((bytesLength - totalSampleSize) / 2);
+				byte[] mid = Arrays.copyOfRange(bytes, midOffset, midOffset + sampleSize);
+
+				int tailOffset = bytesLength - sampleSize;
+				byte[] tail = Arrays.copyOfRange(bytes, tailOffset, tailOffset + sampleSize);
+
+				buffer.put(head).put(mid).put(tail);
+			}
+		} else {
+			if (streamLength == 0) {
+				return IOConstants.EMPTY_DIGEST;
+			}
+
+			if (streamLength <= totalSampleSize) {
+				byte[] all = inputStream.readNBytes((int) streamLength);
+				buffer.put(all);
+			} else {
+				byte[] head = new byte[sampleSize];
+				inputStream.readNBytes(head, 0, head.length);
+
+				byte[] mid = new byte[sampleSize];
+				long midStart = sampleSize + (streamLength - totalSampleSize) / 2;
+				skip(inputStream, midStart - sampleSize);
+				inputStream.readNBytes(mid, 0, mid.length);
+
+				byte[] tail = new byte[sampleSize];
+				long tailStart = streamLength - sampleSize;
+				skip(inputStream, tailStart - midStart - sampleSize);
+				inputStream.readNBytes(tail, 0, tail.length);
+
+				buffer.put(head).put(mid).put(tail);
+			}
+		}
+
+		buffer.flip();
+		byte[] validData = Arrays.copyOf(buffer.array(), buffer.remaining());
+		long hash = hashFunc.hashBytes(validData);
+		return String.format(IOConstants.DIGEST_FORMAT, hash);
 	}
 
 	/**
@@ -130,6 +355,48 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	}
 
 	/**
+	 * 创建非同步缓冲读取器（使用默认缓冲区大小）
+	 * <p>默认缓冲区大小为 {@link IOUtils#DEFAULT_BUFFER_SIZE}</p>
+	 *
+	 * @param reader 原始读取器（必须非null）
+	 * @return 包装后的缓冲读取器
+	 * @throws NullPointerException 当reader为null时抛出
+	 * @see #unsynchronizedBuffer(Reader, int)
+	 * @since 2.1.0
+	 */
+	public static UnsynchronizedBufferedReader unsynchronizedBuffer(final Reader reader) {
+		return unsynchronizedBuffer(reader, DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建非同步缓冲读取器（自定义缓冲区大小）
+	 * <p>特性说明：</p>
+	 * <ul>
+	 *     <li>非线程安全实现，适合单线程使用</li>
+	 *     <li>不进行同步操作，性能优于同步缓冲流</li>
+	 *     <li>如果读取器已经是非同步缓冲流则直接返回</li>
+	 *     <li>缓冲区大小应根据数据量合理设置</li>
+	 * </ul>
+	 *
+	 * @param reader     原始读取器（必须非null）
+	 * @param bufferSize 缓冲区大小（单位：字符，必须大于0）
+	 * @return 包装后的缓冲读取器
+	 * @throws NullPointerException     当reader为null时抛出
+	 * @throws IllegalArgumentException 当bufferSize小于等于0时抛出
+	 * @see #getBufferSize(long)
+	 * @since 2.1.0
+	 */
+	public static UnsynchronizedBufferedReader unsynchronizedBuffer(final Reader reader, final int bufferSize) {
+		Validate.notNull(reader, "reader 不可为 null");
+		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
+
+		if (reader instanceof UnsynchronizedBufferedReader) {
+			return (UnsynchronizedBufferedReader) reader;
+		}
+		return new UnsynchronizedBufferedReader(reader, bufferSize);
+	}
+	
+	/**
 	 * 创建非同步缓冲输入流（使用默认缓冲区大小）
 	 * <p>默认缓冲区大小为 {@link IOUtils#DEFAULT_BUFFER_SIZE}</p>
 	 *
@@ -165,7 +432,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream,
 	                                                                     final int bufferSize) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
 		if (inputStream instanceof UnsynchronizedBufferedInputStream) {
@@ -243,7 +510,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE);
 		outputStream.write(inputStream);
@@ -274,7 +541,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream,
 	                                                                                        final int bufferSize) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(bufferSize);
 		outputStream.write(inputStream);

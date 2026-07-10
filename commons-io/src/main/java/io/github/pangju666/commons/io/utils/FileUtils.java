@@ -19,6 +19,7 @@ package io.github.pangju666.commons.io.utils;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.RandomAccessFiles;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.MemoryMappedFileInputStream;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
@@ -31,7 +32,6 @@ import org.apache.tika.metadata.Metadata;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -49,7 +49,9 @@ import java.util.stream.Collectors;
  *   <li>元数据解析：集成 Apache Tika 进行元数据提取</li>
  *   <li>健壮删除：增强删除策略，可处理被占用文件</li>
  *   <li>文件加解密：提供 AES/CBC 与 AES/CTR 文件加/解密便捷方法（委托 {@link IOUtils}，流式处理）</li>
- *   <li>快速摘要：基于 xxHash64 的三段采样文件摘要</li>
+ *   <li>文件摘要计算：基于三段采样策略的高效文件摘要计算</li>
+ *   <li>文件重命名：安全的文件重命名操作，避免覆盖</li>
+ *   <li>缓冲流创建：提供便捷的缓冲输入/输出流创建方法</li>
  * </ul>
  *
  * <h3>加解密说明</h3>
@@ -65,117 +67,223 @@ import java.util.stream.Collectors;
  *   <li>针对大文件场景优化性能</li>
  * </ul>
  *
- * <h3>使用建议</h3>
- * <ul>
- *   <li>不关注线程安全：优先 {@link #openUnsynchronizedBufferedInputStream(File)}</li>
- *   <li>常规大小文件：优先 {@link #openInputStream(File)}</li>
- *   <li>不敏感于内存占用且需极致性能：考虑 {@link #openMemoryMappedFileInputStream(File)}</li>
- *   <li>其他场景：使用 {@link #openBufferedFileChannelInputStream(File)}</li>
- * </ul>
- *
  * @author pangju666
  * @since 1.0.0
  */
 public class FileUtils extends org.apache.commons.io.FileUtils {
-	protected static final int MB_1 = 1024 * 1024;
-	protected static final int MB_4 = 4 * MB_1;
-	protected static final int MB_16 = 16 * MB_1;
-	protected static final int MB_32 = 32 * MB_1;
-	protected static final int MB_64 = 64 * MB_1;
-	protected static final int MB_100 = 100 * MB_1;
-	protected static final long GB_1 = 1024 * MB_1;
-	protected static final long GB_10 = 10 * GB_1;
+	/**
+	 * 4MB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int MB_4 = (int) (4 * ONE_MB);
+	/**
+	 * 16MB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int MB_16 = (int) (16 * ONE_MB);
+	/**
+	 * 32MB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int MB_32 = (int) (32 * ONE_MB);
+	/**
+	 * 64MB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int MB_64 = (int) (64 * ONE_MB);
+	/**
+	 * 100MB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int MB_100 = (int) (100 * ONE_MB);
+	/**
+	 * 10GB常量
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final long GB_10 = 10 * ONE_GB;
 
 	/**
 	 * 64 位 xxHash 函数
 	 * <p>用于快速计算文件摘要，兼顾性能与较低碰撞率。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DEFAULT_HASH_FUNC}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final LongHashFunction HASH_FUNC = LongHashFunction.xx();
 	/**
 	 * 采样字节数
 	 * <p>分别从文件头/中/尾各读取该大小的字节用于摘要计算。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DEFAULT_SAMPLE_SIZE}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final int SAMPLE_SIZE = 64;
 	/**
 	 * 空文件摘要固定值
 	 * <p>当文件大小为 0 时直接返回该 16 位十六进制字符串。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#EMPTY_DIGEST}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final String EMPTY_FILE_DIGEST = "0000000000000000";
 	/**
 	 * 摘要输出格式
 	 * <p>使用 16 位十六进制、左侧 0 填充（`%016x`）。</p>
 	 *
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link IOConstants#DIGEST_FORMAT}代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static final String FILE_DIGEST_FORMAT = "%016x";
 
 	protected FileUtils() {
 	}
 
 	/**
-	 * 计算文件摘要
-	 * <p>基于文件大小与三段采样（头/中/尾各 {@link #SAMPLE_SIZE} 字节）组合后使用 xxHash64 计算，输出 16 位十六进制字符串。</p>
-	 *
-	 * <h3>处理规则</h3>
+	 * 计算文件摘要（使用默认采样大小和哈希函数）
+	 * <p>实现特性：</p>
 	 * <ul>
-	 *   <li>空文件返回固定值 {@link #EMPTY_FILE_DIGEST}</li>
-	 *   <li>中段位置在避开头尾的区间居中选取</li>
+	 *     <li>使用默认采样大小 {@link IOConstants#DEFAULT_SAMPLE_SIZE}</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于RandomAccessFile随机访问，内存友好</li>
 	 * </ul>
 	 *
-	 * @param file 目标文件，不能为空
-	 * @return 16 位十六进制摘要字符串（左侧 0 填充）
-	 * @throws IOException 读写通道异常
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>空文件返回固定值 {@link IOConstants#EMPTY_DIGEST}</li>
+	 *     <li>文件大小小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>文件大小大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>中段位置在避开头尾的区间居中选取</li>
+	 * </ul>
+	 *
+	 * @param file 目标文件（必须非null且存在）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file为null时抛出
+	 * @throws IllegalArgumentException 当file不存在或不是文件时抛出
+	 * @see #computeDigest(File, int)
+	 * @see #computeDigest(File, int, LongHashFunction)
 	 * @since 1.0.0
 	 */
 	public static String computeDigest(final File file) throws IOException {
+		return computeDigest(file, IOConstants.DEFAULT_SAMPLE_SIZE, IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算文件摘要（使用自定义采样大小和默认哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小</li>
+	 *     <li>使用默认哈希函数 {@link IOConstants#DEFAULT_HASH_FUNC}</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于RandomAccessFile随机访问，内存友好</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据文件特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 * </ul>
+	 *
+	 * @param file       目标文件（必须非null且存在）
+	 * @param sampleSize 采样大小（字节，必须大于0）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file为null时抛出
+	 * @throws IllegalArgumentException 当file不存在、不是文件或sampleSize小于等于0时抛出
+	 * @see #computeDigest(File)
+	 * @see #computeDigest(File, int, LongHashFunction)
+	 * @since 1.1.0
+	 */
+	public static String computeDigest(final File file, final int sampleSize) throws IOException {
+		return computeDigest(file, sampleSize, IOConstants.DEFAULT_HASH_FUNC);
+	}
+
+	/**
+	 * 计算文件摘要（使用自定义采样大小和哈希函数）
+	 * <p>实现特性：</p>
+	 * <ul>
+	 *     <li>使用自定义采样大小和哈希函数</li>
+	 *     <li>采用三段采样策略：头部、中部、尾部</li>
+	 *     <li>基于RandomAccessFile随机访问，内存友好</li>
+	 *     <li>使用Apache Commons IO的RandomAccessFiles.read()进行高效读取</li>
+	 *     <li>适合大文件处理，无需加载全部内容到内存</li>
+	 * </ul>
+	 *
+	 * <p>采样策略说明：</p>
+	 * <ul>
+	 *     <li>空文件返回固定值 {@link IOConstants#EMPTY_DIGEST}</li>
+	 *     <li>文件大小小于等于3倍采样大小时：读取全部数据</li>
+	 *     <li>文件大小大于3倍采样大小时：读取头部、中部、尾部各采样大小的数据</li>
+	 *     <li>中段位置在避开头尾的区间居中选取</li>
+	 * </ul>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>采样大小应根据文件特征合理设置</li>
+	 *     <li>采样大小越大，摘要计算越准确但性能越低</li>
+	 *     <li>摘要包含文件大小信息，确保相同内容不同大小的文件摘要不同</li>
+	 * </ul>
+	 *
+	 * @param file       目标文件（必须非null且存在）
+	 * @param sampleSize 采样大小（字节，必须大于0）
+	 * @param hashFunc   哈希函数（必须非null）
+	 * @return 格式化的摘要字符串
+	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException     当file或hashFunc为null时抛出
+	 * @throws IllegalArgumentException 当file不存在、不是文件、sampleSize小于等于0时抛出
+	 * @see #computeDigest(File)
+	 * @see #computeDigest(File, int)
+	 * @since 1.1.0
+	 */
+	public static String computeDigest(final File file, final int sampleSize, final LongHashFunction hashFunc) throws IOException {
 		checkFile(file, "file不可为 null");
+		Validate.notNull(hashFunc, "hashFunc 不可为 null");
+		Validate.isTrue(sampleSize > 0, "sampleSize 必须大于0");
 
 		long fileSize = file.length();
 		if (fileSize == 0) {
-			return EMPTY_FILE_DIGEST;
+			return IOConstants.EMPTY_DIGEST;
 		}
 
-		byte[] head = new byte[SAMPLE_SIZE];
-		byte[] mid = new byte[SAMPLE_SIZE];
-		byte[] tail = new byte[SAMPLE_SIZE];
-
-		try (RandomAccessFile raf = new RandomAccessFile(file, "r");
-		     FileChannel channel = raf.getChannel()) {
-
-			// 读取开头
-			readFully(channel, 0, head);
-
-			// 读取结尾
-			long tailPos = Math.max(0, fileSize - SAMPLE_SIZE);
-			readFully(channel, tailPos, tail);
-
-			// 读取中间（避开头尾）
-			long midPos;
-			if (fileSize <= 2L * SAMPLE_SIZE) {
-				// 文件太小，中间与头重叠
-				midPos = 0;
-			} else {
-				// 在 [SAMPLE_SIZE, fileSize - SAMPLE_SIZE) 区间居中
-				midPos = SAMPLE_SIZE + (fileSize - 2L * SAMPLE_SIZE) / 2;
-			}
-			readFully(channel, midPos, mid);
-		}
-
-		// 合并：[fileSize][head][mid][tail]
-		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + 3 * SAMPLE_SIZE);
+		int totalSampleSize = 3 * sampleSize;
+		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + totalSampleSize);
 		buffer.putLong(fileSize);
-		buffer.put(head);
-		buffer.put(mid);
-		buffer.put(tail);
 
-		long hash = HASH_FUNC.hashBytes(buffer.array());
-		return String.format(FILE_DIGEST_FORMAT, hash); // 16 位 0 补齐
+		try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+			if (fileSize <= totalSampleSize) {
+				byte[] bytes = new byte[(int) fileSize];
+				raf.readFully(bytes);
+
+				buffer.put(bytes);
+			} else {
+				byte[] head = RandomAccessFiles.read(raf, 0, sampleSize);
+				buffer.put(head);
+
+				long midPos = sampleSize + (fileSize - totalSampleSize) / 2;
+				byte[] mid = RandomAccessFiles.read(raf, midPos, sampleSize);
+				buffer.put(mid);
+
+				long tailPos = fileSize - sampleSize;
+				byte[] tail = RandomAccessFiles.read(raf, tailPos, sampleSize);
+				buffer.put(tail);
+			}
+		}
+
+		buffer.flip();
+		byte[] validBytes = Arrays.copyOf(buffer.array(), buffer.remaining());
+		long hash = hashFunc.hashBytes(validBytes);
+		return String.format(IOConstants.DIGEST_FORMAT, hash);
 	}
 
 	/**
@@ -231,13 +339,77 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		long fileSize = file.length();
 		if (fileSize < MB_100) { // < 100MB
 			return MB_4;
-		} else if (fileSize < GB_1) { // < 1GB
+		} else if (fileSize < ONE_GB) { // < 1GB
 			return MB_16;
 		} else if (fileSize < GB_10) { // < 10GB
 			return MB_32;
 		} else {
 			return MB_64;
 		}
+	}
+
+	/**
+	 * 创建缓冲输出流
+	 * <p>使用默认缓冲区大小 {@link IOUtils#DEFAULT_BUFFER_SIZE}。</p>
+	 *
+	 * @param file 目标文件（必须存在且可写）
+	 * @return 缓冲输出流
+	 * @throws IOException 当文件不存在或无法创建输出流时抛出
+	 * @since 1.1.0
+	 */
+	public static BufferedOutputStream newBufferedOutputStream(final File file) throws IOException {
+		Validate.notNull(file, "file不可为 null");
+
+		return new BufferedOutputStream(openOutputStream(file), IOUtils.DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建缓冲输出流
+	 * <p>使用默认缓冲区大小 {@link IOUtils#DEFAULT_BUFFER_SIZE}。</p>
+	 *
+	 * @param file   目标文件（必须存在且可写）
+	 * @param append 是否追加模式
+	 * @return 缓冲输出流
+	 * @throws IOException 当文件不存在或无法创建输出流时抛出
+	 * @since 1.1.0
+	 */
+	public static BufferedOutputStream newBufferedOutputStream(final File file, final boolean append) throws IOException {
+		Validate.notNull(file, "file不可为 null");
+
+		return new BufferedOutputStream(openOutputStream(file, append), IOUtils.DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * 创建缓冲输入流（自动计算缓冲区大小）
+	 * <p>根据文件大小自动选择合适的缓冲区大小。</p>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @return 缓冲输入流
+	 * @throws IOException 当文件不存在或无法创建输入流时抛出
+	 * @since 1.1.0
+	 */
+	public static BufferedInputStream newBufferedInputStream(final File file) throws IOException {
+		checkFile(file, "file不可为 null");
+
+		return new BufferedInputStream(openInputStream(file), IOUtils.getBufferSize(file.length()));
+	}
+
+	/**
+	 * 创建非同步缓冲输入流（自动计算缓冲区大小）
+	 * <p>非线程安全实现，性能优于同步缓冲流。</p>
+	 *
+	 * @param file 目标文件（必须存在且可读）
+	 * @return 非同步缓冲输入流
+	 * @throws IOException 当文件不存在或无法创建输入流时抛出
+	 * @since 1.1.0
+	 */
+	public static UnsynchronizedBufferedInputStream newUnsynchronizedBufferedInputStream(final File file) throws IOException {
+		checkFile(file, "file不可为 null");
+
+		return new UnsynchronizedBufferedInputStream.Builder()
+			.setBufferSize(IOUtils.getBufferSize(file.length()))
+			.setFile(file)
+			.get();
 	}
 
 	/**
@@ -257,15 +429,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *                         <li>文件被其他进程独占锁定</li>
 	 *                     </ul>
 	 * @see UnsynchronizedBufferedInputStream.Builder
+	 * @deprecated 请使用{@link #newUnsynchronizedBufferedInputStream(File)}代替
 	 * @since 1.0.0
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file) throws IOException {
-		checkFile(file, "file不可为 null");
-
-		return new UnsynchronizedBufferedInputStream.Builder()
-			.setBufferSize(IOUtils.getBufferSize(file.length()))
-			.setFile(file)
-			.get();
+		return newUnsynchronizedBufferedInputStream(file);
 	}
 
 	/**
@@ -359,9 +528,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (BufferedOutputStream bufferedOutputStream = newBufferedOutputStream(outputFile);
+		     InputStream bufferedInputStream = openBufferedFileChannelInputStream(inputFile)) {
 			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -384,15 +552,18 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #encryptFile(File, File, byte[], byte[])} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream, bufferSize);
+		     FileInputStream inputStream = openInputStream(inputFile);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream, bufferSize)) {
 			IOUtils.encrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -425,9 +596,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (BufferedOutputStream bufferedOutputStream = newBufferedOutputStream(outputFile);
+		     InputStream bufferedInputStream = openBufferedFileChannelInputStream(inputFile)) {
 			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -451,15 +621,18 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decrypt(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #decryptFile(File, File, byte[], byte[])} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream, bufferSize);
+		     FileInputStream inputStream = openInputStream(inputFile);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream, bufferSize)) {
 			IOUtils.decrypt(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -491,9 +664,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (BufferedOutputStream bufferedOutputStream = newBufferedOutputStream(outputFile);
+		     InputStream bufferedInputStream = openBufferedFileChannelInputStream(inputFile)) {
 			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -516,15 +688,18 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#encryptByCtr(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #encryptFileByCtr(File, File, byte[], byte[])} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream, bufferSize);
+		     FileInputStream inputStream = openInputStream(inputFile);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream, bufferSize)) {
 			IOUtils.encryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -556,9 +731,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
-		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, IOUtils.DEFAULT_BUFFER_SIZE);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (BufferedOutputStream bufferedOutputStream = newBufferedOutputStream(outputFile);
+		     InputStream bufferedInputStream = openBufferedFileChannelInputStream(inputFile)) {
 			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv);
 		}
 	}
@@ -581,15 +755,18 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当密钥长度不是 16/24/32 字节或 IV 长度不是 16 字节时
 	 * @see IOUtils#decryptByCtr(InputStream, OutputStream, byte[], byte[], int)
 	 * @since 1.0.0
+	 * @deprecated 请使用 {@link #decryptFileByCtr(File, File, byte[], byte[])} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
 		checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		try (OutputStream outputStream = openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream, bufferSize);
-		     UnsynchronizedBufferedInputStream bufferedInputStream = openUnsynchronizedBufferedInputStream(inputFile)) {
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream, bufferSize);
+		     FileInputStream inputStream = openInputStream(inputFile);
+		     UnsynchronizedBufferedInputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream, bufferSize)) {
 			IOUtils.decryptByCtr(bufferedInputStream, bufferedOutputStream, key, iv, bufferSize);
 		}
 	}
@@ -782,12 +959,14 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 */
 	public static Map<String, String> parseMetaData(final File file) throws IOException {
 		checkFile(file, "file 不可为 null");
+
 		Metadata metadata = new Metadata();
-		try (Reader reader = IOConstants.getDefaultTika().parse(file, metadata)) {
-			return Arrays.stream(metadata.names())
-				.map(name -> Pair.of(name, metadata.get(name)))
-				.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-		}
+		Reader reader = IOConstants.getDefaultTika().parse(file, metadata);
+		reader.close();
+
+		return Arrays.stream(metadata.names())
+			.map(name -> Pair.of(name, metadata.get(name)))
+			.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 	}
 
 	/**
@@ -1117,7 +1296,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void check(final File file, final String message) throws IOException {
-		Objects.requireNonNull(file, message);
+		Validate.notNull(file, message);
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
@@ -1171,29 +1350,6 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			if (file.isDirectory()) {
 				throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 			}
-		}
-	}
-
-	/**
-	 * 从指定位置读取固定长度字节
-	 * <p>循环读取至缓冲区填满或到达 EOF，允许部分读取。</p>
-	 *
-	 * @param channel  文件通道
-	 * @param position 起始读取位置（字节偏移）
-	 * @param buffer   目标缓冲区（长度即期望读取量）
-	 * @throws IOException 通道读写异常
-	 * @since 1.0.0
-	 */
-	protected static void readFully(final FileChannel channel, final long position, final byte[] buffer) throws IOException {
-		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		int totalRead = 0;
-		while (totalRead < buffer.length) {
-			channel.position(position + totalRead);
-			int read = channel.read(bb);
-			if (read <= 0) {
-				break;
-			}
-			totalRead += read;
 		}
 	}
 }
