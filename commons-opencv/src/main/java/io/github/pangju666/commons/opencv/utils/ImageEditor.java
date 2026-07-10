@@ -16,22 +16,21 @@
 
 package io.github.pangju666.commons.opencv.utils;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
-import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;
 import io.github.pangju666.commons.opencv.model.ImageWatermarkOption;
+import io.github.pangju666.commons.opencv.model.OpencvImageResource;
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
@@ -50,7 +49,7 @@ import java.util.function.Function;
  * 基于 OpenCV 的图像编辑器（链式调用风格）
  * <p>
  * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
- * 支持以文件、输入流、字节数组（{@code byte[]}）或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
+ * 支持以 {@link OpencvImageResource}、文件、输入流、字节数组（{@code byte[]}）、{@link BytePointer} 或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
  * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
  *
@@ -102,17 +101,17 @@ import java.util.function.Function;
  * <p><b>代码示例：</b></p>
  * <pre>{@code
  * // 1. 构建实例
- * // 从文件构建
- * ImageEditor.of(new File("input.jpg"));
+ * // 从 OpencvImageResource 构建
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")));
  * // 从输入流构建
  * ImageEditor.of(inputStream);
- * // 从字节数组构建
- * ImageEditor.of(bytes);
+ * // 从 BytePointer 构建
+ * ImageEditor.of(bytePointer);
  * // 从 Mat 构建
  * ImageEditor.of(mat);
  *
  * // 2. 缩放与调整大小
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .scaleByWidth(800)              // 按宽度等比缩放
  *     .scaleByHeight(600)             // 按高度等比缩放
  *     .scale(0.5)                     // 按比例缩放（50%）
@@ -121,21 +120,21 @@ import java.util.function.Function;
  *     .toFile(new File("out_scale.jpg"));
  *
  * // 3. 裁剪操作
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .cropByCenter(400, 400)         // 居中裁剪
  *     .cropByRect(0, 0, 200, 200)     // 指定矩形区域裁剪
  *     .cropByOffset(10, 10, 20, 20)   // 按边距裁剪（上、下、左、右）
  *     .toFile(new File("out_crop.jpg"));
  *
  * // 4. 旋转与翻转
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .rotate(RotateDirection.CLOCKWISE_90)  // 顺时针旋转 90 度
  *     .rotate(45)                            // 任意角度旋转（45度）
  *     .flip(FlipDirection.HORIZONTAL)        // 水平翻转
  *     .toFile(new File("out_rotate.jpg"));
  *
  * // 5. 色彩与滤镜
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .grayscale()                    // 转为灰度图
  *     .blur()                         // 均值模糊（默认尺寸）
  *     .gaussianBlur()                 // 高斯模糊（默认尺寸）
@@ -149,13 +148,13 @@ import java.util.function.Function;
  *     .toFile(new File("out_filter.jpg"));
  *
  * // 6. 水印添加（支持图片与文字）
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
  *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
  *     .toFile(new File("out_watermark.jpg"));
  *
  * // 7. 复杂操作链（链式调用）
- * ImageEditor.of(new File("input.jpg"))
+ * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
  *     .cropByCenter(1000, 1000)       // 1. 先裁剪中心 1000x1000 区域
  *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
  *     .gaussianBlur()                 // 3. 应用高斯模糊
@@ -163,7 +162,7 @@ import java.util.function.Function;
  *     .toFile(new File("processed.jpg"));
  *
  * // 8. 状态重置与多版本输出
- * ImageEditor editor = ImageEditor.of(new File("original.png"));
+ * ImageEditor editor = ImageEditor.of(new OpencvImageResource(new File("original.png")));
  * // 输出缩略图
  * editor.scaleByWidth(200)
  *       .toFile(new File("thumbnail.png"));
@@ -179,25 +178,18 @@ import java.util.function.Function;
  * @author pangju666
  * @see RotateDirection
  * @see FlipDirection
- * @see ImageWatermarkOption
- * @see TextWatermarkOption
+ * @see io.github.pangju666.commons.opencv.model.ImageWatermarkOption
+ * @see io.github.pangju666.commons.opencv.model.TextWatermarkOption
  * @see OpencvUtils
  * @since 2.1.0
  */
 public class ImageEditor {
 	/**
-	 * 正常的 EXIF 方向值
-	 *
-	 * @since 2.1.0
-	 */
-	protected static final int NORMAL_EXIF_ORIENTATION = 1;
-
-	/**
 	 * 原始输入图像，用于重置操作
 	 *
 	 * @since 2.1.0
 	 */
-	protected Mat inputImage;
+	protected final Mat inputImage;
 
 	/**
 	 * 当前处理中的输出图像
@@ -216,84 +208,49 @@ public class ImageEditor {
 	 * @since 2.1.0
 	 */
 	protected ImageEditor(Mat inputImage, int exifOrientation, int flags) {
-		Validate.notNull(inputImage, "inputImage 不可为 null");
+		Validate.isTrue(OpencvUtils.isNotEmpty(inputImage), "inputImage 不存在图像数据");
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
 		this.inputImage = inputImage;
-		Validate.isTrue(!inputImage.isNull() && !inputImage.empty(), "inputImage 不存在图像数据");
 
-		this.outputImage = inputImage;
-
-		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
-			switch (exifOrientation) {
-				case 2:
-					flip(FlipDirection.HORIZONTAL);
-					break;
-				case 3:
-					rotate(RotateDirection.UPSIDE_DOWN);
-					break;
-				case 4:
-					flip(FlipDirection.VERTICAL);
-					break;
-				case 5:
-					rotate(RotateDirection.CLOCKWISE_90);
-					flip(FlipDirection.HORIZONTAL);
-					break;
-				case 6:
-					rotate(RotateDirection.CLOCKWISE_90);
-					break;
-				case 7:
-					rotate(RotateDirection.COUNTER_CLOCKWISE_90);
-					flip(FlipDirection.HORIZONTAL);
-					break;
-				case 8:
-					rotate(RotateDirection.COUNTER_CLOCKWISE_90);
-					break;
-				default:
-					break;
-			}
-
-			this.inputImage = this.outputImage;
+		if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
+			exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
+			this.outputImage = OpencvUtils.correctOrientation(this.inputImage, exifOrientation);
+		} else {
+			this.outputImage = inputImage.clone();
 		}
 	}
 
 	/**
-	 * 从图像文件创建编辑器
+	 * 从 OpencvImageResource 创建编辑器
 	 *
-	 * @param file 图像文件，不能为 null 且必须是图像文件
+	 * <p>如果资源已校正 EXIF 方向，则使用校正后的图像；否则使用原始图像并根据 EXIF 方向值进行校正。</p>
+	 *
+	 * @param resource OpencvImageResource 对象，不能为 null
 	 * @return 图像编辑器实例
-	 * @throws IOException 如果读取文件失败
+	 * @throws IOException              如果读取图像失败
+	 * @throws IllegalArgumentException 如果 resource 为 null
 	 * @since 2.1.0
 	 */
-	public static ImageEditor of(final File file) throws IOException {
-		return of(file, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
-	}
+	public static ImageEditor of(final OpencvImageResource resource) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
 
-	/**
-	 * 从图像文件创建编辑器，使用指定的读取标志
-	 *
-	 * @param file  图像文件，不能为 null 且必须是图像文件
-	 * @param flags 图像读取标志（OpenCV 的 IMREAD_* 常量）
-	 * @return 图像编辑器实例
-	 * @throws IOException 如果读取文件失败
-	 * @since 2.1.0
-	 */
-	public static ImageEditor of(final File file, final int flags) throws IOException {
-		int exifOrientation = NORMAL_EXIF_ORIENTATION;
-		Mat mat = OpencvUtils.read(file, flags);
-
-		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
-			try {
-				Metadata metadata = ImageMetadataReader.readMetadata(file);
-				exifOrientation = getExifOrientation(metadata);
-			} catch (ImageProcessingException ignored) {
-			}
+		if (resource.isOrientationCorrected()) {
+			return new ImageEditor(resource.getImageMat(),
+				OpencvConstants.NORMAL_EXIF_ORIENTATION, resource.getFlags());
 		}
-
-		return new ImageEditor(mat, exifOrientation, flags);
+		return new ImageEditor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags());
 	}
 
 	/**
 	 * 从输入流创建编辑器
+	 * <p>使用 BGR 颜色模式读取图像，OpenCV 会在读取时自动进行 EXIF 方向校正。</p>
+	 *
+	 * <p><b>方向校正说明：</b></p>
+	 * <ul>
+	 *   <li>此方法使用 {@code IMREAD_COLOR_BGR} 标志读取图像，OpenCV 会自动进行 EXIF 方向校正</li>
+	 *   <li>如需禁用自动校正，请使用 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 标志</li>
+	 * </ul>
 	 *
 	 * @param inputStream 输入流，不能为 null
 	 * @return 图像编辑器实例
@@ -301,11 +258,18 @@ public class ImageEditor {
 	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final InputStream inputStream) throws IOException {
-		return of(inputStream.readAllBytes(), OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
+		return of(inputStream, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
+			OpencvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
 	 * 从输入流创建编辑器，使用指定的读取标志
+	 *
+	 * <p><b>方向校正说明：</b></p>
+	 * <ul>
+	 *   <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，OpenCV 不会自动校正方向，需要手动指定 EXIF 方向值</li>
+	 *   <li>其他 flags（如 {@code IMREAD_COLOR_BGR}）时，OpenCV 会在读取时自动进行 EXIF 方向校正</li>
+	 * </ul>
 	 *
 	 * @param inputStream 输入流，不能为 null
 	 * @param flags       图像读取标志（OpenCV 的 IMREAD_* 常量）
@@ -315,46 +279,89 @@ public class ImageEditor {
 	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final InputStream inputStream, final int flags) throws IOException {
+		return of(inputStream, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
+	}
+
+	/**
+	 * 从输入流创建编辑器，指定读取标志和 EXIF 方向值
+	 *
+	 * @param inputStream     输入流，不能为 null
+	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @return 图像编辑器实例
+	 * @throws IOException              如果读取流失败
+	 * @throws IllegalArgumentException 如果 inputStream 为 null，或 exifOrientation 不在 1-8 范围内
+	 * @since 2.1.0
+	 */
+	public static ImageEditor of(final InputStream inputStream, final int flags, final int exifOrientation) throws IOException {
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		return of(inputStream.readAllBytes(), flags);
-	}
-
-	/**
-	 * 从字节数组创建编辑器
-	 *
-	 * @param bytes 图像字节数组，不能为 null 或空
-	 * @return 图像编辑器实例
-	 * @throws IOException 如果读取失败
-	 * @since 2.1.0
-	 */
-	public static ImageEditor of(final byte[] bytes) throws IOException {
-		return of(bytes, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
-	}
-
-	/**
-	 * 从字节数组创建编辑器，使用指定的读取标志
-	 *
-	 * @param bytes 图像字节数组，不能为 null 或空
-	 * @param flags 图像读取标志（OpenCV 的 IMREAD_* 常量）
-	 * @return 图像编辑器实例
-	 * @throws IOException              如果读取失败
-	 * @throws IllegalArgumentException 如果 bytes 为 null 或空
-	 * @since 2.1.0
-	 */
-	public static ImageEditor of(final byte[] bytes, final int flags) throws IOException {
-		int exifOrientation = NORMAL_EXIF_ORIENTATION;
-		Mat mat = OpencvUtils.read(bytes, flags);
-
-		if (flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) {
-			try {
-				Metadata metadata = ImageMetadataReader.readMetadata(IOUtils.toUnsynchronizedByteArrayInputStream(bytes));
-				exifOrientation = getExifOrientation(metadata);
-			} catch (ImageProcessingException ignored) {
-			}
+		Mat image = OpencvUtils.read(inputStream, flags);
+		if (OpencvUtils.isEmpty(image)) {
+			throw new IOException("图片读取失败");
 		}
+		return new ImageEditor(image, exifOrientation, flags);
+	}
 
-		return new ImageEditor(mat, exifOrientation, flags);
+	/**
+	 * 从 BytePointer 创建编辑器
+	 * <p>使用 BGR 颜色模式读取图像，OpenCV 会在读取时自动进行 EXIF 方向校正。</p>
+	 *
+	 * <p><b>方向校正说明：</b></p>
+	 * <ul>
+	 *   <li>此方法使用 {@code IMREAD_COLOR_BGR} 标志读取图像，OpenCV 会自动进行 EXIF 方向校正</li>
+	 *   <li>如需禁用自动校正，请使用 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 标志</li>
+	 * </ul>
+	 *
+	 * @param bytePointer BytePointer 对象，不能为 null
+	 * @return 图像编辑器实例
+	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
+	 * @since 2.1.0
+	 */
+	public static ImageEditor of(final BytePointer bytePointer) {
+		return of(bytePointer, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
+			OpencvConstants.NORMAL_EXIF_ORIENTATION);
+	}
+
+	/**
+	 * 从 BytePointer 创建编辑器，指定读取标志
+	 *
+	 * <p><b>方向校正说明：</b></p>
+	 * <ul>
+	 *   <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，OpenCV 不会自动校正方向，需要手动指定 EXIF 方向值</li>
+	 *   <li>其他 flags（如 {@code IMREAD_COLOR_BGR}）时，OpenCV 会在读取时自动进行 EXIF 方向校正</li>
+	 * </ul>
+	 *
+	 * @param bytePointer BytePointer 对象，不能为 null
+	 * @param flags       图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @return 图像编辑器实例
+	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
+	 * @since 2.1.0
+	 */
+	public static ImageEditor of(final BytePointer bytePointer, final int flags) {
+		return of(bytePointer, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
+	}
+
+	/**
+	 * 从 BytePointer 创建编辑器，指定读取标志和 EXIF 方向值
+	 *
+	 * @param bytePointer     BytePointer 对象，不能为 null 或空指针
+	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @return 图像编辑器实例
+	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或空指针，或 exifOrientation 不在 1-8 范围内
+	 * @since 2.1.0
+	 */
+	public static ImageEditor of(final BytePointer bytePointer, final int flags, final int exifOrientation) {
+		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+		Validate.notNull(bytePointer, "bytePointer不可为 null");
+		Validate.isTrue(bytePointer.isNull(), "bytePointer不可为 null");
+
+		try (Mat bytesMat = new Mat(bytePointer)) {
+			Mat imageMat = opencv_imgcodecs.imdecode(bytesMat, flags);
+			return new ImageEditor(imageMat, exifOrientation, flags);
+		}
 	}
 
 	/**
@@ -362,10 +369,25 @@ public class ImageEditor {
 	 *
 	 * @param image 图像 Mat，不能为 null 或空
 	 * @return 图像编辑器实例
+	 * @throws IllegalArgumentException 如果 image 为 null 或空
 	 * @since 2.1.0
 	 */
 	public static ImageEditor of(final Mat image) {
-		return new ImageEditor(image, 1, opencv_imgcodecs.IMREAD_UNCHANGED);
+		return new ImageEditor(image, OpencvConstants.NORMAL_EXIF_ORIENTATION,
+			opencv_imgcodecs.IMREAD_UNCHANGED);
+	}
+
+	/**
+	 * 从现有 Mat 图像创建编辑器，指定 EXIF 方向值
+	 *
+	 * @param image           图像 Mat，不能为 null 或空
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @return 图像编辑器实例
+	 * @throws IllegalArgumentException 如果 image 为 null 或空，或 exifOrientation 不在 1-8 范围内
+	 * @since 2.1.0
+	 */
+	public static ImageEditor of(final Mat image, final int exifOrientation) {
+		return new ImageEditor(image, exifOrientation, opencv_imgcodecs.IMREAD_UNCHANGED);
 	}
 
 	/**
@@ -386,7 +408,7 @@ public class ImageEditor {
 				return orientation;
 			}
 		}
-		return NORMAL_EXIF_ORIENTATION;
+		return OpencvConstants.NORMAL_EXIF_ORIENTATION;
 	}
 
 	/**
@@ -1248,7 +1270,7 @@ public class ImageEditor {
 		Size originalWatermarkSize = watermarkImage.size();
 		Pair<Size, Size> watermarkImageSizeRange = option.getSizeLimitStrategy().apply(outputImageSize);
 
-		Mat targetWatermarkImage;
+		Mat targetWatermarkImage = new Mat();
 		Size targetWatermarkImageSize = OpencvUtils.scale(outputImageSize, option.getRelativeScaleFactor());
 
 		if (originalWatermarkSize.width() > originalWatermarkSize.height()) {
@@ -1257,10 +1279,6 @@ public class ImageEditor {
 			if (targetWidth != targetWatermarkImageSize.width()) {
 				targetWatermarkImage = new Mat();
 				targetWatermarkImageSize = OpencvUtils.scaleByWidth(originalWatermarkSize, targetWidth);
-
-				opencv_imgproc.resize(watermarkImage, targetWatermarkImage, targetWatermarkImageSize);
-			} else {
-				targetWatermarkImage = watermarkImage;
 			}
 		} else {
 			int targetHeight = Math.min(watermarkImageSizeRange.getRight().height(),
@@ -1268,12 +1286,10 @@ public class ImageEditor {
 			if (targetHeight != targetWatermarkImageSize.height()) {
 				targetWatermarkImage = new Mat();
 				targetWatermarkImageSize = OpencvUtils.scaleByHeight(originalWatermarkSize, targetHeight);
-
-				opencv_imgproc.resize(watermarkImage, targetWatermarkImage, targetWatermarkImageSize);
-			} else {
-				targetWatermarkImage = watermarkImage;
 			}
 		}
+
+		opencv_imgproc.resize(watermarkImage, targetWatermarkImage, targetWatermarkImageSize);
 
 		Rect watermarkRect;
 		if (Objects.nonNull(option.getDirection())) {
@@ -1567,8 +1583,7 @@ public class ImageEditor {
 	 */
 	public byte[] toBytes(final String format) {
 		Validate.notBlank(format, "format 不可为空");
-		Validate.isTrue(OpencvConstants.SUPPORTED_IMAGE_FILE_FORMATS.contains(format),
-			"不支持输出 " + format + " 图像格式");
+		Validate.isTrue(OpencvUtils.canWrite(format), "不支持输出 " + format + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
@@ -1592,8 +1607,7 @@ public class ImageEditor {
 	public byte[] toBytes(final String format, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
 		Validate.notBlank(format, "format 不可为空");
-		Validate.isTrue(OpencvConstants.SUPPORTED_IMAGE_FILE_FORMATS.contains(format),
-			"不支持输出 " + format + " 图像格式");
+		Validate.isTrue(OpencvUtils.canWrite(format), "不支持输出 " + format + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
@@ -1622,11 +1636,8 @@ public class ImageEditor {
 	 * @since 2.1.0
 	 */
 	public ImageEditor reset() {
-		if (this.outputImage != this.inputImage) {
-			this.outputImage.releaseReference();
-
-			this.outputImage = this.inputImage;
-		}
+		this.outputImage.releaseReference();
+		this.outputImage = this.inputImage.clone();
 
 		return this;
 	}
@@ -1638,6 +1649,6 @@ public class ImageEditor {
 	 */
 	public void release() {
 		this.outputImage.releaseReference();
-		this.inputImage.releaseReference();
+		this.outputImage = null;
 	}
 }
