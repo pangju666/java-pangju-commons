@@ -16,11 +16,11 @@
 
 package io.github.pangju666.commons.ffmpeg.utils;
 
+import io.github.pangju666.commons.ffmpeg.builder.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.enums.FrameType;
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import io.github.pangju666.commons.ffmpeg.model.Audio;
 import io.github.pangju666.commons.ffmpeg.model.Media;
-import io.github.pangju666.commons.ffmpeg.model.MediaResource;
 import io.github.pangju666.commons.ffmpeg.model.Video;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,7 +32,10 @@ import org.bytedeco.javacv.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ObjLongConsumer;
 
@@ -40,14 +43,51 @@ import java.util.function.ObjLongConsumer;
  * FFmpeg 工具类，提供媒体处理的常用方法和过滤器生成
  * <p>
  * 该工具类封装了 FFmpeg 相关的常见操作，包括：
- * <ul>
- *     <li>文件路径处理和时间转换</li>
- *     <li>音频和视频过滤器生成</li>
- *     <li>媒体剪辑、拼接、转码等操作</li>
- *     <li>资源加载和释放</li>
- *     <li>图像抓取和帧提取</li>
- * </ul>
  * </p>
+ * <h3>路径和时间处理</h3>
+ * <ul>
+ *     <li>文件路径安全转换（适配 FFmpeg 滤镜参数格式）</li>
+ *     <li>Duration 与微秒时间戳转换</li>
+ *     <li>格式字符串解析（从逗号分隔的格式中提取最后一个格式）</li>
+ * </ul>
+ * <h3>音频滤镜生成</h3>
+ * <ul>
+ *     <li>音量调整滤镜（支持多种精度）</li>
+ *     <li>音频混合滤镜（支持多输入混音）</li>
+ *     <li>音频循环滤镜（支持无限循环和指定次数）</li>
+ *     <li>音频时长裁剪滤镜</li>
+ *     <li>音频变速滤镜</li>
+ * </ul>
+ * <h3>视频滤镜生成</h3>
+ * <ul>
+ *     <li>视频时长裁剪滤镜</li>
+ *     <li>视频画面裁剪滤镜</li>
+ *     <li>视频变速滤镜（通过调整时间戳）</li>
+ *     <li>视频帧率滤镜</li>
+ * </ul>
+ * <h3>媒体处理操作</h3>
+ * <ul>
+ *     <li>应用滤镜（支持单输入和多输入）</li>
+ *     <li>媒体裁剪（支持时长和时间范围）</li>
+ *     <li>媒体转码</li>
+ * </ul>
+ * <h3>帧处理</h3>
+ * <ul>
+ *     <li>帧录制（从抓取器、滤镜、分离的视频/音频抓取器）</li>
+ *     <li>录制器启动（支持多种配置方式）</li>
+ *     <li>帧滤镜启动和配置</li>
+ *     <li>抓取器状态判断</li>
+ * </ul>
+ * <h3>图像抓取</h3>
+ * <ul>
+ *     <li>指定时间点抓取单帧图像</li>
+ *     <li>按固定间隔抓取关键帧图像（支持列表和回调两种方式）</li>
+ * </ul>
+ * <h3>其他</h3>
+ * <ul>
+ *     <li>FFmpeg 日志控制</li>
+ *     <li>枚举类型：音频混合时长模式、音量滤镜精度</li>
+ * </ul>
  *
  * @author pangju666
  * @since 2.1.0
@@ -290,7 +330,7 @@ public class FFmpegUtils {
 		Validate.notNull(start, "start 不可为null");
 		Validate.isTrue(!start.isZero() && !start.isNegative(), "start 必须大于等于 0");
 		Validate.notNull(end, "end 不可为null");
-		Validate.isTrue(!end.isZero() && end.isNegative(), "end 必须大于等于 0");
+		Validate.isTrue(!end.isZero() && !end.isNegative(), "end 必须大于等于 0");
 
 		return getAtrimFilter(toTimestamp(start), toTimestamp(end));
 	}
@@ -356,7 +396,7 @@ public class FFmpegUtils {
 		Validate.notNull(start, "start 不可为null");
 		Validate.isTrue(!start.isZero() && !start.isNegative(), "start 必须大于等于 0");
 		Validate.notNull(end, "end 不可为null");
-		Validate.isTrue(!end.isZero() && end.isNegative(), "end 必须大于等于 0");
+		Validate.isTrue(!end.isZero() && !end.isNegative(), "end 必须大于等于 0");
 
 		return String.format("trim=start=%dus:end=%dus", toTimestamp(start), toTimestamp(end));
 	}
@@ -553,10 +593,13 @@ public class FFmpegUtils {
 		int audioInputs = grabber.hasAudio() && StringUtils.isNotBlank(audioFilters) ? 1 : 0;
 		int videoInputs = grabber.hasVideo() && StringUtils.isNotBlank(videoFilters) ? 1 : 0;
 
-		try (FFmpegFrameFilter filter = openFrameFilter(videoFilters, audioFilters, grabber, filterMedia, audioInputs,
+		try (FFmpegFrameFilter filter = newFrameFilter(videoFilters, audioFilters, grabber, filterMedia, audioInputs,
 			videoInputs)) {
+			filter.start();
+
 			if (!recorderStarted) {
-				startRecorder(recorder, grabber, outputMedia, frameType);
+				initRecorder(recorder, grabber, outputMedia, frameType);
+				recorder.start();
 			}
 
 			while (true) {
@@ -620,14 +663,16 @@ public class FFmpegUtils {
 			}
 		}
 
-		try (FFmpegFrameFilter filter = openFrameFilter(videoFilters, audioFilters, null, filterMedia,
+		try (FFmpegFrameFilter filter = newFrameFilter(videoFilters, audioFilters, null, filterMedia,
 			audioInputs, videoInputs)) {
-			boolean hasFrame;
+			filter.start();
 
 			if (!recorderStarted) {
-				startRecorder(recorder, null, outputMedia, frameType);
+				initRecorder(recorder, null, outputMedia, frameType);
+				recorder.start();
 			}
 
+			boolean hasFrame;
 			do {
 				hasFrame = false;
 
@@ -729,7 +774,8 @@ public class FFmpegUtils {
 		Validate.isTrue(endTimestamp > startTimestamp, "endTimestamp 必须大于 startTimestamp");
 
 		if (!recorderStarted) {
-			startRecorder(recorder, grabber, outputMedia, frameType);
+			initRecorder(recorder, grabber, outputMedia, frameType);
+			recorder.start();
 		}
 
 		grabber.setTimestamp(startTimestamp);
@@ -748,82 +794,6 @@ public class FFmpegUtils {
 			}
 		}
 		recorder.flush();
-	}
-
-	/**
-	 * 拼接媒体（从媒体资源）
-	 *
-	 * @param resources       媒体资源集合
-	 * @param recorder        帧录制器
-	 * @param outputMedia     输出媒体配置
-	 * @param frameType       处理的帧类型
-	 * @param recorderStarted 录制器是否已启动
-	 * @param <T>             媒体类型
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources、frameType 或 recorder 为 null，或 resources 包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空时
-	 * @since 2.1.0
-	 */
-	public static <T extends Media> void concatByResource(final Collection<MediaResource> resources,
-	                                                      final FFmpegFrameRecorder recorder, final T outputMedia,
-	                                                      final FrameType frameType, final boolean recorderStarted) throws IOException {
-		Validate.notEmpty(resources, "resources 不可为空");
-		Validate.isTrue(resources.stream().allMatch(Objects::nonNull), "集合中存在为 null的 grabber");
-		Validate.notNull(frameType, "frameMode 不可为 null");
-		Validate.notNull(recorder, "recorder 不可为 null");
-
-		boolean started = recorderStarted;
-		for (MediaResource resource : resources) {
-			try (FFmpegFrameGrabber grabber = openFrameGrabber(resource)) {
-				grabber.start();
-
-				if (!started) {
-					startRecorder(recorder, grabber, outputMedia, frameType);
-
-					started = true;
-				}
-
-				recordFrames(recorder, grabber, frameType);
-			}
-		}
-	}
-
-	/**
-	 * 拼接媒体（从帧抓取器）
-	 *
-	 * @param grabbers        帧抓取器集合
-	 * @param recorder        帧录制器
-	 * @param outputMedia     输出媒体配置
-	 * @param frameType       处理的帧类型
-	 * @param recorderStarted 录制器是否已启动
-	 * @param <T>             媒体类型
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 grabbers、frameType 或 recorder 为 null，或 grabbers 包含 null 元素时
-	 * @throws IllegalArgumentException 当 grabbers 为空时
-	 * @since 2.1.0
-	 */
-	public static <T extends Media> void concat(final Collection<FFmpegFrameGrabber> grabbers,
-	                                            final FFmpegFrameRecorder recorder, final T outputMedia,
-	                                            final FrameType frameType, final boolean recorderStarted) throws IOException {
-		Validate.notEmpty(grabbers, "resources 不可为空");
-		Validate.isTrue(grabbers.stream().allMatch(Objects::nonNull), "集合中存在为 null的 grabber");
-		Validate.notNull(frameType, "frameMode 不可为 null");
-		Validate.notNull(recorder, "recorder 不可为 null");
-
-		boolean started = recorderStarted;
-		for (FFmpegFrameGrabber grabber : grabbers) {
-			if (isNotStarted(grabber)) {
-				grabber.start();
-			}
-
-			if (!started) {
-				startRecorder(recorder, grabber, outputMedia, frameType);
-
-				started = true;
-			}
-
-			recordFrames(recorder, grabber, frameType);
-		}
 	}
 
 	/**
@@ -854,32 +824,14 @@ public class FFmpegUtils {
 		}
 
 		if (!recorderStarted) {
-			startRecorder(recorder, grabber, outputMedia, frameType);
+			initRecorder(recorder, grabber, outputMedia, frameType);
+			recorder.start();
 		}
 		recordFrames(recorder, grabber, frameType);
 	}
 
 	/**
-	 * 打开帧抓取器
-	 *
-	 * @param resource 媒体资源
-	 * @return 已打开的帧抓取器
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 resource 为 null 时
-	 * @since 2.1.0
-	 */
-	public static FFmpegFrameGrabber openFrameGrabber(final MediaResource resource) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-
-		if (resource.isFile()) {
-			return new FFmpegFrameGrabber(resource.getFile());
-		} else {
-			return new FFmpegFrameGrabber(resource.getInputStream());
-		}
-	}
-
-	/**
-	 * 打开并启动帧滤镜
+	 * 新建并启动帧滤镜
 	 *
 	 * @param videoFilters 视频滤镜字符串
 	 * @param audioFilters 音频滤镜字符串
@@ -889,29 +841,28 @@ public class FFmpegUtils {
 	 * @param videoInputs  视频输入数量
 	 * @param <T>          媒体类型
 	 * @return 已启动的帧滤镜
-	 * @throws FFmpegFrameFilter.Exception  当滤镜启动失败时
 	 * @throws FFmpegFrameGrabber.Exception 当抓取器操作失败时
 	 * @throws IllegalArgumentException     当 videoFilters 和 audioFilters 同时为空，
 	 *                                      或 grabber 和 filterMedia 同时为 null，
 	 *                                      或 audioInputs/videoInputs 为负数时
 	 * @since 2.1.0
 	 */
-	public static <T extends Media> FFmpegFrameFilter openFrameFilter(final String videoFilters, final String audioFilters,
+	public static <T extends Media> FFmpegFrameFilter newFrameFilter(final String videoFilters, final String audioFilters,
 	                                                                  final FFmpegFrameGrabber grabber, final T filterMedia,
-	                                                                  final int audioInputs, final int videoInputs)
-		throws FFmpegFrameFilter.Exception, FFmpegFrameGrabber.Exception {
+	                                                                 final int audioInputs, final int videoInputs) throws FFmpegFrameGrabber.Exception {
 		Validate.isTrue(!StringUtils.isAllBlank(audioFilters, videoFilters),
 			"audioFilters 或 videoFilters 至少需要一个不为空");
 
 		FFmpegFrameFilter filter = new FFmpegFrameFilter(videoFilters, audioFilters, 0, 0, 0);
 
-		startFilter(filter, grabber, filterMedia, audioInputs, videoInputs);
+		initFilter(filter, grabber, filterMedia, audioInputs, videoInputs);
 
 		return filter;
 	}
 
 	/**
 	 * 录制帧（从两个独立的视频和音频抓取器）
+	 * <p>默认刷新录制器</p>
 	 *
 	 * @param recorder     帧录制器
 	 * @param videoGrabber 视频抓取器
@@ -924,6 +875,24 @@ public class FFmpegUtils {
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber videoGrabber,
 	                                final FFmpegFrameGrabber audioGrabber) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
+		recordFrames(recorder, videoGrabber, audioGrabber, true);
+	}
+
+	/**
+	 * 录制帧（从两个独立的视频和音频抓取器）
+	 *
+	 * @param recorder      帧录制器
+	 * @param videoGrabber  视频抓取器
+	 * @param audioGrabber  音频抓取器
+	 * @param flushRecorder 是否刷新录制器
+	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
+	 * @throws FrameGrabber.Exception        当抓取失败时
+	 * @throws NullPointerException          当 recorder、videoGrabber 或 audioGrabber 为 null 时
+	 * @throws IllegalArgumentException      当 videoGrabber 无视频流或 audioGrabber 无音频流时
+	 * @since 2.1.0
+	 */
+	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber videoGrabber,
+	                                final FFmpegFrameGrabber audioGrabber, final boolean flushRecorder) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(videoGrabber, "videoGrabber 不可为 null");
 		Validate.notNull(audioGrabber, "audioGrabber 不可为 null");
@@ -952,7 +921,10 @@ public class FFmpegUtils {
 				}
 			}
 		}
-		recorder.flush();
+
+		if (flushRecorder) {
+			recorder.flush();
+		}
 	}
 
 	/**
@@ -968,6 +940,23 @@ public class FFmpegUtils {
 	 */
 	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
 	                                final FrameType frameType) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
+		recordFrames(recorder, grabber, frameType, true);
+	}
+
+	/**
+	 * 录制帧（从单个抓取器）
+	 *
+	 * @param recorder      帧录制器
+	 * @param grabber       帧抓取器
+	 * @param frameType     处理的帧类型
+	 * @param flushRecorder 是否刷新录制器
+	 * @throws FFmpegFrameRecorder.Exception 当录制失败时
+	 * @throws FrameGrabber.Exception        当抓取失败时
+	 * @throws NullPointerException          当 recorder、grabber 或 frameType 为 null 时
+	 * @since 2.1.0
+	 */
+	public static void recordFrames(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
+	                                final FrameType frameType, final boolean flushRecorder) throws FFmpegFrameRecorder.Exception, FrameGrabber.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(frameType, "frameMode 不可为 null");
@@ -984,7 +973,10 @@ public class FFmpegUtils {
 				recorder.record(frame);
 			}
 		}
-		recorder.flush();
+
+		if (flushRecorder) {
+			recorder.flush();
+		}
 	}
 
 	/**
@@ -1043,13 +1035,12 @@ public class FFmpegUtils {
 	 * @param outputMedia 输出媒体配置
 	 * @param frameType   处理的帧类型
 	 * @param <T>         媒体类型
-	 * @throws FFmpegFrameRecorder.Exception 当录制器启动失败时
 	 * @throws FFmpegFrameGrabber.Exception  当抓取器操作失败时
 	 * @since 2.1.0
 	 */
-	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
-	                                                   final T outputMedia, final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameGrabber.Exception {
-		startRecorder(recorder, grabber, grabber, outputMedia, frameType);
+	public static <T extends Media> void initRecorder(final FFmpegFrameRecorder recorder, final FFmpegFrameGrabber grabber,
+	                                                  final T outputMedia, final FrameType frameType) throws FFmpegFrameGrabber.Exception {
+		initRecorder(recorder, grabber, grabber, outputMedia, frameType);
 	}
 
 	/**
@@ -1061,23 +1052,23 @@ public class FFmpegUtils {
 	 * @param outputMedia  输出媒体配置
 	 * @param frameType    处理的帧类型
 	 * @param <T>          媒体类型
-	 * @throws FFmpegFrameRecorder.Exception 当录制器启动失败时
 	 * @throws FFmpegFrameGrabber.Exception  当抓取器操作失败时
 	 * @throws NullPointerException          当 recorder 为 null 时
 	 * @throws IllegalArgumentException      当 outputMedia 与 (videoGrabber 和 audioGrabber) 同时为 null 时
 	 * @since 2.1.0
 	 */
-	public static <T extends Media> void startRecorder(final FFmpegFrameRecorder recorder,
-	                                                   final FFmpegFrameGrabber videoGrabber,
-	                                                   final FFmpegFrameGrabber audioGrabber, final T outputMedia,
-	                                                   final FrameType frameType) throws FFmpegFrameRecorder.Exception, FFmpegFrameGrabber.Exception {
+	public static <T extends Media> void initRecorder(final FFmpegFrameRecorder recorder,
+	                                                  final FFmpegFrameGrabber videoGrabber,
+	                                                  final FFmpegFrameGrabber audioGrabber, final T outputMedia,
+	                                                  final FrameType frameType) throws FFmpegFrameGrabber.Exception {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.isTrue(Objects.nonNull(outputMedia) || ObjectUtils.allNotNull(videoGrabber, audioGrabber),
 			"outputMedia 或 （videoGrabber 和 audioGrabber） 不可同时为 null");
 
 		if (Objects.nonNull(outputMedia)) {
 			if (outputMedia instanceof Audio audio && frameType != FrameType.VIDEO) {
-				recorder.setFormat(audio.getFormat());
+
+				recorder.setFormat(parseFormat(audio.getFormat()));
 				recorder.setSampleRate(audio.getSampleRate());
 				recorder.setAudioCodec(audio.getCodecId());
 				recorder.setAudioCodecName(audio.getCodecName());
@@ -1085,7 +1076,19 @@ public class FFmpegUtils {
 				recorder.setAudioChannels(audio.getChannels());
 				recorder.setAudioMetadata(new HashMap<>(audio.getMetadata()));
 			} else if (outputMedia instanceof Video video) {
+
+				if (Objects.nonNull(video.getAudio()) && frameType != FrameType.VIDEO) {
+					recorder.setFormat(parseFormat(video.getAudio().getFormat()));
+					recorder.setSampleRate(video.getAudio().getSampleRate());
+					recorder.setAudioCodec(video.getAudio().getCodecId());
+					recorder.setAudioCodecName(video.getAudio().getCodecName());
+					recorder.setAudioBitrate(video.getAudio().getBitrate());
+					recorder.setAudioChannels(video.getAudio().getChannels());
+					recorder.setAudioMetadata(new HashMap<>(video.getAudio().getMetadata()));
+				}
+
 				if (frameType != FrameType.AUDIO) {
+					recorder.setFormat(parseFormat(video.getFormat()));
 					recorder.setFrameRate(video.getFrameRate());
 					recorder.setVideoBitrate(video.getBitrate());
 					recorder.setVideoCodec(video.getCodecId());
@@ -1094,23 +1097,14 @@ public class FFmpegUtils {
 					recorder.setImageHeight(video.getHeight());
 					recorder.setVideoMetadata(new HashMap<>(video.getMetadata()));
 				}
-
-				if (Objects.nonNull(video.getAudio()) && frameType != FrameType.VIDEO) {
-					recorder.setSampleRate(video.getAudio().getSampleRate());
-					recorder.setAudioCodec(video.getAudio().getCodecId());
-					recorder.setAudioCodecName(video.getAudio().getCodecName());
-					recorder.setAudioBitrate(video.getAudio().getBitrate());
-					recorder.setAudioChannels(video.getAudio().getChannels());
-					recorder.setAudioMetadata(new HashMap<>(video.getAudio().getMetadata()));
-				}
 			}
 		} else {
 			if (isNotStarted(audioGrabber)) {
 				audioGrabber.start();
 			}
 
-			recorder.setFormat(audioGrabber.getFormat());
 			if (frameType != FrameType.VIDEO && audioGrabber.hasAudio()) {
+				recorder.setFormat(parseFormat(audioGrabber.getFormat()));
 				recorder.setAudioCodec(audioGrabber.getAudioCodec());
 				recorder.setAudioCodecName(audioGrabber.getAudioCodecName());
 				recorder.setSampleRate(audioGrabber.getSampleRate());
@@ -1123,8 +1117,8 @@ public class FFmpegUtils {
 				videoGrabber.start();
 			}
 
-			recorder.setFormat(videoGrabber.getFormat());
 			if (frameType != FrameType.AUDIO && videoGrabber.hasVideo()) {
+				recorder.setFormat(parseFormat(videoGrabber.getFormat()));
 				recorder.setVideoCodec(videoGrabber.getVideoCodec());
 				recorder.setVideoCodecName(videoGrabber.getVideoCodecName());
 				recorder.setFrameRate(videoGrabber.getFrameRate());
@@ -1134,8 +1128,6 @@ public class FFmpegUtils {
 				recorder.setVideoMetadata(videoGrabber.getVideoMetadata());
 			}
 		}
-
-		recorder.start();
 	}
 
 	/**
@@ -1147,16 +1139,14 @@ public class FFmpegUtils {
 	 * @param audioInputs 音频输入数量
 	 * @param videoInputs 视频输入数量
 	 * @param <T>         媒体类型
-	 * @throws FFmpegFrameFilter.Exception  当滤镜启动失败时
 	 * @throws FFmpegFrameGrabber.Exception 当抓取器操作失败时
 	 * @throws NullPointerException         当 filter 为 null 时
 	 * @throws IllegalArgumentException     当 audioInputs/videoInputs 为负数，
 	 *                                      或 grabber 和 filterMedia 同时为 null 时
 	 * @since 2.1.0
 	 */
-	public static <T extends Media> void startFilter(final FFmpegFrameFilter filter, final FFmpegFrameGrabber grabber,
-	                                                 final T filterMedia, final int audioInputs, final int videoInputs)
-		throws FFmpegFrameFilter.Exception, FFmpegFrameGrabber.Exception {
+	public static <T extends Media> void initFilter(final FFmpegFrameFilter filter, final FFmpegFrameGrabber grabber,
+	                                                final T filterMedia, final int audioInputs, final int videoInputs) throws FFmpegFrameGrabber.Exception {
 		Validate.notNull(filter, "filter 不可为 null");
 		Validate.isTrue(audioInputs >= 0, "audioInputs 必须大于等于0");
 		Validate.isTrue(videoInputs >= 0, "videoInputs 必须大于等于0");
@@ -1198,8 +1188,6 @@ public class FFmpegUtils {
 				filter.setAudioChannels(grabber.getAudioChannels());
 			}
 		}
-
-		filter.start();
 	}
 
 	/**
@@ -1335,6 +1323,27 @@ public class FFmpegUtils {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 解析格式字符串
+	 * <p>
+	 * 从逗号分隔的格式字符串中提取最后一个格式。
+	 * 例如："mp4,h264" 返回 "h264"，"mp4" 返回 "mp4"
+	 * </p>
+	 *
+	 * @param format 格式字符串，可为 null 或空
+	 * @return 最后一个格式，如果输入为 null、空或无效则返回 null
+	 * @since 2.1.0
+	 */
+	public static String parseFormat(String format) {
+		if (StringUtils.isNotBlank(format)) {
+			String[] formats = StringUtils.split(format, ",");
+			if (formats.length > 0) {
+				return formats[formats.length - 1];
+			}
+		}
+		return null;
 	}
 
 	/**

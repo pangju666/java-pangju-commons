@@ -17,13 +17,11 @@
 package io.github.pangju666.commons.ffmpeg.model;
 
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
-import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.global.avcodec;
+import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -38,24 +36,32 @@ import java.util.Map;
  * </p>
  * <h3>核心特性</h3>
  * <ul>
- *     <li>支持解析自多种来源（{@link File}/byte[]/{@link InputStream}/{@link FFmpegFrameGrabber}）</li>
+ *     <li>基于 JavaCV/FFmpeg 自动解析音频元数据</li>
+ *     <li>采用 Fluent Builder 模式，支持链式调用</li>
  *     <li>不可变对象设计，线程安全</li>
- *     <li>提供 Fluent Builder 模式，支持链式调用</li>
  *     <li>内置音频格式判断（单声道/立体声等）</li>
  *     <li>提供预定义标准音频配置常量（{@link #WAV}、{@link #FLAC}、{@link #MP3}、{@link #MP3_HIGH}、
  *     {@link #OPUS}、{@link #OPUS_HIGH}、{@link #AAC}、{@link #AAC_HIGH}）</li>
  * </ul>
+ * <h3>音频特有属性</h3>
+ * <ul>
+ *     <li>{@link #duration} - 音频播放时长</li>
+ *     <li>{@link #sampleRate} - 采样率（Hz），如 44100、48000</li>
+ *     <li>{@link #channels} - 声道数，如 1（单声道）、2（立体声）</li>
+ *     <li>{@link #bitrate} - 比特率（bps），如 128000（128kbps）</li>
+ *     <li>{@link #sampleFormat} - 采样格式，如 AV_SAMPLE_FMT_S16</li>
+ * </ul>
  * <h3>使用示例</h3>
  * <pre>{@code
- * // 从文件解析音频
- * Audio audio = Audio.builder(new File("music.wav")).build();
+ * // 从 FFmpegResource 解析音频
+ * FFmpegResource resource = new FFmpegResource(new File("music.wav"));
+ * Audio audio = Audio.builder(resource).build();
  *
  * // 使用预定义配置
  * Audio standardAudio = Audio.MP3;
  *
  * // 手动构建标准音频
- * Audio customAudio = Audio.builder()
- *     .mp3()
+ * Audio customAudio = Audio.mp3()
  *     .stereo()
  *     .cd()
  *     .bitrate(128000)
@@ -69,7 +75,7 @@ import java.util.Map;
  *
  * @author pangju666
  * @see Media
- * @see Audio.Builder
+ * @see Builder
  * @since 2.1.0
  */
 public class Audio extends Media {
@@ -79,8 +85,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio WAV = Audio.builder()
-		.wav()
+	public static final Audio WAV = Audio.wav()
+		.cd()
+		.stereo()
 		.build();
 
 	/**
@@ -89,8 +96,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio FLAC = Audio.builder()
-		.flac()
+	public static final Audio FLAC = Audio.flac()
+		.cd()
+		.stereo()
 		.build();
 
 	/**
@@ -99,8 +107,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio MP3 = Audio.builder()
-		.mp3()
+	public static final Audio MP3 = Audio.mp3()
+		.cd()
+		.stereo()
 		.bitrate(128_000)
 		.build();
 
@@ -110,8 +119,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio MP3_HIGH = Audio.builder()
-		.mp3()
+	public static final Audio MP3_HIGH = Audio.mp3()
+		.cd()
+		.stereo()
 		.bitrate(192_000)
 		.build();
 
@@ -121,8 +131,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio OPUS = Audio.builder()
-		.opus()
+	public static final Audio OPUS = Audio.opus()
+		.cd()
+		.stereo()
 		.bitrate(96_000)
 		.build();
 
@@ -132,8 +143,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio OPUS_HIGH = Audio.builder()
-		.opus()
+	public static final Audio OPUS_HIGH = Audio.opus()
+		.cd()
+		.stereo()
 		.bitrate(192_000)
 		.build();
 
@@ -143,8 +155,9 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio AAC = Audio.builder()
-		.aac()
+	public static final Audio AAC = Audio.aac()
+		.cd()
+		.stereo()
 		.bitrate(128_000)
 		.build();
 
@@ -154,13 +167,15 @@ public class Audio extends Media {
 	 *
 	 * @since 2.1.0
 	 */
-	public static final Audio AAC_HIGH = Audio.builder()
-		.aac()
+	public static final Audio AAC_HIGH = Audio.aac()
+		.cd()
+		.stereo()
 		.bitrate(256_000)
 		.build();
 
 	/**
 	 * 音频时长
+	 * <p>表示音频的总播放时长，null 或 {@link Duration#ZERO} 表示无有效时长（如实时流）</p>
 	 *
 	 * @since 2.1.0
 	 */
@@ -168,6 +183,7 @@ public class Audio extends Media {
 
 	/**
 	 * 采样率（Hz），如 44100、48000 等
+	 * <p>常见采样率：44100Hz（CD音质标准）、48000Hz（专业视频音频标准）</p>
 	 *
 	 * @since 2.1.0
 	 */
@@ -175,6 +191,7 @@ public class Audio extends Media {
 
 	/**
 	 * 声道数，1 为单声道，2 为立体声，大于 2 为多声道
+	 * <p>常见配置：1（单声道）、2（立体声）、5.1（环绕声）、7.1（全景声）</p>
 	 *
 	 * @since 2.1.0
 	 */
@@ -182,41 +199,115 @@ public class Audio extends Media {
 
 	/**
 	 * 比特率（bps），表示音频数据传输速率
+	 * <p>比特率越高音质越好、体积越大，需根据编码格式和用途合理设置</p>
+	 * <p>常见比特率：128kbps（标准MP3）、192kbps（高音质MP3）、256kbps（AAC高音质）、320kbps（MP3最高）</p>
 	 *
 	 * @since 2.1.0
 	 */
 	protected final int bitrate;
 
 	/**
+	 * 采样格式
+	 * <p>表示音频样本的数据格式，如 AV_SAMPLE_FMT_S16（16位有符号整数）、AV_SAMPLE_FMT_FLT（32位浮点数）</p>
+	 *
+	 * @since 2.1.0
+	 */
+	protected final int sampleFormat;
+
+	/**
 	 * 受保护的构造函数，仅用于 Builder 内部实例化
 	 *
-	 * @param format     音频格式
-	 * @param codecName  编码器名称
-	 * @param metadata   音频元数据
-	 * @param codecId    编码器ID
-	 * @param duration   音频时长
-	 * @param sampleRate 采样率
-	 * @param channels   声道数
-	 * @param bitrate    比特率
+	 * @param format      音频格式
+	 * @param codecName   编码器名称
+	 * @param metadata    音频元数据
+	 * @param codecId     编码器ID
+	 * @param duration    音频时长
+	 * @param sampleRate  采样率
+	 * @param channels    声道数
+	 * @param bitrate     比特率
+	 * @param sampleFormat 采样格式
 	 * @since 2.1.0
 	 */
 	protected Audio(String format, String codecName, Map<String, String> metadata, int codecId, Duration duration,
-	                int sampleRate, int channels, int bitrate) {
+	                int sampleRate, int channels, int bitrate, int sampleFormat) {
 		super(format, codecName, metadata, codecId);
 		this.duration = duration;
 		this.sampleRate = sampleRate;
 		this.channels = channels;
 		this.bitrate = bitrate;
+		this.sampleFormat = sampleFormat;
+	}
+
+	/**
+	 * 设置为 WAV 格式
+	 * <p>使用 PCM 16-bit LE 编码，适合无损音频处理</p>
+	 *
+	 * @return 构建器自身，用于链式调用
+	 * @since 2.1.0
+	 */
+	public static Builder wav() {
+		return new Builder(FFmpegConstants.AUDIO_WAV_FORMAT)
+			.codecId(avcodec.AV_CODEC_ID_PCM_S16LE);
+	}
+
+	/**
+	 * 设置为 FLAC 格式
+	 * <p>使用 FLAC 无损压缩编码</p>
+	 *
+	 * @return 构建器自身，用于链式调用
+	 * @since 2.1.0
+	 */
+	public static Builder flac() {
+		return new Builder(FFmpegConstants.AUDIO_FLAC_FORMAT)
+			.codecId(avcodec.AV_CODEC_ID_FLAC);
+	}
+
+	/**
+	 * 设置为 MP3 格式
+	 * <p>使用 MP3 有损压缩编码</p>
+	 *
+	 * @return 构建器自身，用于链式调用
+	 * @since 2.1.0
+	 */
+	public static Builder mp3() {
+		return new Builder(FFmpegConstants.AUDIO_MP3_FORMAT)
+			.codecId(avcodec.AV_CODEC_ID_MP3);
+	}
+
+	/**
+	 * 设置为 OPUS 格式
+	 * <p>使用 OPUS 编码，适合网络传输</p>
+	 *
+	 * @return 构建器自身，用于链式调用
+	 * @since 2.1.0
+	 */
+	public static Builder opus() {
+		return new Builder(FFmpegConstants.AUDIO_OPUS_FORMAT)
+			.codecId(avcodec.AV_CODEC_ID_OPUS);
+	}
+
+	/**
+	 * 设置为 AAC 格式
+	 * <p>使用 AAC 编码，适合移动设备</p>
+	 *
+	 * @return 构建器自身，用于链式调用
+	 * @since 2.1.0
+	 */
+	public static Builder aac() {
+		return new Builder(FFmpegConstants.AUDIO_AAC_FORMAT)
+			.codecId(avcodec.AV_CODEC_ID_AAC);
 	}
 
 	/**
 	 * 创建新的音频构建器
 	 *
+	 * @param format 媒体格式，不可为空白
 	 * @return 空的 Audio.Builder 实例
+	 * @throws IllegalArgumentException 当 format 为空白时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio.Builder builder() {
-		return new Audio.Builder();
+	public static Builder builder(String format) {
+		return new Builder(format);
 	}
 
 	/**
@@ -228,8 +319,8 @@ public class Audio extends Media {
 	 * @throws IllegalArgumentException 当 audio 为 null 时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio.Builder builder(Audio audio) {
-		return new Audio.Builder(audio);
+	public static Builder builder(Audio audio) {
+		return new Builder(audio);
 	}
 
 	/**
@@ -242,45 +333,26 @@ public class Audio extends Media {
 	 * @throws FFmpegFrameGrabber.Exception 当解析失败时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio.Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
-		return new Audio.Builder().parse(grabber);
+	public static Builder builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+		return new Builder(grabber);
 	}
 
 	/**
-	 * 从文件创建构建器
-	 * <p>会自动解析文件中的音频信息</p>
+	 * 从 FFmpegResource 创建构建器
+	 * <p>会自动解析资源中的音频信息</p>
 	 *
-	 * @param file 音频文件，不可为 null 且必须是有效文件
+	 * @param resource FFmpeg 资源，不可为 null
 	 * @return 已解析的 Audio.Builder 实例
-	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException 当 resource 为 null 时抛出
+	 * @throws IOException          当读取失败时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio.Builder builder(File file) throws IOException {
-		FileUtils.checkFile(file, "file 不可为 null");
+	public static Builder builder(FFmpegResource resource) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
 
-		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
+		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
 			grabber.start();
-			return new Audio.Builder().parse(grabber);
-		}
-	}
-
-	/**
-	 * 从字节数组创建构建器
-	 * <p>会自动解析字节数组中的音频信息</p>
-	 *
-	 * @param bytes 音频字节数组，不可为 null
-	 * @return 已解析的 Audio.Builder 实例
-	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
-	 * @throws IOException              当解析失败时抛出
-	 * @since 2.1.0
-	 */
-	public static Audio.Builder builder(byte[] bytes) throws IOException {
-		Validate.notNull(bytes, "bytes 不可为 null");
-
-		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(IOUtils.toUnsynchronizedByteArrayInputStream(bytes))) {
-			grabber.start();
-			return new Audio.Builder().parse(grabber);
+			return new Builder(grabber);
 		}
 	}
 
@@ -294,12 +366,12 @@ public class Audio extends Media {
 	 * @throws IOException              当读取失败时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio.Builder builder(InputStream inputStream) throws IOException {
+	public static Builder builder(InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputStream)) {
 			grabber.start();
-			return new Audio.Builder().parse(grabber);
+			return new Builder(grabber);
 		}
 	}
 
@@ -318,31 +390,17 @@ public class Audio extends Media {
 	}
 
 	/**
-	 * 从文件解析音频对象
-	 * <p>会自动解析文件中的音频信息并构建 Audio 对象
+	 * 从 FFmpegResource 解析音频对象
+	 * <p>会自动解析资源中的音频信息并构建 Audio 对象
 	 *
-	 * @param file 音频文件，不可为 null 且必须是有效文件
+	 * @param resource FFmpeg 资源，不可为 null
 	 * @return 解析得到的 Audio 对象
-	 * @throws IllegalArgumentException 当 file 为 null 或无效时抛出
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws NullPointerException 当 resource 为 null 时抛出
+	 * @throws IOException          当读取失败时抛出
 	 * @since 2.1.0
 	 */
-	public static Audio parse(File file) throws IOException {
-		return builder(file).build();
-	}
-
-	/**
-	 * 从字节数组解析音频对象
-	 * <p>会自动解析字节数组中的音频信息并构建 Audio 对象
-	 *
-	 * @param bytes 音频字节数组，不可为 null
-	 * @return 解析得到的 Audio 对象
-	 * @throws IllegalArgumentException 当 bytes 为 null 时抛出
-	 * @throws IOException              当解析失败时抛出
-	 * @since 2.1.0
-	 */
-	public static Audio parse(byte[] bytes) throws IOException {
-		return builder(bytes).build();
+	public static Audio parse(FFmpegResource resource) throws IOException {
+		return builder(resource).build();
 	}
 
 	/**
@@ -400,6 +458,16 @@ public class Audio extends Media {
 	}
 
 	/**
+	 * 获取采样格式
+	 *
+	 * @return 采样格式，如 AV_SAMPLE_FMT_S16、AV_SAMPLE_FMT_FLT
+	 * @since 2.1.0
+	 */
+	public int getSampleFormat() {
+		return sampleFormat;
+	}
+
+	/**
 	 * 判断是否为单声道音频
 	 *
 	 * @return true 表示单声道，false 表示非单声道
@@ -435,40 +503,35 @@ public class Audio extends Media {
 	 * <p>
 	 * 继承自 {@link Media.Builder}，增加了音频特有的属性设置方法。
 	 * </p>
-	 * <h3>使用方式</h3>
+	 * <h3>创建构建器的方式</h3>
 	 * <ul>
-	 *     <li><b>新建音频对象</b>：使用 {@link #Builder()} 创建空白构建器，设置属性后调用 {@link #build()}</li>
-	 *     <li><b>修改现有音频</b>：使用 {@link #Builder(Audio)} 基于现有音频创建构建器，修改属性后调用 {@link #build()}</li>
+	 *     <li><b>空构建器</b>：使用 {@code Audio.builder(format)} 创建空白构建器，用于全新构建</li>
+	 *     <li><b>解析构建器</b>：使用 {@code Audio.builder(grabber)} 从 FFmpegFrameGrabber 解析</li>
+	 *     <li><b>复制构建器</b>：使用 {@code Audio.builder(audio)} 基于现有音频对象创建，用于修改现有对象</li>
 	 * </ul>
-	 * <h3>主要方法</h3>
+	 * <h3>音频特有构建方法</h3>
 	 * <ul>
 	 *     <li>{@link #mono()} / {@link #stereo()}：快速设置声道数</li>
 	 *     <li>{@link #cd()} / {@link #film()}：快速设置采样率</li>
-	 *     <li>{@link #wav()} / {@link #flac()} / {@link #mp3()} / {@link #opus()} / {@link #aac()}：快捷设置容器和编码器</li>
 	 *     <li>{@link #sampleRate(int)}：设置采样率</li>
-	 *     <li>{@link #bitrate(int)}：设置比特率</li>
 	 *     <li>{@link #channels(int)}：设置声道数</li>
+	 *     <li>{@link #bitrate(int)}：设置比特率</li>
+	 *     <li>{@link #sampleFormat(int)}：设置采样格式（一般不需要手动设置，由 FFmpeg 自动解析）</li>
+	 * </ul>
+	 * <h3>快捷格式方法（静态工厂）</h3>
+	 * <ul>
+	 *     <li>{@link Audio#wav()} / {@link Audio#flac()} / {@link Audio#mp3()} / {@link Audio#opus()} / {@link Audio#aac()}：快捷设置容器和编码器</li>
 	 * </ul>
 	 * <h3>使用示例</h3>
 	 * <pre>{@code
-	 * // 新建标准音频
-	 * Audio audio = new Audio.Builder()
-	 *     .format("mp3")
-	 *     .codecId(avcodec.AV_CODEC_ID_MP3)
-	 *     .channels(2)
-	 *     .sampleRate(44100)
-	 *     .bitrate(128000)
-	 *     .build();
-	 *
 	 * // 使用快捷格式方法
-	 * Audio wavAudio = new Audio.Builder()
-	 *     .wav()
+	 * Audio wavAudio = Audio.wav()
 	 *     .stereo()
 	 *     .cd()
 	 *     .build();
 	 *
 	 * // 修改现有音频
-	 * Audio modified = new Audio.Builder(existingAudio)
+	 * Audio modified = Audio.builder(existingAudio)
 	 *     .bitrate(320000)
 	 *     .build();
 	 * }</pre>
@@ -478,9 +541,10 @@ public class Audio extends Media {
 	 * @see Audio
 	 * @since 2.1.0
 	 */
-	public static class Builder extends Media.Builder<Audio.Builder, Audio> {
+	public static class Builder extends Media.Builder<Builder, Audio> {
 		/**
 		 * 音频时长
+		 * <p>表示音频的总播放时长，null 或 {@link Duration#ZERO} 表示无有效时长（如实时流）</p>
 		 *
 		 * @since 2.1.0
 		 */
@@ -488,6 +552,7 @@ public class Audio extends Media {
 
 		/**
 		 * 采样率（Hz）
+		 * <p>常见采样率：44100Hz（CD音质标准）、48000Hz（专业视频音频标准）</p>
 		 *
 		 * @since 2.1.0
 		 */
@@ -495,6 +560,7 @@ public class Audio extends Media {
 
 		/**
 		 * 声道数
+		 * <p>常见配置：1（单声道）、2（立体声）、5.1（环绕声）、7.1（全景声）</p>
 		 *
 		 * @since 2.1.0
 		 */
@@ -502,22 +568,66 @@ public class Audio extends Media {
 
 		/**
 		 * 比特率（bps）
+		 * <p>比特率越高音质越好、体积越大，需根据编码格式和用途合理设置</p>
+		 * <p>常见比特率：128kbps（标准MP3）、192kbps（高音质MP3）、256kbps（AAC高音质）、320kbps（MP3最高）</p>
 		 *
 		 * @since 2.1.0
 		 */
 		protected int bitrate;
 
 		/**
-		 * 创建空的音频构建器
-		 * <p>使用默认值：采样率 44100Hz，立体声，比特率 0</p>
+		 * 采样格式
+		 * <p>表示音频样本的数据格式</p>
 		 *
 		 * @since 2.1.0
 		 */
-		public Builder() {
-			super();
+		protected int sampleFormat;
+
+		/**
+		 * 空构建器构造函数
+		 * <p>
+		 * 创建一个空白的构建器，使用默认值：采样率 44100Hz，立体声，比特率 64kbps，时长 ZERO，采样格式 NONE。
+		 * </p>
+		 *
+		 * @param format 媒体格式，不可为空白
+		 * @throws IllegalArgumentException 当 format 为空白时抛出
+		 * @since 2.1.0
+		 */
+		public Builder(String format) {
+			super(format);
+
 			this.sampleRate = FFmpegConstants.AUDIO_STANDARD_SAMPLE_RATE;
 			this.channels = FFmpegConstants.DEFAULT_AUDIO_CHANNELS;
-			this.bitrate = 0;
+			this.bitrate = 64000;
+			this.duration = Duration.ZERO;
+			this.sampleFormat = avutil.AV_SAMPLE_FMT_NONE;
+		}
+
+		/**
+		 * 从 FFmpegFrameGrabber 创建构建器
+		 * <p>
+		 * 自动解析 grabber 中的音频信息（格式、元数据、编码器、时长、采样率、声道数、比特率、采样格式）。
+		 * </p>
+		 *
+		 * @param grabber FFmpeg 帧抓取器，不可为 null
+		 * @throws FFmpegFrameGrabber.Exception 当 grabber 启动失败时抛出
+		 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
+		 * @since 2.1.0
+		 */
+		public Builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+			super(grabber);
+
+			if (grabber.hasAudio()) {
+				this.metadata = Collections.unmodifiableMap(grabber.getAudioMetadata());
+				this.codecName = grabber.getAudioCodecName();
+				this.codecId = grabber.getAudioCodec();
+				// 微秒 → 纳秒：1 微秒 = 1000 纳秒
+				this.duration = Duration.ofNanos(grabber.getLengthInTime() * 1000);
+				this.sampleRate = grabber.getSampleRate();
+				this.channels = grabber.getAudioChannels();
+				this.bitrate = grabber.getAudioBitrate();
+				this.sampleFormat = grabber.getSampleFormat();
+			}
 		}
 
 		/**
@@ -534,71 +644,7 @@ public class Audio extends Media {
 			this.sampleRate = audio.sampleRate;
 			this.channels = audio.channels;
 			this.bitrate = audio.bitrate;
-		}
-
-		/**
-		 * 设置为 WAV 格式
-		 * <p>使用 PCM 16-bit LE 编码，适合无损音频处理</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 2.1.0
-		 */
-		public Builder wav() {
-			this.format = FFmpegConstants.AUDIO_WAV_FORMAT;
-			this.codecId = avcodec.AV_CODEC_ID_PCM_S16LE;
-			return this;
-		}
-
-		/**
-		 * 设置为 FLAC 格式
-		 * <p>使用 FLAC 无损压缩编码</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 2.1.0
-		 */
-		public Builder flac() {
-			this.format = FFmpegConstants.AUDIO_FLAC_FORMAT;
-			this.codecId = avcodec.AV_CODEC_ID_FLAC;
-			return this;
-		}
-
-		/**
-		 * 设置为 MP3 格式
-		 * <p>使用 MP3 有损压缩编码</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 2.1.0
-		 */
-		public Builder mp3() {
-			this.format = FFmpegConstants.AUDIO_MP3_FORMAT;
-			this.codecId = avcodec.AV_CODEC_ID_MP3;
-			return this;
-		}
-
-		/**
-		 * 设置为 OPUS 格式
-		 * <p>使用 OPUS 编码，适合网络传输</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 2.1.0
-		 */
-		public Builder opus() {
-			this.format = FFmpegConstants.AUDIO_OPUS_FORMAT;
-			this.codecId = avcodec.AV_CODEC_ID_OPUS;
-			return this;
-		}
-
-		/**
-		 * 设置为 AAC 格式
-		 * <p>使用 AAC 编码，适合移动设备</p>
-		 *
-		 * @return 构建器自身，用于链式调用
-		 * @since 2.1.0
-		 */
-		public Builder aac() {
-			this.format = FFmpegConstants.AUDIO_AAC_FORMAT;
-			this.codecId = avcodec.AV_CODEC_ID_AAC;
-			return this;
+			this.sampleFormat = audio.sampleFormat;
 		}
 
 		/**
@@ -688,6 +734,21 @@ public class Audio extends Media {
 		}
 
 		/**
+		 * 设置采样格式
+		 * <p>采样格式表示音频样本的数据格式，如 AV_SAMPLE_FMT_S16、AV_SAMPLE_FMT_FLT</p>
+		 *
+		 * @param sampleFormat 采样格式，必须大于等于 -1（-1 表示 AV_SAMPLE_FMT_NONE）
+		 * @return 构建器自身，用于链式调用
+		 * @throws IllegalArgumentException 当 sampleFormat 小于 -1 时抛出
+		 * @since 2.1.0
+		 */
+		public Builder sampleFormat(int sampleFormat) {
+			Validate.isTrue(sampleFormat >= -1, "sampleFormat 必须大于等于 -1");
+			this.sampleFormat = sampleFormat;
+			return this;
+		}
+
+		/**
 		 * 构建最终的 Audio 对象
 		 *
 		 * @return 构建完成的 Audio 对象
@@ -696,35 +757,7 @@ public class Audio extends Media {
 		@Override
 		public Audio build() {
 			return new Audio(this.format, this.codecName, this.metadata, this.codecId, this.duration, this.sampleRate,
-				this.channels, this.bitrate);
-		}
-
-		/**
-		 * 从 {@link FFmpegFrameGrabber} 解析音频信息
-		 * <p>如果 grabber 包含音频流，则解析音频特有属性</p>
-		 *
-		 * @param grabber FFmpeg 帧抓取器，不可为 null
-		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException 当 grabber 为 null 时抛出
-		 * @since 2.1.0
-		 */
-		@Override
-		protected Builder parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
-			Validate.notNull(grabber, "grabber 不可为 null");
-
-			super.parse(grabber);
-			if (grabber.hasAudio()) {
-				this.metadata = Collections.unmodifiableMap(grabber.getAudioMetadata());
-				this.codecName = grabber.getAudioCodecName();
-				this.codecId = grabber.getAudioCodec();
-				// 微秒 → 纳秒：1 微秒 = 1000 纳秒
-				this.duration = Duration.ofNanos(grabber.getLengthInTime() * 1000);
-				this.sampleRate = grabber.getSampleRate();
-				this.channels = grabber.getAudioChannels();
-				this.bitrate = grabber.getAudioBitrate();
-			}
-
-			return this;
+				this.channels, this.bitrate, this.sampleFormat);
 		}
 	}
 }
