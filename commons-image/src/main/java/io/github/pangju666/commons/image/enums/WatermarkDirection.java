@@ -80,5 +80,5 @@ public enum WatermarkDirection {
 	 *
 	 * @since 1.0.0
 	 */
-	BOTTOM_LEFT;
+	BOTTOM_LEFT
 }
