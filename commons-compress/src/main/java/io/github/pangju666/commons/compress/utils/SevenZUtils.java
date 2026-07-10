@@ -174,8 +174,7 @@ public class SevenZUtils {
 				}
 			} else {
 				try (InputStream inputStream = sevenZFile.getInputStream(archiveEntry);
-				     FileOutputStream fileOutputStream = FileUtils.openOutputStream(file);
-				     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+				     BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(file)) {
 					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -353,7 +352,7 @@ public class SevenZUtils {
 	 * @since 1.0.0
 	 */
 	protected static void addFile(final File inputFile, final SevenZOutputFile outputFile, final String parent) throws IOException {
-		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			String archiveEntryName = StringUtils.isNotBlank(parent) ? parent + CompressConstants.PATH_SEPARATOR +
 				inputFile.getName() : inputFile.getName();
 			SevenZArchiveEntry archiveEntry = outputFile.createArchiveEntry(inputFile, archiveEntryName);

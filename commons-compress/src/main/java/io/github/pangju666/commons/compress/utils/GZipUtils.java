@@ -145,7 +145,7 @@ public class GZipUtils {
 				}
 			}
 			compressorOutputStream.finish();
-		} else if (outputStream instanceof BufferedOutputStream) {
+		} else if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
 			try (GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
 				if (inputStream instanceof BufferedInputStream ||
 					inputStream instanceof UnsynchronizedBufferedInputStream) {
@@ -158,7 +158,7 @@ public class GZipUtils {
 				compressorOutputStream.finish();
 			}
 		} else {
-			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream)) {
 				if (inputStream instanceof BufferedInputStream ||
 					inputStream instanceof UnsynchronizedBufferedInputStream) {
@@ -192,20 +192,20 @@ public class GZipUtils {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof GzipCompressorOutputStream compressorOutputStream) {
-			try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			try (InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
 			compressorOutputStream.finish();
-		} else if (outputStream instanceof BufferedOutputStream) {
+		} else if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
 			try (GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream);
-			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 				compressorOutputStream.finish();
 			}
 		} else {
-			try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+			try (OutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
-			     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+			     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 				compressorOutputStream.finish();
 			}
@@ -228,10 +228,9 @@ public class GZipUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (FileOutputStream outputStream = new FileOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
-		     InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile)) {
+		     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			bufferedInputStream.transferTo(compressorOutputStream);
 			compressorOutputStream.finish();
 		}
@@ -254,20 +253,20 @@ public class GZipUtils {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		if (inputStream instanceof GzipCompressorInputStream compressorInputStream) {
-			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
-				compressorInputStream.transferTo(bufferedOutputStream);
+		if (inputStream instanceof GzipCompressorInputStream) {
+			if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
+				inputStream.transferTo(outputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
-					compressorInputStream.transferTo(bufferedOutputStream);
+				try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
+					inputStream.transferTo(bufferedOutputStream);
 				}
 			}
 		} else if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 			try (GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(inputStream)) {
-				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
-					compressorInputStream.transferTo(bufferedOutputStream);
+				if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
+					compressorInputStream.transferTo(outputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+					try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -275,10 +274,10 @@ public class GZipUtils {
 		} else {
 			try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 			     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
-				if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
-					compressorInputStream.transferTo(bufferedOutputStream);
+				if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
+					compressorInputStream.transferTo(outputStream);
 				} else {
-					try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+					try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
 						compressorInputStream.transferTo(bufferedOutputStream);
 					}
 				}
@@ -301,12 +300,12 @@ public class GZipUtils {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.isTrue(isGZip(inputFile), "inputFile 不是gz压缩文件");
 
-		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+		try (InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
-			if (outputStream instanceof BufferedOutputStream bufferedOutputStream) {
-				compressorInputStream.transferTo(bufferedOutputStream);
+			if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
+				compressorInputStream.transferTo(outputStream);
 			} else {
-				try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
 					compressorInputStream.transferTo(bufferedOutputStream);
 				}
 			}
@@ -329,10 +328,9 @@ public class GZipUtils {
 		Validate.isTrue(isGZip(inputFile), "inputFile 不是gz压缩文件");
 		FileUtils.forceMkdirParent(outputFile);
 
-		try (InputStream bufferedInputStream = FileUtils.openUnsynchronizedBufferedInputStream(inputFile);
+		try (InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream);
-		     OutputStream outputStream = FileUtils.openOutputStream(outputFile);
-		     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+		     BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile)) {
 			compressorInputStream.transferTo(bufferedOutputStream);
 		}
 	}
