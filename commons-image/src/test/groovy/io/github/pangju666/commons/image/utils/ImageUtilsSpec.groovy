@@ -3,15 +3,12 @@ package io.github.pangju666.commons.image.utils
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Metadata
 import io.github.pangju666.commons.image.lang.ImageConstants
-import io.github.pangju666.commons.image.model.ImageWatermarkOption
-import io.github.pangju666.commons.image.model.TextWatermarkOption
-import io.github.pangju666.commons.io.utils.FileUtils
-import net.coobird.thumbnailator.geometry.Positions
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
 
 import javax.imageio.ImageIO
+import javax.imageio.stream.ImageInputStream
 import java.awt.*
 import java.nio.file.Files
 import java.nio.file.Path
@@ -106,7 +103,7 @@ class ImageUtilsSpec extends Specification {
 		def size = ImageUtils.getSize(new byte[0])
 
 		then:
-		size == null
+		thrown(IllegalArgumentException)
 	}
 
 	// ImageInputStream MIME 类型检测
@@ -293,5 +290,235 @@ class ImageUtilsSpec extends Specification {
 
 		where:
 		name << ALL_IMAGES.findAll { it != "test.svg" }
+	}
+
+	// isImage 方法测试
+	@Unroll
+	def "isImage(File) 识别图像文件：#name"() {
+		given:
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+
+		expect:
+		ImageUtils.isImage(file)
+
+		where:
+		name << ALL_IMAGES
+	}
+
+	def "isImage(File) 非图像文件返回false"() {
+		given:
+		def textFile = tempDir.resolve("test.txt").toFile()
+		textFile.text = "not an image"
+
+		expect:
+		!ImageUtils.isImage(textFile)
+	}
+
+	def "isImage(File) null文件抛异常"() {
+		when:
+		ImageUtils.isImage(null as File)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	@Unroll
+	def "isImage(byte[]) 识别图像数据：#name"() {
+		given:
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def bytes = Files.readAllBytes(file.toPath())
+
+		expect:
+		ImageUtils.isImage(bytes)
+
+		where:
+		name << ALL_IMAGES
+	}
+
+	def "isImage(byte[]) 非图像数据返回false"() {
+		expect:
+		!ImageUtils.isImage("not image data".bytes)
+	}
+
+	def "isImage(byte[]) 空数组返回false"() {
+		expect:
+		!ImageUtils.isImage(new byte[0])
+	}
+
+	def "isImage(byte[]) null返回false"() {
+		expect:
+		!ImageUtils.isImage(null as byte[])
+	}
+
+	@Unroll
+	def "isImage(InputStream) 识别图像流：#name"() {
+		given:
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def stream = new FileInputStream(file)
+
+		expect:
+		ImageUtils.isImage(stream) == true
+
+		where:
+		name << ALL_IMAGES
+	}
+
+	def "isImage(InputStream) 非图像流返回false"() {
+		given:
+		def stream = new ByteArrayInputStream("not image".bytes)
+
+		expect:
+		!ImageUtils.isImage(stream)
+	}
+
+	def "isImage(InputStream) null返回false"() {
+		expect:
+		!ImageUtils.isImage(null as InputStream)
+	}
+
+	// getMimeType(Metadata) 测试
+	def "getMimeType(Metadata) 从元数据获取MIME类型"() {
+		given:
+		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
+		def metadata = ImageMetadataReader.readMetadata(file)
+
+		when:
+		def mime = ImageUtils.getMimeType(metadata)
+
+		then:
+		mime == "image/jpeg" || mime == null
+	}
+
+	def "getMimeType(Metadata) null元数据抛异常"() {
+		when:
+		ImageUtils.getMimeType(null as Metadata)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	// 边界情况和异常测试
+	def "getSize(File) 非图像文件抛异常"() {
+		given:
+		def textFile = tempDir.resolve("text.txt").toFile()
+		textFile.text = "not image"
+
+		when:
+		ImageUtils.getSize(textFile)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "getSize(File) null文件抛异常"() {
+		when:
+		ImageUtils.getSize(null as File)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getSize(byte[]) 非图像数据抛异常"() {
+		when:
+		ImageUtils.getSize("not image".bytes)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "getSize(InputStream) null流抛异常"() {
+		when:
+		ImageUtils.getSize(null as InputStream)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getSize(ImageInputStream) null流抛异常"() {
+		when:
+		ImageUtils.getSize(null as ImageInputStream)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getSize(Metadata) null元数据抛异常"() {
+		when:
+		ImageUtils.getSize(null as Metadata)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getExifOrientation(File) 非图像文件抛异常"() {
+		given:
+		def textFile = tempDir.resolve("text.txt").toFile()
+		textFile.text = "not image"
+
+		when:
+		ImageUtils.getExifOrientation(textFile)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "getExifOrientation(File) null文件抛异常"() {
+		when:
+		ImageUtils.getExifOrientation(null as File)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getExifOrientation(byte[]) 非图像数据抛异常"() {
+		when:
+		ImageUtils.getExifOrientation("not image".bytes)
+
+		then:
+		thrown(IllegalArgumentException)
+	}
+
+	def "getExifOrientation(InputStream) null流抛异常"() {
+		when:
+		ImageUtils.getExifOrientation(null as InputStream)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "getExifOrientation(Metadata) null元数据抛异常"() {
+		when:
+		ImageUtils.getExifOrientation(null as Metadata)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "toHexColor null颜色抛异常"() {
+		when:
+		ImageUtils.toHexColor(null as Color)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "toHexColorWithAlpha null颜色抛异常"() {
+		when:
+		ImageUtils.toHexColorWithAlpha(null as Color)
+
+		then:
+		thrown(NullPointerException)
+	}
+
+	def "isSupportReadType 空字符串返回false"() {
+		expect:
+		!ImageUtils.isSupportReadType("")
+		!ImageUtils.isSupportReadType(null)
+	}
+
+	def "isSupportWriteType 空字符串返回false"() {
+		expect:
+		!ImageUtils.isSupportWriteType("")
+		!ImageUtils.isSupportWriteType(null)
 	}
 }

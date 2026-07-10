@@ -66,4 +66,14 @@ public enum RotateDirection {
 	public double getAngle() {
 		return angle;
 	}
+
+	/**
+	 * 获取弧度值。
+	 *
+	 * @return 弧度值
+	 * @since 2.1.0
+	 */
+	public double getRadians() {
+		return Math.toRadians(angle);
+	}
 }
