@@ -40,7 +40,6 @@ import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -388,7 +387,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.1.0
 	 */
 	public static UnsynchronizedBufferedReader unsynchronizedBuffer(final Reader reader, final int bufferSize) {
-		Objects.requireNonNull(reader, "reader");
+		Validate.notNull(reader, "reader 不可为 null");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
 		if (reader instanceof UnsynchronizedBufferedReader) {
@@ -433,7 +432,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	public static UnsynchronizedBufferedInputStream unsynchronizedBuffer(final InputStream inputStream,
 	                                                                     final int bufferSize) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.isTrue(bufferSize > 0, "bufferSize 必须大于0");
 
 		if (inputStream instanceof UnsynchronizedBufferedInputStream) {
@@ -511,7 +510,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 * @since 1.0.0
 	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE);
 		outputStream.write(inputStream);
@@ -542,7 +541,7 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 */
 	public static UnsynchronizedByteArrayOutputStream toUnsynchronizedByteArrayOutputStream(final InputStream inputStream,
 	                                                                                        final int bufferSize) throws IOException {
-		Objects.requireNonNull(inputStream, "inputStream");
+		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		UnsynchronizedByteArrayOutputStream outputStream = toUnsynchronizedByteArrayOutputStream(bufferSize);
 		outputStream.write(inputStream);

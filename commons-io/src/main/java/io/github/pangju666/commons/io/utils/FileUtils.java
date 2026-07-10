@@ -400,7 +400,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param file 目标文件（必须存在且可读）
 	 * @return 非同步缓冲输入流
 	 * @throws IOException 当文件不存在或无法创建输入流时抛出
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public static UnsynchronizedBufferedInputStream newUnsynchronizedBufferedInputStream(final File file) throws IOException {
 		checkFile(file, "file不可为 null");
@@ -1295,7 +1295,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 */
 	public static void check(final File file, final String message) throws IOException {
-		Objects.requireNonNull(file, message);
+		Validate.notNull(file, message);
 		if (!file.exists()) {
 			throw new FileNotFoundException(file.getAbsolutePath());
 		}
