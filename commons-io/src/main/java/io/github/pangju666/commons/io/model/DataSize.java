@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.lang.model;
+package io.github.pangju666.commons.io.model;
 
-import io.github.pangju666.commons.lang.enums.DataUnit;
+import io.github.pangju666.commons.io.enums.DataUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -54,9 +54,7 @@ import java.util.regex.Pattern;
  * @author Sam Brannen
  * @see DataUnit
  * @since 1.0.0
- * @deprecated 已迁移至 commons-io
  */
-@Deprecated(forRemoval = true, since = "2.1.0")
 public final class DataSize implements Comparable<DataSize>, Serializable {
 
 	/**

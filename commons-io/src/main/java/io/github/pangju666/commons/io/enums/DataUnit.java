@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.github.pangju666.commons.lang.enums;
+package io.github.pangju666.commons.io.enums;
 
-import io.github.pangju666.commons.lang.model.DataSize;
+import io.github.pangju666.commons.io.model.DataSize;
 
 /**
  * 一套标准的 {@link DataSize} 单位。
@@ -44,9 +44,7 @@ import io.github.pangju666.commons.lang.model.DataSize;
  * @author Sam Brannen
  * @see DataSize
  * @since 1.0.0
- * @deprecated 已迁移至 commons-io
  */
-@Deprecated(forRemoval = true, since = "2.1.0")
 public enum DataUnit {
 
 	/**
