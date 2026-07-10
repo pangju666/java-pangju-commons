@@ -1644,6 +1644,8 @@ public class ImageEditor {
 	public boolean toFile(final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
+		FileUtils.forceMkdirParent(outputFile);
+
 		return ImageIO.write(toBufferedImage(), this.outputFormat, outputFile);
 	}
 
