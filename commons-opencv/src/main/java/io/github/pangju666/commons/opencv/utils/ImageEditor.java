@@ -1508,8 +1508,10 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 outputFile 为 null
 	 * @since 2.1.0
 	 */
-	public boolean toFile(final File outputFile) {
+	public boolean toFile(final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
 
 		return opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage);
 	}
@@ -1523,9 +1525,11 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 2.1.0
 	 */
-	public boolean toFile(final File outputFile, final int... params) {
+	public boolean toFile(final File outputFile, final int... params) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(params, "params 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
 
 		return opencv_imgcodecs.imwrite(outputFile.getAbsolutePath(), outputImage, params);
 	}
