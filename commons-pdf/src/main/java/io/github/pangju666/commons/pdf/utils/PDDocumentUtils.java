@@ -423,7 +423,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #getDocument(byte[], String)}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static PDDocument getDocument(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
@@ -465,7 +465,7 @@ public class PDDocumentUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #getDocument(byte[], String)}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static PDDocument getDocument(final InputStream inputStream, final String password) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
