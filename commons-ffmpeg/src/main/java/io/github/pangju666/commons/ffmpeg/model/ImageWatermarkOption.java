@@ -353,11 +353,11 @@ public class ImageWatermarkOption {
 			.addFileSource("wm", watermarkImage.getFile())
 			.appendAliasFilter("wm", "scale", String.format(
 				"w='if(gt(iw,ih),min(%d\\,max(%d\\,%d)),-1)':h='if(gt(ih,iw),min(%d\\,max(%d\\,%d)),-1)'",
-				watermarkImageSizeRange.getRight().getWidth(),
-				watermarkImageSizeRange.getLeft().getWidth(),
+				watermarkImageSizeRange.getRight().width(),
+				watermarkImageSizeRange.getLeft().width(),
 				(int) (videoWidth * relativeScaleFactor),
-				watermarkImageSizeRange.getRight().getHeight(),
-				watermarkImageSizeRange.getLeft().getHeight(),
+				watermarkImageSizeRange.getRight().height(),
+				watermarkImageSizeRange.getLeft().height(),
 				(int) (videoHeight * relativeScaleFactor)))
 			.appendAliasFilter("wm", "format=rgba")
 			.appendAliasFilter("wm", "colorchannelmixer", "aa=" + opacity)
@@ -395,23 +395,11 @@ public class ImageWatermarkOption {
 	/**
 	 * 图片尺寸内部类，用于表示水印的宽度和高度
 	 *
+	 * @param width  宽度（像素）
+	 * @param height 高度（像素）
 	 * @since 2.1.0
 	 */
-	public static class ImageSize {
-		/**
-		 * 宽度（像素）
-		 *
-		 * @since 2.1.0
-		 */
-		private final int width;
-
-		/**
-		 * 高度（像素）
-		 *
-		 * @since 2.1.0
-		 */
-		private final int height;
-
+	public record ImageSize(int width, int height) {
 		/**
 		 * 创建图片尺寸对象
 		 *
@@ -419,9 +407,7 @@ public class ImageWatermarkOption {
 		 * @param height 高度（像素）
 		 * @since 2.1.0
 		 */
-		public ImageSize(int width, int height) {
-			this.width = width;
-			this.height = height;
+		public ImageSize {
 		}
 
 		/**
@@ -430,7 +416,8 @@ public class ImageWatermarkOption {
 		 * @return 宽度（像素）
 		 * @since 2.1.0
 		 */
-		public int getWidth() {
+		@Override
+		public int width() {
 			return width;
 		}
 
@@ -440,8 +427,9 @@ public class ImageWatermarkOption {
 		 * @return 高度（像素）
 		 * @since 2.1.0
 		 */
-		public int getHeight() {
+		@Override
+		public int height() {
 			return height;
+			}
 		}
-	}
 }

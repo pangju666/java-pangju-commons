@@ -53,7 +53,7 @@ public class OpencvConstants {
 	 *
 	 * @since 2.1.0
 	 */
-	public static int DEFAULT_IMAGE_COLOR_TYPE = opencv_imgcodecs.IMREAD_COLOR_BGR;
+	public static final int DEFAULT_IMAGE_COLOR_TYPE = opencv_imgcodecs.IMREAD_COLOR_BGR;
 
 	/**
 	 * 私有构造函数，防止实例化
