@@ -115,7 +115,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link IOConstants#DEFAULT_HASH_FUNC}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final LongHashFunction HASH_FUNC = LongHashFunction.xx();
 	/**
 	 * 采样字节数
@@ -124,7 +124,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link IOConstants#DEFAULT_SAMPLE_SIZE}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final int SAMPLE_SIZE = 64;
 	/**
 	 * 空文件摘要固定值
@@ -133,7 +133,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link IOConstants#EMPTY_DIGEST}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final String EMPTY_FILE_DIGEST = "0000000000000000";
 	/**
 	 * 摘要输出格式
@@ -142,7 +142,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link IOConstants#DIGEST_FORMAT}代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static final String FILE_DIGEST_FORMAT = "%016x";
 
 	protected FileUtils() {
@@ -203,7 +203,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当file不存在、不是文件或sampleSize小于等于0时抛出
 	 * @see #computeDigest(File)
 	 * @see #computeDigest(File, int, LongHashFunction)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String computeDigest(final File file, final int sampleSize) throws IOException {
 		return computeDigest(file, sampleSize, IOConstants.DEFAULT_HASH_FUNC);
@@ -244,7 +244,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws IllegalArgumentException 当file不存在、不是文件、sampleSize小于等于0时抛出
 	 * @see #computeDigest(File)
 	 * @see #computeDigest(File, int)
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static String computeDigest(final File file, final int sampleSize, final LongHashFunction hashFunc) throws IOException {
 		checkFile(file, "file不可为 null");
@@ -355,7 +355,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param file 目标文件（必须存在且可写）
 	 * @return 缓冲输出流
 	 * @throws IOException 当文件不存在或无法创建输出流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static BufferedOutputStream newBufferedOutputStream(final File file) throws IOException {
 		Validate.notNull(file, "file不可为 null");
@@ -371,7 +371,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param append 是否追加模式
 	 * @return 缓冲输出流
 	 * @throws IOException 当文件不存在或无法创建输出流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static BufferedOutputStream newBufferedOutputStream(final File file, final boolean append) throws IOException {
 		Validate.notNull(file, "file不可为 null");
@@ -386,7 +386,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param file 目标文件（必须存在且可读）
 	 * @return 缓冲输入流
 	 * @throws IOException 当文件不存在或无法创建输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static BufferedInputStream newBufferedInputStream(final File file) throws IOException {
 		checkFile(file, "file不可为 null");
@@ -401,7 +401,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param file 目标文件（必须存在且可读）
 	 * @return 非同步缓冲输入流
 	 * @throws IOException 当文件不存在或无法创建输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public static UnsynchronizedBufferedInputStream newUnsynchronizedBufferedInputStream(final File file) throws IOException {
 		checkFile(file, "file不可为 null");
@@ -432,7 +432,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @deprecated 请使用{@link #newUnsynchronizedBufferedInputStream(File)}代替
 	 * @since 1.0.0
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static UnsynchronizedBufferedInputStream openUnsynchronizedBufferedInputStream(final File file) throws IOException {
 		return newUnsynchronizedBufferedInputStream(file);
 	}
@@ -554,7 +554,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #encryptFile(File, File, byte[], byte[])} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void encryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
@@ -623,7 +623,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #decryptFile(File, File, byte[], byte[])} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void decryptFile(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                               final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
@@ -690,7 +690,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #encryptFileByCtr(File, File, byte[], byte[])} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void encryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
@@ -757,7 +757,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link #decryptFileByCtr(File, File, byte[], byte[])} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "1.1.0")
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void decryptFileByCtr(final File inputFile, final File outputFile, final byte[] key, final byte[] iv,
 	                                    final int bufferSize) throws IOException {
 		checkFile(inputFile, "inputFile 不可为 null");
