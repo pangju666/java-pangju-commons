@@ -17,6 +17,7 @@
 package io.github.pangju666.commons.io.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
+import io.github.pangju666.commons.io.model.DataSize;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
@@ -87,61 +88,61 @@ public class IOUtils extends org.apache.commons.io.IOUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_4 = 4 * 1024;
+	protected static final int KB_4 = (int) DataSize.ofKilobytes(4).toBytes();
 	/**
 	 * 8KB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_8 = 8 * 1024;
+	protected static final int KB_8 = (int) DataSize.ofKilobytes(8).toBytes();
 	/**
 	 * 32KB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_32 = 32 * 1024;
+	protected static final int KB_32 = (int) DataSize.ofKilobytes(32).toBytes();
 	/**
 	 * 64KB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_64 = 64 * 1024;
+	protected static final int KB_64 = (int) DataSize.ofKilobytes(64).toBytes();
 	/**
 	 * 128KB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_128 = 128 * 1024;
+	protected static final int KB_128 = (int) DataSize.ofKilobytes(128).toBytes();
 	/**
 	 * 256KB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int KB_256 = 256 * 1024;
+	protected static final int KB_256 = (int) DataSize.ofKilobytes(256).toBytes();
 	/**
 	 * 1MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_1 = 1024 * 1024;
+	protected static final int MB_1 = (int) DataSize.ofMegabytes(1).toBytes();
 	/**
 	 * 10MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_10 = 10 * MB_1;
+	protected static final int MB_10 = (int) DataSize.ofMegabytes(10).toBytes();
 	/**
 	 * 100MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_100 = 100 * MB_1;
+	protected static final int MB_100 = (int) DataSize.ofMegabytes(100).toBytes();
 	/**
 	 * 1GB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int GB_1 = 1024 * MB_1;
+	protected static final int GB_1 = (int) DataSize.ofGigabytes(1).toBytes();
 
 	static {
 		DEFAULT_PROPERTIES.put(CryptoInputStream.STREAM_BUFFER_SIZE_KEY, IOUtils.DEFAULT_BUFFER_SIZE);

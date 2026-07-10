@@ -198,7 +198,7 @@ public class ImageIOResource extends IOResource {
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			if (correctOrientation) {
 				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-					this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
+					this.metadata = ImageMetadataReader.readMetadata(inputStream, size.toBytes());
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 					this.metadata = new Metadata();
@@ -533,7 +533,7 @@ public class ImageIOResource extends IOResource {
 		if (correctOrientation) {
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
+				this.metadata = ImageMetadataReader.readMetadata(inputStream, size.toBytes());
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -640,7 +640,7 @@ public class ImageIOResource extends IOResource {
 		if (correctOrientation) {
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try (InputStream tmpInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream, size);
+				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream, size.toBytes());
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -747,7 +747,7 @@ public class ImageIOResource extends IOResource {
 		if (correctOrientation) {
 			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
 			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				this.metadata = ImageMetadataReader.readMetadata(inputStream, size);
+				this.metadata = ImageMetadataReader.readMetadata(inputStream, size.toBytes());
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -954,7 +954,7 @@ public class ImageIOResource extends IOResource {
 				}
 			} else {
 				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-					metadata = ImageMetadataReader.readMetadata(inputStream, size);
+					metadata = ImageMetadataReader.readMetadata(inputStream, size.toBytes());
 				} catch (ImageProcessingException ignored) {
 					metadata = new Metadata();
 				}

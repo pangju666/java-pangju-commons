@@ -92,7 +92,7 @@ public class IOResource implements Closeable {
 	 *
 	 * @since 1.1.0
 	 */
-	protected final long size;
+	protected final DataSize size;
 	/**
 	 * 字节数组缓存
 	 *
@@ -176,7 +176,7 @@ public class IOResource implements Closeable {
 				this.byteArrayOutputStream = null;
 			}
 		} else {
-			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(resource.size));
+			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(resource.size.toBytes()));
 			this.byteArrayOutputStream.write(resource.newBufferedInputStream());
 		}
 	}
@@ -217,7 +217,7 @@ public class IOResource implements Closeable {
 		FileUtils.checkFile(file, StringUtils.EMPTY);
 
 		this.mimeType = FileUtils.getMimeType(file);
-		this.size = file.length();
+		this.size = DataSize.ofBytes(file.length());
 
 		if (cacheContent) {
 			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(file.length()));
@@ -259,7 +259,7 @@ public class IOResource implements Closeable {
 	public IOResource(File file, boolean cacheContent) throws IOException {
 		this.file = file;
 		this.mimeType = FileUtils.getMimeType(file);
-		this.size = file.length();
+		this.size = DataSize.ofBytes(file.length());
 
 		if (cacheContent) {
 			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(file.length()));
@@ -285,7 +285,7 @@ public class IOResource implements Closeable {
 		this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(bytes.length));
 		this.byteArrayOutputStream.write(bytes);
 
-		this.size = bytes.length;
+		this.size = DataSize.ofBytes(bytes.length);
 		try (InputStream inputStream = this.byteArrayOutputStream.toInputStream()) {
 			this.mimeType = IOConstants.getDefaultTika().detect(inputStream);
 		}
@@ -312,7 +312,7 @@ public class IOResource implements Closeable {
 		this.byteArrayOutputStream = new ByteArrayOutputStream();
 		this.byteArrayOutputStream.write(inputStream);
 
-		this.size = this.byteArrayOutputStream.size();
+		this.size = DataSize.ofBytes(this.byteArrayOutputStream.size());
 		try (InputStream tmpInputStream = this.byteArrayOutputStream.toInputStream()) {
 			this.mimeType = IOConstants.getDefaultTika().detect(tmpInputStream);
 		}
@@ -332,7 +332,7 @@ public class IOResource implements Closeable {
 
 		this.byteArrayOutputStream = byteArrayOutputStream;
 
-		this.size = this.byteArrayOutputStream.size();
+		this.size = DataSize.ofBytes(this.byteArrayOutputStream.size());
 		if (StringUtils.isBlank(mimeType)) {
 			try (InputStream tmpInputStream = this.byteArrayOutputStream.toInputStream()) {
 				this.mimeType = IOConstants.getDefaultTika().detect(tmpInputStream);
@@ -370,7 +370,7 @@ public class IOResource implements Closeable {
 				digest = FileUtils.computeDigest(file);
 			} else {
 				try (InputStream inputStream = byteArrayOutputStream.toInputStream()) {
-					digest = IOUtils.computeDigest(inputStream, size);
+					digest = IOUtils.computeDigest(inputStream, size.toBytes());
 				}
 			}
 			return digest;
@@ -397,7 +397,7 @@ public class IOResource implements Closeable {
 	 * @return 资源大小（字节）
 	 * @since 1.1.0
 	 */
-	public long getSize() {
+	public DataSize getSize() {
 		return size;
 	}
 

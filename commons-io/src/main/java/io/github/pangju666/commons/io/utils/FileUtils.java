@@ -17,6 +17,7 @@
 package io.github.pangju666.commons.io.utils;
 
 import io.github.pangju666.commons.io.lang.IOConstants;
+import io.github.pangju666.commons.io.model.DataSize;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.RandomAccessFiles;
@@ -75,37 +76,37 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_4 = (int) (4 * ONE_MB);
+	protected static final int MB_4 = (int) DataSize.ofMegabytes(4).toBytes();
 	/**
 	 * 16MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_16 = (int) (16 * ONE_MB);
+	protected static final int MB_16 = (int) DataSize.ofMegabytes(16).toBytes();
 	/**
 	 * 32MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_32 = (int) (32 * ONE_MB);
+	protected static final int MB_32 = (int) DataSize.ofMegabytes(32).toBytes();
 	/**
 	 * 64MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_64 = (int) (64 * ONE_MB);
+	protected static final int MB_64 = (int) DataSize.ofMegabytes(64).toBytes();
 	/**
 	 * 100MB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final int MB_100 = (int) (100 * ONE_MB);
+	protected static final int MB_100 = (int) DataSize.ofMegabytes(100).toBytes();
 	/**
 	 * 10GB常量
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final long GB_10 = 10 * ONE_GB;
+	protected static final long GB_10 = DataSize.ofGigabytes(10).toBytes();
 
 	/**
 	 * 64 位 xxHash 函数
