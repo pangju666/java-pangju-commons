@@ -30,4 +30,13 @@
 *.docx  binary
 *.xls   binary
 *.xlsx  binary
+*.mp3   binary
+*.wav   binary
+*.flac  binary
+*.ogg   binary
+*.webm  binary
+*.mov   binary
+*.wmv   binary
+*.avi   binary
+*.mp4   binary
 *.traineddata  binary
