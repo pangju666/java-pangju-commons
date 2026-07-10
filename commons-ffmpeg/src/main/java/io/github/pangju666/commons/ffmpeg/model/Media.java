@@ -17,29 +17,37 @@
 package io.github.pangju666.commons.ffmpeg.model;
 
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.avcodec.AVCodec;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 媒体文件抽象基类，定义音视频媒体的通用属性和构建器规范
  * <p>
- * 该类作为音频（Audio）、视频（Video）等具体媒体类型的父类，封装了所有媒体文件的通用特征：
- * 格式、元数据、编码器信息等，同时提供统一的构建器模式来解析和构建媒体对象。
+ * 该类作为音频（{@link Audio}）、视频（{@link Video}）等具体媒体类型的父类，
+ * 封装了所有媒体文件的通用特征：格式、元数据、编码器信息等，
+ * 同时提供统一的构建器模式来解析和构建媒体对象。
  * </p>
  * <h3>核心特性</h3>
  * <ul>
  *     <li>基于 JavaCV/FFmpeg 自动解析媒体元数据</li>
- *     <li>支持多种来源解析方式（File、byte[]、InputStream、FFmpegFrameGrabber）</li>
  *     <li>采用 Fluent Builder 模式，支持链式调用</li>
  *     <li>抽象基类设计，便于扩展新的媒体类型</li>
  *     <li>不可变对象设计，所有属性为 final，确保线程安全</li>
  *     <li>支持从现有媒体对象克隆并修改</li>
  *     <li>支持从 FFmpeg AVCodec 对象设置编码器信息</li>
+ * </ul>
+ * <h3>通用属性</h3>
+ * <ul>
+ *     <li>{@link #format} - 媒体容器格式（如 mp3、mp4、wav、flac）</li>
+ *     <li>{@link #metadata} - 媒体元数据（如标题、艺术家、专辑）</li>
+ *     <li>{@link #codecName} - 编码器名称（如 h264、aac、mp3）</li>
+ *     <li>{@link #codecId} - FFmpeg 编码器 ID（如 AV_CODEC_ID_H264）</li>
  * </ul>
  *
  * @author pangju666
@@ -54,6 +62,7 @@ public abstract class Media {
 	 * 媒体文件格式（如mp3、mp4、wav、flv等）
 	 * <p>格式名称与FFmpeg原生格式标识保持一致，便于后续编解码操作</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getFormat()} 获取或手动设置</p>
+	 * <p>常见格式：mp3、wav、flac、aac（音频）；mp4、webm、mkv、avi（视频）</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -62,7 +71,7 @@ public abstract class Media {
 	/**
 	 * 媒体元数据（如标题、作者、时长、比特率等键值对）
 	 * <p>元数据直接从FFmpegFrameGrabber解析而来，键名与FFmpeg输出的元数据字段一致</p>
-	 * <p>该值始终为不可修改的 {@link Collections#unmodifiableMap(Map)}，防止外部篡改</p>
+	 * <p>常见元数据字段：title（标题）、artist（艺术家）、album（专辑）、duration（时长）</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -72,6 +81,7 @@ public abstract class Media {
 	 * 编码器名称（如mp3、aac、h264、h265等）
 	 * <p>编码器名称与FFmpeg编码器标识保持一致，用于指定编解码算法</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodecName()} 或 {@link FFmpegFrameGrabber#getVideoCodecName()} 获取</p>
+	 * <p>常见编码器：mp3、aac、opus、flac（音频）；h264、h265、vp9（视频）</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -81,6 +91,7 @@ public abstract class Media {
 	 * 编码器ID（对应FFmpeg的AVCodecID枚举值）
 	 * <p>数值型ID可直接用于FFmpeg底层API调用，比名称更精准</p>
 	 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodec()} 或 {@link FFmpegFrameGrabber#getVideoCodec()} 获取，默认值为 0</p>
+	 * <p>常见编码器ID：AV_CODEC_ID_MP3、AV_CODEC_ID_AAC、AV_CODEC_ID_H264、AV_CODEC_ID_H265</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -102,7 +113,7 @@ public abstract class Media {
 	protected Media(String format, String codecName, Map<String, String> metadata, int codecId) {
 		this.format = format;
 		this.codecName = codecName;
-		this.metadata = Collections.unmodifiableMap(metadata);
+		this.metadata = metadata;
 		this.codecId = codecId;
 	}
 
@@ -151,18 +162,27 @@ public abstract class Media {
 	/**
 	 * 媒体对象构建器抽象类，定义通用的构建逻辑
 	 * <p>
-	 * 采用泛型自限定模式（Fluent Builder）实现链式调用，同时为不同媒体类型（Audio/Video）
-	 * 提供统一的解析入口（文件、字节数组、输入流、FFmpegFrameGrabber）。
+	 * 采用泛型自限定模式（Fluent Builder）实现链式调用，
+	 * 为不同媒体类型（Audio/Video）提供统一的构建接口。
 	 * </p>
 	 * <h3>泛型说明</h3>
 	 * <ul>
 	 *     <li><b>T</b>：构建器自身类型（用于链式调用，如Audio.Builder/Video.Builder）</li>
 	 *     <li><b>V</b>：媒体对象类型（Audio/Video等具体媒体实现类）</li>
 	 * </ul>
-	 * <h3>创建构建器的两种方式</h3>
+	 * <h3>创建构建器的方式</h3>
 	 * <ul>
-	 *     <li><b>空构建器</b>：使用 {@code new Xxx.Builder()} 创建空白构建器，用于全新构建</li>
-	 *     <li><b>复制构建器</b>：（子类通常会提供静态工厂方法）基于现有媒体对象创建，用于修改现有对象</li>
+	 *     <li><b>空构建器</b>：使用 {@code new Xxx.Builder(format)} 创建空白构建器，用于全新构建</li>
+	 *     <li><b>解析构建器</b>：使用 {@code new Xxx.Builder(grabber)} 从 FFmpegFrameGrabber 解析</li>
+	 *     <li><b>复制构建器</b>：使用 {@code new Xxx.Builder(media)} 基于现有媒体对象创建，用于修改现有对象</li>
+	 * </ul>
+	 * <h3>通用构建方法</h3>
+	 * <ul>
+	 *     <li>{@link #format(String)} - 设置媒体格式</li>
+	 *     <li>{@link #metadata(Map)} - 设置媒体元数据</li>
+	 *     <li>{@link #codec(AVCodec)} - 从 AVCodec 对象设置编码器信息</li>
+	 *     <li>{@link #codecId(int)} - 仅设置编码器 ID</li>
+	 *     <li>{@link #build()} - 构建最终的媒体对象</li>
 	 * </ul>
 	 *
 	 * @param <T> 构建器自身类型（用于链式调用）
@@ -173,8 +193,9 @@ public abstract class Media {
 	public static abstract class Builder<T extends Builder<T, V>, V extends Media> {
 		/**
 		 * 媒体文件格式（如mp3、mp4、wav、flv等）
-		 * <p>格式名称与FFmpeg原生格式标识保持一致，便于后续编解码操作
-		 * <p>该值通过 {@link FFmpegFrameGrabber#getFormat()} 获取或手动设置
+		 * <p>格式名称与FFmpeg原生格式标识保持一致，便于后续编解码操作</p>
+		 * <p>该值通过 {@link FFmpegFrameGrabber#getFormat()} 获取或手动设置</p>
+		 * <p>常见格式：mp3、wav、flac、aac（音频）；mp4、webm、mkv、avi（视频）</p>
 		 *
 		 * @since 1.1.0
 		 */
@@ -182,7 +203,8 @@ public abstract class Media {
 
 		/**
 		 * 媒体元数据（如标题、作者、时长、比特率等键值对）
-		 * <p>元数据直接从FFmpegFrameGrabber解析而来，键名与FFmpeg输出的元数据字段一致
+		 * <p>元数据直接从FFmpegFrameGrabber解析而来，键名与FFmpeg输出的元数据字段一致</p>
+		 * <p>常见元数据字段：title（标题）、artist（艺术家）、album（专辑）、duration（时长）</p>
 		 *
 		 * @since 1.1.0
 		 */
@@ -190,8 +212,9 @@ public abstract class Media {
 
 		/**
 		 * 编码器名称（如mp3、aac、h264、h265等）
-		 * <p>编码器名称与FFmpeg编码器标识保持一致，用于指定编解码算法
-		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodecName()} 或 {@link FFmpegFrameGrabber#getVideoCodecName()} 获取
+		 * <p>编码器名称与FFmpeg编码器标识保持一致，用于指定编解码算法</p>
+		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodecName()} 或 {@link FFmpegFrameGrabber#getVideoCodecName()} 获取</p>
+		 * <p>常见编码器：mp3、aac、opus、flac（音频）；h264、h265、vp9（视频）</p>
 		 *
 		 * @since 1.1.0
 		 */
@@ -199,12 +222,36 @@ public abstract class Media {
 
 		/**
 		 * 编码器ID（对应FFmpeg的AVCodecID枚举值）
-		 * <p>数值型ID可直接用于FFmpeg底层API调用，比名称更精准
-		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodec()} 或 {@link FFmpegFrameGrabber#getVideoCodec()} 获取，默认值为 0
+		 * <p>数值型ID可直接用于FFmpeg底层API调用，比名称更精准</p>
+		 * <p>该值通过 {@link FFmpegFrameGrabber#getAudioCodec()} 或 {@link FFmpegFrameGrabber#getVideoCodec()} 获取，默认值为 0</p>
+		 * <p>常见编码器ID：AV_CODEC_ID_MP3、AV_CODEC_ID_AAC、AV_CODEC_ID_H264、AV_CODEC_ID_H265</p>
 		 *
 		 * @since 1.1.0
 		 */
 		protected int codecId;
+
+		/**
+		 * 从 FFmpegFrameGrabber 创建构建器
+		 * <p>
+		 * 自动解析 grabber 中的通用媒体信息（格式、元数据），
+		 * 具体的音频/视频属性由子类负责解析。
+		 * </p>
+		 *
+		 * @param grabber FFmpeg 帧抓取器，不可为 null
+		 * @throws FFmpegFrameGrabber.Exception 当 grabber 启动失败时抛出
+		 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
+		 * @since 1.1.0
+		 */
+		protected Builder(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
+			Validate.notNull(grabber, "grabber 不可为 null");
+
+			if (FFmpegUtils.isNotStarted(grabber)) {
+				grabber.start();
+			}
+
+			this.format = grabber.getFormat();
+			this.metadata = ObjectUtils.defaultIfNull(grabber.getMetadata(), new HashMap<>());
+		}
 
 		/**
 		 * 空构建器构造函数
@@ -212,11 +259,16 @@ public abstract class Media {
 		 * 创建一个空白的构建器，所有属性设置为默认值，用于全新构建媒体对象。
 		 * </p>
 		 *
+		 * @param format 媒体格式，不可为空白
+		 * @throws IllegalArgumentException 当 format 为空白时抛出
 		 * @since 1.1.0
 		 */
-		protected Builder() {
-			this.metadata = Collections.emptyMap();
+		protected Builder(String format) {
+			Validate.notBlank(format, "format 不可为空");
+
+			this.format = format;
 			this.codecId = avcodec.AV_CODEC_ID_NONE;
+			this.metadata = new HashMap<>();
 		}
 
 		/**
@@ -237,29 +289,6 @@ public abstract class Media {
 			this.codecId = media.getCodecId();
 			this.codecName = media.getCodecName();
 			this.metadata = media.getMetadata();
-		}
-
-		/**
-		 * 从 FFmpegFrameGrabber 解析媒体信息
-		 * <p>
-		 * 自动启动 grabber（如果未启动），并从中提取媒体格式和元数据信息。
-		 * </p>
-		 *
-		 * @param grabber FFmpegFrameGrabber 实例，不可为 null
-		 * @return 构建器自身，用于链式调用
-		 * @throws IllegalArgumentException     当 grabber 为 null 时抛出
-		 * @throws FFmpegFrameGrabber.Exception 当 grabber 操作失败时抛出
-		 * @since 1.1.0
-		 */
-		protected T parse(FFmpegFrameGrabber grabber) throws FFmpegFrameGrabber.Exception {
-			Validate.notNull(grabber, "grabber 不可为 null");
-
-			if (FFmpegUtils.isNotStarted(grabber)) {
-				grabber.start();
-			}
-			this.format = grabber.getFormat();
-			this.metadata = grabber.getMetadata();
-			return self();
 		}
 
 		/**
@@ -314,7 +343,7 @@ public abstract class Media {
 
 		/**
 		 * 仅设置编码器ID
-		 * <p>适用于仅需ID无需名称的场景，编码器名称保持当前值</p>
+		 * <p>适用于仅需ID无需名称的场景，会清空编码器名称</p>
 		 *
 		 * @param codecId 编码器ID（FFmpeg定义的AVCodecID数值），不可小于0
 		 * @return 构建器自身，用于链式调用
@@ -325,6 +354,7 @@ public abstract class Media {
 			Validate.isTrue(codecId >= 0, "codecId 不可小于0");
 
 			this.codecId = codecId;
+			this.codecName = null;
 			return self();
 		}
 

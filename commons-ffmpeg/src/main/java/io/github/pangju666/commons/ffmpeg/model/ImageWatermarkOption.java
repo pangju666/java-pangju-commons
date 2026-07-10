@@ -16,16 +16,14 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.builder.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.enums.Direction;
-import io.github.pangju666.commons.ffmpeg.utils.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.image.model.ImageSize;
-import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.model.IOResource;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -42,6 +40,7 @@ import java.util.function.BiFunction;
  *     <li>可配置水印透明度</li>
  *     <li>支持多种预定义水印位置</li>
  *     <li>支持自定义位置和边距</li>
+ *     <li>可自定义水印尺寸限制策略</li>
  * </ul>
  * <h3>使用示例</h3>
  * <pre>{@code
@@ -49,6 +48,9 @@ import java.util.function.BiFunction;
  * option.setOpacity(0.5f);
  * option.setRelativeScaleFactor(0.2);
  * option.setDirection(Direction.BOTTOM_RIGHT);
+ *
+ * // 转换为 FFmpeg 滤镜
+ * String filter = option.toFFmpegFilter(watermarkImage, grabber);
  * }</pre>
  *
  * @author pangju666
@@ -136,9 +138,11 @@ public class ImageWatermarkOption {
 	}
 
 	/**
-	 * 设置水印的相对缩放比例（相对原视频尺寸）。
+	 * 设置水印的相对缩放比例（相对原视频尺寸）
+	 * <p>
 	 * 必须为正数；非正数将被忽略并保持当前值。
 	 * 该缩放与宽高范围共同作用，最终绘制尺寸会被限制在设定区间内。
+	 * </p>
 	 *
 	 * @param relativeScaleFactor 相对原图尺寸的缩放比例（&gt; 0）
 	 * @since 1.1.0
@@ -161,6 +165,7 @@ public class ImageWatermarkOption {
 
 	/**
 	 * 设置水印透明度
+	 * <p>超出范围 0.0-1.0 的值将被忽略并保持当前值</p>
 	 *
 	 * @param opacity 透明度值，范围 0.0-1.0
 	 * @since 1.1.0
@@ -183,6 +188,7 @@ public class ImageWatermarkOption {
 
 	/**
 	 * 设置 X 坐标
+	 * <p>负值将被忽略并保持当前值</p>
 	 *
 	 * @param x X 坐标值，必须大于等于 0
 	 * @since 1.1.0
@@ -205,6 +211,7 @@ public class ImageWatermarkOption {
 
 	/**
 	 * 设置 Y 坐标
+	 * <p>负值将被忽略并保持当前值</p>
 	 *
 	 * @param y Y 坐标值，必须大于等于 0
 	 * @since 1.1.0
@@ -227,6 +234,7 @@ public class ImageWatermarkOption {
 
 	/**
 	 * 设置边距大小
+	 * <p>负值将被忽略并保持当前值</p>
 	 *
 	 * @param margin 边距值，必须大于等于 0
 	 * @since 1.1.0
@@ -268,12 +276,13 @@ public class ImageWatermarkOption {
 	}
 
 	/**
-	 * 设置水印尺寸限制策略。
+	 * 设置水印尺寸限制策略
 	 * <p>
 	 * 允许自定义策略，根据目标图像尺寸动态决定水印的尺寸上下限。
+	 * null 值将被忽略并保持原策略。
 	 * </p>
 	 *
-	 * @param sizeLimitStrategy 水印尺寸限制策略，不能为 null；如果为 null 则忽略并保持原策略
+	 * @param sizeLimitStrategy 水印尺寸限制策略，不能为 null
 	 * @since 1.1.0
 	 */
 	public void setSizeLimitStrategy(BiFunction<Integer, Integer, Pair<ImageSize, ImageSize>> sizeLimitStrategy) {
@@ -283,12 +292,21 @@ public class ImageWatermarkOption {
 	}
 
 	/**
-	 * 获取当前的水印尺寸限制策略。
+	 * 将图片水印配置转换为 FFmpeg 滤镜字符串
+	 * <p>
+	 * 从 FFmpegFrameGrabber 中获取视频尺寸信息，然后调用另一个重载方法生成滤镜字符串。
+	 * 如果 grabber 未启动，会自动启动它。
+	 * </p>
 	 *
-	 * @return 计算最小/最大尺寸的策略函数
+	 * @param watermarkImage 水印图片资源，不可为 null
+	 * @param grabber        FFmpeg 视频抓取器，不可为 null
+	 * @return FFmpeg overlay 滤镜字符串
+	 * @throws IOException              当操作失败时抛出
+	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws IllegalArgumentException 当 grabber 不存在视频流时抛出
 	 * @since 1.1.0
 	 */
-	public String toFFmpegFilter(File imageFile, FFmpegFrameGrabber grabber) throws IOException {
+	public String toFFmpegFilter(IOResource watermarkImage, FFmpegFrameGrabber grabber) throws IOException {
 		Validate.notNull(grabber, "grabber 不能为 null");
 
 		if (FFmpegUtils.isNotStarted(grabber)) {
@@ -296,34 +314,48 @@ public class ImageWatermarkOption {
 		}
 		Validate.isTrue(grabber.hasVideo(), "grabber 不存在视频流");
 
-		return toFFmpegFilter(imageFile, grabber.getImageWidth(), grabber.getImageHeight());
+		return toFFmpegFilter(watermarkImage, grabber.getImageWidth(), grabber.getImageHeight());
 	}
 
 	/**
 	 * 将图片水印配置转换为 FFmpeg 滤镜字符串
+	 * <p>
+	 * 根据视频尺寸和水印配置生成 FFmpeg overlay 滤镜字符串。
+	 * 滤镜包含以下处理步骤：
+	 * </p>
+	 * <ul>
+	 *   <li>加载水印图片文件</li>
+	 *   <li>根据尺寸限制策略和相对缩放比例调整水印尺寸</li>
+	 *   <li>转换水印为 RGBA 格式</li>
+	 *   <li>应用透明度设置</li>
+	 *   <li>根据方向或自定义坐标计算水印位置</li>
+	 *   <li>叠加到视频上</li>
+	 * </ul>
 	 *
-	 * @param watermarkImage 水印图片文件
-	 * @param videoWith      视频宽度
-	 * @param videoHeight    视频高度
+	 * @param watermarkImage 水印图片资源，不可为 null
+	 * @param videoWidth     视频宽度，必须大于 0
+	 * @param videoHeight    视频高度，必须大于 0
 	 * @return FFmpeg overlay 滤镜字符串
-	 * @throws IOException              操作失败时抛出
+	 * @throws IOException              当操作失败时抛出
+	 * @throws NullPointerException 当 watermarkImage 为 null 时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @since 1.1.0
 	 */
-	public String toFFmpegFilter(File watermarkImage, int videoWith, int videoHeight) throws IOException {
-		Validate.isTrue(videoWith > 0, "videoWith 必须大于0");
+	public String toFFmpegFilter(IOResource watermarkImage, int videoWidth, int videoHeight) throws IOException {
+		Validate.isTrue(videoWidth > 0, "videoWidth 必须大于0");
 		Validate.isTrue(videoHeight > 0, "videoHeight 必须大于0");
-		Validate.isTrue(FileUtils.isImageType(watermarkImage), "imageFile 不是图片文件");
+		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
+		Validate.isTrue(watermarkImage.isImage(), "watermarkImage 不是图片资源");
 
-		Pair<ImageSize, ImageSize> watermarkImageSizeRange = sizeLimitStrategy.apply(videoWith, videoHeight);
+		Pair<ImageSize, ImageSize> watermarkImageSizeRange = sizeLimitStrategy.apply(videoWidth, videoHeight);
 
 		return FFmpegFiltersBuilder.video()
-			.addFileSource("wm", watermarkImage)
+			.addFileSource("wm", watermarkImage.getFile())
 			.appendAliasFilter("wm", "scale", String.format(
 				"w='if(gt(iw,ih),min(%d\\,max(%d\\,%d)),-1)':h='if(gt(ih,iw),min(%d\\,max(%d\\,%d)),-1)'",
 				watermarkImageSizeRange.getRight().getWidth(),
 				watermarkImageSizeRange.getLeft().getWidth(),
-				(int) (videoWith * relativeScaleFactor),
+				(int) (videoWidth * relativeScaleFactor),
 				watermarkImageSizeRange.getRight().getHeight(),
 				watermarkImageSizeRange.getLeft().getHeight(),
 				(int) (videoHeight * relativeScaleFactor)))
@@ -335,6 +367,7 @@ public class ImageWatermarkOption {
 
 	/**
 	 * 计算位置参数
+	 * <p>根据方向或自定义坐标计算 FFmpeg overlay 滤镜的位置参数</p>
 	 *
 	 * @return FFmpeg overlay 滤镜的位置参数字符串
 	 * @since 1.1.0
@@ -366,6 +399,59 @@ public class ImageWatermarkOption {
 			case CENTER:
 			default:
 				return "x=(W-w)/2:y=(H-h)/2";
+		}
+	}
+
+	/**
+	 * 图片尺寸内部类，用于表示水印的宽度和高度
+	 *
+	 * @since 1.1.0
+	 */
+	public static class ImageSize {
+		/**
+		 * 宽度（像素）
+		 *
+		 * @since 1.1.0
+		 */
+		private final int width;
+
+		/**
+		 * 高度（像素）
+		 *
+		 * @since 1.1.0
+		 */
+		private final int height;
+
+		/**
+		 * 创建图片尺寸对象
+		 *
+		 * @param width  宽度（像素）
+		 * @param height 高度（像素）
+		 * @since 1.1.0
+		 */
+		public ImageSize(int width, int height) {
+			this.width = width;
+			this.height = height;
+		}
+
+		/**
+		 * 获取宽度
+		 *
+		 * @return 宽度（像素）
+		 * @since 1.1.0
+		 */
+		public int getWidth() {
+			return width;
+		}
+
+		/**
+		 * 获取高度
+		 *
+		 * @return 高度（像素）
+		 * @since 1.1.0
+		 */
+		public int getHeight() {
+			return height;
 		}
 	}
 }

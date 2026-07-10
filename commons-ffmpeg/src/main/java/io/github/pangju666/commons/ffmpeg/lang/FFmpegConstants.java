@@ -16,19 +16,31 @@
 
 package io.github.pangju666.commons.ffmpeg.lang;
 
+import java.util.Set;
+
 /**
  * FFmpeg 相关常量类
  * <p>
- * 包含 FFmpeg 处理中常用的常量，如格式标识、滤镜标签、分隔符等。
+ * 包含 FFmpeg 处理中常用的常量，包括：
  * </p>
+ * <ul>
+ * <li>音频格式标识（WAV、FLAC、MP3、Opus、AAC、OGG、WMV）</li>
+ * <li>视频格式标识（MP4、WebM、MKV、MOV、AVI、WMV、RM、OGG）</li>
+ * <li>FFmpeg 滤镜标签（输入/输出流标签、视频/音频流标签）</li>
+ * <li>滤镜分隔符（参数连接符、分支分隔符、参数分隔符）</li>
+ * <li>音频/视频标准参数（采样率、帧率、声道数）</li>
+ * <li>特殊格式集合（需要定位操作的输出格式）</li>
+ * </ul>
  *
  * @author pangju666
  * @see <a href="https://ffmpeg.org/ffmpeg-formats.html">FFmpeg Formats Official Doc</a>
+ * @see <a href="https://ffmpeg.org/ffmpeg-filters.html">FFmpeg Filters Official Doc</a>
  * @since 1.1.0
  */
 public class FFmpegConstants {
 	/**
 	 * TTF 字体文件的 MIME 类型
+	 * <p>用于文字水印功能中的字体文件识别</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -36,6 +48,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 单个输入流的滤镜标签
+	 * <p>用于标识滤镜链的输入流，格式为 [in]</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -43,6 +56,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 单个输出流的滤镜标签
+	 * <p>用于标识滤镜链的输出流，格式为 [out]</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -50,6 +64,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 视频输出流的滤镜标签
+	 * <p>用于标识滤镜链中的视频输出流，格式为 [v]</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -57,6 +72,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 音频输出流的滤镜标签
+	 * <p>用于标识滤镜链中的音频输出流，格式为 [a]</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -64,6 +80,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 滤镜参数之间的连接分隔符
+	 * <p>用于连接同一滤镜内的多个参数，如 "param1=value1,param2=value2"</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -71,6 +88,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 滤镜分支之间的分隔符
+	 * <p>用于分隔滤镜链中的不同滤镜分支，如 "filter1;filter2"</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -78,6 +96,7 @@ public class FFmpegConstants {
 
 	/**
 	 * 滤镜内部参数的分隔符
+	 * <p>用于分隔滤镜名称和参数，或参数名和参数值，如 "filter:param1=value1:param2=value2"</p>
 	 *
 	 * @since 1.1.0
 	 */
@@ -116,12 +135,60 @@ public class FFmpegConstants {
 	public static final String AUDIO_OPUS_FORMAT = "opus";
 
 	/**
+	 * OGG 音频格式标识
+	 * <p>开源音频容器格式，支持多种编码</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String AUDIO_OGG_FORMAT = "ogg";
+
+	/**
+	 * WMV 音频格式标识
+	 * <p>Windows Media 音频格式，ASF 容器</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String AUDIO_WMV_FORMAT = "asf";
+
+	/**
 	 * AAC 音频格式标识
 	 * <p>有损音频压缩格式，广泛用于流媒体和移动设备</p>
 	 *
 	 * @since 1.1.0
 	 */
-	public static final String AUDIO_AAC_FORMAT = "aac";
+	public static final String AUDIO_AAC_FORMAT = "adts";
+
+	/**
+	 * OGG 视频格式标识
+	 * <p>开源视频容器格式，支持多种编码</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String VIDEO_OGG_FORMAT = "ogg";
+
+	/**
+	 * MOV 视频格式标识
+	 * <p>QuickTime 视频容器格式，Apple 系统标准</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String VIDEO_MOV_FORMAT = "mov";
+
+	/**
+	 * AVI 视频格式标识
+	 * <p>经典视频容器格式，兼容性广泛</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String VIDEO_AVI_FORMAT = "avi";
+
+	/**
+	 * WMV 视频格式标识
+	 * <p>Windows Media 视频格式，ASF 容器</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String VIDEO_WMV_FORMAT = "asf";
 
 	/**
 	 * MP4 视频格式标识
@@ -140,12 +207,30 @@ public class FFmpegConstants {
 	public static final String VIDEO_WEBM_FORMAT = "webm";
 
 	/**
+	 * RM 视频格式标识
+	 * <p>RealMedia 视频格式，RealNetworks 开发</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final String VIDEO_RM_FORMAT = "rm";
+
+	/**
 	 * Matroska (MKV) 视频格式标识
 	 * <p>开源视频容器格式，支持多种音视频编码</p>
 	 *
 	 * @since 1.1.0
 	 */
 	public static final String VIDEO_MKV_FORMAT = "matroska";
+
+	/**
+	 * 需要定位操作的输出格式集合
+	 * <p>这些格式作为输出时，在随机访问时需要先进行定位操作</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final Set<String> REQUIRE_SEEK_OUTPUT_FORMATS = Set.of(
+		VIDEO_MP4_FORMAT, VIDEO_MOV_FORMAT, VIDEO_AVI_FORMAT, VIDEO_RM_FORMAT,
+		AUDIO_WAV_FORMAT, AUDIO_FLAC_FORMAT, AUDIO_MP3_FORMAT);
 
 	/**
 	 * 默认视频帧率
