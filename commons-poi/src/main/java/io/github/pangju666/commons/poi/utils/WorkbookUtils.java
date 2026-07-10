@@ -25,7 +25,6 @@ import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -236,7 +235,7 @@ public class WorkbookUtils {
 		Validate.isTrue(Strings.CS.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
 			PoiConstants.XLSX_MIME_TYPE), "file 不是 xlsx 或 xls文件");
 
-		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(file)) {
 			return switch (mimeType) {
 				case PoiConstants.XLS_MIME_TYPE -> new HSSFWorkbook(inputStream);
 				case PoiConstants.XLSX_MIME_TYPE -> new XSSFWorkbook(inputStream);

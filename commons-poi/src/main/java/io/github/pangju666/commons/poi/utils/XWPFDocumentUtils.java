@@ -20,7 +20,6 @@ import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
-import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -108,7 +107,7 @@ public class XWPFDocumentUtils {
 	public static XWPFDocument getDocument(final File file) throws IOException {
 		Validate.isTrue(isDocx(file), "file 不是docx文件");
 
-		try (UnsynchronizedBufferedInputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
+		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(file)) {
 			return new XWPFDocument(inputStream);
 		}
 	}
