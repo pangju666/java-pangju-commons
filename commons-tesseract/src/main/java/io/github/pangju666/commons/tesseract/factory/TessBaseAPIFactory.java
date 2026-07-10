@@ -18,6 +18,7 @@ package io.github.pangju666.commons.tesseract.factory;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -107,7 +108,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 			}
 		}
 
-		this.dataPath = FilenameUtils.separatorsToUnix(dataDir.getAbsolutePath());
+		this.dataPath = FilenameUtils.separatorsToUnix(dataDir.getAbsolutePath()) + "/";
 		this.language = "chi_sim+eng";
 	}
 
@@ -115,14 +116,14 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * 使用指定的数据路径和语言创建 {@link TessBaseAPI} 工厂
 	 *
 	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空，必须是存在的目录
-	 * @param language OCR 识别语言，不可为 null 或空
+	 * @param languages OCR 识别语言，不可为 null 或空
 	 * @throws NullPointerException     当 dataPath 或 language 为 null 时抛出
 	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
 	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
 	 * @since 2.1.0
 	 */
-	public TessBaseAPIFactory(String dataPath, String language) {
-		Validate.notBlank(language, "language 不能为空");
+	public TessBaseAPIFactory(String dataPath, String... languages) {
+		Validate.notEmpty(languages, "languages 不能为空");
 		Validate.notBlank(dataPath, "dataPath 不能为空");
 
 		File dataDir = new File(dataPath);
@@ -130,7 +131,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 		Validate.isTrue(dataDir.isDirectory(), "数据包路径不是一个目录");
 
 		this.dataPath = FilenameUtils.separatorsToUnix(dataPath);
-		this.language = language;
+		this.language = StringUtils.join(languages, "+");
 	}
 
 	/**
@@ -146,7 +147,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	public TessBaseAPI create() {
 		TessBaseAPI tessBaseAPI = new TessBaseAPI();
 		int initResult = tessBaseAPI.Init(dataPath, language);
-		if (initResult < 0) {
+		if (initResult != 0) {
 			throw new IllegalArgumentException("Tesseract 初始化失败，请检查语言包");
 		}
 		return tessBaseAPI;
@@ -168,7 +169,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	/**
 	 * 钝化 TessBaseAPI 对象
 	 * <p>在对象归还到池之前调用，用于清理对象状态并释放临时资源。
-	 * 调用 {@link TessBaseAPI#Clear()} 清除识别数据，调用 {@link TessBaseAPI#releaseReference()} 释放引用。</p>
+	 * 调用 {@link TessBaseAPI#Clear()} 清除识别数据。</p>
 	 *
 	 * @param object 要钝化的 PooledObject 对象
 	 * @since 2.1.0
@@ -177,7 +178,6 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	public void passivateObject(PooledObject<TessBaseAPI> object) {
 		TessBaseAPI tessBaseAPI = object.getObject();
 		tessBaseAPI.Clear();
-		tessBaseAPI.releaseReference();
 	}
 
 	/**
