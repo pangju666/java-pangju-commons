@@ -396,7 +396,7 @@ public class OpencvImageResource extends IOResource {
 	public OpencvImageResource(String filePath, int flags, boolean correctOrientation) throws IOException {
 		super(filePath, false);
 
-		validateImageType("file 不是图像文件");
+		validateImageType("filePath 不是图像文件路径");
 
 		this.flags = flags;
 		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
@@ -436,7 +436,7 @@ public class OpencvImageResource extends IOResource {
 		super(filePath, false);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("file 不是图像文件");
+		validateImageType("filePath 不是图像文件路径");
 
 		this.flags = flags;
 		this.orientationCorrected = true;

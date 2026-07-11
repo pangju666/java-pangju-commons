@@ -326,7 +326,7 @@ public class ImageIOResource extends IOResource {
 	public ImageIOResource(String filePath, boolean correctOrientation) throws IOException {
 		super(filePath, false);
 
-		validateImageType("file 不是图像文件");
+		validateImageType("filePath 不是图像文件路径");
 
 		if (StringUtils.isNotBlank(this.format)) {
 			String imageFormat = this.format.toUpperCase();
@@ -384,7 +384,7 @@ public class ImageIOResource extends IOResource {
 		super(filePath, false);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("file 不是图像文件");
+		validateImageType("filePath 不是图像文件路径");
 
 		if (StringUtils.isNotBlank(this.format)) {
 			String imageFormat = this.format.toUpperCase();
@@ -830,6 +830,8 @@ public class ImageIOResource extends IOResource {
 	public ImageIOResource(ImageInputStream imageInputStream, boolean correctOrientation) throws IOException {
 		super(parse(imageInputStream), null);
 
+		validateImageType("imageInputStream 不是图像输入流");
+
 		if (StringUtils.isNotBlank(this.format)) {
 			String imageFormat = this.format.toUpperCase();
 
@@ -889,6 +891,7 @@ public class ImageIOResource extends IOResource {
 		super(parse(imageInputStream), null);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+		validateImageType("imageInputStream 不是图像输入流");
 
 		if (StringUtils.isNotBlank(this.format)) {
 			String imageFormat = this.format.toUpperCase();
