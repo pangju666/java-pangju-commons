@@ -16,8 +16,8 @@
 
 package io.github.pangju666.commons.ffmpeg.io.resource;
 
+import io.github.pangju666.commons.io.exception.UnsupportedResourceException;
 import io.github.pangju666.commons.io.resource.IOResource;
-import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.io.File;
@@ -52,7 +52,7 @@ import java.util.Objects;
  *     <li>资源关闭后禁止执行任何操作</li>
  *     <li>临时文件在资源关闭时自动删除</li>
  *     <li>大文件建议使用文件模式且不缓存以避免内存占用过高</li>
- *     <li><strong>媒体类型限制</strong> - 构造函数会校验资源是否为音频或视频，非媒体资源会抛出 {@link IllegalArgumentException}</li>
+ *     <li><strong>媒体类型限制</strong> - 构造函数会校验资源是否为音频或视频，非媒体资源会抛出 {@link UnsupportedResourceException}</li>
  * </ul>
  *
  * @author pangju666
@@ -65,7 +65,7 @@ public class FFmpegResource extends IOResource {
 	 *
 	 * @param resource IOResource 实例，不可为 null，且其 MIME 类型必须为音频或视频
 	 * @throws IOException              当读取资源失败时抛出
-	 * @throws IllegalArgumentException 当 resource 不是音频或视频资源时抛出
+	 * @throws UnsupportedResourceException 当 resource 不是音频或视频资源时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(IOResource resource) throws IOException {
@@ -81,7 +81,7 @@ public class FFmpegResource extends IOResource {
 	 * @param resource     IOResource 实例，不可为 null，且其 MIME 类型必须为音频或视频
 	 * @param cacheContent 是否缓存内容到内存
 	 * @throws IOException              当读取资源失败时抛出
-	 * @throws IllegalArgumentException 当 resource 不是音频或视频资源时抛出
+	 * @throws UnsupportedResourceException 当 resource 不是音频或视频资源时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(IOResource resource, boolean cacheContent) throws IOException {
@@ -95,7 +95,7 @@ public class FFmpegResource extends IOResource {
 	 *
 	 * @param filePath 文件路径，不可为 null，且对应文件必须为音频或视频资源
 	 * @throws IOException              当读取文件失败时抛出
-	 * @throws IllegalArgumentException 当 filePath 对应资源不是音频或视频时抛出
+	 * @throws UnsupportedResourceException 当 filePath 对应资源不是音频或视频时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(String filePath) throws IOException {
@@ -110,7 +110,7 @@ public class FFmpegResource extends IOResource {
 	 * @param filePath     文件路径，不可为 null，且对应文件必须为音频或视频资源
 	 * @param cacheContent 是否缓存内容到内存
 	 * @throws IOException              当读取文件失败时抛出
-	 * @throws IllegalArgumentException 当 filePath 对应资源不是音频或视频时抛出
+	 * @throws UnsupportedResourceException 当 filePath 对应资源不是音频或视频时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(String filePath, boolean cacheContent) throws IOException {
@@ -124,7 +124,7 @@ public class FFmpegResource extends IOResource {
 	 *
 	 * @param file 文件对象，不可为 null，且必须为音频或视频文件
 	 * @throws IOException              当读取文件失败时抛出
-	 * @throws IllegalArgumentException 当 file 对应资源不是音频或视频时抛出
+	 * @throws UnsupportedResourceException 当 file 对应资源不是音频或视频时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(File file) throws IOException {
@@ -139,7 +139,7 @@ public class FFmpegResource extends IOResource {
 	 * @param file         文件对象，不可为 null，且必须为音频或视频文件
 	 * @param cacheContent 是否缓存内容到内存
 	 * @throws IOException              当读取文件失败时抛出
-	 * @throws IllegalArgumentException 当 file 对应资源不是音频或视频时抛出
+	 * @throws UnsupportedResourceException 当 file 对应资源不是音频或视频时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(File file, boolean cacheContent) throws IOException {
@@ -153,7 +153,7 @@ public class FFmpegResource extends IOResource {
 	 *
 	 * @param bytes 字节数组，不可为 null，且内容必须可识别为音频或视频资源
 	 * @throws IOException              当处理字节数组失败时抛出
-	 * @throws IllegalArgumentException 当 bytes 不是音频或视频数据时抛出
+	 * @throws UnsupportedResourceException 当 bytes 不是音频或视频数据时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(byte[] bytes) throws IOException {
@@ -170,7 +170,7 @@ public class FFmpegResource extends IOResource {
 	 *
 	 * @param inputStream 输入流，不可为 null，且内容必须可识别为音频或视频资源
 	 * @throws IOException              当读取输入流失败时抛出
-	 * @throws IllegalArgumentException 当 inputStream 不是音频或视频数据时抛出
+	 * @throws UnsupportedResourceException 当 inputStream 不是音频或视频数据时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegResource(InputStream inputStream) throws IOException {
@@ -208,10 +208,12 @@ public class FFmpegResource extends IOResource {
 	 * 校验当前资源是否为音频或视频资源
 	 *
 	 * @param message 校验失败时使用的异常消息
-	 * @throws IllegalArgumentException 当当前资源既不是音频也不是视频时抛出
+	 * @throws UnsupportedResourceException 当当前资源既不是音频也不是视频时抛出
 	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
-		Validate.isTrue(isVideo() || isAudio(), message);
+		if (!isAudio() && !isVideo()) {
+			throw new UnsupportedResourceException(message);
+		}
 	}
 }
