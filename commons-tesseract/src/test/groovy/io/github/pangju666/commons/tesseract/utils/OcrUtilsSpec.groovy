@@ -1,5 +1,6 @@
+package io.github.pangju666.commons.tesseract.utils
+
 import io.github.pangju666.commons.tesseract.lang.TesseractConstants
-import io.github.pangju666.commons.tesseract.utils.OcrUtils
 import org.bytedeco.tesseract.TessBaseAPI
 import spock.lang.Specification
 import spock.lang.TempDir

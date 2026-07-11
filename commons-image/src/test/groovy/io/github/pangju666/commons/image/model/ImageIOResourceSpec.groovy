@@ -1,7 +1,8 @@
 package io.github.pangju666.commons.image.model
 
 import com.drew.metadata.Metadata
-import io.github.pangju666.commons.io.model.IOResource
+import io.github.pangju666.commons.image.io.resource.ImageIOResource
+import io.github.pangju666.commons.io.resource.IOResource
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll

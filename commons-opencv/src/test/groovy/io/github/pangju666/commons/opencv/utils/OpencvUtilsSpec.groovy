@@ -1,7 +1,6 @@
-package io.github.pangju666.commons.opencv.test.utils
+package io.github.pangju666.commons.opencv.utils
 
 
-import io.github.pangju666.commons.opencv.utils.OpencvUtils
 import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.opencv_core.Mat
 import org.bytedeco.opencv.opencv_core.Size

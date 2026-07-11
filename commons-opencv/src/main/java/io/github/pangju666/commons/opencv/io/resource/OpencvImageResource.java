@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.opencv.model;
+package io.github.pangju666.commons.opencv.io.resource;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -31,7 +31,7 @@ import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.metadata.photoshop.PsdHeaderDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
-import io.github.pangju666.commons.io.model.IOResource;
+import io.github.pangju666.commons.io.resource.IOResource;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;

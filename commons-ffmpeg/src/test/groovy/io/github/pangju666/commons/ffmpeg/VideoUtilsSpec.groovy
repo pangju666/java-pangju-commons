@@ -17,10 +17,10 @@
 package io.github.pangju666.commons.ffmpeg
 
 
-import io.github.pangju666.commons.ffmpeg.model.FFmpegResource
+import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
 import io.github.pangju666.commons.ffmpeg.model.Video
 import io.github.pangju666.commons.ffmpeg.utils.VideoUtils
-import io.github.pangju666.commons.io.model.IOResource
+import io.github.pangju666.commons.io.resource.IOResource
 import spock.lang.Specification
 import spock.lang.TempDir
 

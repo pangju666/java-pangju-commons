@@ -18,8 +18,8 @@ package io.github.pangju666.commons.ffmpeg.utils;
 
 import io.github.pangju666.commons.ffmpeg.enums.FrameType;
 import io.github.pangju666.commons.ffmpeg.io.FFmpegOutputStream;
+import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource;
 import io.github.pangju666.commons.ffmpeg.model.Audio;
-import io.github.pangju666.commons.ffmpeg.model.FFmpegResource;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;

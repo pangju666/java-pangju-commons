@@ -1,8 +1,8 @@
-package io.github.pangju666.commons.opencv.test.model
+package io.github.pangju666.commons.opencv.model
 
 import com.drew.metadata.Metadata
-import io.github.pangju666.commons.io.model.IOResource
-import io.github.pangju666.commons.opencv.model.OpencvImageResource
+import io.github.pangju666.commons.io.resource.IOResource
+import io.github.pangju666.commons.opencv.io.resource.OpencvImageResource
 import io.github.pangju666.commons.opencv.utils.OpencvUtils
 import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.opencv_core.Size

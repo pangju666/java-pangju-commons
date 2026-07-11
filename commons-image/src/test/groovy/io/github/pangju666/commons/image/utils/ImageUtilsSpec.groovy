@@ -357,7 +357,7 @@ class ImageUtilsSpec extends Specification {
 		def stream = new FileInputStream(file)
 
 		expect:
-		ImageUtils.isImage(stream) == true
+		ImageUtils.isImage(stream)
 
 		where:
 		name << ALL_IMAGES
