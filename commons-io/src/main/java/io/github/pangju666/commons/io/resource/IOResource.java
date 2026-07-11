@@ -1,5 +1,5 @@
 /*
- *   Copyright 2026 pangju666
+ *   Copyright 2025 pangju666
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import java.util.UUID;
  *     <li>资源关闭后禁止执行任何操作</li>
  *     <li>临时文件在资源关闭时自动删除</li>
  *     <li>大文件建议使用文件模式且不缓存以避免内存占用过高</li>
+ *     <li><strong>format字段说明</strong> - format是基于MIME类型推断的文件真实格式的默认后缀，而非文件名称的后缀</li>
  * </ul>
  *
  * @author pangju666
@@ -83,6 +84,15 @@ public class IOResource implements Closeable {
 	 */
 	protected static final String TMP_FILE_EXTENSION = "tmp";
 
+	/**
+	 * 文件格式（基于MIME类型推断的真实格式默认后缀）
+	 * <p>
+	 * format是基于MIME类型推断的文件真实格式的默认后缀，而非文件名称的后缀。
+	 * </p>
+	 *
+	 * @since 2.1.0
+	 */
+	protected final String format;
 	/**
 	 * MIME类型
 	 *
@@ -166,6 +176,7 @@ public class IOResource implements Closeable {
 		this.size = resource.size;
 		this.mimeType = resource.mimeType;
 		this.digest = resource.digest;
+		this.format = resource.format;
 
 		if (Objects.nonNull(resource.file) && !resource.isTempFile()) {
 			this.file = resource.file;
@@ -186,6 +197,7 @@ public class IOResource implements Closeable {
 	/**
 	 * 基于文件路径构造IOResource（不缓存内容）
 	 * <p>等同于 {@code new IOResource(filePath, false)}。</p>
+	 * <p>format基于文件的MIME类型推断，而非文件名称的后缀。</p>
 	 *
 	 * @param filePath 文件路径（必须非空）
 	 * @throws IOException              当文件读取失败时抛出
@@ -204,6 +216,7 @@ public class IOResource implements Closeable {
 	 * <ul>
 	 *     <li>cacheContent为true时，构造时立即读取文件内容到内存</li>
 	 *     <li>大文件建议设置为false以避免内存占用过高</li>
+	 *     <li>format基于文件的MIME类型推断，而非文件名称的后缀</li>
 	 * </ul>
 	 *
 	 * @param filePath     文件路径（必须非空）
@@ -229,11 +242,14 @@ public class IOResource implements Closeable {
 		} else {
 			this.byteArrayOutputStream = null;
 		}
+
+		this.format = FilenameUtils.getExtensionByMimeType(this.mimeType, null).toLowerCase();
 	}
 
 	/**
 	 * 基于File对象构造IOResource（不缓存内容）
 	 * <p>等同于 {@code new IOResource(file, false)}。</p>
+	 * <p>format基于文件的MIME类型推断，而非文件名称的后缀。</p>
 	 *
 	 * @param file 文件对象（必须非null）
 	 * @throws IOException 当文件读取失败时抛出
@@ -251,6 +267,7 @@ public class IOResource implements Closeable {
 	 * <ul>
 	 *     <li>cacheContent为true时，构造时立即读取文件内容到内存</li>
 	 *     <li>大文件建议设置为false以避免内存占用过高</li>
+	 *     <li>format基于文件的MIME类型推断，而非文件名称的后缀</li>
 	 * </ul>
 	 *
 	 * @param file         文件对象（必须非null）
@@ -271,11 +288,19 @@ public class IOResource implements Closeable {
 		} else {
 			this.byteArrayOutputStream = null;
 		}
+
+		this.format = FilenameUtils.getExtensionByMimeType(this.mimeType, null).toLowerCase();
 	}
 
 	/**
 	 * 基于字节数组构造IOResource
-	 * <p>自动检测MIME类型，内容存储在内存中。</p>
+	 * <p>自动检测MIME类型和文件格式，内容存储在内存中。</p>
+	 *
+	 * <p>注意事项：</p>
+	 * <ul>
+	 *     <li>当MIME类型无法识别时，format将为null</li>
+	 *     <li>format基于MIME类型推断，而非文件名称的后缀</li>
+	 * </ul>
 	 *
 	 * @param bytes 字节数组（必须非空）
 	 * @throws IllegalArgumentException 当bytes为空时抛出
@@ -291,6 +316,8 @@ public class IOResource implements Closeable {
 		try (InputStream inputStream = this.byteArrayOutputStream.toInputStream()) {
 			this.mimeType = IOConstants.getDefaultTika().detect(inputStream);
 		}
+
+		this.format = FilenameUtils.getExtensionByMimeType(this.mimeType, null).toLowerCase();
 	}
 
 	/**
@@ -301,6 +328,7 @@ public class IOResource implements Closeable {
 	 * <ul>
 	 *     <li>输入流会被完全读取，但不会自动关闭</li>
 	 *     <li>大流可能导致内存不足，建议使用文件模式</li>
+	 *     <li>format基于MIME类型推断，而非文件名称的后缀</li>
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
@@ -318,11 +346,15 @@ public class IOResource implements Closeable {
 		try (InputStream tmpInputStream = this.byteArrayOutputStream.toInputStream()) {
 			this.mimeType = IOConstants.getDefaultTika().detect(tmpInputStream);
 		}
+
+		this.format = FilenameUtils.getExtensionByMimeType(this.mimeType, null).toLowerCase();
 	}
 
 	/**
 	 * 基于{@link ByteArrayOutputStream}构造IOResource
 	 * <p>用于子类内部构造，自动检测MIME类型（如果未指定）。</p>
+	 *
+	 * <p>format基于MIME类型推断，而非文件名称的后缀。</p>
 	 *
 	 * @param byteArrayOutputStream 字节数组输出流（必须非null）
 	 * @param mimeType              MIME类型（可为空，为空时自动检测）
@@ -342,6 +374,8 @@ public class IOResource implements Closeable {
 		} else {
 			this.mimeType = mimeType;
 		}
+
+		this.format = FilenameUtils.getExtensionByMimeType(this.mimeType, null).toLowerCase();
 	}
 
 
@@ -436,8 +470,7 @@ public class IOResource implements Closeable {
 				return file;
 			}
 
-			File tempFile = new File(FileUtils.getTempDirectory(),
-				TMP_FILE_PREFIX + UUID.randomUUID() + FilenameUtils.EXTENSION_SEPARATOR_STR + TMP_FILE_EXTENSION);
+			File tempFile = new File(FileUtils.getTempDirectory(), createTempFileName());
 			try (InputStream inputStream = byteArrayOutputStream.toInputStream()) {
 				FileUtils.copyInputStreamToFile(inputStream, tempFile);
 			}
@@ -519,6 +552,19 @@ public class IOResource implements Closeable {
 			return byteArrayOutputStream.toByteArray();
 		}
 		return FileUtils.readFileToByteArray(file);
+	}
+
+	/**
+	 * 获取文件格式（基于MIME类型推断的真实格式默认后缀）
+	 * <p>
+	 * 返回的format是基于MIME类型推断的文件真实格式的默认后缀，而非文件名称的后缀。
+	 * </p>
+	 *
+	 * @return 文件格式字符串（如："jpg"、"png"）
+	 * @since 2.1.0
+	 */
+	public String getFormat() {
+		return format;
 	}
 
 	/**
@@ -638,5 +684,29 @@ public class IOResource implements Closeable {
 		if (closed) {
 			throw new IOException("IOResource 已关闭，禁止执行操作");
 		}
+	}
+
+	/**
+	 * 生成临时文件名
+	 * <p>使用UUID确保唯一性，包含前缀、UUID和扩展名。</p>
+	 * <p>扩展名使用基于MIME类型推断的format，而非文件名称的后缀。</p>
+	 *
+	 * @return 临时文件名（如："io-resource-550e8400-e29b-41d4-a716-446655440000.jpg"）
+	 * @since 2.1.0
+	 */
+	protected String createTempFileName() {
+		return TMP_FILE_PREFIX + UUID.randomUUID() + FilenameUtils.EXTENSION_SEPARATOR_STR + resolveTempFileExtension();
+	}
+
+	/**
+	 * 生成临时文件扩展名
+	 * <p>如果format为空，使用默认扩展名"tmp"。</p>
+	 * <p>format是基于MIME类型推断的文件真实格式的默认后缀，而非文件名称的后缀。</p>
+	 *
+	 * @return 临时文件扩展名
+	 * @since 2.1.0
+	 */
+	protected String resolveTempFileExtension() {
+		return StringUtils.defaultIfBlank(format, TMP_FILE_EXTENSION);
 	}
 }

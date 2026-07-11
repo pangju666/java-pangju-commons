@@ -7,9 +7,11 @@
 - feat(tessearct): 新增基于tessearct的图像ocr模块
 - feat(opencv): 新增基于opencv的图像处理模块
 - feat(io): 模块mime.types文件新增部分类型映射
+- feat(io): IOConstants新增默认MimeTypes常量
 - feat(io): 新增IOResource抽象IO资源
-- perf(io): 优化文件摘要计算逻辑
+- feat(io): FilenameUtils新增根据mimetype获取拓展名方法
 - perf(io): IOUtils新增摘要计算方法
+- perf(io): FileUtils优化文件摘要计算逻辑
 - feat(io): FileUtils新增newBufferedOutputStream和newUnsynchronizedBufferedInputStream方法
 - perf(io): FileUtils废弃openUnsynchronizedBufferedInputStream方法和设置缓冲区的文件加解密方法
 - perf(io): FileUtils优化文件加解密方法和解析元数据方法
