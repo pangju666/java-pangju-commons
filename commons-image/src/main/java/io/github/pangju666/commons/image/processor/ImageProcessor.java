@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * 图像编辑器（链式调用风格）
+ * 图像处理器（链式调用风格）
  * <p>
  * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
  * 支持以 {@link ImageIOResource}、输入流、{@link ImageInputStream} 或 {@link BufferedImage} 作为输入源，并可输出为文件、输出流、{@link ImageOutputStream} 或 {@link BufferedImage}。<br />
@@ -63,7 +63,7 @@ import java.util.function.Function;
  *   <li><b>链式调用：</b> API 设计简洁，配置与处理顺序清晰。</li>
  *   <li><b>智能格式：</b> 自动根据透明通道选择输出格式（含 Alpha 通道默认为 PNG，否则为 JPG）。</li>
  *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
- *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
+ *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后处理器不可再使用。</li>
  *   <li><b>EXIF 支持：</b> 支持通过指定 EXIF 方向值进行图像方向校正，也可使用 {@link ImageIOResource} 已校正的图像避免重复处理。</li>
  *   <li><b>自定义扩展：</b> 通过 {@link #apply(Function)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
  *   <li><b>丰富操作：</b>
@@ -91,7 +91,7 @@ import java.util.function.Function;
  * <p><b>性能与内存：</b></p>
  * <ul>
  *   <li><b>处理顺序：</b> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
- *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后编辑器不可再使用。</li>
+ *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后处理器不可再使用。</li>
  * </ul>
  *
  * <p><b>推荐方法调用顺序：</b></p>
@@ -348,11 +348,11 @@ public class ImageProcessor {
 	/**
 	 * 从输入流构建实例（使用默认 EXIF 方向）。
 	 * <p>
-	 * 此方法使用默认的 EXIF 方向值（正常方向）构建图像编辑器，不进行 EXIF 方向校正。
+	 * 此方法使用默认的 EXIF 方向值（正常方向）构建图像处理器，不进行 EXIF 方向校正。
 	 * </p>
 	 *
 	 * @param inputStream 输入流，不可为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @see #of(InputStream, int)
 	 * @since 2.1.0
@@ -369,7 +369,7 @@ public class ImageProcessor {
 	 *
 	 * @param inputStream     包含图像数据的输入流，不可为 null
 	 * @param exifOrientation EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException              当读取输入流出错时
 	 * @throws NullPointerException     当 inputStream 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
@@ -403,7 +403,7 @@ public class ImageProcessor {
 	 * </ul>
 	 *
 	 * @param resource 图像 IO 资源对象，包含图像数据、尺寸、EXIF 方向和格式等信息，不可为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException          当读取图像数据失败时抛出
 	 * @throws NullPointerException 当 resource 为 null 时抛出
 	 * @since 2.1.0
@@ -426,7 +426,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param imageInputStream 图像输入流，不可为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws NullPointerException 当 imageInputStream 为 null 时抛出
 	 * @throws IOException          当读取图像失败时抛出
 	 * @since 2.1.0
@@ -451,7 +451,7 @@ public class ImageProcessor {
 	 *
 	 * @param imageInputStream 图像输入流，不可为 null
 	 * @param exifOrientation  外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws NullPointerException     当 imageInputStream 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @throws IOException              当读取图像失败时抛出
@@ -477,7 +477,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param bufferedImage BufferedImage 对象，不可为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws NullPointerException 当 bufferedImage 为 null 时抛出
 	 * @since 2.1.0
 	 */
@@ -497,7 +497,7 @@ public class ImageProcessor {
 	 *
 	 * @param bufferedImage   BufferedImage 对象，不可为 null
 	 * @param exifOrientation 外部获取的 EXIF 方向值（1-8），用于校正图像
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws NullPointerException     当 bufferedImage 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @since 2.1.0
@@ -524,7 +524,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param opacity 透明度值，范围 0.0（完全透明）到 1.0（完全不透明）
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 opacity 超出 [0.0, 1.0] 范围时抛出
 	 * @since 2.1.0
 	 */
@@ -539,7 +539,7 @@ public class ImageProcessor {
 	 * 按指定方向旋转图像。
 	 *
 	 * @param direction 旋转方向
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor rotate(final RotateDirection direction) {
@@ -553,7 +553,7 @@ public class ImageProcessor {
 	 * 按指定角度旋转图像。
 	 *
 	 * @param angle 旋转角度（单位：度），正值表示顺时针旋转
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor rotate(final double angle) {
@@ -566,7 +566,7 @@ public class ImageProcessor {
 	 *
 	 * <p><b>效果说明</b>：使用高斯模糊核，半径越大越模糊；1.5 像素提供轻微柔化，适合降噪或 UI 图标处理。</p>
 	 *
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor blur() {
@@ -587,7 +587,7 @@ public class ImageProcessor {
 	 * </ul></p>
 	 *
 	 * @param radius 模糊半径，值越大模糊效果越强
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor blur(final float radius) {
@@ -599,7 +599,7 @@ public class ImageProcessor {
 	 * 翻转图像。
 	 *
 	 * @param direction 翻转方向
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor flip(final FlipDirection direction) {
@@ -614,7 +614,7 @@ public class ImageProcessor {
 	 *
 	 * <p><b>效果说明</b>：基于非锐化掩模（Unsharp Mask）原理，0.3 提供自然清晰度提升，无明显光晕。</p>
 	 *
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor sharpen() {
@@ -635,7 +635,7 @@ public class ImageProcessor {
 	 * </ul></p>
 	 *
 	 * @param amount 锐化强度
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor sharpen(final float amount) {
@@ -646,7 +646,7 @@ public class ImageProcessor {
 	/**
 	 * 将图像转换为灰度图。
 	 *
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor grayscale() {
@@ -660,7 +660,7 @@ public class ImageProcessor {
 	 *
 	 * <p><b>效果说明</b>：0.3 表示对比度提升约 30%，使明暗更分明，适用于灰蒙图像。</p>
 	 *
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor contrast() {
@@ -683,7 +683,7 @@ public class ImageProcessor {
 	 * </ul></p>
 	 *
 	 * @param amount 对比度调整值，范围为-1.0到1.0，0表示不变，正值增加对比度，负值降低对比度
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor contrast(final float amount) {
@@ -711,7 +711,7 @@ public class ImageProcessor {
 	 * </ul></p>
 	 *
 	 * @param amount 亮度调整值，范围为-2.0到2.0，0表示不变，正值增加亮度，负值降低亮度
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor brightness(final float amount) {
@@ -729,7 +729,7 @@ public class ImageProcessor {
 	 * 对图像应用自定义过滤器。
 	 *
 	 * @param filter 要应用的图像过滤器
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws NullPointerException 当过滤器为null时
 	 * @since 2.1.0
 	 */
@@ -746,7 +746,7 @@ public class ImageProcessor {
 	 *
 	 * @param width  目标宽度（像素）
 	 * @param height 目标高度（像素）
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor resize(final int width, final int height) {
@@ -759,7 +759,7 @@ public class ImageProcessor {
 	 * @param width              目标宽度（像素）
 	 * @param height             目标高度（像素）
 	 * @param resampleFilterType 插值滤波算法
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
 	 * @see ResampleOp#FILTER_TRIANGLE
@@ -790,7 +790,7 @@ public class ImageProcessor {
 	 * 按指定宽度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param targetWidth 目标宽度（像素）
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor scaleByWidth(final int targetWidth) {
@@ -802,7 +802,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetWidth        目标宽度（像素）
 	 * @param resampleFilterType 插值滤波算法
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
 	 * @see ResampleOp#FILTER_TRIANGLE
@@ -833,7 +833,7 @@ public class ImageProcessor {
 	 * 按指定高度等比例缩放图像，保持原始宽高比。
 	 *
 	 * @param targetHeight 目标高度（像素）
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor scaleByHeight(final int targetHeight) {
@@ -845,7 +845,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetHeight       目标高度（像素）
 	 * @param resampleFilterType 插值滤波算法
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
 	 * @see ResampleOp#FILTER_TRIANGLE
@@ -876,7 +876,7 @@ public class ImageProcessor {
 	 * 将图像缩放到指定的比例，保持原始宽高比。
 	 *
 	 * @param scalingFactor 缩放比例
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor scale(final double scalingFactor) {
@@ -888,7 +888,7 @@ public class ImageProcessor {
 	 *
 	 * @param scalingFactor      缩放比例
 	 * @param resampleFilterType 插值滤波算法
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
 	 * @see ResampleOp#FILTER_TRIANGLE
@@ -927,7 +927,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetWidth  目标宽度（像素）
 	 * @param targetHeight 目标高度（像素）
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor scale(final int targetWidth, final int targetHeight) {
@@ -947,7 +947,7 @@ public class ImageProcessor {
 	 * @param targetWidth        目标宽度（像素）
 	 * @param targetHeight       目标高度（像素）
 	 * @param resampleFilterType 插值滤波算法
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ResampleOp#FILTER_POINT
 	 * @see ResampleOp#FILTER_BOX
 	 * @see ResampleOp#FILTER_TRIANGLE
@@ -983,7 +983,7 @@ public class ImageProcessor {
 	 *
 	 * @param width  目标裁剪宽度，必须大于 0
 	 * @param height 目标裁剪高度，必须大于 0
-	 * @return 当前编辑器实例（便于链式调用）
+	 * @return 当前处理器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code width} 或 {@code height} 小于等于 0 时抛出
 	 * @since 2.1.0
 	 */
@@ -1014,7 +1014,7 @@ public class ImageProcessor {
 	 * @param bottomOffset 底部偏移，必须大于等于 0
 	 * @param leftOffset   左侧偏移，必须大于等于 0
 	 * @param rightOffset  右侧偏移，必须大于等于 0
-	 * @return 当前编辑器实例（便于链式调用）
+	 * @return 当前处理器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当任一偏移为负数时抛出
 	 * @since 2.1.0
 	 */
@@ -1045,7 +1045,7 @@ public class ImageProcessor {
 	 * @param y      裁剪矩形左上角 Y 坐标，必须大于等于 0
 	 * @param width  裁剪宽度，必须大于 0
 	 * @param height 裁剪高度，必须大于 0
-	 * @return 当前编辑器实例（便于链式调用）
+	 * @return 当前处理器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code x} 或 {@code y} 为负数，或 {@code width}、{@code height} 小于等于 0 时抛出
 	 * @since 2.1.0
 	 */
@@ -1072,7 +1072,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param watermarkImage 水印图片，不可为 null
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see ImageWatermarkOption
 	 * @since 2.1.0
 	 */
@@ -1091,7 +1091,7 @@ public class ImageProcessor {
 	 *
 	 * @param watermarkImage 水印图片，不可为 null
 	 * @param option         水印配置选项，包含缩放比例、透明度、位置方向、尺寸限制等，不可为 null
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkImage 或 option 为 null 时抛出
 	 * @see ImageWatermarkOption
 	 * @since 2.1.0
@@ -1110,7 +1110,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param watermark 预创建的 Watermark 对象，不可为 null
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermark 为 null 时抛出
 	 * @see Watermark
 	 * @since 2.1.0
@@ -1130,7 +1130,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param watermarkText 水印文字内容，不可为空字符串
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @see TextWatermarkOption
 	 * @since 2.1.0
 	 */
@@ -1149,7 +1149,7 @@ public class ImageProcessor {
 	 *
 	 * @param watermarkText 水印文字内容，不可为空字符串
 	 * @param option        文字水印配置选项，包含字体、大小、颜色、透明度、位置方向等，不可为 null
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkText 为空或 option 为 null 时抛出
 	 * @see TextWatermarkOption
 	 * @since 2.1.0
@@ -1168,7 +1168,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param caption 预创建的 Caption 对象，不可为 null
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 caption 为 null 时抛出
 	 * @see Caption
 	 * @since 2.1.0
@@ -1189,7 +1189,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @param operation 图像操作函数，接收当前图像，返回处理后的图像
-	 * @return 当前编辑器实例，用于链式调用
+	 * @return 当前处理器实例，用于链式调用
 	 * @throws NullPointerException 当 operation 为 null 时抛出
 	 * @since 2.1.0
 	 */
@@ -1339,7 +1339,7 @@ public class ImageProcessor {
 	 * 输出格式会恢复为输入格式；如果输入格式为空，则根据图像是否含Alpha通道自动选择。
 	 * </p>
 	 *
-	 * @return 当前编辑器实例（便于链式调用）
+	 * @return 当前处理器实例（便于链式调用）
 	 * @since 2.1.0
 	 */
 	public ImageProcessor reset() {
@@ -1363,8 +1363,8 @@ public class ImageProcessor {
 	/**
 	 * 释放图像资源，清空所有内部图像数据。
 	 * <p>
-	 * 调用此方法后，编辑器将不再持有任何图像数据的引用，
-	 * 有助于减少内存占用。调用后编辑器不可再使用。
+	 * 调用此方法后，处理器将不再持有任何图像数据的引用，
+	 * 有助于减少内存占用。调用后处理器不可再使用。
 	 * </p>
 	 *
 	 * @since 2.1.0
