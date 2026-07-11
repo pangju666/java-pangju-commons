@@ -46,7 +46,7 @@ import java.util.Objects;
  * <ul>
  *     <li><strong>图像尺寸获取</strong> - 支持从元数据或BufferedImage获取图像尺寸</li>
  *     <li><strong>元数据解析</strong> - 基于Metadata Extractor解析图像元数据</li>
- *     <li><strong>EXIF方向自动校正</strong> - 可选择在构造时自动校正EXIF方向，缓存校正后的图像</li>
+ *     <li><strong>EXIF方向自动校正</strong> - 可选择在构造时根据 EXIF 方向校正图像，并在需要时缓存校正后的结果</li>
  *     <li><strong>BufferedImage缓存</strong> - 缓存解码后的图像，避免重复解码</li>
  *     <li><strong>BufferedImage深拷贝</strong> - 提供深拷贝方法，避免修改缓存的原始图像</li>
  *     <li><strong>图像格式识别</strong> - 支持从MIME类型获取ImageIO支持的format</li>
@@ -66,9 +66,9 @@ import java.util.Objects;
  * <ul>
  *     <li>资源关闭后禁止执行任何操作</li>
  *     <li>BufferedImage在资源关闭时会被flush</li>
- *     <li>当启用方向校正时，会自动解码图像并缓存校正后的结果</li>
+ *     <li>当启用方向校正且 EXIF 方向不为正常值时，会自动解码图像并缓存校正后的结果</li>
  *     <li>使用深拷贝方法会消耗更多内存，仅在需要修改图像时使用</li>
- *     <li>imageFormat是从父类format推断的、ImageIO支持的图像格式，仅当该格式在{@link ImageConstants#getSupportedReadImageFormats}中时才会被赋值</li>
+ *     <li>imageFormat 是从父类 format 推断的、且被 ImageIO 支持读取的图像格式，仅当该格式存在于 {@link ImageConstants#getSupportedReadImageFormats()} 中时才会被赋值</li>
  * </ul>
  *
  * @author pangju666
@@ -77,19 +77,20 @@ import java.util.Objects;
 public class ImageIOResource extends IOResource {
 	/**
 	 * 图像格式
-	 * <p>ImageIO支持的图像格式（如JPEG、PNG）</p>
+	 * <p>从父类 {@code format} 推断出的、被 ImageIO 支持读取的图像格式（如 JPEG、PNG）。</p>
+	 * <p>仅当该格式存在于 {@link ImageConstants#getSupportedReadImageFormats()} 中时才会被赋值，否则为 {@code null}。</p>
 	 *
 	 * @since 2.1.0
 	 */
 	protected final String imageFormat;
 	/**
 	 * EXIF 方向是否已校正
-	 * <p>标记图像是否已进行 EXIF 方向校正。</p>
+	 * <p>标记当前资源是否按照 EXIF 方向处理逻辑构造。</p>
 	 *
 	 * <p>取值说明：</p>
 	 * <ul>
-	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
-	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 *   <li>{@code true}：当前资源按 EXIF 方向校正语义处理；若 EXIF 方向不是正常值，缓存的图像和尺寸为校正后的结果</li>
+	 *   <li>{@code false}：当前资源不按 EXIF 方向进行校正，后续读取到的是原始方向的数据</li>
 	 * </ul>
 	 *
 	 * @since 2.1.0
@@ -119,13 +120,13 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于IOResource构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从现有IOResource创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从现有 IOResource 创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 *     <li>orientationCorrected 字段将被设置为 true</li>
 	 * </ul>
 	 *
@@ -140,18 +141,18 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于IOResource构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从现有IOResource创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从现有 IOResource 创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
-	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
-	 *     <li>orientationCorrected 字段将被设置为 correctOrientation 参数值</li>
+	 *     <li>当启用校正且 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>orientationCorrected 字段将与 {@code correctOrientation} 参数保持一致</li>
 	 * </ul>
 	 *
 	 * @param resource           源资源（必须非null且未关闭）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当resource已关闭或不是图像资源时抛出
 	 * @since 2.1.0
@@ -232,7 +233,7 @@ public class ImageIOResource extends IOResource {
 	 * <ul>
 	 *     <li>源资源必须未关闭</li>
 	 *     <li>自动验证资源是否为图像类型</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 *     <li>orientationCorrected 字段将被设置为 true</li>
 	 * </ul>
 	 *
@@ -288,13 +289,13 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于文件路径构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从文件路径创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从文件路径创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param filePath 文件路径（必须非空）
@@ -308,7 +309,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于文件路径构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从文件路径创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从文件路径创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -318,7 +319,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param filePath           文件路径（必须非空）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当filePath为空或文件不是图像文件时抛出
 	 * @since 2.1.0
@@ -414,7 +415,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于File对象构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从File对象创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从 File 对象创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -434,17 +435,17 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于File对象构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从File对象创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从 File 对象创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当启用校正且 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param file               文件对象（必须非null）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当file为null或文件不是图像文件时抛出
 	 * @since 2.1.0
@@ -497,7 +498,7 @@ public class ImageIOResource extends IOResource {
 	 * <ul>
 	 *     <li>自动验证文件是否为图像类型</li>
 	 *     <li>自动识别图像格式</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param file            文件对象（必须非null）
@@ -539,7 +540,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于字节数组构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从字节数组创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从字节数组创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -558,7 +559,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于字节数组构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从字节数组创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从字节数组创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -567,7 +568,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param bytes              字节数组（必须非空）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当bytes为空或数据不是图像数据时抛出
 	 * @since 2.1.0
@@ -665,7 +666,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于输入流构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从输入流创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从输入流创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -684,16 +685,16 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于输入流构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从输入流创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从输入流创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
-	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当启用校正且 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param inputStream        输入流（必须非null）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当inputStream为null或数据不是图像数据时抛出
 	 * @since 2.1.0
@@ -748,7 +749,7 @@ public class ImageIOResource extends IOResource {
 	 * <p>注意事项：</p>
 	 * <ul>
 	 *     <li>自动验证数据是否为图像类型</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
+	 *     <li>当 EXIF 方向不为正常值时，自动解码图像并缓存校正后的结果</li>
 	 * </ul>
 	 *
 	 * @param inputStream     输入流（必须非null）
@@ -792,7 +793,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于ImageInputStream构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从ImageInputStream创建ImageIOResource，自动解析并校正EXIF方向信息。</p>
+	 * <p>从 ImageInputStream 创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -812,7 +813,7 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 基于ImageInputStream构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从ImageInputStream创建ImageIOResource，可选择是否解析并校正EXIF方向信息。</p>
+	 * <p>从 ImageInputStream 创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * <p>注意事项：</p>
 	 * <ul>
@@ -822,7 +823,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param imageInputStream   ImageInputStream（必须非null）
-	 * @param correctOrientation 是否解析并校正EXIF方向信息
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当imageInputStream为null或数据不是图像数据时抛出
 	 * @since 2.1.0
@@ -1173,12 +1174,12 @@ public class ImageIOResource extends IOResource {
 
 	/**
 	 * 判断 EXIF 方向是否已校正
-	 * <p>返回图像是否已进行 EXIF 方向校正。</p>
+	 * <p>返回当前资源是否按 EXIF 方向校正语义处理。</p>
 	 *
 	 * <p>返回值说明：</p>
 	 * <ul>
-	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
-	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 *   <li>{@code true}：当前资源按 EXIF 方向校正语义处理；若 EXIF 方向不是正常值，缓存的图像和尺寸为校正后的结果</li>
+	 *   <li>{@code false}：当前资源不按 EXIF 方向进行校正，后续读取到的是原始方向的数据</li>
 	 * </ul>
 	 *
 	 * @return 如果 EXIF 方向已校正返回 true，否则返回 false
