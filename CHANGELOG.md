@@ -32,16 +32,4 @@
 - feat(image): RotateDirection新增getRadians方法
 - perf(image): 优化图像水印和文字水印配置类，废弃部分字段并新增部分新字段适配thumbnailator的Caption和Watermark
 - perf(image): 优化文字水印字体大小计算策略并修改默认字体样式
-- perf(image): ImageEditor废弃旧的图像水印和文字水印方法，改为使用thumbnailator中的Caption和Watermark来实现
-- feat(image): ImageEditor新增transparency方法修改透明度
-- perf(image): ImageEditor废弃公共灰度化滤镜和公共亮度对比度滤镜
-- perf(image): ImageEditor废弃统一重采样滤镜配置，改为缩放操作方法参数
-- feat(image): ImageEditor文字水印和图像水印新增边界检测
-- fix(image): ImageEditor修复裁剪操作边界检测逻辑错误
-- feat(image): ImageEditor新增自定义图像处理操作方法
-- feat(image): ImageEditor新增释放图像方法
-- feat(image): ImageEditor新增从ImageIOResource构建实例方法
-- perf(image): ImageEditor废弃从文件构建实例方法
-- perf(image): 输出文件之前创建父目录
-- fix(image): 修复ImageEditor中代码逻辑错误
-- perf(image): 优化ImageEditor中部分代码逻辑
+- feat(image): 废弃ImageEditor，新增ImageProcessor代替

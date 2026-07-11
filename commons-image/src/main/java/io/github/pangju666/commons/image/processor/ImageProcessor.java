@@ -200,7 +200,7 @@ import java.util.function.Function;
  * @see ImageUtil
  * @see ImageIOResource
  * @see ImageUtils
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class ImageProcessor {
 	/**
@@ -210,7 +210,7 @@ public class ImageProcessor {
 	 * PNG格式支持透明度，适合保留原图像的透明效果。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static final String DEFAULT_ALPHA_OUTPUT_FORMAT = "PNG";
 
@@ -221,7 +221,7 @@ public class ImageProcessor {
 	 * JPG格式具有较高的压缩率，适合不需要透明效果的图像。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static final String DEFAULT_OUTPUT_FORMAT = "JPG";
 
@@ -231,7 +231,7 @@ public class ImageProcessor {
 	 * 存储输入图像的原始宽度和高度信息。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final ImageSize inputImageSize;
 
@@ -242,7 +242,7 @@ public class ImageProcessor {
 	 * 当使用 {@link #of(ImageIOResource)} 构建时，此图像为 ImageIOResource 缓存的图像（可能已进行 EXIF 方向校正）。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final BufferedImage inputImage;
 
@@ -254,7 +254,7 @@ public class ImageProcessor {
 	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #reset()} 时也会用它恢复输出格式。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final String inputFormat;
 
@@ -265,7 +265,7 @@ public class ImageProcessor {
 	 * 在调用各种处理方法后会被更新。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected BufferedImage outputImage;
 
@@ -276,7 +276,7 @@ public class ImageProcessor {
 	 * 在调用缩放相关方法后会被更新。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected ImageSize outputImageSize;
 
@@ -288,7 +288,7 @@ public class ImageProcessor {
 	 * 可通过{@link #outputFormat(String)}方法修改。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected String outputFormat;
 
@@ -309,7 +309,7 @@ public class ImageProcessor {
 	 * @param inputImage     原始图像数据（BufferedImage），不可为 null
 	 * @param inputImageSize 原始图像尺寸对象（包含宽、高及方向信息），不可为 null
 	 * @throws NullPointerException 当 inputImage 或 inputImageSize 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected ImageProcessor(final BufferedImage inputImage, final ImageSize inputImageSize) {
 		this(inputImage, inputImageSize, null);
@@ -333,7 +333,7 @@ public class ImageProcessor {
 	 * @param inputImageSize 原始图像尺寸对象（包含宽、高及方向信息），不可为 null
 	 * @param inputFormat    输入图像格式（如 "PNG"、"JPG"），可为 null 或空白
 	 * @throws NullPointerException 当 inputImage 或 inputImageSize 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected ImageProcessor(final BufferedImage inputImage, final ImageSize inputImageSize, final String inputFormat) {
 		Validate.notNull(inputImage, "inputImage 不可为 null");
@@ -364,7 +364,7 @@ public class ImageProcessor {
 	 * @return 图像编辑器实例
 	 * @throws IOException 当读取图像失败时抛出
 	 * @see #of(InputStream, int)
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final InputStream inputStream) throws IOException {
 		return of(inputStream, ImageConstants.NORMAL_EXIF_ORIENTATION);
@@ -382,7 +382,7 @@ public class ImageProcessor {
 	 * @throws IOException              当读取输入流出错时
 	 * @throws NullPointerException     当 inputStream 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final InputStream inputStream, final int exifOrientation) throws IOException {
 		Validate.notNull(inputStream, "inputStream不可为 null");
@@ -415,7 +415,7 @@ public class ImageProcessor {
 	 * @return 图像编辑器实例
 	 * @throws IOException          当读取图像数据失败时抛出
 	 * @throws NullPointerException 当 resource 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final ImageIOResource resource) throws IOException {
 		Validate.notNull(resource, "resource不可为 null");
@@ -438,7 +438,7 @@ public class ImageProcessor {
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 imageInputStream 为 null 时抛出
 	 * @throws IOException          当读取图像失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final ImageInputStream imageInputStream) throws IOException {
 		Validate.notNull(imageInputStream, "imageInputStream不可为 null");
@@ -464,7 +464,7 @@ public class ImageProcessor {
 	 * @throws NullPointerException     当 imageInputStream 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
 	 * @throws IOException              当读取图像失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final ImageInputStream imageInputStream, final int exifOrientation) throws IOException {
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
@@ -488,7 +488,7 @@ public class ImageProcessor {
 	 * @param bufferedImage BufferedImage 对象，不可为 null
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException 当 bufferedImage 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final BufferedImage bufferedImage) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
@@ -509,7 +509,7 @@ public class ImageProcessor {
 	 * @return 图像编辑器实例
 	 * @throws NullPointerException     当 bufferedImage 为 null 时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在1-8范围内时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static ImageProcessor of(final BufferedImage bufferedImage, final int exifOrientation) {
 		Validate.notNull(bufferedImage, "bufferedImage不可为 null");
@@ -535,7 +535,7 @@ public class ImageProcessor {
 	 * @param opacity 透明度值，范围 0.0（完全透明）到 1.0（完全不透明）
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 opacity 超出 [0.0, 1.0] 范围时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor transparency(final float opacity) {
 		Validate.isTrue(opacity >= 0 && opacity <= 1, "opacity 必须大于等于 0 且小于等于 1");
@@ -549,7 +549,7 @@ public class ImageProcessor {
 	 *
 	 * @param direction 旋转方向
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor rotate(final RotateDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -563,7 +563,7 @@ public class ImageProcessor {
 	 *
 	 * @param angle 旋转角度（单位：度），正值表示顺时针旋转
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor rotate(final double angle) {
 		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(angle));
@@ -576,7 +576,7 @@ public class ImageProcessor {
 	 * <p><b>效果说明</b>：使用高斯模糊核，半径越大越模糊；1.5 像素提供轻微柔化，适合降噪或 UI 图标处理。</p>
 	 *
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor blur() {
 		this.outputImage = ImageUtil.blur(this.outputImage, 1.5f);
@@ -597,7 +597,7 @@ public class ImageProcessor {
 	 *
 	 * @param radius 模糊半径，值越大模糊效果越强
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor blur(final float radius) {
 		this.outputImage = ImageUtil.blur(this.outputImage, radius);
@@ -609,7 +609,7 @@ public class ImageProcessor {
 	 *
 	 * @param direction 翻转方向
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor flip(final FlipDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
@@ -624,7 +624,7 @@ public class ImageProcessor {
 	 * <p><b>效果说明</b>：基于非锐化掩模（Unsharp Mask）原理，0.3 提供自然清晰度提升，无明显光晕。</p>
 	 *
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor sharpen() {
 		this.outputImage = ImageUtil.sharpen(this.outputImage, 0.3f);
@@ -645,7 +645,7 @@ public class ImageProcessor {
 	 *
 	 * @param amount 锐化强度
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor sharpen(final float amount) {
 		this.outputImage = ImageUtil.sharpen(this.outputImage, amount);
@@ -656,7 +656,7 @@ public class ImageProcessor {
 	 * 将图像转换为灰度图。
 	 *
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor grayscale() {
 		Image image = ImageUtil.filter(this.outputImage, new GrayFilter());
@@ -670,7 +670,7 @@ public class ImageProcessor {
 	 * <p><b>效果说明</b>：0.3 表示对比度提升约 30%，使明暗更分明，适用于灰蒙图像。</p>
 	 *
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor contrast() {
 		Image image = ImageUtil.filter(this.outputImage, new BrightnessContrastFilter(0, 0.3f));
@@ -693,7 +693,7 @@ public class ImageProcessor {
 	 *
 	 * @param amount 对比度调整值，范围为-1.0到1.0，0表示不变，正值增加对比度，负值降低对比度
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor contrast(final float amount) {
 		if (amount == 0f || amount > 1.0 || amount < -1.0) {
@@ -721,7 +721,7 @@ public class ImageProcessor {
 	 *
 	 * @param amount 亮度调整值，范围为-2.0到2.0，0表示不变，正值增加亮度，负值降低亮度
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor brightness(final float amount) {
 		if (amount == 0f || amount > 2.0 || amount < -2.0) {
@@ -740,7 +740,7 @@ public class ImageProcessor {
 	 * @param filter 要应用的图像过滤器
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws NullPointerException 当过滤器为null时
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor filter(final ImageFilter filter) {
 		Validate.notNull(filter, "filter不可为 null");
@@ -756,7 +756,7 @@ public class ImageProcessor {
 	 * @param width  目标宽度（像素）
 	 * @param height 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor resize(final int width, final int height) {
 		return resize(width, height, ResampleOp.FILTER_LANCZOS);
@@ -784,7 +784,7 @@ public class ImageProcessor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor resize(final int width, final int height, final int resampleFilterType) {
 		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
@@ -800,7 +800,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetWidth 目标宽度（像素）
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scaleByWidth(final int targetWidth) {
 		return scaleByWidth(targetWidth, ResampleOp.FILTER_LANCZOS);
@@ -827,7 +827,7 @@ public class ImageProcessor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scaleByWidth(final int targetWidth, final int resampleFilterType) {
 		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
@@ -843,7 +843,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetHeight 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scaleByHeight(final int targetHeight) {
 		return scaleByHeight(targetHeight, ResampleOp.FILTER_LANCZOS);
@@ -870,7 +870,7 @@ public class ImageProcessor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scaleByHeight(final int targetHeight, final int resampleFilterType) {
 		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
@@ -886,7 +886,7 @@ public class ImageProcessor {
 	 *
 	 * @param scalingFactor 缩放比例
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scale(final double scalingFactor) {
 		return scale(scalingFactor, ResampleOp.FILTER_LANCZOS);
@@ -913,7 +913,7 @@ public class ImageProcessor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scale(final double scalingFactor, final int resampleFilterType) {
 		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
@@ -937,7 +937,7 @@ public class ImageProcessor {
 	 * @param targetWidth  目标宽度（像素）
 	 * @param targetHeight 目标高度（像素）
 	 * @return 当前编辑器实例，用于链式调用
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scale(final int targetWidth, final int targetHeight) {
 		return scale(targetWidth, targetHeight, ResampleOp.FILTER_LANCZOS);
@@ -972,7 +972,7 @@ public class ImageProcessor {
 	 * @see ResampleOp#FILTER_LANCZOS
 	 * @see ResampleOp#FILTER_BLACKMAN_BESSEL
 	 * @see ResampleOp#FILTER_BLACKMAN_SINC
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor scale(final int targetWidth, final int targetHeight, final int resampleFilterType) {
 		Validate.isTrue(resampleFilterType >= 0 && resampleFilterType <= 15, "resampleFilterType 取值范围在0-15之间");
@@ -994,7 +994,7 @@ public class ImageProcessor {
 	 * @param height 目标裁剪高度，必须大于 0
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code width} 或 {@code height} 小于等于 0 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor cropByCenter(int width, int height) {
 		Validate.isTrue(width > 0, "width 不能小于0");
@@ -1025,7 +1025,7 @@ public class ImageProcessor {
 	 * @param rightOffset  右侧偏移，必须大于等于 0
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当任一偏移为负数时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor cropByOffset(int topOffset, int bottomOffset, int leftOffset, int rightOffset) {
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
@@ -1056,7 +1056,7 @@ public class ImageProcessor {
 	 * @param height 裁剪高度，必须大于 0
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @throws IllegalArgumentException 当 {@code x} 或 {@code y} 为负数，或 {@code width}、{@code height} 小于等于 0 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor cropByRect(int x, int y, int width, int height) {
 		Validate.isTrue(x >= 0, "x 不能小于0");
@@ -1083,7 +1083,7 @@ public class ImageProcessor {
 	 * @param watermarkImage 水印图片，不可为 null
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see ImageWatermarkOption
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addImageWatermark(final BufferedImage watermarkImage) {
 		this.outputImage = new ImageWatermarkOption().toWatermark(this.outputImageSize, watermarkImage)
@@ -1103,7 +1103,7 @@ public class ImageProcessor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkImage 或 option 为 null 时抛出
 	 * @see ImageWatermarkOption
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addImageWatermark(final BufferedImage watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1122,7 +1122,7 @@ public class ImageProcessor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermark 为 null 时抛出
 	 * @see Watermark
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addImageWatermark(final Watermark watermark) {
 		Validate.notNull(watermark, "watermark 不可为 null");
@@ -1141,7 +1141,7 @@ public class ImageProcessor {
 	 * @param watermarkText 水印文字内容，不可为空字符串
 	 * @return 当前编辑器实例，用于链式调用
 	 * @see TextWatermarkOption
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addTextWatermark(final String watermarkText) {
 		this.outputImage = new TextWatermarkOption().toCaption(watermarkText, this.outputImage)
@@ -1161,7 +1161,7 @@ public class ImageProcessor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 watermarkText 为空或 option 为 null 时抛出
 	 * @see TextWatermarkOption
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
@@ -1180,7 +1180,7 @@ public class ImageProcessor {
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws IllegalArgumentException 当 caption 为 null 时抛出
 	 * @see Caption
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor addTextWatermark(final Caption caption) {
 		Validate.notNull(caption, "caption 不可为 null");
@@ -1200,7 +1200,7 @@ public class ImageProcessor {
 	 * @param operation 图像操作函数，接收当前图像，返回处理后的图像
 	 * @return 当前编辑器实例，用于链式调用
 	 * @throws NullPointerException 当 operation 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor apply(final Function<BufferedImage, BufferedImage> operation) {
 		Validate.notNull(operation, "operation 不可为 null");
@@ -1230,7 +1230,7 @@ public class ImageProcessor {
 	 * @throws NullPointerException     当 outputFormat 为 null 时抛出
 	 * @throws IllegalArgumentException 当 outputFormat 为空字符串或不支持该格式时抛出
 	 * @see ImageConstants#getSupportedWriteImageFormats()
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor outputFormat(final String outputFormat) {
 		Validate.notBlank(outputFormat, "输出格式不可为空");
@@ -1249,7 +1249,7 @@ public class ImageProcessor {
 	 * @return 如果写入成功则返回true，否则返回false
 	 * @throws IOException          当写入文件出错时
 	 * @throws NullPointerException 当输出文件为null时
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public boolean toFile(final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -1266,7 +1266,7 @@ public class ImageProcessor {
 	 * @return 如果写入成功则返回true，否则返回false
 	 * @throws IOException          当写入输出流出错时
 	 * @throws NullPointerException 当输出流为null时
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream不可为 null");
@@ -1281,7 +1281,7 @@ public class ImageProcessor {
 	 * @return 如果写入成功则返回true，否则返回false
 	 * @throws IOException          当写入图像输出流出错时
 	 * @throws NullPointerException 当图像输出流为null时
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
 		Validate.notNull(imageOutputStream, "imageOutputStream不可为null");
@@ -1302,7 +1302,7 @@ public class ImageProcessor {
 	 * </p>
 	 *
 	 * @return 处理后图像的 BufferedImage，可能会根据输出格式进行类型转换
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public BufferedImage toBufferedImage() {
 		int imageType = outputImage.getType();
@@ -1335,7 +1335,7 @@ public class ImageProcessor {
 	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
 	 *
 	 * @return 当前编辑器实例（便于链式调用）
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ImageProcessor reset() {
 		this.outputImage.flush();
@@ -1362,7 +1362,7 @@ public class ImageProcessor {
 	 * 有助于减少内存占用。调用后编辑器不可再使用。
 	 * </p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public void release() {
 		this.outputImage.flush();
