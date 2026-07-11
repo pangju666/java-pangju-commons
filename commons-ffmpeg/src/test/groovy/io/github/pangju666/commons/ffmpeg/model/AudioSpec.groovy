@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ffmpeg
+package io.github.pangju666.commons.ffmpeg.model
 
 import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
-import io.github.pangju666.commons.ffmpeg.model.Audio
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import spock.lang.Specification
 

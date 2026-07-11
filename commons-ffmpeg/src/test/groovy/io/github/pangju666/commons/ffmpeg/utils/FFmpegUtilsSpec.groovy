@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ffmpeg
+package io.github.pangju666.commons.ffmpeg.utils
 
-import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils
+
 import spock.lang.Specification
 
 import java.time.Duration

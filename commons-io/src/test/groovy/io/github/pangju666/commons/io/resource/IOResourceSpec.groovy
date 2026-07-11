@@ -1,6 +1,7 @@
-package io.github.pangju666.commons.io.utils
+package io.github.pangju666.commons.io.resource
 
-import io.github.pangju666.commons.io.resource.IOResource
+
+import io.github.pangju666.commons.io.utils.FileUtils
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll

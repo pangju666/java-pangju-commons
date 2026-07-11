@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ffmpeg
+package io.github.pangju666.commons.ffmpeg.builder
 
 
-import io.github.pangju666.commons.ffmpeg.builder.FFmpegFiltersBuilder
 import spock.lang.Specification
 import spock.lang.TempDir
 

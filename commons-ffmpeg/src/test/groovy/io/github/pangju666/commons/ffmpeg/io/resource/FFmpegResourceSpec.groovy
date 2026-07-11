@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ffmpeg
+package io.github.pangju666.commons.ffmpeg.io.resource
 
-import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
+
 import io.github.pangju666.commons.io.resource.IOResource
 import spock.lang.Specification
 import spock.lang.TempDir
