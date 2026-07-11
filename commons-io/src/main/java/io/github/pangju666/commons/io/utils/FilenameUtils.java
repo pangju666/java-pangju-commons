@@ -22,6 +22,8 @@ import jakarta.activation.MimetypesFileTypeMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
 
 import java.util.Collection;
 
@@ -33,7 +35,7 @@ import java.util.Collection;
  *
  * <h3>功能特性：</h3>
  * <ul>
- *     <li><b>MIME类型检测</b> - 基于文件扩展名的快速类型识别系统</li>
+ *     <li><b>MIME类型检测</b> - 基于文件扩展名的快速类型识别系统，支持MIME类型与扩展名双向转换</li>
  *     <li><b>文件类型判断</b> - 支持图片/文本/视频/音频/应用等常见类型检测</li>
  *     <li><b>路径智能识别</b> - 精确区分目录路径与文件路径</li>
  *     <li><b>批量匹配机制</b> - 支持多MIME类型集合匹配校验</li>
@@ -52,6 +54,9 @@ import java.util.Collection;
  * <pre>{@code
  * // 获取MIME类型
  * String mime = FilenameUtils.getMimeType("document.pdf"); // "application/pdf"
+ *
+ * // 根据MIME类型获取扩展名
+ * String ext = FilenameUtils.getExtensionByMimeType("image/png"); // "png"
  *
  * // 文件类型验证
  * boolean isValid = FilenameUtils.isAnyMimeType("image.jpg",
@@ -78,6 +83,73 @@ public class FilenameUtils extends org.apache.commons.io.FilenameUtils {
 	protected static final MimetypesFileTypeMap MIME_TYPE_MAP = new MimetypesFileTypeMap();
 
 	protected FilenameUtils() {
+	}
+
+	/**
+	 * 根据MIME类型获取文件扩展名
+	 * <p>
+	 * 基于Apache Tika的MimeTypes注册表查询对应扩展名。
+	 * </p>
+	 *
+	 * <p><b>实现特性：</b></p>
+	 * <ul>
+	 *     <li>使用线程安全的MimeTypes单例实例</li>
+	 *     <li>自动处理扩展名分隔符（去除前缀点号）</li>
+	 *     <li>无法识别时返回空字符串</li>
+	 * </ul>
+	 *
+	 * @param mimeTypeStr MIME类型字符串（如："image/png"）
+	 * @return 对应的文件扩展名（如："png"），无法识别时返回空字符串
+	 * @since 1.1.0
+	 */
+	public static String getExtensionByMimeType(final String mimeTypeStr) {
+		return getExtensionByMimeType(mimeTypeStr, StringUtils.EMPTY);
+	}
+
+	/**
+	 * 根据MIME类型获取文件扩展名（带默认值）
+	 * <p>
+	 * 基于Apache Tika的MimeTypes注册表查询对应扩展名，支持自定义默认值。
+	 * </p>
+	 *
+	 * <p><b>处理规则：</b></p>
+	 * <ol>
+	 *     <li>校验mimeTypeStr参数非空</li>
+	 *     <li>通过MimeTypes注册表查询MIME类型对应的扩展名</li>
+	 *     <li>如果扩展名为空，返回默认值</li>
+	 *     <li>如果扩展名以点号开头，去除点号后返回</li>
+	 *     <li>否则直接返回扩展名</li>
+	 * </ol>
+	 *
+	 * <p><b>异常处理：</b></p>
+	 * <ul>
+	 *     <li>mimeTypeStr为空时抛出IllegalArgumentException</li>
+	 *     <li>MIME类型未注册时返回默认值</li>
+	 *     <li>查询异常时返回默认值</li>
+	 * </ul>
+	 *
+	 * @param mimeTypeStr      MIME类型字符串（如："image/png"），不可为空
+	 * @param defaultExtension 默认扩展名（如："bin"），当无法识别时返回
+	 * @return 对应的文件扩展名（如："png"），无法识别时返回默认值
+	 * @throws IllegalArgumentException 当mimeTypeStr为空时抛出
+	 * @since 1.1.0
+	 */
+	public static String getExtensionByMimeType(final String mimeTypeStr, final String defaultExtension) {
+		Validate.notBlank(mimeTypeStr, "mimeTypeStr 不可为空");
+
+		try {
+			MimeType mimeType = IOConstants.getDefaultMimeTypes().getRegisteredMimeType(mimeTypeStr);
+			String extension = mimeType.getExtension();
+			if (StringUtils.isBlank(extension)) {
+				return defaultExtension;
+			} else if (extension.startsWith(EXTENSION_SEPARATOR_STR)) {
+				return StringUtils.substringAfter(mimeType.getExtension(), EXTENSION_SEPARATOR);
+			} else {
+				return extension;
+			}
+		} catch (MimeTypeException ignored) {
+			return defaultExtension;
+		}
 	}
 
 	/**

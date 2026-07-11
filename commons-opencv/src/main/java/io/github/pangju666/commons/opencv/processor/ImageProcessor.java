@@ -17,7 +17,6 @@
 package io.github.pangju666.commons.opencv.processor;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.io.resource.OpencvImageResource;
@@ -44,21 +43,21 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * 基于 OpenCV 的图像编辑器（链式调用风格）
+ * 基于 OpenCV 的图像处理器（链式调用风格）
  * <p>
  * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
- * 支持以 {@link OpencvImageResource}、文件、输入流、字节数组（{@code byte[]}）、{@link BytePointer} 或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
+ * 支持以 {@link OpencvImageResource}、输入流、{@link BytePointer} 或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
  * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
  *
- * <p><b>核心特性：</b></p>
+ * <h3>核心特性</h3>
  * <ul>
- *   <li><b>链式调用：</b> API 设计简洁，配置与处理顺序清晰。</li>
- *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
- *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后编辑器不可再使用。</li>
- *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 校正方向。</li>
- *   <li><b>自定义扩展：</b> 通过 {@link #apply(Function)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
- *   <li><b>丰富操作：</b>
+ *   <li><strong>链式调用：</strong> API 设计简洁，配置与处理顺序清晰。</li>
+ *   <li><strong>状态重置：</strong> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
+ *   <li><strong>资源释放：</strong> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后处理器不可再使用。</li>
+ *   <li><strong>EXIF 支持：</strong> 支持自动解析 EXIF 校正方向。</li>
+ *   <li><strong>自定义扩展：</strong> 通过 {@link #apply(Function)} 方法支持传入任意自定义图像转换函数，灵活扩展编辑功能。</li>
+ *   <li><strong>丰富操作：</strong>
  *     <ul>
  *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式。</li>
  *       <li>调整：旋转（支持固定方向和任意角度）、翻转、平移。</li>
@@ -69,19 +68,19 @@ import java.util.function.Function;
  *   </li>
  * </ul>
  *
- * <p><b>线程安全：</b></p>
+ * <h3>线程安全</h3>
  * <ul>
- *   <li>本类 <b>非线程安全</b>。实例包含可变的图像状态（{@code outputImage} 等）。</li>
+ *   <li>本类 <strong>非线程安全</strong>。实例包含可变的图像状态（{@code outputImage} 等）。</li>
  *   <li>请确保每个线程使用独立的实例，不要在多线程间共享同一个实例。</li>
  * </ul>
  *
- * <p><b>性能与内存：</b></p>
+ * <h3>性能与内存</h3>
  * <ul>
- *   <li><b>处理顺序：</b> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
- *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后编辑器不可再使用。</li>
+ *   <li><strong>处理顺序：</strong> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
+ *   <li><strong>资源管理：</strong> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后处理器不可再使用。</li>
  * </ul>
  *
- * <p><b>推荐方法调用顺序：</b></p>
+ * <h3>推荐方法调用顺序</h3>
  * <ol>
  *   <li>裁剪</li>
  *   <li>缩放</li>
@@ -96,7 +95,7 @@ import java.util.function.Function;
  *   <li>添加水印</li>
  * </ol>
  *
- * <p><b>代码示例：</b></p>
+ * <h3>代码示例</h3>
  * <pre>{@code
  * // 1. 构建实例
  * // 从 OpencvImageResource 构建
@@ -183,11 +182,50 @@ import java.util.function.Function;
  */
 public class ImageProcessor {
 	/**
+	 * 默认的带透明通道图像输出格式
+	 * <p>
+	 * 当输入图像包含透明通道（Alpha通道）时，默认使用的输出格式。
+	 * PNG格式支持透明度，适合保留原图像的透明效果。
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	protected static final String DEFAULT_ALPHA_OUTPUT_FORMAT = "png";
+
+	/**
+	 * 默认的标准图像输出格式
+	 * <p>
+	 * 当输入图像不包含透明通道时，默认使用的输出格式。
+	 * JPG格式具有较高的压缩率，适合不需要透明效果的图像。
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	protected static final String DEFAULT_OUTPUT_FORMAT = "jpg";
+
+	/**
+	 * 输入图像格式
+	 *
+	 * @since 1.1.0
+	 */
+	protected final String inputFormat;
+	/**
 	 * 原始输入图像，用于重置操作
 	 *
 	 * @since 1.1.0
 	 */
 	protected final Mat inputImage;
+
+	/**
+	 * 输出图像格式
+	 * <p>
+	 * 图像编码输出时使用的格式，默认为 inputFormat，
+	 * 如果 inputFormat 为空，则根据图像是否有透明通道选择 PNG 或 JPG
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	protected String outputFormat;
 
 	/**
 	 * 当前处理中的输出图像
@@ -197,19 +235,44 @@ public class ImageProcessor {
 	protected Mat outputImage;
 
 	/**
-	 * 内部构造函数，用于创建图像编辑器
+	 * 内部构造函数，用于创建图像处理器
+	 *
+	 * <p>
+	 * 会根据 flags 和 exifOrientation 决定是否自动校正图像方向，
+	 * 并根据图像通道数设置默认的输出格式
+	 * </p>
+	 *
+	 * @param inputImage      输入图像 Mat，不能为 null 或空
+	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
+	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空，或 exifOrientation 不在 1-8 范围内
+	 * @since 1.1.0
+	 */
+	protected ImageProcessor(final Mat inputImage, final int exifOrientation, final int flags) {
+		this(inputImage, exifOrientation, flags, null);
+	}
+
+	/**
+	 * 内部构造函数，用于创建图像处理器
+	 *
+	 * <p>
+	 * 会根据 flags 和 exifOrientation 决定是否自动校正图像方向，
+	 * 并根据 inputFormat 或图像通道数设置默认的输出格式
+	 * </p>
 	 *
 	 * @param inputImage      输入图像 Mat，不能为 null 或空
 	 * @param exifOrientation EXIF 方向值
-	 * @param flags           图像读取标志
+	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
+	 * @param inputFormat     基于 MIME 类型推断的输入图像格式，可为 null
 	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空
 	 * @since 1.1.0
 	 */
-	protected ImageProcessor(Mat inputImage, int exifOrientation, int flags) {
+	protected ImageProcessor(final Mat inputImage, final int exifOrientation, final int flags, final String inputFormat) {
 		Validate.isTrue(OpencvUtils.isNotEmpty(inputImage), "inputImage 不存在图像数据");
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
 		this.inputImage = inputImage;
+		this.inputFormat = StringUtils.defaultIfBlank(inputFormat, null);
 
 		if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
 			exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
@@ -217,15 +280,20 @@ public class ImageProcessor {
 		} else {
 			this.outputImage = inputImage.clone();
 		}
+
+		this.outputFormat = StringUtils.defaultIfBlank(inputFormat,
+			outputImage.channels() == 4 ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT);
 	}
 
 	/**
-	 * 从 OpencvImageResource 创建编辑器
+	 * 从 OpencvImageResource 创建处理器
 	 *
 	 * <p>如果资源已校正 EXIF 方向，则使用校正后的图像；否则使用原始图像并根据 EXIF 方向值进行校正。</p>
 	 *
+	 * <p>会使用资源基于 MIME 类型推断的 format 作为输入图像格式</p>
+	 *
 	 * @param resource OpencvImageResource 对象，不能为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException              如果读取图像失败
 	 * @throws IllegalArgumentException 如果 resource 为 null
 	 * @since 1.1.0
@@ -237,11 +305,12 @@ public class ImageProcessor {
 			return new ImageProcessor(resource.getImageMat(),
 				OpencvConstants.NORMAL_EXIF_ORIENTATION, resource.getFlags());
 		}
-		return new ImageProcessor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags());
+		return new ImageProcessor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags(),
+			resource.getFormat());
 	}
 
 	/**
-	 * 从输入流创建编辑器
+	 * 从输入流创建处理器
 	 * <p>使用 BGR 颜色模式读取图像，OpenCV 会在读取时自动进行 EXIF 方向校正。</p>
 	 *
 	 * <p><b>方向校正说明：</b></p>
@@ -251,7 +320,7 @@ public class ImageProcessor {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流，不能为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException 如果读取流失败
 	 * @since 1.1.0
 	 */
@@ -261,7 +330,7 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从输入流创建编辑器，使用指定的读取标志
+	 * 从输入流创建处理器，使用指定的读取标志
 	 *
 	 * <p><b>方向校正说明：</b></p>
 	 * <ul>
@@ -271,7 +340,7 @@ public class ImageProcessor {
 	 *
 	 * @param inputStream 输入流，不能为 null
 	 * @param flags       图像读取标志（OpenCV 的 IMREAD_* 常量）
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException              如果读取流失败
 	 * @throws IllegalArgumentException 如果 inputStream 为 null
 	 * @since 1.1.0
@@ -281,12 +350,12 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从输入流创建编辑器，指定读取标志和 EXIF 方向值
+	 * 从输入流创建处理器，指定读取标志和 EXIF 方向值
 	 *
 	 * @param inputStream     输入流，不能为 null
 	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IOException              如果读取流失败
 	 * @throws IllegalArgumentException 如果 inputStream 为 null，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
@@ -303,7 +372,7 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从 BytePointer 创建编辑器
+	 * 从 BytePointer 创建处理器
 	 * <p>使用 BGR 颜色模式读取图像，OpenCV 会在读取时自动进行 EXIF 方向校正。</p>
 	 *
 	 * <p><b>方向校正说明：</b></p>
@@ -313,7 +382,7 @@ public class ImageProcessor {
 	 * </ul>
 	 *
 	 * @param bytePointer BytePointer 对象，不能为 null
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
 	 * @since 1.1.0
 	 */
@@ -323,7 +392,7 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从 BytePointer 创建编辑器，指定读取标志
+	 * 从 BytePointer 创建处理器，指定读取标志
 	 *
 	 * <p><b>方向校正说明：</b></p>
 	 * <ul>
@@ -333,7 +402,7 @@ public class ImageProcessor {
 	 *
 	 * @param bytePointer BytePointer 对象，不能为 null
 	 * @param flags       图像读取标志（OpenCV 的 IMREAD_* 常量）
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
 	 * @since 1.1.0
 	 */
@@ -342,12 +411,12 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从 BytePointer 创建编辑器，指定读取标志和 EXIF 方向值
+	 * 从 BytePointer 创建处理器，指定读取标志和 EXIF 方向值
 	 *
 	 * @param bytePointer     BytePointer 对象，不能为 null 或空指针
 	 * @param flags           图像读取标志（OpenCV 的 IMREAD_* 常量）
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或空指针，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
 	 */
@@ -363,10 +432,10 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从现有 Mat 图像创建编辑器
+	 * 从现有 Mat 图像创建处理器
 	 *
 	 * @param image 图像 Mat，不能为 null 或空
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IllegalArgumentException 如果 image 为 null 或空
 	 * @since 1.1.0
 	 */
@@ -376,11 +445,11 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从现有 Mat 图像创建编辑器，指定 EXIF 方向值
+	 * 从现有 Mat 图像创建处理器，指定 EXIF 方向值
 	 *
 	 * @param image           图像 Mat，不能为 null 或空
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
-	 * @return 图像编辑器实例
+	 * @return 图像处理器实例
 	 * @throws IllegalArgumentException 如果 image 为 null 或空，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
 	 */
@@ -397,7 +466,7 @@ public class ImageProcessor {
 	 * 建议使用支持透明通道的格式（如 PNG）保存图像。</p>
 	 *
 	 * @param alpha 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
 	 * @since 1.1.0
 	 */
@@ -437,7 +506,7 @@ public class ImageProcessor {
 	 * 旋转图像（90度、180度、逆时针90度）
 	 *
 	 * @param direction 旋转方向枚举，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 direction 为 null
 	 * @since 1.1.0
 	 */
@@ -459,7 +528,7 @@ public class ImageProcessor {
 	 * <p>旋转后的画布会自动调整大小，避免图像被裁切，图像会保持居中显示</p>
 	 *
 	 * @param angle 旋转角度（度），正数为顺时针，负数为逆时针
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor rotate(final double angle) {
@@ -502,7 +571,7 @@ public class ImageProcessor {
 	 * 翻转图像（水平或垂直）
 	 *
 	 * @param direction 翻转方向枚举，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 direction 为 null
 	 * @since 1.1.0
 	 */
@@ -523,7 +592,7 @@ public class ImageProcessor {
 	 *
 	 * @param dx 水平平移距离（像素）
 	 * @param dy 垂直平移距离（像素）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor warpAffine(final int dx, final int dy) {
@@ -546,7 +615,7 @@ public class ImageProcessor {
 	 *
 	 * @param width  目标宽度，必须大于 0
 	 * @param height 目标高度，必须大于 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -560,7 +629,7 @@ public class ImageProcessor {
 	 * @param width         目标宽度，必须大于 0
 	 * @param height        目标高度，必须大于 0
 	 * @param interpolationFlag 插值滤波算法
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
 	 * @see opencv_imgproc#INTER_LINEAR
@@ -590,7 +659,7 @@ public class ImageProcessor {
 	 * 按目标宽度等比例缩放图像
 	 *
 	 * @param targetWidth 目标宽度，必须大于 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -606,7 +675,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetWidth   目标宽度，必须大于 0
 	 * @param interpolationFlag 插值滤波算法
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
 	 * @see opencv_imgproc#INTER_LINEAR
@@ -629,7 +698,7 @@ public class ImageProcessor {
 	 * 按目标高度等比例缩放图像
 	 *
 	 * @param targetHeight 目标高度，必须大于 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -645,7 +714,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetHeight  目标高度，必须大于 0
 	 * @param interpolationFlag 插值滤波算法
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
 	 * @see opencv_imgproc#INTER_LINEAR
@@ -669,7 +738,7 @@ public class ImageProcessor {
 	 * 按比例因子缩放图像
 	 *
 	 * @param scalingFactor 缩放比例因子，必须大于 0（例如 0.5 为缩小 50%）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -685,7 +754,7 @@ public class ImageProcessor {
 	 *
 	 * @param scalingFactor 缩放比例因子，必须大于 0（例如 0.5 为缩小 50%）
 	 * @param interpolationFlag 插值滤波算法
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
 	 * @see opencv_imgproc#INTER_LINEAR
@@ -709,7 +778,7 @@ public class ImageProcessor {
 	 *
 	 * @param targetWidth  目标宽度，必须大于 0
 	 * @param targetHeight 目标高度，必须大于 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -727,7 +796,7 @@ public class ImageProcessor {
 	 * @param targetWidth   目标宽度，必须大于 0
 	 * @param targetHeight  目标高度，必须大于 0
 	 * @param interpolationFlag 插值滤波算法
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
 	 * @see opencv_imgproc#INTER_NEAREST
 	 * @see opencv_imgproc#INTER_LINEAR
@@ -754,7 +823,7 @@ public class ImageProcessor {
 	 *
 	 * @param width  裁剪宽度，必须大于 0
 	 * @param height 裁剪高度，必须大于 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @since 1.1.0
 	 */
@@ -786,7 +855,7 @@ public class ImageProcessor {
 	 * @param bottomOffset 底部裁剪偏移（像素），必须 >= 0
 	 * @param leftOffset   左侧裁剪偏移（像素），必须 >= 0
 	 * @param rightOffset  右侧裁剪偏移（像素），必须 >= 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一 offset 小于 0
 	 * @since 1.1.0
 	 */
@@ -820,7 +889,7 @@ public class ImageProcessor {
 	 * @param y      矩形左上角 y 坐标，必须 >= 0
 	 * @param width  矩形宽度，必须 > 0
 	 * @param height 矩形高度，必须 > 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
@@ -850,7 +919,7 @@ public class ImageProcessor {
 	 *
 	 * <p>支持 BGR（3通道）或 BGRA（4通道）图像的转换</p>
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor grayscale() {
@@ -872,7 +941,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行均值模糊处理（默认 5x5 卷积核）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor blur() {
@@ -883,7 +952,7 @@ public class ImageProcessor {
 	 * 对图像进行均值模糊处理
 	 *
 	 * @param ksize 卷积核尺寸，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 为 null
 	 * @since 1.1.0
 	 */
@@ -903,7 +972,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行高斯模糊处理（默认 5x5 卷积核，sigma=0）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor gaussianBlur() {
@@ -914,7 +983,7 @@ public class ImageProcessor {
 	 * 对图像进行高斯模糊处理（sigma=0，自动计算）
 	 *
 	 * @param ksize 卷积核尺寸，不能为 null（宽高必须是奇数）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 为 null
 	 * @since 1.1.0
 	 */
@@ -927,7 +996,7 @@ public class ImageProcessor {
 	 *
 	 * @param ksize  卷积核尺寸，不能为 null（宽高必须是奇数）
 	 * @param sigmaX X 方向的高斯核标准差，必须 >= 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
@@ -950,7 +1019,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行中值模糊处理（默认 5x5 卷积核）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor medianBlur() {
@@ -961,7 +1030,7 @@ public class ImageProcessor {
 	 * 对图像进行中值模糊处理
 	 *
 	 * @param ksize 卷积核尺寸，必须是大于 1 的奇数
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 ksize 无效
 	 * @since 1.1.0
 	 */
@@ -982,7 +1051,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行锐化处理（默认强度 weight=5）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor sharpen() {
@@ -993,7 +1062,7 @@ public class ImageProcessor {
 	 * 对图像进行锐化处理
 	 *
 	 * @param weight 锐化强度，必须 > 4（值越大锐化效果越强）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 weight &lt;= 4
 	 * @since 1.1.0
 	 */
@@ -1020,7 +1089,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行浮雕效果处理（默认强度 strength=1.0）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor emboss() {
@@ -1031,7 +1100,7 @@ public class ImageProcessor {
 	 * 对图像进行浮雕效果处理
 	 *
 	 * @param strength 浮雕强度，必须 > 0
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 strength &lt;= 0
 	 * @since 1.1.0
 	 */
@@ -1058,7 +1127,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行自适应二值化处理（使用 Otsu 算法自动计算阈值）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor threshold() {
@@ -1071,7 +1140,7 @@ public class ImageProcessor {
 	 * @param thresh 阈值，范围 [0, 255]
 	 * @param maxVal 最大值，范围 [0, 255]
 	 * @param type   阈值处理类型（OpenCV 的 THRESH_* 常量）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
@@ -1093,7 +1162,7 @@ public class ImageProcessor {
 	/**
 	 * 对图像进行自适应二值化处理（使用默认参数）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor adaptiveThreshold() {
@@ -1109,7 +1178,7 @@ public class ImageProcessor {
 	 * @param thresholdType  阈值类型（OpenCV 的 THRESH_* 常量）
 	 * @param blockSize      邻域大小，必须是 >= 3 的奇数
 	 * @param c              从均值或加权均值中减去的常量
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
@@ -1132,7 +1201,7 @@ public class ImageProcessor {
 	/**
 	 * 调整图像对比度（默认 alpha=0.3）
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor contrast() {
@@ -1143,7 +1212,7 @@ public class ImageProcessor {
 	 * 调整图像对比度
 	 *
 	 * @param alpha 对比度缩放因子（1.0 为不改变，>1 增强，&lt;1 减弱）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor contrast(final float alpha) {
@@ -1162,7 +1231,7 @@ public class ImageProcessor {
 	 * 调整图像亮度
 	 *
 	 * @param beta 亮度偏移量（0 为不改变，正值增加亮度，负值减少亮度）
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor brightness(final float beta) {
@@ -1181,7 +1250,7 @@ public class ImageProcessor {
 	 * <p>水印会根据默认配置自动调整大小、位置和透明度</p>
 	 *
 	 * @param watermarkImageFile 水印图片文件，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果 watermarkImageFile 为 null
 	 * @since 1.1.0
@@ -1197,7 +1266,7 @@ public class ImageProcessor {
 	 *
 	 * @param watermarkImageFile 水印图片文件，不能为 null
 	 * @param option             水印配置选项，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IOException              如果读取水印文件失败
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
@@ -1216,7 +1285,7 @@ public class ImageProcessor {
 	 * <p>水印会根据默认配置自动调整大小、位置和透明度</p>
 	 *
 	 * @param watermarkImage 水印图片 Mat，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 watermarkImage 为 null
 	 * @since 1.1.0
 	 */
@@ -1231,7 +1300,7 @@ public class ImageProcessor {
 	 *
 	 * @param watermarkImage 水印图片 Mat，不能为 null
 	 * @param option         水印配置选项，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
 	 */
@@ -1369,7 +1438,7 @@ public class ImageProcessor {
 	 * <p><b>注意：OpenCV 默认不支持中文字符</p>
 	 *
 	 * @param watermarkText 水印文字，不能为 null 或空
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 watermarkText 为 null 或空
 	 * @since 1.1.0
 	 */
@@ -1384,7 +1453,7 @@ public class ImageProcessor {
 	 *
 	 * @param watermarkText 水印文字，不能为 null 或空
 	 * @param option        水印配置选项，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
@@ -1483,7 +1552,7 @@ public class ImageProcessor {
 	 * 应用自定义图像处理操作
 	 *
 	 * @param operation 自定义处理函数，不能为 null
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 operation 为 null
 	 * @since 1.1.0
 	 */
@@ -1501,6 +1570,8 @@ public class ImageProcessor {
 	/**
 	 * 将处理后的图像保存到文件
 	 *
+	 * <p>根据文件扩展名自动确定输出格式</p>
+	 *
 	 * @param outputFile 输出文件，不能为 null
 	 * @return 是否保存成功
 	 * @throws IllegalArgumentException 如果 outputFile 为 null
@@ -1516,6 +1587,8 @@ public class ImageProcessor {
 
 	/**
 	 * 将处理后的图像保存到文件（带编码参数）
+	 *
+	 * <p>根据文件扩展名自动确定输出格式</p>
 	 *
 	 * @param outputFile 输出文件，不能为 null
 	 * @param params     编码参数，不能为 null
@@ -1535,17 +1608,50 @@ public class ImageProcessor {
 	/**
 	 * 将处理后的图像写入输出流
 	 *
-	 * @param format       图像格式，不能为 null 或空
+	 * <p>使用默认的 outputFormat 编码图像</p>
+	 *
 	 * @param outputStream 输出流，不能为 null
 	 * @return 是否写入成功
 	 * @throws IOException              如果写入失败
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
-	public boolean toOutputStream(final String format, final OutputStream outputStream) throws IOException {
+	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
+		return toOutputStream(outputStream, outputFormat);
+	}
+
+	/**
+	 * 将处理后的图像写入输出流（带编码参数）
+	 *
+	 * <p>使用默认的 outputFormat 编码图像</p>
+	 *
+	 * @param outputStream 输出流，不能为 null
+	 * @param params       编码参数，不能为 null
+	 * @return 是否写入成功
+	 * @throws IOException              如果写入失败
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
+	public boolean toOutputStream(final OutputStream outputStream, final int... params) throws IOException {
+		return toOutputStream(outputStream, outputFormat, params);
+	}
+
+	/**
+	 * 将处理后的图像写入输出流
+	 *
+	 * <p>使用指定的 outputFormat 编码图像</p>
+	 *
+	 * @param outputFormat 图像格式，不能为 null 或空
+	 * @param outputStream 输出流，不能为 null
+	 * @return 是否写入成功
+	 * @throws IOException              如果写入失败
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
+	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		byte[] bytes = toBytes(format);
+		byte[] bytes = toBytes(outputFormat);
 		if (Objects.isNull(bytes)) {
 			return false;
 		}
@@ -1556,7 +1662,9 @@ public class ImageProcessor {
 	/**
 	 * 将处理后的图像写入输出流（带编码参数）
 	 *
-	 * @param format       图像格式，不能为 null 或空
+	 * <p>使用指定的 outputFormat 编码图像</p>
+	 *
+	 * @param outputFormat       图像格式，不能为 null 或空
 	 * @param outputStream 输出流，不能为 null
 	 * @param params       编码参数，不能为 null
 	 * @return 是否写入成功
@@ -1564,10 +1672,10 @@ public class ImageProcessor {
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
-	public boolean toOutputStream(final String format, final OutputStream outputStream, final int... params) throws IOException {
+	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat, final int... params) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		byte[] bytes = toBytes(format, params);
+		byte[] bytes = toBytes(outputFormat, params);
 		if (Objects.isNull(bytes)) {
 			return false;
 		}
@@ -1578,18 +1686,46 @@ public class ImageProcessor {
 	/**
 	 * 将处理后的图像转换为字节数组
 	 *
-	 * @param format 图像格式，不能为 null 或空
+	 * <p>使用默认的 outputFormat 编码图像</p>
+	 *
 	 * @return 图像字节数组，失败时返回 null
 	 * @throws IllegalArgumentException 如果 format 无效
 	 * @since 1.1.0
 	 */
-	public byte[] toBytes(final String format) {
-		Validate.notBlank(format, "format 不可为空");
-		Validate.isTrue(OpencvUtils.canWrite(format), "不支持输出 " + format + " 图像格式");
+	public byte[] toBytes() {
+		return toBytes(outputFormat);
+	}
+
+	/**
+	 * 将处理后的图像转换为字节数组（带编码参数）
+	 *
+	 * <p>使用默认的 outputFormat 编码图像</p>
+	 *
+	 * @param params 编码参数，不能为 null
+	 * @return 图像字节数组，失败时返回 null
+	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @since 1.1.0
+	 */
+	public byte[] toBytes(final int... params) {
+		return toBytes(outputFormat, params);
+	}
+
+	/**
+	 * 将处理后的图像转换为字节数组
+	 *
+	 * <p>使用指定的 outputFormat 编码图像</p>
+	 *
+	 * @param outputFormat 图像格式，不能为 null 或空
+	 * @return 图像字节数组，失败时返回 null
+	 * @throws IllegalArgumentException 如果 format 无效
+	 * @since 1.1.0
+	 */
+	public byte[] toBytes(final String outputFormat) {
+		Validate.notBlank(outputFormat, "outputFormat 不可为空");
+		Validate.isTrue(OpencvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
-		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
-			StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR + format, outputImage, bytes);
+		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes);
 
 		if (!result) {
 			return null;
@@ -1600,20 +1736,21 @@ public class ImageProcessor {
 	/**
 	 * 将处理后的图像转换为字节数组（带编码参数）
 	 *
-	 * @param format 图像格式，不能为 null 或空
+	 * <p>使用指定的 outputFormat 编码图像</p>
+	 *
+	 * @param outputFormat 图像格式，不能为 null 或空
 	 * @param params 编码参数，不能为 null
 	 * @return 图像字节数组，失败时返回 null
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
-	public byte[] toBytes(final String format, final int... params) {
+	public byte[] toBytes(final String outputFormat, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
-		Validate.notBlank(format, "format 不可为空");
-		Validate.isTrue(OpencvUtils.canWrite(format), "不支持输出 " + format + " 图像格式");
+		Validate.notBlank(outputFormat, "outputFormat 不可为空");
+		Validate.isTrue(OpencvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
-		boolean result = opencv_imgcodecs.imencode(format.startsWith(FilenameUtils.EXTENSION_SEPARATOR_STR) ?
-			StringUtils.EMPTY : FilenameUtils.EXTENSION_SEPARATOR + format, outputImage, bytes, params);
+		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes, params);
 
 		if (!result) {
 			return null;
@@ -1634,7 +1771,7 @@ public class ImageProcessor {
 	/**
 	 * 重置到初始图像状态
 	 *
-	 * @return 当前编辑器实例，支持链式调用
+	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
 	public ImageProcessor reset() {

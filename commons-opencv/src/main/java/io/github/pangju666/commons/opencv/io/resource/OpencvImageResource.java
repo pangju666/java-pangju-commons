@@ -55,15 +55,30 @@ import java.util.Objects;
  * 支持从文件、字节数组、输入流或 {@link IOResource} 构建图像资源，并提供图像尺寸、元数据、EXIF 方向等信息的访问。
  * </p>
  *
- * <p><b>核心特性：</b></p>
+ * <h3>核心特性：</h3>
  * <ul>
- *   <li><b>Mat 管理：</b> 提供 {@link Mat} 图像数据的懒加载和缓存，支持获取原始 Mat 和深拷贝。</li>
- *   <li><b>尺寸获取：</b> 支持从元数据或 Mat 中获取图像尺寸，优先使用元数据以提高性能。</li>
- *   <li><b>EXIF 支持：</b> 支持自动解析 EXIF 方向信息，也支持手动指定方向，可选择在构造时自动校正方向。</li>
- *   <li><b>元数据解析：</b> 使用 Metadata Extractor 解析图像元数据，支持多种图像格式。</li>
- *   <li><b>资源管理：</b> 继承 {@link IOResource} 的资源管理能力，支持关闭和释放资源。</li>
- *   <li><b>读取标志：</b> 支持指定 OpenCV 读取标志（如 IMREAD_UNCHANGED、IMREAD_COLOR 等）控制图像读取方式。</li>
- *   <li><b>BytePointer 转换：</b> 支持将字节数据转换为 {@link BytePointer}，便于 OpenCV 直接解码。</li>
+ *   <li><strong>Mat 管理</strong> - 提供 {@link Mat} 图像数据的懒加载和缓存，支持获取原始 Mat 和深拷贝</li>
+ *   <li><strong>尺寸获取</strong> - 支持从元数据或 Mat 中获取图像尺寸，优先使用元数据以提高性能</li>
+ *   <li><strong>EXIF 支持</strong> - 支持自动解析 EXIF 方向信息，也支持手动指定方向，可选择在构造时自动校正方向</li>
+ *   <li><strong>元数据解析</strong> - 使用 Metadata Extractor 解析图像元数据，支持多种图像格式</li>
+ *   <li><strong>资源管理</strong> - 继承 {@link IOResource} 的资源管理能力，支持关闭和释放资源</li>
+ *   <li><strong>读取标志</strong> - 支持指定 OpenCV 读取标志（如 IMREAD_UNCHANGED、IMREAD_COLOR 等）控制图像读取方式</li>
+ *   <li><strong>BytePointer 转换</strong> - 支持将字节数据转换为 {@link BytePointer}，便于 OpenCV 直接解码</li>
+ * </ul>
+ *
+ * <h3>使用场景：</h3>
+ * <ul>
+ *   <li>OpenCV 图像处理</li>
+ *   <li>图像格式转换</li>
+ *   <li>图像尺寸和方向处理</li>
+ *   <li>图像元数据提取</li>
+ * </ul>
+ *
+ * <h3>注意事项：</h3>
+ * <ul>
+ *   <li>资源关闭后禁止执行任何操作</li>
+ *   <li>继承父类 {@link IOResource} 的所有特性和约束</li>
+ *   <li>构造时会验证是否为图像类型，并检查 OpenCV 是否支持读取该格式</li>
  * </ul>
  *
  * @author pangju666
