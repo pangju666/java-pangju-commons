@@ -5,8 +5,8 @@ import com.twelvemonkeys.image.GrayFilter
 import com.twelvemonkeys.image.ResampleOp
 import io.github.pangju666.commons.image.enums.FlipDirection
 import io.github.pangju666.commons.image.enums.RotateDirection
-import io.github.pangju666.commons.image.lang.ImageConstants
 import io.github.pangju666.commons.image.io.resource.ImageIOResource
+import io.github.pangju666.commons.image.lang.ImageConstants
 import io.github.pangju666.commons.image.model.ImageSize
 import io.github.pangju666.commons.image.model.ImageWatermarkOption
 import io.github.pangju666.commons.image.model.TextWatermarkOption
@@ -21,9 +21,9 @@ import spock.lang.Unroll
 
 import javax.imageio.ImageIO
 import javax.imageio.stream.ImageOutputStream
-import java.awt.Color
-import java.awt.Font
+import java.awt.*
 import java.nio.file.Path
+import java.util.List
 
 class ImageProcessorSpec extends Specification {
 	@TempDir
@@ -402,7 +402,7 @@ class ImageProcessorSpec extends Specification {
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "gray-${ext}.png")
 				if (canWrite) {
-					ok = editor.outputFormat("PNG").toFile(out)
+					ok = editor.toFile(out, "PNG")
 					assert out.exists()
 					assert out.length() > 0
 				}
@@ -449,7 +449,7 @@ class ImageProcessorSpec extends Specification {
 				def out = new File(tempDir.toFile(), "bc-${ext}.jpg")
 				editor.brightness(0.2f).contrast(0.3f)
 				if (canWrite) {
-					ok = editor.outputFormat("JPG").toFile(out)
+					ok = editor.toFile(out, "JPG")
 					assert out.exists()
 					assert out.length() > 0
 				}
@@ -538,7 +538,7 @@ class ImageProcessorSpec extends Specification {
 				def out = new File(tempDir.toFile(), "wm-${ext}.png")
 				editor.addImageWatermark(ImageIO.read(watermark), option)
 				if (canWrite) {
-					ok = editor.outputFormat("PNG").toFile(out)
+					ok = editor.toFile(out, "PNG")
 					assert out.exists()
 					assert out.length() > 0
 				}
@@ -583,7 +583,7 @@ class ImageProcessorSpec extends Specification {
 				def out = new File(tempDir.toFile(), "tw-${ext}.jpg")
 				editor.addTextWatermark("TEST", option)
 				if (canWrite) {
-					ok = editor.outputFormat("JPG").toFile(out)
+					ok = editor.toFile(out, "JPG")
 					assert out.exists()
 					assert out.length() > 0
 				}
@@ -628,8 +628,8 @@ class ImageProcessorSpec extends Specification {
 				boolean ok1
 				boolean ok2
 				if (canWrite) {
-					ok1 = editor.outputFormat("PNG").toOutputStream(baos)
-					ok2 = editor.outputFormat("PNG").toImageOutputStream(ios)
+					ok1 = editor.toOutputStream(baos, "PNG")
+					ok2 = editor.toImageOutputStream(ios, "PNG")
 					ios.close()
 					assert ok1
 					assert ok2
@@ -683,7 +683,7 @@ class ImageProcessorSpec extends Specification {
 				}
 				def img = editor.toBufferedImage()
 				if (ext != "SVG" && ext != "WEBP") {
-					okWrite = editor.outputFormat("PNG").toFile(out)
+					okWrite = editor.toFile(out, "PNG")
 					wrote = true
 				}
 				def ow = IMAGE_SIZE_EXPECTED[name][0]
@@ -896,7 +896,7 @@ class ImageProcessorSpec extends Specification {
 				editor.addImageWatermark(wm, directionOption)
 				editor.addImageWatermark(wm, posOption)
 				if (canWrite) {
-					ok = editor.outputFormat("PNG").toFile(out)
+					ok = editor.toFile(out, "PNG")
 					assert out.exists()
 					assert out.length() > 0
 				}
@@ -942,7 +942,7 @@ class ImageProcessorSpec extends Specification {
 				def out = new File(tempDir.toFile(), "tw2-${ext}.jpg")
 				editor.addTextWatermark("HELLO", option)
 				if (canWrite) {
-					ok = editor.outputFormat("JPG").toFile(out)
+					ok = editor.toFile(out, "JPG")
 					assert out.exists()
 					assert out.length() > 0
 				}

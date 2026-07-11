@@ -32,7 +32,6 @@ import io.github.pangju666.commons.io.utils.FileUtils;
 import net.coobird.thumbnailator.filters.Caption;
 import net.coobird.thumbnailator.filters.Transparency;
 import net.coobird.thumbnailator.filters.Watermark;
-import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -44,7 +43,10 @@ import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.ImageFilter;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -90,12 +92,6 @@ import java.util.function.Function;
  * <ul>
  *   <li><b>处理顺序：</b> 建议先进行缩放或裁剪操作，再进行其他处理（如模糊、水印），以减少计算量和内存占用。</li>
  *   <li><b>资源管理：</b> 处理完成后建议调用 {@link #release()} 方法释放图像资源，减少内存占用。释放后编辑器不可再使用。</li>
- *   <li><b>流输入注意事项：</b> 当从 {@link InputStream} 创建并启用 EXIF 自动校正时：
- *     <ul>
- *       <li>推荐使用 {@link ByteArrayInputStream} 或 {@link UnsynchronizedByteArrayInputStream}，可实现零拷贝重复读取。</li>
- *       <li>对于其他类型的流，内部会将数据完全缓冲到内存中，处理大文件时需注意 OOM 风险。</li>
- *     </ul>
- *   </li>
  * </ul>
  *
  * <p><b>推荐方法调用顺序：</b></p>
@@ -173,8 +169,7 @@ import java.util.function.Function;
  *
  * // 7. 格式转换与输出
  * ImageProcessor.of(new ImageIOResource(new File("input.png"))) // 输入 PNG
- *     .outputFormat("JPG")            // 强制输出为 JPG
- *     .toFile(new File("output.jpg"));
+ *     .toFile(new File("output.jpg"), "JPG"); // 强制输出为 JPG
  *
  * // 8. 复杂操作链（链式调用）
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg"), true))
@@ -249,8 +244,6 @@ public class ImageProcessor {
 	/**
 	 * 输入图像格式
 	 * <p>
-	 * 通过 {@link #of(ImageIOResource)} 创建时，取自 ImageIOResource 的格式信息。
-	 * 需为受支持的读取格式之一（参见 {@link ImageConstants#getSupportedReadImageFormats()}）。
 	 * 该值用于默认初始化输出格式：构造后将把 {@code outputFormat} 设置为此扩展名；在 {@link #reset()} 时也会用它恢复输出格式。
 	 * </p>
 	 *
@@ -285,7 +278,6 @@ public class ImageProcessor {
 	 * <p>
 	 * 指定输出图像的格式（如"png"、"jpeg"等）。
 	 * 默认根据输入图像是否有透明通道自动选择（有透明通道用PNG，无透明通道用JPEG）。
-	 * 可通过{@link #outputFormat(String)}方法修改。
 	 * </p>
 	 *
 	 * @since 2.1.0
@@ -349,7 +341,6 @@ public class ImageProcessor {
 		}
 
 		this.outputImageSize = inputImageSize.getVisualSize();
-
 		this.outputFormat = StringUtils.defaultIfBlank(inputFormat,
 			outputImage.getColorModel().hasAlpha() ? DEFAULT_ALPHA_OUTPUT_FORMAT : DEFAULT_OUTPUT_FORMAT);
 	}
@@ -408,7 +399,7 @@ public class ImageProcessor {
 	 *   <li><b>图像数据：</b> 使用 ImageIOResource 缓存的 BufferedImage。如果 ImageIOResource 在构造时启用了 EXIF 方向校正，
 	 *       则此图像为校正后的图像，无需再次校正。</li>
 	 *   <li><b>图像尺寸：</b> 使用 ImageIOResource 缓存的 ImageSize。如果启用了方向校正，则为校正后的尺寸。</li>
-	 *   <li><b>输出格式：</b> 使用 ImageIOResource 的格式信息（如果存在），否则根据图像是否含 Alpha 通道自动选择。</li>
+	 *   <li><b>输出格式：</b> 使用 ImageIOResource 的格式信息（基于MIME类型推断的文件真实格式的默认后缀，而非文件名称的后缀），如果存在，否则根据图像是否含 Alpha 通道自动选择。</li>
 	 * </ul>
 	 *
 	 * @param resource 图像 IO 资源对象，包含图像数据、尺寸、EXIF 方向和格式等信息，不可为 null
@@ -1212,38 +1203,7 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 设置输出图像的格式（不区分大小写）。
-	 *
-	 * <p>指定调用 {@link #toFile(File)}、{@link #toOutputStream(OutputStream)} 或
-	 * {@link #toImageOutputStream(ImageOutputStream)}时使用的图像编码格式。</p>
-	 *
-	 * <p><b>常见支持格式：</b></p>
-	 * <ul>
-	 *   <li><b>JPEG / JPG：</b> 适合照片，有损压缩，体积小。</li>
-	 *   <li><b>PNG：</b> 适合图标/截图，无损压缩，支持透明度。</li>
-	 *   <li><b>BMP：</b> 无压缩位图，体积大，解析快。</li>
-	 * </ul>
-	 * <p>完整支持列表请参考 {@link ImageConstants#getSupportedWriteImageFormats()}。</p>
-	 *
-	 * @param outputFormat 输出格式字符串（如 "jpg", "PNG"），不可为空
-	 * @return 当前编辑器实例，用于链式调用
-	 * @throws NullPointerException     当 outputFormat 为 null 时抛出
-	 * @throws IllegalArgumentException 当 outputFormat 为空字符串或不支持该格式时抛出
-	 * @see ImageConstants#getSupportedWriteImageFormats()
-	 * @since 2.1.0
-	 */
-	public ImageProcessor outputFormat(final String outputFormat) {
-		Validate.notBlank(outputFormat, "输出格式不可为空");
-		String upperCaseOutputFormat = outputFormat.toUpperCase();
-		Validate.isTrue(ImageConstants.getSupportedWriteImageFormats().contains(upperCaseOutputFormat),
-			"不支持输出 " + outputFormat + " 图像格式");
-
-		this.outputFormat = upperCaseOutputFormat;
-		return this;
-	}
-
-	/**
-	 * 将处理后的图像保存到文件。
+	 * 将处理后的图像保存到文件，使用当前实例的输出格式。
 	 *
 	 * @param outputFile 输出文件
 	 * @return 如果写入成功则返回true，否则返回false
@@ -1252,15 +1212,31 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public boolean toFile(final File outputFile) throws IOException {
-		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-
-		FileUtils.forceMkdirParent(outputFile);
-
-		return ImageIO.write(toBufferedImage(), this.outputFormat, outputFile);
+		return toFile(outputFile, this.outputFormat);
 	}
 
 	/**
-	 * 将处理后的图像写入输出流。
+	 * 将处理后的图像保存到文件，使用指定的输出格式。
+	 *
+	 * @param outputFile   输出文件
+	 * @param outputFormat 输出格式（如 "PNG"、"JPG"）
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException              当写入文件出错时
+	 * @throws NullPointerException     当输出文件为null时
+	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @since 2.1.0
+	 */
+	public boolean toFile(final File outputFile, final String outputFormat) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		Validate.notBlank(outputFormat, "outputFormat 不可为空");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), outputFile);
+	}
+
+	/**
+	 * 将处理后的图像写入输出流，使用当前实例的输出格式。
 	 *
 	 * @param outputStream 输出流
 	 * @return 如果写入成功则返回true，否则返回false
@@ -1269,13 +1245,29 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
-		Validate.notNull(outputStream, "outputStream不可为 null");
-
-		return ImageIO.write(toBufferedImage(), this.outputFormat, outputStream);
+		return toOutputStream(outputStream, this.outputFormat);
 	}
 
 	/**
-	 * 将处理后的图像写入图像输出流。
+	 * 将处理后的图像写入输出流，使用指定的输出格式。
+	 *
+	 * @param outputStream 输出流
+	 * @param outputFormat 输出格式（如 "PNG"、"JPG"）
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException              当写入输出流出错时
+	 * @throws NullPointerException     当输出流为null时
+	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @since 2.1.0
+	 */
+	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat) throws IOException {
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+		Validate.notBlank(outputFormat, "outputFormat 不可为空");
+
+		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), outputStream);
+	}
+
+	/**
+	 * 将处理后的图像写入图像输出流，使用当前实例的输出格式。
 	 *
 	 * @param imageOutputStream 图像输出流
 	 * @return 如果写入成功则返回true，否则返回false
@@ -1284,9 +1276,25 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
-		Validate.notNull(imageOutputStream, "imageOutputStream不可为null");
+		return toImageOutputStream(imageOutputStream, this.outputFormat);
+	}
 
-		return ImageIO.write(toBufferedImage(), this.outputFormat, imageOutputStream);
+	/**
+	 * 将处理后的图像写入图像输出流，使用指定的输出格式。
+	 *
+	 * @param imageOutputStream 图像输出流
+	 * @param outputFormat      输出格式（如 "PNG"、"JPG"）
+	 * @return 如果写入成功则返回true，否则返回false
+	 * @throws IOException              当写入图像输出流出错时
+	 * @throws NullPointerException     当图像输出流为null时
+	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @since 2.1.0
+	 */
+	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream, final String outputFormat) throws IOException {
+		Validate.notNull(imageOutputStream, "imageOutputStream 不可为 null");
+		Validate.notBlank(outputFormat, "outputFormat 不可为空");
+
+		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), imageOutputStream);
 	}
 
 	/**
@@ -1326,7 +1334,10 @@ public class ImageProcessor {
 
 	/**
 	 * 恢复图像到初始状态，重置所有处理效果。
+	 * <p>
 	 * 此方法会将输出图像重置为输入图像，并恢复默认设置。
+	 * 输出格式会恢复为输入格式；如果输入格式为空，则根据图像是否含Alpha通道自动选择。
+	 * </p>
 	 *
 	 * @return 当前编辑器实例（便于链式调用）
 	 * @since 2.1.0
