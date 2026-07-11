@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.ffmpeg.model;
 
+import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource;
 import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.ffmpeg.global.avcodec;

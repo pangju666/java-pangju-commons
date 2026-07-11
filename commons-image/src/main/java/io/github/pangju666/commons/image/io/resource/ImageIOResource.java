@@ -14,15 +14,16 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.image.model;
+package io.github.pangju666.commons.image.io.resource;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.twelvemonkeys.image.ImageUtil;
 import io.github.pangju666.commons.image.lang.ImageConstants;
+import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.image.utils.ImageUtils;
-import io.github.pangju666.commons.io.model.IOResource;
+import io.github.pangju666.commons.io.resource.IOResource;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -50,15 +51,6 @@ import java.util.Objects;
  *     <li><strong>BufferedImage深拷贝</strong> - 提供深拷贝方法，避免修改缓存的原始图像</li>
  *     <li><strong>格式识别</strong> - 自动识别图像格式（文件模式）</li>
  *     <li><strong>ImageInputStream支持</strong> - 提供ImageInputStream接口</li>
- * </ul>
- *
- * <h3>使用场景：</h3>
- * <ul>
- *     <li>图像文件处理</li>
- *     <li>图像元数据提取</li>
- *     <li>图像尺寸获取</li>
- *     <li>EXIF方向校正</li>
- *     <li>图像编辑前的资源准备（配合ImageEditor使用）</li>
  * </ul>
  *
  * <h3>注意事项：</h3>

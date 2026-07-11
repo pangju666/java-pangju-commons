@@ -1,10 +1,11 @@
-package io.github.pangju666.commons.opencv.utils
+package io.github.pangju666.commons.opencv.processor
 
 import io.github.pangju666.commons.opencv.enums.FlipDirection
 import io.github.pangju666.commons.opencv.enums.RotateDirection
+import io.github.pangju666.commons.opencv.io.resource.OpencvImageResource
 import io.github.pangju666.commons.opencv.model.ImageWatermarkOption
-import io.github.pangju666.commons.opencv.model.OpencvImageResource
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption
+import io.github.pangju666.commons.opencv.utils.OpencvUtils
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.opencv_core.Mat
@@ -16,7 +17,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ImageEditorSpec extends Specification {
+class ImageProcessorSpec extends Specification {
 	@TempDir
 	Path tempDir
 
@@ -36,7 +37,7 @@ class ImageEditorSpec extends Specification {
 		def resource = new OpencvImageResource(file)
 
 		when:
-		def editor = ImageEditor.of(resource)
+		def editor = ImageProcessor.of(resource)
 
 		then:
 		editor != null
@@ -48,7 +49,7 @@ class ImageEditorSpec extends Specification {
 
 	def "从OpencvImageResource创建编辑器 - null资源抛异常"() {
 		when:
-		ImageEditor.of((OpencvImageResource) null)
+		ImageProcessor.of((OpencvImageResource) null)
 
 		then:
 		thrown(NullPointerException)
@@ -61,7 +62,7 @@ class ImageEditorSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		def editor = ImageEditor.of(inputStream)
+		def editor = ImageProcessor.of(inputStream)
 
 		then:
 		editor != null
@@ -76,7 +77,7 @@ class ImageEditorSpec extends Specification {
 
 	def "从输入流创建编辑器 - null输入流抛异常"() {
 		when:
-		ImageEditor.of((InputStream) null)
+		ImageProcessor.of((InputStream) null)
 
 		then:
 		thrown(NullPointerException)
@@ -89,7 +90,7 @@ class ImageEditorSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		def editor = ImageEditor.of(inputStream, opencv_imgcodecs.IMREAD_GRAYSCALE)
+		def editor = ImageProcessor.of(inputStream, opencv_imgcodecs.IMREAD_GRAYSCALE)
 
 		then:
 		editor != null
@@ -108,7 +109,7 @@ class ImageEditorSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		def editor = ImageEditor.of(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		def editor = ImageProcessor.of(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		editor != null
@@ -124,7 +125,7 @@ class ImageEditorSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		ImageEditor.of(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
+		ImageProcessor.of(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -141,7 +142,7 @@ class ImageEditorSpec extends Specification {
 		def bytePointer = new BytePointer(bytes)
 
 		when:
-		def editor = ImageEditor.of(bytePointer)
+		def editor = ImageProcessor.of(bytePointer)
 
 		then:
 		editor != null
@@ -156,7 +157,7 @@ class ImageEditorSpec extends Specification {
 
 	def "从BytePointer创建编辑器 - null抛异常"() {
 		when:
-		ImageEditor.of((BytePointer) null)
+		ImageProcessor.of((BytePointer) null)
 
 		then:
 		thrown(NullPointerException)
@@ -170,7 +171,7 @@ class ImageEditorSpec extends Specification {
 		def bytePointer = new BytePointer(bytes)
 
 		when:
-		def editor = ImageEditor.of(bytePointer, opencv_imgcodecs.IMREAD_GRAYSCALE)
+		def editor = ImageProcessor.of(bytePointer, opencv_imgcodecs.IMREAD_GRAYSCALE)
 
 		then:
 		editor != null
@@ -190,7 +191,7 @@ class ImageEditorSpec extends Specification {
 		def bytePointer = new BytePointer(bytes)
 
 		when:
-		def editor = ImageEditor.of(bytePointer, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		def editor = ImageProcessor.of(bytePointer, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		editor != null
@@ -207,7 +208,7 @@ class ImageEditorSpec extends Specification {
 		def bytePointer = new BytePointer(bytes)
 
 		when:
-		ImageEditor.of(bytePointer, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
+		ImageProcessor.of(bytePointer, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -222,7 +223,7 @@ class ImageEditorSpec extends Specification {
 		def mat = OpencvUtils.read(file)
 
 		when:
-		def editor = ImageEditor.of(mat)
+		def editor = ImageProcessor.of(mat)
 
 		then:
 		editor != null
@@ -234,7 +235,7 @@ class ImageEditorSpec extends Specification {
 
 	def "从Mat创建编辑器 - null抛异常"() {
 		when:
-		ImageEditor.of((Mat) null)
+		ImageProcessor.of((Mat) null)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -246,7 +247,7 @@ class ImageEditorSpec extends Specification {
 		def mat = OpencvUtils.read(file)
 
 		when:
-		def editor = ImageEditor.of(mat, 6)
+		def editor = ImageProcessor.of(mat, 6)
 
 		then:
 		editor != null
@@ -262,7 +263,7 @@ class ImageEditorSpec extends Specification {
 		def mat = OpencvUtils.read(file)
 
 		when:
-		ImageEditor.of(mat, 9)
+		ImageProcessor.of(mat, 9)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -274,7 +275,7 @@ class ImageEditorSpec extends Specification {
 	def "按宽度缩放"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.scaleByWidth(400)
@@ -289,7 +290,7 @@ class ImageEditorSpec extends Specification {
 	def "按高度缩放"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.scaleByHeight(300)
@@ -304,7 +305,7 @@ class ImageEditorSpec extends Specification {
 	def "按比例缩放"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def originalWidth = editor.toMat().size().width()
 
 		when:
@@ -320,7 +321,7 @@ class ImageEditorSpec extends Specification {
 	def "按目标尺寸缩放"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.scale(400, 300)
@@ -336,7 +337,7 @@ class ImageEditorSpec extends Specification {
 	def "强制缩放到指定尺寸"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.resize(100, 100)
@@ -352,7 +353,7 @@ class ImageEditorSpec extends Specification {
 	def "居中裁剪"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.cropByCenter(400, 400)
@@ -368,7 +369,7 @@ class ImageEditorSpec extends Specification {
 	def "按矩形区域裁剪"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.cropByRect(0, 0, 200, 200)
@@ -384,7 +385,7 @@ class ImageEditorSpec extends Specification {
 	def "按边距裁剪"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def originalWidth = editor.toMat().size().width()
 		def originalHeight = editor.toMat().size().height()
 
@@ -402,7 +403,7 @@ class ImageEditorSpec extends Specification {
 	def "旋转固定方向"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def originalWidth = editor.toMat().cols()
 		def originalHeight = editor.toMat().rows()
 
@@ -420,7 +421,7 @@ class ImageEditorSpec extends Specification {
 	def "旋转任意角度"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.rotate(45)
@@ -435,7 +436,7 @@ class ImageEditorSpec extends Specification {
 	def "翻转图像"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.flip(FlipDirection.HORIZONTAL)
@@ -450,7 +451,7 @@ class ImageEditorSpec extends Specification {
 	def "平移图像"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.warpAffine(10, 20)
@@ -465,7 +466,7 @@ class ImageEditorSpec extends Specification {
 	def "灰度化"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.grayscale()
@@ -481,7 +482,7 @@ class ImageEditorSpec extends Specification {
 	def "调整透明度"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.transparency(0.5f)
@@ -496,7 +497,7 @@ class ImageEditorSpec extends Specification {
 	def "均值模糊"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.blur()
@@ -511,7 +512,7 @@ class ImageEditorSpec extends Specification {
 	def "高斯模糊"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.gaussianBlur()
@@ -526,7 +527,7 @@ class ImageEditorSpec extends Specification {
 	def "中值模糊"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.medianBlur(5)
@@ -541,7 +542,7 @@ class ImageEditorSpec extends Specification {
 	def "锐化"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.sharpen()
@@ -556,7 +557,7 @@ class ImageEditorSpec extends Specification {
 	def "浮雕效果"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.emboss()
@@ -571,7 +572,7 @@ class ImageEditorSpec extends Specification {
 	def "调整对比度"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.contrast(0.3f)
@@ -586,7 +587,7 @@ class ImageEditorSpec extends Specification {
 	def "调整亮度"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.brightness(20)
@@ -601,7 +602,7 @@ class ImageEditorSpec extends Specification {
 	def "阈值处理"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		editor.grayscale()
 
 		when:
@@ -617,7 +618,7 @@ class ImageEditorSpec extends Specification {
 	def "自适应阈值"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		editor.grayscale()
 
 		when:
@@ -633,7 +634,7 @@ class ImageEditorSpec extends Specification {
 	def "添加文字水印"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def option = new TextWatermarkOption()
 
 		when:
@@ -649,7 +650,7 @@ class ImageEditorSpec extends Specification {
 	def "添加文字水印 - 空文本抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def option = new TextWatermarkOption()
 
 		when:
@@ -666,7 +667,7 @@ class ImageEditorSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
 		def watermarkFile = new File("${TEST_IMAGES_DIR}/test.png")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def option = new ImageWatermarkOption()
 
 		when:
@@ -682,7 +683,7 @@ class ImageEditorSpec extends Specification {
 	def "添加图片水印 - null文件抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def option = new ImageWatermarkOption()
 
 		when:
@@ -698,7 +699,7 @@ class ImageEditorSpec extends Specification {
 	def "应用自定义操作"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.apply({ mat -> mat.clone() })
@@ -713,7 +714,7 @@ class ImageEditorSpec extends Specification {
 	def "应用自定义操作 - null函数抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.apply(null)
@@ -729,7 +730,7 @@ class ImageEditorSpec extends Specification {
 	def "保存到文件：#name"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def outputFile = new File(tempDir.toFile(), "output_${name}")
 
 		when:
@@ -750,7 +751,7 @@ class ImageEditorSpec extends Specification {
 	def "保存到文件 - null文件抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.toFile(null)
@@ -766,7 +767,7 @@ class ImageEditorSpec extends Specification {
 	def "转换为字节数组：#format"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		def bytes = editor.toBytes(format)
@@ -785,7 +786,7 @@ class ImageEditorSpec extends Specification {
 	def "转换为字节数组 - 不支持的格式抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.toBytes("unsupported")
@@ -800,7 +801,7 @@ class ImageEditorSpec extends Specification {
 	def "获取Mat"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		def mat = editor.toMat()
@@ -816,7 +817,7 @@ class ImageEditorSpec extends Specification {
 	def "重置到初始状态"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 		def originalMat = editor.toMat().clone()
 
 		when:
@@ -835,7 +836,7 @@ class ImageEditorSpec extends Specification {
 	def "释放资源"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def editor = ImageEditor.of(new OpencvImageResource(file))
+		def editor = ImageProcessor.of(new OpencvImageResource(file))
 
 		when:
 		editor.release()
@@ -850,7 +851,7 @@ class ImageEditorSpec extends Specification {
 		def outputFile = new File(tempDir.toFile(), "output_chain.jpg")
 
 		when:
-		def result = ImageEditor.of(new OpencvImageResource(file))
+		def result = ImageProcessor.of(new OpencvImageResource(file))
 			.scaleByWidth(400)
 			.grayscale()
 			.toFile(outputFile)

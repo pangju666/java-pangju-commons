@@ -14,16 +14,17 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.opencv.utils;
+package io.github.pangju666.commons.opencv.processor;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
+import io.github.pangju666.commons.opencv.io.resource.OpencvImageResource;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;
 import io.github.pangju666.commons.opencv.model.ImageWatermarkOption;
-import io.github.pangju666.commons.opencv.model.OpencvImageResource;
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption;
+import io.github.pangju666.commons.opencv.utils.OpencvUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -99,16 +100,16 @@ import java.util.function.Function;
  * <pre>{@code
  * // 1. 构建实例
  * // 从 OpencvImageResource 构建
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")));
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")));
  * // 从输入流构建
- * ImageEditor.of(inputStream);
+ * ImageProcessor.of(inputStream);
  * // 从 BytePointer 构建
- * ImageEditor.of(bytePointer);
+ * ImageProcessor.of(bytePointer);
  * // 从 Mat 构建
- * ImageEditor.of(mat);
+ * ImageProcessor.of(mat);
  *
  * // 2. 缩放与调整大小
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .scaleByWidth(800)              // 按宽度等比缩放
  *     .scaleByHeight(600)             // 按高度等比缩放
  *     .scale(0.5)                     // 按比例缩放（50%）
@@ -117,21 +118,21 @@ import java.util.function.Function;
  *     .toFile(new File("out_scale.jpg"));
  *
  * // 3. 裁剪操作
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .cropByCenter(400, 400)         // 居中裁剪
  *     .cropByRect(0, 0, 200, 200)     // 指定矩形区域裁剪
  *     .cropByOffset(10, 10, 20, 20)   // 按边距裁剪（上、下、左、右）
  *     .toFile(new File("out_crop.jpg"));
  *
  * // 4. 旋转与翻转
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .rotate(RotateDirection.CLOCKWISE_90)  // 顺时针旋转 90 度
  *     .rotate(45)                            // 任意角度旋转（45度）
  *     .flip(FlipDirection.HORIZONTAL)        // 水平翻转
  *     .toFile(new File("out_rotate.jpg"));
  *
  * // 5. 色彩与滤镜
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .grayscale()                    // 转为灰度图
  *     .blur()                         // 均值模糊（默认尺寸）
  *     .gaussianBlur()                 // 高斯模糊（默认尺寸）
@@ -145,13 +146,13 @@ import java.util.function.Function;
  *     .toFile(new File("out_filter.jpg"));
  *
  * // 6. 水印添加（支持图片与文字）
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
  *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
  *     .toFile(new File("out_watermark.jpg"));
  *
  * // 7. 复杂操作链（链式调用）
- * ImageEditor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
  *     .cropByCenter(1000, 1000)       // 1. 先裁剪中心 1000x1000 区域
  *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
  *     .gaussianBlur()                 // 3. 应用高斯模糊
@@ -159,7 +160,7 @@ import java.util.function.Function;
  *     .toFile(new File("processed.jpg"));
  *
  * // 8. 状态重置与多版本输出
- * ImageEditor editor = ImageEditor.of(new OpencvImageResource(new File("original.png")));
+ * ImageProcessor editor = ImageProcessor.of(new OpencvImageResource(new File("original.png")));
  * // 输出缩略图
  * editor.scaleByWidth(200)
  *       .toFile(new File("thumbnail.png"));
@@ -180,7 +181,7 @@ import java.util.function.Function;
  * @see OpencvUtils
  * @since 1.1.0
  */
-public class ImageEditor {
+public class ImageProcessor {
 	/**
 	 * 原始输入图像，用于重置操作
 	 *
@@ -204,7 +205,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 inputImage 为 null 或空
 	 * @since 1.1.0
 	 */
-	protected ImageEditor(Mat inputImage, int exifOrientation, int flags) {
+	protected ImageProcessor(Mat inputImage, int exifOrientation, int flags) {
 		Validate.isTrue(OpencvUtils.isNotEmpty(inputImage), "inputImage 不存在图像数据");
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
@@ -229,14 +230,14 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 resource 为 null
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final OpencvImageResource resource) throws IOException {
+	public static ImageProcessor of(final OpencvImageResource resource) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		if (resource.isOrientationCorrected()) {
-			return new ImageEditor(resource.getImageMat(),
+			return new ImageProcessor(resource.getImageMat(),
 				OpencvConstants.NORMAL_EXIF_ORIENTATION, resource.getFlags());
 		}
-		return new ImageEditor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags());
+		return new ImageProcessor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags());
 	}
 
 	/**
@@ -254,7 +255,7 @@ public class ImageEditor {
 	 * @throws IOException 如果读取流失败
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final InputStream inputStream) throws IOException {
+	public static ImageProcessor of(final InputStream inputStream) throws IOException {
 		return of(inputStream, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
 			OpencvConstants.NORMAL_EXIF_ORIENTATION);
 	}
@@ -275,7 +276,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 inputStream 为 null
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final InputStream inputStream, final int flags) throws IOException {
+	public static ImageProcessor of(final InputStream inputStream, final int flags) throws IOException {
 		return of(inputStream, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
@@ -290,7 +291,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 inputStream 为 null，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final InputStream inputStream, final int flags, final int exifOrientation) throws IOException {
+	public static ImageProcessor of(final InputStream inputStream, final int flags, final int exifOrientation) throws IOException {
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
@@ -298,7 +299,7 @@ public class ImageEditor {
 		if (OpencvUtils.isEmpty(image)) {
 			throw new IOException("图片读取失败");
 		}
-		return new ImageEditor(image, exifOrientation, flags);
+		return new ImageProcessor(image, exifOrientation, flags);
 	}
 
 	/**
@@ -316,7 +317,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final BytePointer bytePointer) {
+	public static ImageProcessor of(final BytePointer bytePointer) {
 		return of(bytePointer, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
 			OpencvConstants.NORMAL_EXIF_ORIENTATION);
 	}
@@ -336,7 +337,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或解码失败
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final BytePointer bytePointer, final int flags) {
+	public static ImageProcessor of(final BytePointer bytePointer, final int flags) {
 		return of(bytePointer, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
@@ -350,14 +351,14 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 bytePointer 为 null 或空指针，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final BytePointer bytePointer, final int flags, final int exifOrientation) {
+	public static ImageProcessor of(final BytePointer bytePointer, final int flags, final int exifOrientation) {
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		Validate.notNull(bytePointer, "bytePointer不可为 null");
 		Validate.isTrue(!bytePointer.isNull(), "bytePointer不可为 null");
 
 		try (Mat bytesMat = new Mat(bytePointer)) {
 			Mat imageMat = opencv_imgcodecs.imdecode(bytesMat, flags);
-			return new ImageEditor(imageMat, exifOrientation, flags);
+			return new ImageProcessor(imageMat, exifOrientation, flags);
 		}
 	}
 
@@ -369,8 +370,8 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 image 为 null 或空
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final Mat image) {
-		return new ImageEditor(image, OpencvConstants.NORMAL_EXIF_ORIENTATION,
+	public static ImageProcessor of(final Mat image) {
+		return new ImageProcessor(image, OpencvConstants.NORMAL_EXIF_ORIENTATION,
 			opencv_imgcodecs.IMREAD_UNCHANGED);
 	}
 
@@ -383,8 +384,8 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 image 为 null 或空，或 exifOrientation 不在 1-8 范围内
 	 * @since 1.1.0
 	 */
-	public static ImageEditor of(final Mat image, final int exifOrientation) {
-		return new ImageEditor(image, exifOrientation, opencv_imgcodecs.IMREAD_UNCHANGED);
+	public static ImageProcessor of(final Mat image, final int exifOrientation) {
+		return new ImageProcessor(image, exifOrientation, opencv_imgcodecs.IMREAD_UNCHANGED);
 	}
 
 	/**
@@ -400,7 +401,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
 	 * @since 1.1.0
 	 */
-	public ImageEditor transparency(final float alpha) {
+	public ImageProcessor transparency(final float alpha) {
 		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
 
 		if (outputImage.channels() < 4) {
@@ -440,7 +441,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 direction 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor rotate(final RotateDirection direction) {
+	public ImageProcessor rotate(final RotateDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 
 		Mat image = new Mat();
@@ -461,7 +462,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor rotate(final double angle) {
+	public ImageProcessor rotate(final double angle) {
 		Size imageSize = outputImage.size();
 		int width = imageSize.width();
 		int height = imageSize.height();
@@ -505,7 +506,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 direction 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor flip(final FlipDirection direction) {
+	public ImageProcessor flip(final FlipDirection direction) {
 		Validate.notNull(direction, "direction 不可为 null");
 
 		Mat image = new Mat();
@@ -525,7 +526,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor warpAffine(final int dx, final int dy) {
+	public ImageProcessor warpAffine(final int dx, final int dy) {
 		Mat image = new Mat();
 
 		Mat matrixMat = OpencvUtils.getMatrixMat(dx, dy);
@@ -549,7 +550,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor resize(final int width, final int height) {
+	public ImageProcessor resize(final int width, final int height) {
 		return resize(width, height, opencv_imgproc.INTER_LINEAR);
 	}
 
@@ -571,7 +572,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor resize(final int width, final int height, final int interpolationFlag) {
+	public ImageProcessor resize(final int width, final int height, final int interpolationFlag) {
 		Validate.isTrue(width > 0, "width 必须大于 0");
 		Validate.isTrue(height > 0, "height 必须大于 0");
 		Validate.isTrue(interpolationFlag >= 0 && interpolationFlag <= 7, "interpolation 必须在0-7之间");
@@ -593,7 +594,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 targetWidth 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByWidth(final int targetWidth) {
+	public ImageProcessor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
 		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
@@ -617,7 +618,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByWidth(final int targetWidth, final int interpolationFlag) {
+	public ImageProcessor scaleByWidth(final int targetWidth, final int interpolationFlag) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
 		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
@@ -632,7 +633,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 targetHeight 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByHeight(final int targetHeight) {
+	public ImageProcessor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
 		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
@@ -656,7 +657,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scaleByHeight(final int targetHeight, final int interpolationFlag) {
+	public ImageProcessor scaleByHeight(final int targetHeight, final int interpolationFlag) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
 		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
@@ -672,7 +673,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 scalingFactor 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final double scalingFactor) {
+	public ImageProcessor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
 		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
@@ -696,7 +697,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final double scalingFactor, final int interpolationFlag) {
+	public ImageProcessor scale(final double scalingFactor, final int interpolationFlag) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
 		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
@@ -712,7 +713,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 targetWidth 或 targetHeight 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final int targetWidth, final int targetHeight) {
+	public ImageProcessor scale(final int targetWidth, final int targetHeight) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
@@ -738,7 +739,7 @@ public class ImageEditor {
 	 * @see opencv_imgproc#INTER_MAX
 	 * @since 1.1.0
 	 */
-	public ImageEditor scale(final int targetWidth, final int targetHeight, final int interpolationFlag) {
+	public ImageProcessor scale(final int targetWidth, final int targetHeight, final int interpolationFlag) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
@@ -757,7 +758,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 width 或 height 小于等于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor cropByCenter(final int width, final int height) {
+	public ImageProcessor cropByCenter(final int width, final int height) {
 		Validate.isTrue(width > 0, "width 不能小于0");
 		Validate.isTrue(height > 0, "height 不能小于0");
 
@@ -789,7 +790,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一 offset 小于 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor cropByOffset(final int topOffset, final int bottomOffset, final int leftOffset, final int rightOffset) {
+	public ImageProcessor cropByOffset(final int topOffset, final int bottomOffset, final int leftOffset, final int rightOffset) {
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
@@ -823,7 +824,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor cropByRect(final int x, final int y, final int width, final int height) {
+	public ImageProcessor cropByRect(final int x, final int y, final int width, final int height) {
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
 		Validate.isTrue(width > 0, "width 不能小于0");
@@ -852,7 +853,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor grayscale() {
+	public ImageProcessor grayscale() {
 		Mat image = new Mat();
 		int channels = this.outputImage.channels();
 
@@ -874,7 +875,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor blur() {
+	public ImageProcessor blur() {
 		return blur(new Size(5, 5));
 	}
 
@@ -886,7 +887,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 ksize 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor blur(final Size ksize) {
+	public ImageProcessor blur(final Size ksize) {
 		Validate.notNull(ksize, "ksize 不可为 null");
 
 		Mat image = new Mat();
@@ -905,7 +906,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor gaussianBlur() {
+	public ImageProcessor gaussianBlur() {
 		return gaussianBlur(new Size(5, 5), 0);
 	}
 
@@ -917,7 +918,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 ksize 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor gaussianBlur(final Size ksize) {
+	public ImageProcessor gaussianBlur(final Size ksize) {
 		return gaussianBlur(ksize, 0);
 	}
 
@@ -930,7 +931,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor gaussianBlur(final Size ksize, final double sigmaX) {
+	public ImageProcessor gaussianBlur(final Size ksize, final double sigmaX) {
 		Validate.notNull(ksize, "ksize 不可为 null");
 		Validate.isTrue(sigmaX >= 0, "sigmaX 必须大于等于 0");
 		Validate.isTrue(ksize.width() % 2 != 0, "ksize 宽度必须为奇数");
@@ -952,7 +953,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor medianBlur() {
+	public ImageProcessor medianBlur() {
 		return medianBlur(5);
 	}
 
@@ -964,7 +965,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 ksize 无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor medianBlur(final int ksize) {
+	public ImageProcessor medianBlur(final int ksize) {
 		Validate.isTrue(ksize > 1, "ksize 必须大于 1");
 		Validate.isTrue(ksize % 2 != 0, "ksize 必须为奇数");
 
@@ -984,7 +985,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor sharpen() {
+	public ImageProcessor sharpen() {
 		return sharpen(5);
 	}
 
@@ -996,7 +997,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 weight &lt;= 4
 	 * @since 1.1.0
 	 */
-	public ImageEditor sharpen(final float weight) {
+	public ImageProcessor sharpen(final float weight) {
 		Validate.isTrue(weight > 4, "weight 必须大于4");
 
 		float[] kernelData = {
@@ -1022,7 +1023,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor emboss() {
+	public ImageProcessor emboss() {
 		return emboss(1.0f);
 	}
 
@@ -1034,7 +1035,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 strength &lt;= 0
 	 * @since 1.1.0
 	 */
-	public ImageEditor emboss(final float strength) {
+	public ImageProcessor emboss(final float strength) {
 		Validate.isTrue(strength > 0, "strength 必须大于0");
 
 		float[] kernelData = {
@@ -1060,7 +1061,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor threshold() {
+	public ImageProcessor threshold() {
 		return threshold(0, 255, opencv_imgproc.THRESH_BINARY + opencv_imgproc.THRESH_OTSU);
 	}
 
@@ -1074,7 +1075,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor threshold(final double thresh, final double maxVal, final int type) {
+	public ImageProcessor threshold(final double thresh, final double maxVal, final int type) {
 		Validate.isTrue(thresh >= 0 && thresh <= 255, "thresh 取值范围必须为 0~255");
 		Validate.isTrue(maxVal >= 0 && maxVal <= 255, "maxVal 取值范围必须为 0~255");
 		Validate.isTrue(thresh != maxVal, "thresh 不能与 maxVal 相同");
@@ -1095,7 +1096,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor adaptiveThreshold() {
+	public ImageProcessor adaptiveThreshold() {
 		return adaptiveThreshold(255, opencv_imgproc.ADAPTIVE_THRESH_MEAN_C,
 			opencv_imgproc.THRESH_BINARY, 11, 2);
 	}
@@ -1112,8 +1113,8 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果参数无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
-	                                     final int blockSize, final double c) {
+	public ImageProcessor adaptiveThreshold(final double maxValue, final int adaptiveMethod, final int thresholdType,
+	                                        final int blockSize, final double c) {
 		Validate.isTrue(maxValue >= 0 && maxValue <= 255, "maxValue 取值范围必须 0 ~ 255");
 		Validate.isTrue(blockSize >= 3 && blockSize % 2 == 1, "blockSize 必须是大于等于3的奇数");
 
@@ -1134,7 +1135,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor contrast() {
+	public ImageProcessor contrast() {
 		return contrast(0.3f);
 	}
 
@@ -1145,7 +1146,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor contrast(final float alpha) {
+	public ImageProcessor contrast(final float alpha) {
 		Validate.isTrue(alpha > 0, "alpha 必须大于 0");
 
 		Mat image = new Mat();
@@ -1164,7 +1165,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor brightness(final float beta) {
+	public ImageProcessor brightness(final float beta) {
 		Mat image = new Mat();
 		opencv_core.convertScaleAbs(outputImage, image, 1, beta);
 
@@ -1185,7 +1186,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 watermarkImageFile 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor addImageWatermark(final File watermarkImageFile) throws IOException {
+	public ImageProcessor addImageWatermark(final File watermarkImageFile) throws IOException {
 		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
 			return addImageWatermark(watermarkImageMat, new ImageWatermarkOption());
 		}
@@ -1201,7 +1202,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
+	public ImageProcessor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(option, "option 不可为 null");
 
 		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
@@ -1219,7 +1220,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 watermarkImage 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor addImageWatermark(final Mat watermarkImage) {
+	public ImageProcessor addImageWatermark(final Mat watermarkImage) {
 		return addImageWatermark(watermarkImage, new ImageWatermarkOption());
 	}
 
@@ -1234,7 +1235,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一参数为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
+	public ImageProcessor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 		Validate.isTrue(OpencvUtils.isNotEmpty(watermarkImage), "watermarkImage 不可为空");
@@ -1372,7 +1373,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 watermarkText 为 null 或空
 	 * @since 1.1.0
 	 */
-	public ImageEditor addTextWatermark(final String watermarkText) {
+	public ImageProcessor addTextWatermark(final String watermarkText) {
 		return addTextWatermark(watermarkText, new TextWatermarkOption());
 	}
 
@@ -1387,7 +1388,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果任一参数无效
 	 * @since 1.1.0
 	 */
-	public ImageEditor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
+	public ImageProcessor addTextWatermark(final String watermarkText, final TextWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notBlank(watermarkText, "watermarkText 不可为空");
 
@@ -1486,7 +1487,7 @@ public class ImageEditor {
 	 * @throws IllegalArgumentException 如果 operation 为 null
 	 * @since 1.1.0
 	 */
-	public ImageEditor apply(final Function<Mat, Mat> operation) {
+	public ImageProcessor apply(final Function<Mat, Mat> operation) {
 		Validate.notNull(operation, "operation 不可为 null");
 
 		Mat image = operation.apply(this.outputImage);
@@ -1636,7 +1637,7 @@ public class ImageEditor {
 	 * @return 当前编辑器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageEditor reset() {
+	public ImageProcessor reset() {
 		this.outputImage.releaseReference();
 		this.outputImage = this.inputImage.clone();
 

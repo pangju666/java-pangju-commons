@@ -1,4 +1,5 @@
-package io.github.pangju666.commons.io.model
+package io.github.pangju666.commons.io.resource
+
 
 import io.github.pangju666.commons.io.utils.FileUtils
 import spock.lang.Specification

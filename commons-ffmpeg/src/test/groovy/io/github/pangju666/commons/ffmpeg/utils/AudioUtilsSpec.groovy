@@ -16,8 +16,8 @@
 
 package io.github.pangju666.commons.ffmpeg.utils
 
+import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
 import io.github.pangju666.commons.ffmpeg.model.Audio
-import io.github.pangju666.commons.ffmpeg.model.FFmpegResource
 import spock.lang.Specification
 import spock.lang.TempDir
 

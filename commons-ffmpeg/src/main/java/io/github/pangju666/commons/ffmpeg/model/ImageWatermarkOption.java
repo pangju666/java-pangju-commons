@@ -19,7 +19,7 @@ package io.github.pangju666.commons.ffmpeg.model;
 import io.github.pangju666.commons.ffmpeg.builder.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.enums.Direction;
 import io.github.pangju666.commons.ffmpeg.utils.FFmpegUtils;
-import io.github.pangju666.commons.io.model.IOResource;
+import io.github.pangju666.commons.io.resource.IOResource;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bytedeco.javacv.FFmpegFrameGrabber;

@@ -1,25 +1,31 @@
-package io.github.pangju666.commons.image.utils
+package io.github.pangju666.commons.image.processor
 
 import com.drew.imaging.ImageProcessingException
 import com.twelvemonkeys.image.GrayFilter
 import com.twelvemonkeys.image.ResampleOp
 import io.github.pangju666.commons.image.enums.FlipDirection
 import io.github.pangju666.commons.image.enums.RotateDirection
+import io.github.pangju666.commons.image.io.resource.ImageIOResource
 import io.github.pangju666.commons.image.lang.ImageConstants
-import io.github.pangju666.commons.image.model.ImageIOResource
+import io.github.pangju666.commons.image.model.ImageSize
 import io.github.pangju666.commons.image.model.ImageWatermarkOption
 import io.github.pangju666.commons.image.model.TextWatermarkOption
+import io.github.pangju666.commons.image.utils.ImageUtils
+import io.github.pangju666.commons.io.utils.IOUtils
+import net.coobird.thumbnailator.filters.Caption
+import net.coobird.thumbnailator.filters.Watermark
 import net.coobird.thumbnailator.geometry.Positions
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream
 import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
 
 import javax.imageio.ImageIO
 import javax.imageio.stream.ImageOutputStream
+import java.awt.*
 import java.nio.file.Path
+import java.util.List
 
-class ImageEditorSpec extends Specification {
+class ImageProcessorSpec extends Specification {
 	@TempDir
 	Path tempDir
 
@@ -72,9 +78,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.scaleByWidth(200)
 				def img = editor.toBufferedImage()
 				assert img.getWidth() == 200
@@ -112,9 +118,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.scaleByHeight(300)
 				def img = editor.toBufferedImage()
 				assert img.getHeight() == 300
@@ -152,9 +158,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.resize(128, 128)
 				def img = editor.toBufferedImage()
 				assert img.getWidth() == 128
@@ -189,9 +195,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.scale(200, 150)
 				def img = editor.toBufferedImage()
 				def ow = IMAGE_SIZE_EXPECTED[name][0]
@@ -231,12 +237,12 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
 				def origin = ImageIO.read(file)
 				def w = Math.max(1, Math.min(100, origin.getWidth()))
 				def h = Math.max(1, Math.min(100, origin.getHeight()))
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.cropByCenter(w, h)
 				def img = editor.toBufferedImage()
 				assert img.getWidth() == w
@@ -271,9 +277,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				def pre = editor.toBufferedImage()
 				def w0 = pre.getWidth()
 				def h0 = pre.getHeight()
@@ -313,9 +319,9 @@ class ImageEditorSpec extends Specification {
 		when:
 		"执行处理"
 		if (!canRead) {
-			ImageEditor.of(file, true)
+			ImageProcessor.of(new ImageIOResource(file, true))
 		} else {
-			def editor = ImageEditor.of(file, true)
+			def editor = ImageProcessor.of(new ImageIOResource(file, true))
 			editor.cropByRect(-1, 0, 10, 10)
 		}
 
@@ -340,9 +346,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				if (ext != "ICO") {
 					editor.rotate(RotateDirection.CLOCKWISE_90)
 				}
@@ -388,9 +394,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.grayscale()
 				def img = editor.toBufferedImage()
 				boolean ok = true
@@ -436,9 +442,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				boolean ok = true
 				def out = new File(tempDir.toFile(), "bc-${ext}.jpg")
 				editor.brightness(0.2f).contrast(0.3f)
@@ -482,9 +488,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.filter(new GrayFilter())
 				def img = editor.toBufferedImage()
 				def ow = IMAGE_SIZE_EXPECTED[name][0]
@@ -523,9 +529,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def option = new ImageWatermarkOption()
 				option.setDirection(Positions.BOTTOM_RIGHT)
 				boolean ok = true
@@ -568,9 +574,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def option = new TextWatermarkOption()
 				option.setDirection(Positions.CENTER)
 				boolean ok = true
@@ -613,14 +619,14 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
-				def baos = new UnsynchronizedByteArrayOutputStream()
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				def baos = IOUtils.toUnsynchronizedByteArrayOutputStream(IOUtils.DEFAULT_BUFFER_SIZE)
 				def f = new File(tempDir.toFile(), "ios-${ext}.png")
 				ImageOutputStream ios = ImageIO.createImageOutputStream(f)
-				boolean ok1 = true
-				boolean ok2 = true
+				boolean ok1
+				boolean ok2
 				if (canWrite) {
 					ok1 = editor.outputFormat("PNG").toOutputStream(baos)
 					ok2 = editor.outputFormat("PNG").toImageOutputStream(ios)
@@ -668,9 +674,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.scaleByWidth(64).grayscale()
 				if (ext != "ICO") {
 					editor.rotate(90d)
@@ -725,9 +731,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				if (ext != "ICO") {
 					editor.rotate(45d)
 				}
@@ -764,9 +770,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.blur().sharpen()
 				def img = editor.toBufferedImage()
 				assert img != null
@@ -800,9 +806,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.contrast()
 				def img = editor.toBufferedImage()
 				assert img != null
@@ -836,10 +842,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
-				def origin = ImageIO.read(file)
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				editor.scale(0.5d)
 				def img = editor.toBufferedImage()
 				def ow = IMAGE_SIZE_EXPECTED[name][0]
@@ -864,45 +869,6 @@ class ImageEditorSpec extends Specification {
 	}
 
 	@Unroll
-	def "resampleFilterType 切换与非法值处理：#name"() {
-		given:
-		"准备源文件与参数"
-		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
-		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
-
-		when:
-		"执行处理"
-		def err = null
-		try {
-			if (!canRead) {
-				ImageEditor.of(file, true)
-			} else {
-				def editor = ImageEditor.of(file, true)
-				editor.resampleFilterType(ResampleOp.FILTER_BOX).scaleByWidth(80)
-				def img1 = editor.toBufferedImage()
-				editor.resampleFilterType(-1).scaleByWidth(60)
-				def img2 = editor.toBufferedImage()
-				assert img1 != null
-				assert img2 != null
-			}
-		} catch (Throwable e) {
-			err = e
-		}
-
-		then:
-		"验证结果"
-		if (!canRead) {
-			assert err instanceof IllegalArgumentException
-		} else {
-			assert err == null
-		}
-
-		where:
-		name << ALL_IMAGES
-	}
-
-	@Unroll
 	def "addImageWatermark(BufferedImage,direction) 与 (x,y)：#name"() {
 		given:
 		"准备源文件与输出文件"
@@ -916,9 +882,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def wm = ImageIO.read(new File("${TEST_IMAGES_DIR}/watermark.png"))
 				def directionOption = new ImageWatermarkOption()
 				directionOption.setDirection(Positions.TOP_RIGHT)
@@ -966,9 +932,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def option = new TextWatermarkOption()
 				option.setX(20)
 				option.setY(30)
@@ -1011,7 +977,7 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, true)
+				ImageProcessor.of(new ImageIOResource(file, true))
 			} else {
 				def origin = ImageIO.read(file)
 				def orientation = ImageConstants.NORMAL_EXIF_ORIENTATION
@@ -1019,7 +985,7 @@ class ImageEditorSpec extends Specification {
 					orientation = ImageUtils.getExifOrientation(file)
 				} catch (ImageProcessingException ignored) {
 				}
-				def editor = ImageEditor.of(file, true)
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
 				def img = editor.toBufferedImage()
 				assert orientation in (1..8)
 				if (orientation in [5, 6, 7, 8]) {
@@ -1059,10 +1025,10 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file, 6)
+				ImageProcessor.of(new ImageIOResource(file, 6))
 			} else {
 				def origin = ImageIO.read(file)
-				def editor = ImageEditor.of(file, 6)
+				def editor = ImageProcessor.of(new ImageIOResource(file, 6))
 				def img = editor.toBufferedImage()
 				assert img.getWidth() == origin.getHeight()
 				assert img.getHeight() == origin.getWidth()
@@ -1091,21 +1057,17 @@ class ImageEditorSpec extends Specification {
 		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
 		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
 		def is1 = new FileInputStream(f)
-		def is2 = new FileInputStream(f)
 
 		when:
 		"执行处理"
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(is1)
+				ImageProcessor.of(is1)
 			} else {
-				def e1 = ImageEditor.of(is1)
-				def e2 = ImageEditor.of(is2, true)
+				def e1 = ImageProcessor.of(is1)
 				def i1 = e1.toBufferedImage()
-				def i2 = e2.toBufferedImage()
 				assert i1 != null
-				assert i2 != null
 			}
 		} catch (Throwable e) {
 			err = e
@@ -1137,10 +1099,10 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(is, 6)
+				ImageProcessor.of(is, 6)
 			} else {
 				def origin = ImageIO.read(f)
-				def e = ImageEditor.of(is, 6)
+				def e = ImageProcessor.of(is, 6)
 				def img = e.toBufferedImage()
 				assert img.getWidth() == origin.getHeight()
 				assert img.getHeight() == origin.getWidth()
@@ -1176,11 +1138,11 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(iis1)
+				ImageProcessor.of(iis1)
 			} else {
 				def origin = ImageIO.read(f)
-				def e1 = ImageEditor.of(iis1)
-				def e2 = ImageEditor.of(iis2, 6)
+				def e1 = ImageProcessor.of(iis1)
+				def e2 = ImageProcessor.of(iis2, 6)
 				def i1 = e1.toBufferedImage()
 				def i2 = e2.toBufferedImage()
 				assert i1 != null
@@ -1216,11 +1178,11 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(ImageIO.read(f))
+				ImageProcessor.of(ImageIO.read(f))
 			} else {
 				def bi = ImageIO.read(f)
-				def e1 = ImageEditor.of(bi)
-				def e2 = ImageEditor.of(bi, 6)
+				def e1 = ImageProcessor.of(bi)
+				def e2 = ImageProcessor.of(bi, 6)
 				def i1 = e1.toBufferedImage()
 				def i2 = e2.toBufferedImage()
 				assert i1 != null
@@ -1256,10 +1218,10 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(f)
+				ImageProcessor.of(new ImageIOResource(f))
 			} else {
 				def origin = ImageIO.read(f)
-				def editor = ImageEditor.of(f)
+				def editor = ImageProcessor.of(new ImageIOResource(f))
 				editor.scaleByWidth(64)
 				editor.reset()
 				def img = editor.toBufferedImage()
@@ -1295,10 +1257,10 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(new ImageIOResource(f))
+				ImageProcessor.of(new ImageIOResource(f))
 			} else {
 				def resource = new ImageIOResource(f)
-				def editor = ImageEditor.of(resource)
+				def editor = ImageProcessor.of(resource)
 				def img = editor.toBufferedImage()
 				assert img != null
 				def ow = IMAGE_SIZE_EXPECTED[name][0]
@@ -1325,7 +1287,7 @@ class ImageEditorSpec extends Specification {
 	def "of(ImageIOResource) null 资源抛异常"() {
 		when:
 		"传入 null 资源"
-		ImageEditor.of(null as ImageIOResource)
+		ImageProcessor.of(null as ImageIOResource)
 
 		then:
 		"抛出 NullPointerException"
@@ -1345,11 +1307,11 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(new ImageIOResource(f, true))
+				ImageProcessor.of(new ImageIOResource(f, true))
 			} else {
 				def origin = ImageIO.read(f)
 				def resource = new ImageIOResource(f, true)
-				def editor = ImageEditor.of(resource)
+				def editor = ImageProcessor.of(resource)
 				def img = editor.toBufferedImage()
 				assert img != null
 				def orientation = resource.getImageSize().getOrientation()
@@ -1390,9 +1352,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(file)
+				ImageProcessor.of(new ImageIOResource(file))
 			} else {
-				def editor = ImageEditor.of(file)
+				def editor = ImageProcessor.of(new ImageIOResource(file))
 				editor.transparency(0.5f)
 				def img = editor.toBufferedImage()
 				assert img != null
@@ -1420,7 +1382,7 @@ class ImageEditorSpec extends Specification {
 
 		when:
 		"执行处理"
-		def editor = ImageEditor.of(file)
+		def editor = ImageProcessor.of(new ImageIOResource(file))
 		editor.transparency(1.5f)
 
 		then:
@@ -1442,9 +1404,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def wm = ImageIO.read(watermark)
 				editor.addImageWatermark(wm)
 				def img = editor.toBufferedImage()
@@ -1480,9 +1442,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def wm = ImageIO.read(watermark)
 				def option = new ImageWatermarkOption()
 				option.setDirection(Positions.TOP_LEFT)
@@ -1514,7 +1476,7 @@ class ImageEditorSpec extends Specification {
 
 		when:
 		"执行处理"
-		def editor = ImageEditor.of(src)
+		def editor = ImageProcessor.of(new ImageIOResource(src))
 		def wm = ImageIO.read(watermark)
 		editor.addImageWatermark(wm, null)
 
@@ -1536,9 +1498,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				editor.addTextWatermark("TEST")
 				def img = editor.toBufferedImage()
 				assert img != null
@@ -1572,9 +1534,9 @@ class ImageEditorSpec extends Specification {
 		def err = null
 		try {
 			if (!canRead) {
-				ImageEditor.of(src)
+				ImageProcessor.of(new ImageIOResource(src))
 			} else {
-				def editor = ImageEditor.of(src)
+				def editor = ImageProcessor.of(new ImageIOResource(src))
 				def option = new TextWatermarkOption()
 				option.setDirection(Positions.BOTTOM_RIGHT)
 				editor.addTextWatermark("HELLO", option)
@@ -1604,11 +1566,327 @@ class ImageEditorSpec extends Specification {
 
 		when:
 		"执行处理"
-		def editor = ImageEditor.of(src)
+		def editor = ImageProcessor.of(new ImageIOResource(src))
 		editor.addTextWatermark("TEST", null)
 
 		then:
 		"抛出异常"
 		thrown(NullPointerException)
+	}
+
+	def "release 释放图像资源"() {
+		given:
+		"准备源文件"
+		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(file))
+		editor.scaleByWidth(100)
+		editor.release()
+		editor.scaleByWidth(100)
+
+		then:
+		"验证释放后无法使用"
+		thrown(NullPointerException)
+	}
+
+	def "apply 自定义图像操作"() {
+		given:
+		"准备源文件"
+		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(file))
+		editor.apply { img ->
+			ImageSize targetImageSize = new ImageSize(img.getWidth(), img.getHeight()).scaleByWidth(100);
+			return new ResampleOp(targetImageSize.getWidth(), targetImageSize.getHeight())
+				.filter(img, null)
+		}
+		def img = editor.toBufferedImage()
+
+		then:
+		"验证结果"
+		img.getWidth() == 100
+	}
+
+	def "apply null 操作抛异常"() {
+		given:
+		"准备源文件"
+		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(file))
+		editor.apply(null)
+
+		then:
+		"抛出异常"
+		thrown(NullPointerException)
+	}
+
+	def "addImageWatermark(Watermark) 使用预创建对象"() {
+		given:
+		"准备源文件与水印"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+		def watermark = new File("${TEST_IMAGES_DIR}/watermark.png")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(src))
+		def wm = ImageIO.read(watermark)
+		def watermarkFilter = new Watermark(Positions.CENTER, wm, 0.5f)
+		editor.addImageWatermark(watermarkFilter)
+		def img = editor.toBufferedImage()
+
+		then:
+		"验证结果"
+		img != null
+	}
+
+	def "addImageWatermark(Watermark) null 抛异常"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(src))
+		editor.addImageWatermark((Watermark) null)
+
+		then:
+		"抛出异常"
+		thrown(NullPointerException)
+	}
+
+	def "addTextWatermark(Caption) 使用预创建对象"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(src))
+		def caption = new Caption("TEST", new Font("Arial", Font.BOLD, 20), Color.BLACK, Positions.CENTER, 20)
+		editor.addTextWatermark(caption)
+		def img = editor.toBufferedImage()
+
+		then:
+		"验证结果"
+		img != null
+	}
+
+	def "addTextWatermark(Caption) null 抛异常"() {
+		given:
+		"准备源文件"
+		def src = new File("${TEST_IMAGES_DIR}/test.jpg")
+
+		when:
+		"执行处理"
+		def editor = ImageProcessor.of(new ImageIOResource(src))
+		editor.addTextWatermark((Caption) null)
+
+		then:
+		"抛出异常"
+		thrown(NullPointerException)
+	}
+
+	@Unroll
+	def "scaleByWidth 带重采样滤波器：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageProcessor.of(new ImageIOResource(file, true))
+			} else {
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				editor.scaleByWidth(200, ResampleOp.FILTER_BOX)
+				def img = editor.toBufferedImage()
+				assert img.getWidth() == 200
+				def ow = IMAGE_SIZE_EXPECTED[name][0]
+				def oh = IMAGE_SIZE_EXPECTED[name][1]
+				def expectedH = Math.max(1, (int) Math.round(oh * (200d / ow)))
+				assert img.getHeight() == expectedH
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES.findAll { it != "test.svg" }
+	}
+
+	@Unroll
+	def "scaleByHeight 带重采样滤波器：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageProcessor.of(new ImageIOResource(file, true))
+			} else {
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				editor.scaleByHeight(300, ResampleOp.FILTER_TRIANGLE)
+				def img = editor.toBufferedImage()
+				assert img.getHeight() == 300
+				def ow = IMAGE_SIZE_EXPECTED[name][0]
+				def oh = IMAGE_SIZE_EXPECTED[name][1]
+				def expectedW = Math.max(1, (int) Math.round(ow * (300d / oh)))
+				assert img.getWidth() == expectedW
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	@Unroll
+	def "scale(double,int) 带重采样滤波器：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageProcessor.of(new ImageIOResource(file, true))
+			} else {
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				editor.scale(0.5d, ResampleOp.FILTER_CUBIC)
+				def img = editor.toBufferedImage()
+				def ow = IMAGE_SIZE_EXPECTED[name][0]
+				def oh = IMAGE_SIZE_EXPECTED[name][1]
+				assert img.getWidth() == Math.max(1, (int) Math.round(ow * 0.5d))
+				assert img.getHeight() == Math.max(1, (int) Math.round(oh * 0.5d))
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	@Unroll
+	def "scale(int,int,int) 带重采样滤波器：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageProcessor.of(new ImageIOResource(file, true))
+			} else {
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				editor.scale(200, 150, ResampleOp.FILTER_MITCHELL)
+				def img = editor.toBufferedImage()
+				def ow = IMAGE_SIZE_EXPECTED[name][0]
+				def oh = IMAGE_SIZE_EXPECTED[name][1]
+				def factor = Math.min(200d / ow, 150d / oh)
+				def expectedW = Math.max(1, (int) Math.round(ow * factor))
+				def expectedH = Math.max(1, (int) Math.round(oh * factor))
+				assert img.getWidth() == expectedW
+				assert img.getHeight() == expectedH
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
+	}
+
+	@Unroll
+	def "resize 带重采样滤波器：#name"() {
+		given:
+		"准备源文件与参数"
+		def file = new File("${TEST_IMAGES_DIR}/${name}")
+		def ext = name.substring(name.lastIndexOf('.') + 1).toUpperCase()
+		def canRead = ImageConstants.getSupportedReadImageFormats().contains(ext)
+
+		when:
+		"执行处理"
+		def err = null
+		try {
+			if (!canRead) {
+				ImageProcessor.of(new ImageIOResource(file, true))
+			} else {
+				def editor = ImageProcessor.of(new ImageIOResource(file, true))
+				editor.resize(128, 128, ResampleOp.FILTER_CATROM)
+				def img = editor.toBufferedImage()
+				assert img.getWidth() == 128
+				assert img.getHeight() == 128
+			}
+		} catch (Throwable e) {
+			err = e
+		}
+
+		then:
+		"验证结果"
+		if (!canRead) {
+			assert err instanceof IllegalArgumentException
+		} else {
+			assert err == null
+		}
+
+		where:
+		name << NORMAL_IMAGES
 	}
 }

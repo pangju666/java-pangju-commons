@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.commons.ffmpeg.model;
+package io.github.pangju666.commons.ffmpeg.io.resource;
 
-import io.github.pangju666.commons.io.model.IOResource;
+import io.github.pangju666.commons.io.resource.IOResource;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.io.File;

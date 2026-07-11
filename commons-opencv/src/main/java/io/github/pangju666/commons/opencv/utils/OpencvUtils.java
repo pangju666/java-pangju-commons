@@ -23,6 +23,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.lang.OpencvConstants;
+import io.github.pangju666.commons.opencv.processor.ImageProcessor;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +63,7 @@ import java.util.Objects;
  *
  * @author pangju666
  * @see OpencvConstants
- * @see ImageEditor
+ * @see ImageProcessor
  * @since 1.1.0
  */
 public class OpencvUtils {

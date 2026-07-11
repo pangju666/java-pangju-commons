@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.ffmpeg.model
 
+import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import spock.lang.Specification
 
