@@ -416,7 +416,7 @@ public class ImageProcessor {
 		if (resource.isOrientationCorrected()) {
 			imageSize = new ImageSize(imageSize.getWidth(), imageSize.getHeight());
 		}
-		return new ImageProcessor(resource.getBufferedImage(), imageSize, resource.getFormat());
+		return new ImageProcessor(resource.getBufferedImage(), imageSize, resource.getImageFormat());
 	}
 
 	/**
@@ -1363,7 +1363,6 @@ public class ImageProcessor {
 						imageType = BufferedImage.TYPE_INT_RGB;
 						break;
 				}
-				;
 			}
 			return ImageUtil.toBuffered(outputImage, imageType);
 		}

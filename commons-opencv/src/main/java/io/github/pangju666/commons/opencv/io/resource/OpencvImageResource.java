@@ -59,7 +59,7 @@ import java.util.Objects;
  * <ul>
  *   <li><strong>Mat 管理</strong> - 提供 {@link Mat} 图像数据的懒加载和缓存，支持获取原始 Mat 和深拷贝</li>
  *   <li><strong>尺寸获取</strong> - 支持从元数据或 Mat 中获取图像尺寸，优先使用元数据以提高性能</li>
- *   <li><strong>EXIF 支持</strong> - 支持自动解析 EXIF 方向信息，也支持手动指定方向，可选择在构造时自动校正方向</li>
+ *   <li><strong>EXIF 支持</strong> - 支持自动解析 EXIF 方向信息，也支持手动指定方向，并可根据构造参数或读取标志决定是否校正图像方向</li>
  *   <li><strong>元数据解析</strong> - 使用 Metadata Extractor 解析图像元数据，支持多种图像格式</li>
  *   <li><strong>资源管理</strong> - 继承 {@link IOResource} 的资源管理能力，支持关闭和释放资源</li>
  *   <li><strong>读取标志</strong> - 支持指定 OpenCV 读取标志（如 IMREAD_UNCHANGED、IMREAD_COLOR 等）控制图像读取方式</li>
@@ -78,7 +78,7 @@ import java.util.Objects;
  * <ul>
  *   <li>资源关闭后禁止执行任何操作</li>
  *   <li>继承父类 {@link IOResource} 的所有特性和约束</li>
- *   <li>构造时会验证是否为图像类型，并检查 OpenCV 是否支持读取该格式</li>
+ *   <li>构造时会校验资源是否为图像类型，并在需要时验证 OpenCV 是否能够成功读取图像数据</li>
  * </ul>
  *
  * @author pangju666
@@ -86,90 +86,104 @@ import java.util.Objects;
  * @see Mat
  * @see Size
  * @see OpencvUtils
- * @since 1.1.0
+ * @since 2.1.0
  */
 public class OpencvImageResource extends IOResource {
 	/**
 	 * OpenCV 读取标志
 	 * <p>控制图像读取方式的标志（如 IMREAD_UNCHANGED、IMREAD_COLOR 等）。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final int flags;
 	/**
 	 * EXIF 方向是否已校正
-	 * <p>标记图像是否已进行 EXIF 方向校正。</p>
+	 * <p>标记当前图像数据是否已经按照 EXIF 方向完成校正。</p>
 	 *
 	 * <p>取值说明：</p>
 	 * <ul>
-	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
-	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 *   <li>{@code true}：图像方向已被校正，可能来自显式校正，也可能来自 OpenCV 在读取阶段的自动方向处理</li>
+	 *   <li>{@code false}：图像方向未被校正，缓存的图像和尺寸为原始数据</li>
 	 * </ul>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected final boolean orientationCorrected;
 	/**
 	 * 图像尺寸
 	 * <p>包含图像的宽度和高度信息，懒加载并缓存。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected volatile Size imageSize;
 	/**
 	 * OpenCV Mat 图像对象
 	 * <p>存储图像数据的 Mat 对象，懒加载并缓存。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected volatile Mat imageMat;
 	/**
 	 * 图像元数据
 	 * <p>使用 Metadata Extractor 解析的图像元数据，懒加载并缓存。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected volatile Metadata metadata;
 	/**
 	 * EXIF 方向值
 	 * <p>存储图像的 EXIF 方向信息，懒加载并缓存。</p>
 	 *
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected volatile Integer exifOrientation;
 
 	/**
-	 * 基于 IOResource 构造 OpencvImageResource（自动解析 EXIF 方向）
-	 * <p>从现有 IOResource 创建 OpencvImageResource，自动解析 EXIF 方向信息。</p>
+	 * 基于 IOResource 构造 OpencvImageResource（自动校正 EXIF 方向）
+	 * <p>从现有 IOResource 创建 OpencvImageResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param resource IO 资源对象，不可为 null
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当 resource 不是图像资源时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(IOResource resource) throws IOException {
 		this(resource, true);
 	}
 
 	/**
-	 * 基于 IOResource 构造 OpencvImageResource（可选择是否解析 EXIF 方向）
-	 * <p>从现有 IOResource 创建 OpencvImageResource，可选择是否自动解析 EXIF 方向信息。</p>
+	 * 基于 IOResource 构造 OpencvImageResource（可选择是否校正 EXIF 方向）
+	 * <p>从现有 IOResource 创建 OpencvImageResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param resource           IO 资源对象，不可为 null
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当 resource 不是图像资源时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(IOResource resource, boolean correctOrientation) throws IOException {
 		super(resource);
 
+		Mat imageMat = null;
+
 		if (resource instanceof OpencvImageResource) {
 			this.flags = ((OpencvImageResource) resource).flags;
 		} else {
-			validateImageType("resource 不是图像资源");
-
 			this.flags = opencv_imgcodecs.IMREAD_UNCHANGED;
+
+			if (Objects.nonNull(file)) {
+				if (!OpencvUtils.canRead(file)) {
+					throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+				}
+			} else {
+				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					imageMat = OpencvUtils.read(byteArrayInputStream);
+
+					if (OpencvUtils.isEmpty(imageMat)) {
+						throw new IllegalArgumentException("不支持读取该图像");
+					}
+				}
+			}
 		}
 
 		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
@@ -194,8 +208,8 @@ public class OpencvImageResource extends IOResource {
 					}
 				}
 			} else {
-				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-					this.metadata = ImageMetadataReader.readMetadata(inputStream);
+				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream);
 					this.exifOrientation = getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 					this.metadata = new Metadata();
@@ -203,11 +217,18 @@ public class OpencvImageResource extends IOResource {
 
 				if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
 					exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-					try (InputStream inputStream = newBufferedInputStream();
-					     Mat image = OpencvUtils.read(inputStream)) {
-						this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-						this.imageSize = this.imageMat.size();
+					if (Objects.isNull(imageMat)) {
+						try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+							imageMat = OpencvUtils.read(byteArrayInputStream);
+
+							if (OpencvUtils.isEmpty(imageMat)) {
+								throw new IllegalArgumentException("不支持读取该图像");
+							}
+						}
 					}
+
+					this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+					this.imageSize = this.imageMat.size();
 				}
 			}
 		}
@@ -217,17 +238,17 @@ public class OpencvImageResource extends IOResource {
 	 * 基于 IOResource 构造 OpencvImageResource（指定读取标志）
 	 * <p>从现有 IOResource 创建 OpencvImageResource，指定读取标志。</p>
 	 *
-	 * <p>方向校正规则：</p>
+	 * <p>方向处理规则：</p>
 	 * <ul>
-	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，自动校正 EXIF 方向</li>
-	 *     <li>其他 flags 不自动校正方向</li>
+	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，由当前类根据 EXIF 信息校正方向</li>
+	 *     <li>其他 flags 下，方向是否已处理取决于 OpenCV 的读取行为，因此不会额外执行手动校正</li>
 	 * </ul>
 	 *
 	 * @param resource IO 资源对象，不可为 null
 	 * @param flags    OpenCV 读取标志
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当 resource 不是图像资源时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(IOResource resource, int flags) throws IOException {
 		this(resource, flags, flags == opencv_imgcodecs.IMREAD_UNCHANGED ||
@@ -235,21 +256,34 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于 IOResource 构造 OpencvImageResource（指定读取标志和是否解析 EXIF）
-	 * <p>从现有 IOResource 创建 OpencvImageResource，指定读取标志和是否解析 EXIF 方向。</p>
+	 * 基于 IOResource 构造 OpencvImageResource（指定读取标志和是否校正 EXIF 方向）
+	 * <p>从现有 IOResource 创建 OpencvImageResource，指定读取标志，并可选择是否根据 EXIF 信息校正图像方向。</p>
 	 *
 	 * @param resource           IO 资源对象，不可为 null
 	 * @param flags              OpenCV 读取标志
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当 resource 不是图像资源时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(IOResource resource, int flags, boolean correctOrientation) throws IOException {
 		super(resource);
 
+		Mat imageMat = null;
 		if (!(resource instanceof OpencvImageResource)) {
-			validateImageType("resource 不是图像资源");
+			if (Objects.nonNull(file)) {
+				if (!OpencvUtils.canRead(file)) {
+					throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+				}
+			} else {
+				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					imageMat = OpencvUtils.read(byteArrayInputStream);
+
+					if (OpencvUtils.isEmpty(imageMat)) {
+						throw new IllegalArgumentException("不支持读取该图像");
+					}
+				}
+			}
 		}
 
 		this.flags = flags;
@@ -275,8 +309,8 @@ public class OpencvImageResource extends IOResource {
 					}
 				}
 			} else {
-				try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-					this.metadata = ImageMetadataReader.readMetadata(inputStream);
+				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream);
 					this.exifOrientation = getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 					this.metadata = new Metadata();
@@ -284,11 +318,18 @@ public class OpencvImageResource extends IOResource {
 
 				if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
 					exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-					try (InputStream inputStream = newBufferedInputStream();
-					     Mat image = OpencvUtils.read(inputStream)) {
-						this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-						this.imageSize = this.imageMat.size();
+					if (Objects.isNull(imageMat)) {
+						try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+							imageMat = OpencvUtils.read(byteArrayInputStream);
+
+							if (OpencvUtils.isEmpty(imageMat)) {
+								throw new IllegalArgumentException("不支持读取该图像");
+							}
+						}
 					}
+
+					this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+					this.imageSize = this.imageMat.size();
 				}
 			}
 		}
@@ -303,14 +344,28 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
 	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException 当 resource 不是图像资源或 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(IOResource resource, int flags, int exifOrientation) throws IOException {
 		super(resource);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
+
+		Mat imageMat = null;
 		if (!(resource instanceof OpencvImageResource)) {
-			validateImageType("resource 不是图像资源");
+			if (Objects.nonNull(file)) {
+				if (!OpencvUtils.canRead(file)) {
+					throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+				}
+			} else {
+				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					imageMat = OpencvUtils.read(byteArrayInputStream);
+
+					if (OpencvUtils.isEmpty(imageMat)) {
+						throw new IllegalArgumentException("不支持读取该图像");
+					}
+				}
+			}
 		}
 
 		this.flags = flags;
@@ -325,37 +380,44 @@ public class OpencvImageResource extends IOResource {
 					this.imageSize = this.imageMat.size();
 				}
 			} else {
-				try (InputStream inputStream = newBufferedInputStream();
-				     Mat image = OpencvUtils.read(inputStream)) {
-					this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-					this.imageSize = this.imageMat.size();
+				if (Objects.isNull(imageMat)) {
+					try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+						imageMat = OpencvUtils.read(byteArrayInputStream);
+
+						if (OpencvUtils.isEmpty(imageMat)) {
+							throw new IllegalArgumentException("不支持读取该图像");
+						}
+					}
 				}
+
+				this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+				this.imageSize = this.imageMat.size();
 			}
 		}
 	}
 
 	/**
-	 * 基于文件路径构造 OpencvImageResource（自动解析 EXIF 方向）
-	 * <p>从文件路径创建 OpencvImageResource，自动解析 EXIF 方向信息。</p>
+	 * 基于文件路径构造 OpencvImageResource（自动校正 EXIF 方向）
+	 * <p>从文件路径创建 OpencvImageResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param filePath 文件路径，不可为 null
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(String filePath) throws IOException {
 		this(filePath, opencv_imgcodecs.IMREAD_UNCHANGED, true);
 	}
 
 	/**
-	 * 基于文件路径构造 OpencvImageResource（可选择是否解析 EXIF 方向）
-	 * <p>从文件路径创建 OpencvImageResource，可选择是否自动解析 EXIF 方向信息。</p>
+	 * 基于文件路径构造 OpencvImageResource（可选择是否校正 EXIF 方向）
+	 * <p>从文件路径创建 OpencvImageResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param filePath           文件路径，不可为 null
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(String filePath, boolean correctOrientation) throws IOException {
 		this(filePath, opencv_imgcodecs.IMREAD_UNCHANGED, correctOrientation);
@@ -365,17 +427,17 @@ public class OpencvImageResource extends IOResource {
 	 * 基于文件路径构造 OpencvImageResource（指定读取标志）
 	 * <p>从文件路径创建 OpencvImageResource，指定读取标志。</p>
 	 *
-	 * <p>方向校正规则：</p>
+	 * <p>方向处理规则：</p>
 	 * <ul>
-	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，自动校正 EXIF 方向</li>
-	 *     <li>其他 flags 不自动校正方向</li>
+	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，由当前类根据 EXIF 信息校正方向</li>
+	 *     <li>其他 flags 下，方向是否已处理取决于 OpenCV 的读取行为，因此不会额外执行手动校正</li>
 	 * </ul>
 	 *
 	 * @param filePath 文件路径，不可为 null
 	 * @param flags    OpenCV 读取标志
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(String filePath, int flags) throws IOException {
 		this(filePath, flags, flags == opencv_imgcodecs.IMREAD_UNCHANGED ||
@@ -383,20 +445,24 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于文件路径构造 OpencvImageResource（指定读取标志和是否解析 EXIF）
-	 * <p>从文件路径创建 OpencvImageResource，指定读取标志和是否解析 EXIF 方向。</p>
+	 * 基于文件路径构造 OpencvImageResource（指定读取标志和是否校正 EXIF 方向）
+	 * <p>从文件路径创建 OpencvImageResource，指定读取标志，并可选择是否根据 EXIF 信息校正图像方向。</p>
 	 *
 	 * @param filePath           文件路径，不可为 null
 	 * @param flags              OpenCV 读取标志
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(String filePath, int flags, boolean correctOrientation) throws IOException {
 		super(filePath, false);
 
-		validateImageType("filePath 不是图像文件路径");
+		Validate.isTrue(isImage(), "filePath 不是图像文件路径");
+
+		if (!OpencvUtils.canRead(file)) {
+			throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
@@ -430,13 +496,17 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件或 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(String filePath, int flags, int exifOrientation) throws IOException {
 		super(filePath, false);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("filePath 不是图像文件路径");
+		Validate.isTrue(isImage(), "filePath 不是图像文件路径");
+
+		if (!OpencvUtils.canRead(file)) {
+			throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = true;
@@ -452,27 +522,27 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于文件构造 OpencvImageResource（自动解析 EXIF 方向）
-	 * <p>从文件创建 OpencvImageResource，自动解析 EXIF 方向信息。</p>
+	 * 基于文件构造 OpencvImageResource（自动校正 EXIF 方向）
+	 * <p>从文件创建 OpencvImageResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param file 文件对象，不可为 null
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(File file) throws IOException {
 		this(file, opencv_imgcodecs.IMREAD_UNCHANGED, true);
 	}
 
 	/**
-	 * 基于文件构造 OpencvImageResource（可选择是否解析 EXIF 方向）
-	 * <p>从文件创建 OpencvImageResource，可选择是否自动解析 EXIF 方向信息。</p>
+	 * 基于文件构造 OpencvImageResource（可选择是否校正 EXIF 方向）
+	 * <p>从文件创建 OpencvImageResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param file               文件对象，不可为 null
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(File file, boolean correctOrientation) throws IOException {
 		this(file, opencv_imgcodecs.IMREAD_UNCHANGED, correctOrientation);
@@ -482,17 +552,17 @@ public class OpencvImageResource extends IOResource {
 	 * 基于文件构造 OpencvImageResource（指定读取标志）
 	 * <p>从文件创建 OpencvImageResource，指定读取标志。</p>
 	 *
-	 * <p>方向校正规则：</p>
+	 * <p>方向处理规则：</p>
 	 * <ul>
-	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，自动校正 EXIF 方向</li>
-	 *     <li>其他 flags 不自动校正方向</li>
+	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，由当前类根据 EXIF 信息校正方向</li>
+	 *     <li>其他 flags 下，方向是否已处理取决于 OpenCV 的读取行为，因此不会额外执行手动校正</li>
 	 * </ul>
 	 *
 	 * @param file  文件对象，不可为 null
 	 * @param flags OpenCV 读取标志
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(File file, int flags) throws IOException {
 		this(file, flags, flags == opencv_imgcodecs.IMREAD_UNCHANGED ||
@@ -500,25 +570,28 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于文件构造 OpencvImageResource（指定读取标志和是否解析 EXIF）
-	 * <p>从文件创建 OpencvImageResource，指定读取标志和是否解析 EXIF 方向。</p>
+	 * 基于文件构造 OpencvImageResource（指定读取标志和是否校正 EXIF 方向）
+	 * <p>从文件创建 OpencvImageResource，指定读取标志，并可选择是否根据 EXIF 信息校正图像方向。</p>
 	 *
 	 * @param file               文件对象，不可为 null
 	 * @param flags              OpenCV 读取标志
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(File file, int flags, boolean correctOrientation) throws IOException {
 		super(file, false);
 
-		validateImageType("file 不是图像文件");
+		Validate.isTrue(isImage(), "file 不是图像文件");
+
+		if (!OpencvUtils.canRead(file)) {
+			throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
 			flags != opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION);
-
 
 		if (correctOrientation) {
 			this.exifOrientation = OpencvConstants.NORMAL_EXIF_ORIENTATION;
@@ -548,13 +621,17 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是图像文件或 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(File file, int flags, int exifOrientation) throws IOException {
 		super(file, false);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("file 不是图像文件");
+		Validate.isTrue(isImage(), "file 不是图像文件");
+
+		if (!OpencvUtils.canRead(file)) {
+			throw new IllegalArgumentException("不支持读取该图像，文件路径：" + file.getAbsolutePath());
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = true;
@@ -570,27 +647,27 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于字节数组构造 OpencvImageResource（自动解析 EXIF 方向）
-	 * <p>从字节数组创建 OpencvImageResource，自动解析 EXIF 方向信息。</p>
+	 * 基于字节数组构造 OpencvImageResource（自动校正 EXIF 方向）
+	 * <p>从字节数组创建 OpencvImageResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param bytes 字节数组，不可为 null
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当数据不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(byte[] bytes) throws IOException {
 		this(bytes, opencv_imgcodecs.IMREAD_UNCHANGED, true);
 	}
 
 	/**
-	 * 基于字节数组构造 OpencvImageResource（可选择是否解析 EXIF 方向）
-	 * <p>从字节数组创建 OpencvImageResource，可选择是否自动解析 EXIF 方向信息。</p>
+	 * 基于字节数组构造 OpencvImageResource（可选择是否校正 EXIF 方向）
+	 * <p>从字节数组创建 OpencvImageResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param bytes              字节数组，不可为 null
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当数据不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(byte[] bytes, boolean correctOrientation) throws IOException {
 		this(bytes, opencv_imgcodecs.IMREAD_UNCHANGED, correctOrientation);
@@ -600,17 +677,17 @@ public class OpencvImageResource extends IOResource {
 	 * 基于字节数组构造 OpencvImageResource（指定读取标志）
 	 * <p>从字节数组创建 OpencvImageResource，指定读取标志。</p>
 	 *
-	 * <p>方向校正规则：</p>
+	 * <p>方向处理规则：</p>
 	 * <ul>
-	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，自动校正 EXIF 方向</li>
-	 *     <li>其他 flags 不自动校正方向</li>
+	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，由当前类根据 EXIF 信息校正方向</li>
+	 *     <li>其他 flags 下，方向是否已处理取决于 OpenCV 的读取行为，因此不会额外执行手动校正</li>
 	 * </ul>
 	 *
 	 * @param bytes 字节数组，不可为 null
 	 * @param flags OpenCV 读取标志
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当数据不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(byte[] bytes, int flags) throws IOException {
 		this(bytes, flags, flags == opencv_imgcodecs.IMREAD_UNCHANGED ||
@@ -618,20 +695,25 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于字节数组构造 OpencvImageResource（指定读取标志和是否解析 EXIF）
-	 * <p>从字节数组创建 OpencvImageResource，指定读取标志和是否解析 EXIF 方向。</p>
+	 * 基于字节数组构造 OpencvImageResource（指定读取标志和是否校正 EXIF 方向）
+	 * <p>从字节数组创建 OpencvImageResource，指定读取标志，并可选择是否根据 EXIF 信息校正图像方向。</p>
 	 *
 	 * @param bytes              字节数组，不可为 null
 	 * @param flags              OpenCV 读取标志
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当数据不是图像数据时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(byte[] bytes, int flags, boolean correctOrientation) throws IOException {
 		super(bytes);
 
-		validateImageType("bytes 不是图像数据");
+		Validate.isTrue(isImage(), "bytes 不是图像数据");
+
+		Mat imageMat = OpencvUtils.read(bytes);
+		if (OpencvUtils.isEmpty(imageMat)) {
+			throw new IllegalArgumentException("不支持读取该图像");
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
@@ -639,8 +721,8 @@ public class OpencvImageResource extends IOResource {
 
 		if (correctOrientation) {
 			this.exifOrientation = OpencvConstants.NORMAL_EXIF_ORIENTATION;
-			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				this.metadata = ImageMetadataReader.readMetadata(inputStream);
+			try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes)) {
+				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream);
 				this.exifOrientation = getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -648,12 +730,12 @@ public class OpencvImageResource extends IOResource {
 
 			if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
 				exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-				try (InputStream inputStream = newBufferedInputStream();
-				     Mat image = OpencvUtils.read(inputStream)) {
-					this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-					this.imageSize = this.imageMat.size();
-				}
+				this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+			} else {
+				this.imageMat = imageMat;
 			}
+
+			this.imageSize = this.imageMat.size();
 		}
 	}
 
@@ -666,13 +748,18 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
 	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException 当数据不是图像数据或 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(byte[] bytes, int flags, int exifOrientation) throws IOException {
 		super(bytes);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("bytes 不是图像数据");
+		Validate.isTrue(isImage(), "bytes 不是图像数据");
+
+		Mat imageMat = OpencvUtils.read(bytes);
+		if (OpencvUtils.isEmpty(imageMat)) {
+			throw new IllegalArgumentException("不支持读取该图像");
+		}
 
 		this.flags = flags;
 		this.orientationCorrected = true;
@@ -680,36 +767,36 @@ public class OpencvImageResource extends IOResource {
 
 		if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
 			exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-			try (InputStream inputStream = newBufferedInputStream();
-			     Mat image = OpencvUtils.read(inputStream)) {
-				this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-				this.imageSize = this.imageMat.size();
-			}
+			this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+		} else {
+			this.imageMat = imageMat;
 		}
+
+		this.imageSize = this.imageMat.size();
 	}
 
 	/**
-	 * 基于输入流构造 OpencvImageResource（自动解析 EXIF 方向）
-	 * <p>从输入流创建 OpencvImageResource，自动解析 EXIF 方向信息。</p>
+	 * 基于输入流构造 OpencvImageResource（自动校正 EXIF 方向）
+	 * <p>从输入流创建 OpencvImageResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param inputStream 输入流，不可为 null
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流不是图像数据输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(InputStream inputStream) throws IOException {
 		this(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, true);
 	}
 
 	/**
-	 * 基于输入流构造 OpencvImageResource（可选择是否解析 EXIF 方向）
-	 * <p>从输入流创建 OpencvImageResource，可选择是否自动解析 EXIF 方向信息。</p>
+	 * 基于输入流构造 OpencvImageResource（可选择是否校正 EXIF 方向）
+	 * <p>从输入流创建 OpencvImageResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
 	 *
 	 * @param inputStream        输入流，不可为 null
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流不是图像数据输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(InputStream inputStream, boolean correctOrientation) throws IOException {
 		this(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, correctOrientation);
@@ -719,17 +806,17 @@ public class OpencvImageResource extends IOResource {
 	 * 基于输入流构造 OpencvImageResource（指定读取标志）
 	 * <p>从输入流创建 OpencvImageResource，指定读取标志。</p>
 	 *
-	 * <p>方向校正规则：</p>
+	 * <p>方向处理规则：</p>
 	 * <ul>
-	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，自动校正 EXIF 方向</li>
-	 *     <li>其他 flags 不自动校正方向</li>
+	 *     <li>当 flags 为 {@code IMREAD_UNCHANGED} 或 {@code IMREAD_IGNORE_ORIENTATION} 时，由当前类根据 EXIF 信息校正方向</li>
+	 *     <li>其他 flags 下，方向是否已处理取决于 OpenCV 的读取行为，因此不会额外执行手动校正</li>
 	 * </ul>
 	 *
 	 * @param inputStream 输入流，不可为 null
 	 * @param flags       OpenCV 读取标志
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流不是图像数据输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(InputStream inputStream, int flags) throws IOException {
 		this(inputStream, flags, flags == opencv_imgcodecs.IMREAD_UNCHANGED ||
@@ -737,41 +824,48 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 基于输入流构造 OpencvImageResource（指定读取标志和是否解析 EXIF）
-	 * <p>从输入流创建 OpencvImageResource，指定读取标志和是否解析 EXIF 方向。</p>
+	 * 基于输入流构造 OpencvImageResource（指定读取标志和是否校正 EXIF 方向）
+	 * <p>从输入流创建 OpencvImageResource，指定读取标志，并可选择是否根据 EXIF 信息校正图像方向。</p>
 	 *
 	 * @param inputStream        输入流，不可为 null
 	 * @param flags              OpenCV 读取标志
-	 * @param correctOrientation 是否解析 EXIF 方向
+	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流不是图像数据输入流时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(InputStream inputStream, int flags, boolean correctOrientation) throws IOException {
 		super(inputStream);
 
-		validateImageType("inputStream 不是图像数据输入流");
+		Validate.isTrue(isImage(), "inputStream 不是图像数据输入流");
 
-		this.flags = flags;
-		this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
-			flags != opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION);
-
-		if (correctOrientation) {
-			this.exifOrientation = OpencvConstants.NORMAL_EXIF_ORIENTATION;
-			try (InputStream tmpInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				this.metadata = ImageMetadataReader.readMetadata(tmpInputStream);
-				this.exifOrientation = getExifOrientation(this.metadata);
-			} catch (ImageProcessingException ignored) {
-				this.metadata = new Metadata();
+		try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+			Mat imageMat = OpencvUtils.read(byteArrayInputStream);
+			if (OpencvUtils.isEmpty(imageMat)) {
+				throw new IllegalArgumentException("不支持读取该图像");
 			}
 
-			if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
-				exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-				try (InputStream bufferedInputStream = newBufferedInputStream();
-				     Mat image = OpencvUtils.read(bufferedInputStream)) {
-					this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-					this.imageSize = this.imageMat.size();
+			this.flags = flags;
+			this.orientationCorrected = correctOrientation || (flags != opencv_imgcodecs.IMREAD_UNCHANGED &&
+				flags != opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION);
+
+			if (correctOrientation) {
+				this.exifOrientation = OpencvConstants.NORMAL_EXIF_ORIENTATION;
+				try (InputStream tmpInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+					this.metadata = ImageMetadataReader.readMetadata(tmpInputStream);
+					this.exifOrientation = getExifOrientation(this.metadata);
+				} catch (ImageProcessingException ignored) {
+					this.metadata = new Metadata();
 				}
+
+				if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
+					exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
+					this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+				} else {
+					this.imageMat = imageMat;
+				}
+
+				this.imageSize = this.imageMat.size();
 			}
 		}
 	}
@@ -785,25 +879,32 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间）
 	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException 当流不是图像数据输入流或 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public OpencvImageResource(InputStream inputStream, int flags, int exifOrientation) throws IOException {
 		super(inputStream);
 
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("inputStream 不是图像数据输入流");
+		Validate.isTrue(isImage(), "inputStream 不是图像数据输入流");
 
-		this.flags = flags;
-		this.orientationCorrected = true;
-		this.exifOrientation = exifOrientation;
-
-		if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
-			exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-			try (InputStream bufferedInputStream = newBufferedInputStream();
-			     Mat image = OpencvUtils.read(bufferedInputStream)) {
-				this.imageMat = OpencvUtils.correctOrientation(image, exifOrientation);
-				this.imageSize = this.imageMat.size();
+		try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
+			Mat imageMat = OpencvUtils.read(byteArrayInputStream);
+			if (OpencvUtils.isEmpty(imageMat)) {
+				throw new IllegalArgumentException("不支持读取该图像");
 			}
+
+			this.flags = flags;
+			this.orientationCorrected = true;
+			this.exifOrientation = exifOrientation;
+
+			if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
+				exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
+				this.imageMat = OpencvUtils.correctOrientation(imageMat, exifOrientation);
+			} else {
+				this.imageMat = imageMat;
+			}
+
+			this.imageSize = this.imageMat.size();
 		}
 	}
 
@@ -813,7 +914,7 @@ public class OpencvImageResource extends IOResource {
 	 * @param metadata EXIF 元数据，不能为 null
 	 * @return EXIF 方向值
 	 * @throws IllegalArgumentException 如果 metadata 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static int getExifOrientation(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -836,7 +937,7 @@ public class OpencvImageResource extends IOResource {
 	 * @param metadata 图像元数据，不能为 null
 	 * @return 图像尺寸对象，如果无法提取则返回 null
 	 * @throws IllegalArgumentException 如果 metadata 为 null
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	protected static Size getSize(final Metadata metadata) {
 		Validate.notNull(metadata, "metadata 不可为 null");
@@ -943,7 +1044,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @return 图像尺寸对象
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Size getImageSize() throws IOException {
 		checkClosed();
@@ -971,7 +1072,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @param imageSize 图像尺寸对象
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setImageSize(Size imageSize) throws IOException {
 		checkClosed();
@@ -985,7 +1086,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @return EXIF 方向值（1-8），如果无法解析则返回 1（正常方向）
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getExifOrientation() throws IOException {
 		checkClosed();
@@ -1009,7 +1110,7 @@ public class OpencvImageResource extends IOResource {
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间），null 表示清除缓存
 	 * @throws IOException              当资源已关闭时抛出
 	 * @throws IllegalArgumentException 当 exifOrientation 不在 1-8 范围内时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setExifOrientation(Integer exifOrientation) throws IOException {
 		checkClosed();
@@ -1027,7 +1128,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @return 图像元数据对象
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Metadata getMetadata() throws IOException {
 		checkClosed();
@@ -1060,7 +1161,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @param metadata 图像元数据对象
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public void setMetadata(Metadata metadata) throws IOException {
 		checkClosed();
@@ -1080,7 +1181,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @return OpenCV Mat 图像对象
 	 * @throws IOException 当资源已关闭或图像读取失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Mat getImageMat() throws IOException {
 		checkClosed();
@@ -1114,7 +1215,7 @@ public class OpencvImageResource extends IOResource {
 	 *
 	 * @return OpenCV Mat 图像对象的深拷贝
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public Mat getImageMatCopy() throws IOException {
 		checkClosed();
@@ -1130,17 +1231,18 @@ public class OpencvImageResource extends IOResource {
 
 	/**
 	 * 转换为 BytePointer
-	 * <p>将缓存的字节数组转换为 OpenCV 的 BytePointer 对象。</p>
+	 * <p>将当前资源内容转换为 OpenCV 的 BytePointer 对象。</p>
 	 *
 	 * <p>实现特性：</p>
 	 * <ul>
-	 *     <li>直接从内部缓存的字节数组创建 BytePointer</li>
+	 *     <li>文件模式下先读取文件内容，再创建 BytePointer</li>
+	 *     <li>字节数组/输入流模式下直接基于内存中的字节数据创建 BytePointer</li>
 	 *     <li>返回的 BytePointer 可直接用于 OpenCV 的 imdecode 等操作</li>
 	 * </ul>
 	 *
 	 * @return BytePointer 对象
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public BytePointer toBytePointer() throws IOException {
 		checkClosed();
@@ -1157,7 +1259,7 @@ public class OpencvImageResource extends IOResource {
 	 * <p>释放图像相关资源，包括释放 Mat 和 Size 对象的引用、清空元数据和尺寸缓存。</p>
 	 *
 	 * @throws IOException 当关闭资源失败时抛出
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	@Override
 	public synchronized void close() throws IOException {
@@ -1176,28 +1278,11 @@ public class OpencvImageResource extends IOResource {
 	}
 
 	/**
-	 * 验证图像类型
-	 * <p>验证资源是否为图像类型，并检查 OpenCV 是否支持读取该格式。</p>
-	 *
-	 * @param message 验证失败时的错误消息
-	 * @throws IOException              当资源读取失败时抛出
-	 * @throws IllegalArgumentException 当资源不是图像类型或不支持读取时抛出
-	 * @since 1.1.0
-	 */
-	protected void validateImageType(String message) throws IOException {
-		Validate.isTrue(isImage(), message);
-
-		if (Objects.nonNull(file) && !OpencvUtils.canRead(file)) {
-			throw new IllegalArgumentException("不支持读取 " + mimeType + " 类型图像");
-		}
-	}
-
-	/**
 	 * 获取 OpenCV 读取标志
 	 * <p>返回用于读取图像的 OpenCV 标志（如 IMREAD_UNCHANGED、IMREAD_COLOR 等）。</p>
 	 *
 	 * @return OpenCV 读取标志
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public int getFlags() {
 		return flags;
@@ -1205,16 +1290,16 @@ public class OpencvImageResource extends IOResource {
 
 	/**
 	 * 判断 EXIF 方向是否已校正
-	 * <p>返回图像是否已进行 EXIF 方向校正。</p>
+	 * <p>返回当前图像数据是否已经按照 EXIF 方向完成校正。</p>
 	 *
 	 * <p>返回值说明：</p>
 	 * <ul>
-	 *   <li>{@code true}：图像已进行 EXIF 方向校正，缓存的图像和尺寸为校正后的结果</li>
-	 *   <li>{@code false}：图像未进行 EXIF 方向校正，缓存的图像和尺寸为原始数据</li>
+	 *   <li>{@code true}：图像方向已被校正，可能来自显式校正，也可能来自 OpenCV 在读取阶段的自动方向处理</li>
+	 *   <li>{@code false}：图像方向未被校正，缓存的图像和尺寸为原始数据</li>
 	 * </ul>
 	 *
 	 * @return 如果 EXIF 方向已校正返回 true，否则返回 false
-	 * @since 1.1.0
+	 * @since 2.1.0
 	 */
 	public boolean isOrientationCorrected() {
 		return orientationCorrected;
