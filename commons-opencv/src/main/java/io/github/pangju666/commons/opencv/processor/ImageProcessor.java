@@ -140,7 +140,7 @@ import java.util.function.Function;
  *     .emboss()                       // 浮雕效果
  *     .contrast(0.2f)                 // 增加对比度
  *     .brightness(20)                 // 增加亮度
- *     .transparency(0.5f)             // 调整透明度为 50%
+ *     .opacity(0.5f)             // 调整透明度为 50%
  *     .threshold()                    // 自适应阈值
  *     .toFile(new File("out_filter.jpg"));
  *
@@ -465,13 +465,13 @@ public class ImageProcessor {
 	 * 如果后续保存图像时使用不支持透明通道的格式（如 JPEG），则透明度效果会丢失。
 	 * 建议使用支持透明通道的格式（如 PNG）保存图像。</p>
 	 *
-	 * @param alpha 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
+	 * @param opacity 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
 	 * @return 当前处理器实例，支持链式调用
 	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
 	 * @since 1.1.0
 	 */
-	public ImageProcessor transparency(final float alpha) {
-		Validate.isTrue(alpha >= 0 && alpha <= 1, "alpha 必须大于等于 0 且小于等于 1");
+	public ImageProcessor opacity(final float opacity) {
+		Validate.isTrue(opacity >= 0 && opacity <= 1, "opacity 必须大于等于 0 且小于等于 1");
 
 		if (outputImage.channels() < 4) {
 			Mat bgraMat = new Mat();
@@ -491,7 +491,7 @@ public class ImageProcessor {
 		opencv_core.split(outputImage, channels);
 
 		Mat alphaChannel = channels.get(3);
-		alphaChannel.convertTo(alphaChannel, -1, alpha, 0); // scale=0.5, shift=0
+		alphaChannel.convertTo(alphaChannel, -1, opacity, 0); // scale=0.5, shift=0
 
 		Mat image = new Mat();
 		opencv_core.merge(channels, image);

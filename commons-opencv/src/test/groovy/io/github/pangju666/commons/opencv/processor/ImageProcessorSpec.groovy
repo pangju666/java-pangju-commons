@@ -485,7 +485,7 @@ class ImageProcessorSpec extends Specification {
 		def editor = ImageProcessor.of(new OpenCvResource(file))
 
 		when:
-		editor.transparency(0.5f)
+		editor.opacity(0.5f)
 
 		then:
 		editor.toMat() != null
