@@ -476,7 +476,7 @@ class OpenCvUtilsSpec extends Specification {
 		def kernelData = [1.0f, 0.0f, -1.0f, 2.0f, 0.0f, -2.0f, 1.0f, 0.0f, -1.0f] as float[]
 
 		when:
-		def kernel = OpenCvUtils.getKernel(kernelData)
+		def kernel = OpenCvUtils.create3x3FloatKernel(kernelData)
 
 		then:
 		kernel != null
@@ -712,7 +712,7 @@ class OpenCvUtilsSpec extends Specification {
 
 	def "创建平移变换矩阵"() {
 		when:
-		def matrix = OpenCvUtils.getMatrixMat(10, 20)
+		def matrix = OpenCvUtils.create3x3FloatKernel(10, 20)
 
 		then:
 		matrix != null
