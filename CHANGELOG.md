@@ -3,9 +3,9 @@
 ## [1.1.0] 2026.6.7
 
 - chore: 升级pangju-dependencies至1.3.0
-- feat(ffmpeg): 新增基于ffmpeg的音视频处理模块
-- feat(tessearct): 新增基于tessearct的图像ocr模块
-- feat(opencv): 新增基于opencv的图像处理模块
+- feat(ffmpeg): 新增基于FFmpeg的音视频处理模块
+- feat(tessearct): 新增基于Tessearct的图像ocr模块
+- feat(opencv): 新增基于openCv的图像处理模块
 - feat(io): 模块mime.types文件新增部分类型映射
 - feat(io): IOConstants新增默认MimeTypes常量
 - feat(io): 新增IOResource抽象IO资源
