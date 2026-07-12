@@ -27,7 +27,7 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * @author pangju666
  * @since 1.1.0
  */
-public class OpencvConstants {
+public class OpenCvConstants {
 	/**
 	 * 正常 EXIF 方向值
 	 *
@@ -58,6 +58,6 @@ public class OpencvConstants {
 	 *
 	 * @since 1.1.0
 	 */
-	protected OpencvConstants() {
+	protected OpenCvConstants() {
 	}
 }

@@ -2,7 +2,7 @@ package io.github.pangju666.commons.opencv.io.resource
 
 import com.drew.metadata.Metadata
 import io.github.pangju666.commons.io.resource.IOResource
-import io.github.pangju666.commons.opencv.utils.OpencvUtils
+import io.github.pangju666.commons.opencv.utils.OpenCvUtils
 import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.opencv_core.Size
 import spock.lang.Specification
@@ -12,7 +12,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.nio.file.Path
 
-class OpencvImageResourceSpec extends Specification {
+class OpenCvResourceSpec extends Specification {
 	@TempDir
 	Path tempDir
 
@@ -31,8 +31,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(file.absolutePath)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(file.absolutePath)
 
 		then:
 		"验证构造成功"
@@ -51,8 +51,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource 并指定 EXIF 方向"
-		def resource = new OpencvImageResource(file.absolutePath, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		"构造 OpenCvResource 并指定 EXIF 方向"
+		def resource = new OpenCvResource(file.absolutePath, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		"验证构造成功"
@@ -70,8 +70,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(file)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(file)
 
 		then:
 		"验证构造成功"
@@ -90,8 +90,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource 并指定 EXIF 方向"
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		"构造 OpenCvResource 并指定 EXIF 方向"
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		"验证构造成功"
@@ -110,8 +110,8 @@ class OpencvImageResourceSpec extends Specification {
 		def bytes = Files.readAllBytes(file.toPath())
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(bytes)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(bytes)
 
 		then:
 		"验证构造成功"
@@ -131,8 +131,8 @@ class OpencvImageResourceSpec extends Specification {
 		def bytes = Files.readAllBytes(file.toPath())
 
 		when:
-		"构造 OpencvImageResource 并指定 EXIF 方向"
-		def resource = new OpencvImageResource(bytes, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		"构造 OpenCvResource 并指定 EXIF 方向"
+		def resource = new OpenCvResource(bytes, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		"验证构造成功"
@@ -151,8 +151,8 @@ class OpencvImageResourceSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(inputStream)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(inputStream)
 
 		then:
 		"验证构造成功"
@@ -172,8 +172,8 @@ class OpencvImageResourceSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		"构造 OpencvImageResource 并指定 EXIF 方向"
-		def resource = new OpencvImageResource(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		"构造 OpenCvResource 并指定 EXIF 方向"
+		def resource = new OpenCvResource(inputStream, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		"验证构造成功"
@@ -192,8 +192,8 @@ class OpencvImageResourceSpec extends Specification {
 		def ioResource = new IOResource(file)
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(ioResource)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(ioResource)
 
 		then:
 		"验证构造成功"
@@ -213,8 +213,8 @@ class OpencvImageResourceSpec extends Specification {
 		def ioResource = new IOResource(file)
 
 		when:
-		"构造 OpencvImageResource 并指定 EXIF 方向"
-		def resource = new OpencvImageResource(ioResource, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		"构造 OpenCvResource 并指定 EXIF 方向"
+		def resource = new OpenCvResource(ioResource, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		then:
 		"验证构造成功"
@@ -226,15 +226,15 @@ class OpencvImageResourceSpec extends Specification {
 	}
 
 	@Unroll
-	def "基于 OpencvImageResource 构造（保留 flags）：#name"() {
+	def "基于 OpenCvResource 构造（保留 flags）：#name"() {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def originalResource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_COLOR, 5)
+		def originalResource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_COLOR, 5)
 
 		when:
-		"基于 OpencvImageResource 构造"
-		def resource = new OpencvImageResource(originalResource)
+		"基于 OpenCvResource 构造"
+		def resource = new OpenCvResource(originalResource)
 
 		then:
 		"验证 flags 和 exifOrientation 被保留"
@@ -250,8 +250,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
 
 		when:
-		"构造 OpencvImageResource 并指定超出范围的 EXIF 方向"
-		new OpencvImageResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
+		"构造 OpenCvResource 并指定超出范围的 EXIF 方向"
+		new OpenCvResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 9)
 
 		then:
 		"抛出 IllegalArgumentException"
@@ -263,7 +263,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 
 		when:
 		"获取图像尺寸"
@@ -284,7 +284,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 
 		when:
 		"获取 Mat 图像"
@@ -293,7 +293,7 @@ class OpencvImageResourceSpec extends Specification {
 		then:
 		"验证 Mat 获取成功"
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -306,7 +306,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 
 		when:
 		"获取 Mat 深拷贝"
@@ -316,7 +316,7 @@ class OpencvImageResourceSpec extends Specification {
 		then:
 		"验证深拷贝成功"
 		copyMat != null
-		!OpencvUtils.isEmpty(copyMat)
+		!OpenCvUtils.isEmpty(copyMat)
 		copyMat.cols() == originalMat.cols()
 		copyMat.rows() == originalMat.rows()
 		copyMat != originalMat
@@ -330,7 +330,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 
 		when:
 		"获取图像元数据"
@@ -348,7 +348,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		def newSize = new Size(100, 100)
 
 		when:
@@ -365,7 +365,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		def newMetadata = new Metadata()
 
 		when:
@@ -381,7 +381,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_COLOR, true)
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_COLOR, true)
 
 		when:
 		"获取 flags"
@@ -396,7 +396,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, 6)
 
 		when:
 		"获取 EXIF 方向"
@@ -411,7 +411,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		resource.getImageMat()
 
 		when:
@@ -428,7 +428,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		resource.close()
 
 		when:
@@ -444,7 +444,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		resource.close()
 
 		when:
@@ -463,8 +463,8 @@ class OpencvImageResourceSpec extends Specification {
 		nonImageFile.write("test content")
 
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource(nonImageFile)
+		"构造 OpenCvResource"
+		new OpenCvResource(nonImageFile)
 
 		then:
 		"抛出 IllegalArgumentException"
@@ -473,8 +473,8 @@ class OpencvImageResourceSpec extends Specification {
 
 	def "构造空字节数组抛异常"() {
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource(new byte[0])
+		"构造 OpenCvResource"
+		new OpenCvResource(new byte[0])
 
 		then:
 		"抛出 IllegalArgumentException"
@@ -483,8 +483,8 @@ class OpencvImageResourceSpec extends Specification {
 
 	def "构造 null 文件抛异常"() {
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource((File) null)
+		"构造 OpenCvResource"
+		new OpenCvResource((File) null)
 
 		then:
 		"抛出 NullPointerException"
@@ -493,8 +493,8 @@ class OpencvImageResourceSpec extends Specification {
 
 	def "构造 null 字节数组抛异常"() {
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource((byte[]) null)
+		"构造 OpenCvResource"
+		new OpenCvResource((byte[]) null)
 
 		then:
 		"抛出 NullPointerException"
@@ -503,8 +503,8 @@ class OpencvImageResourceSpec extends Specification {
 
 	def "构造 null 输入流抛异常"() {
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource((InputStream) null)
+		"构造 OpenCvResource"
+		new OpenCvResource((InputStream) null)
 
 		then:
 		"抛出 NullPointerException"
@@ -513,8 +513,8 @@ class OpencvImageResourceSpec extends Specification {
 
 	def "构造 null IOResource 抛异常"() {
 		when:
-		"构造 OpencvImageResource"
-		new OpencvImageResource((IOResource) null)
+		"构造 OpenCvResource"
+		new OpenCvResource((IOResource) null)
 
 		then:
 		"抛出 NullPointerException"
@@ -528,8 +528,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource 并指定读取标志"
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_GRAYSCALE, true)
+		"构造 OpenCvResource 并指定读取标志"
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_GRAYSCALE, true)
 
 		then:
 		"验证读取标志设置成功"
@@ -546,8 +546,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource"
-		def resource = new OpencvImageResource(file, parseExif)
+		"构造 OpenCvResource"
+		def resource = new OpenCvResource(file, parseExif)
 
 		then:
 		"验证构造成功"
@@ -567,7 +567,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 
 		when:
 		"转换为 BytePointer"
@@ -589,7 +589,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file)
+		def resource = new OpenCvResource(file)
 		resource.close()
 
 		when:
@@ -605,7 +605,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, true)
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, true)
 
 		when:
 		"判断是否已校正"
@@ -620,7 +620,7 @@ class OpencvImageResourceSpec extends Specification {
 		given:
 		"准备测试文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def resource = new OpencvImageResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, false)
+		def resource = new OpenCvResource(file, opencv_imgcodecs.IMREAD_UNCHANGED, false)
 
 		when:
 		"判断是否已校正"
@@ -638,8 +638,8 @@ class OpencvImageResourceSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		"构造 OpencvImageResource 并指定 flags"
-		def resource = new OpencvImageResource(file, flags, false)
+		"构造 OpenCvResource 并指定 flags"
+		def resource = new OpenCvResource(file, flags, false)
 
 		then:
 		"验证方向校正状态"

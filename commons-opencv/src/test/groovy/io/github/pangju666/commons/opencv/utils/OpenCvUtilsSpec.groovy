@@ -13,7 +13,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.List
 
-class OpencvUtilsSpec extends Specification {
+class OpenCvUtilsSpec extends Specification {
 	@TempDir
 	Path tempDir
 
@@ -27,7 +27,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "判断 Mat 为空 - null"() {
 		expect:
-		OpencvUtils.isEmpty(null)
+		OpenCvUtils.isEmpty(null)
 	}
 
 	def "判断 Mat 为空 - 空对象"() {
@@ -35,16 +35,16 @@ class OpencvUtilsSpec extends Specification {
 		def mat = new Mat()
 
 		expect:
-		OpencvUtils.isEmpty(mat)
+		OpenCvUtils.isEmpty(mat)
 	}
 
 	def "判断 Mat 为空 - 有数据"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		expect:
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 
 		cleanup:
 		mat.release()
@@ -52,16 +52,16 @@ class OpencvUtilsSpec extends Specification {
 
 	def "判断 Mat 不为空 - null"() {
 		expect:
-		!OpencvUtils.isNotEmpty(null)
+		!OpenCvUtils.isNotEmpty(null)
 	}
 
 	def "判断 Mat 不为空 - 有数据"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		expect:
-		OpencvUtils.isNotEmpty(mat)
+		OpenCvUtils.isNotEmpty(mat)
 
 		cleanup:
 		mat.release()
@@ -73,7 +73,7 @@ class OpencvUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		expect:
-		OpencvUtils.canRead(file)
+		OpenCvUtils.canRead(file)
 
 		where:
 		name << SUPPORTED_IMAGES
@@ -85,7 +85,7 @@ class OpencvUtilsSpec extends Specification {
 		nonImageFile.write("test content")
 
 		when:
-		OpencvUtils.canRead(nonImageFile)
+		OpenCvUtils.canRead(nonImageFile)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -93,15 +93,15 @@ class OpencvUtilsSpec extends Specification {
 
 	def "检查是否可以写入图像格式"() {
 		expect:
-		OpencvUtils.canWrite("jpg")
-		OpencvUtils.canWrite("png")
-		OpencvUtils.canWrite(".jpg")
-		OpencvUtils.canWrite(".png")
+		OpenCvUtils.canWrite("jpg")
+		OpenCvUtils.canWrite("png")
+		OpenCvUtils.canWrite(".jpg")
+		OpenCvUtils.canWrite(".png")
 	}
 
 	def "检查是否可以写入空格式抛异常"() {
 		when:
-		OpencvUtils.canWrite("")
+		OpenCvUtils.canWrite("")
 
 		then:
 		thrown(IllegalArgumentException)
@@ -109,7 +109,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "检查是否可以写入null格式抛异常"() {
 		when:
-		OpencvUtils.canWrite(null)
+		OpenCvUtils.canWrite(null)
 
 		then:
 		thrown(NullPointerException)
@@ -121,7 +121,7 @@ class OpencvUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		def size = OpencvUtils.getSize(file)
+		def size = OpenCvUtils.getSize(file)
 
 		then:
 		size != null
@@ -138,7 +138,7 @@ class OpencvUtilsSpec extends Specification {
 		nonImageFile.write("test content")
 
 		when:
-		OpencvUtils.getSize(nonImageFile)
+		OpenCvUtils.getSize(nonImageFile)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -150,11 +150,11 @@ class OpencvUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -171,11 +171,11 @@ class OpencvUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
 
 		when:
-		def mat = OpencvUtils.read(file, opencv_imgcodecs.IMREAD_GRAYSCALE)
+		def mat = OpenCvUtils.read(file, opencv_imgcodecs.IMREAD_GRAYSCALE)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -192,7 +192,7 @@ class OpencvUtilsSpec extends Specification {
 		nonImageFile.write("test content")
 
 		when:
-		OpencvUtils.read(nonImageFile)
+		OpenCvUtils.read(nonImageFile)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -205,11 +205,11 @@ class OpencvUtilsSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		def mat = OpencvUtils.read(inputStream)
+		def mat = OpenCvUtils.read(inputStream)
 
 		then:
 		mat != null
-		OpencvUtils.isNotEmpty(mat)
+		OpenCvUtils.isNotEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -228,11 +228,11 @@ class OpencvUtilsSpec extends Specification {
 		def inputStream = new FileInputStream(file)
 
 		when:
-		def mat = OpencvUtils.read(inputStream, opencv_imgcodecs.IMREAD_GRAYSCALE)
+		def mat = OpenCvUtils.read(inputStream, opencv_imgcodecs.IMREAD_GRAYSCALE)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -246,7 +246,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "从null输入流读取抛异常"() {
 		when:
-		OpencvUtils.read((InputStream) null)
+		OpenCvUtils.read((InputStream) null)
 
 		then:
 		thrown(NullPointerException)
@@ -259,11 +259,11 @@ class OpencvUtilsSpec extends Specification {
 		def bytes = Files.readAllBytes(file.toPath())
 
 		when:
-		def mat = OpencvUtils.read(bytes)
+		def mat = OpenCvUtils.read(bytes)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -281,11 +281,11 @@ class OpencvUtilsSpec extends Specification {
 		def bytes = Files.readAllBytes(file.toPath())
 
 		when:
-		def mat = OpencvUtils.read(bytes, opencv_imgcodecs.IMREAD_GRAYSCALE)
+		def mat = OpenCvUtils.read(bytes, opencv_imgcodecs.IMREAD_GRAYSCALE)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 		mat.cols() > 0
 		mat.rows() > 0
 
@@ -298,7 +298,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "从空字节数组读取抛异常"() {
 		when:
-		OpencvUtils.read(new byte[0])
+		OpenCvUtils.read(new byte[0])
 
 		then:
 		thrown(IllegalArgumentException)
@@ -306,7 +306,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "从null字节数组读取抛异常"() {
 		when:
-		OpencvUtils.read((byte[]) null)
+		OpenCvUtils.read((byte[]) null)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -317,7 +317,7 @@ class OpencvUtilsSpec extends Specification {
 		def bytes = "not an image".getBytes()
 
 		when:
-		OpencvUtils.read(bytes)
+		OpenCvUtils.read(bytes)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -328,7 +328,7 @@ class OpencvUtilsSpec extends Specification {
 		def color = new Color(255, 0, 0, 128)
 
 		when:
-		def scalar = OpencvUtils.toBGRAColor(color)
+		def scalar = OpenCvUtils.toBGRAColor(color)
 
 		then:
 		scalar != null
@@ -340,7 +340,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将null Color转换为BGRA Scalar抛异常"() {
 		when:
-		OpencvUtils.toBGRAColor((Color) null)
+		OpenCvUtils.toBGRAColor((Color) null)
 
 		then:
 		thrown(NullPointerException)
@@ -348,7 +348,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将颜色字符串转换为BGRA Scalar"() {
 		when:
-		def scalar = OpencvUtils.toBGRAColor("#FF0000")
+		def scalar = OpenCvUtils.toBGRAColor("#FF0000")
 
 		then:
 		scalar != null
@@ -360,7 +360,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将空字符串转换为BGRA Scalar抛异常"() {
 		when:
-		OpencvUtils.toBGRAColor("")
+		OpenCvUtils.toBGRAColor("")
 
 		then:
 		thrown(IllegalArgumentException)
@@ -371,7 +371,7 @@ class OpencvUtilsSpec extends Specification {
 		def color = new Color(255, 0, 0, 128)
 
 		when:
-		def scalar = OpencvUtils.toBGRColor(color)
+		def scalar = OpenCvUtils.toBGRColor(color)
 
 		then:
 		scalar != null
@@ -383,7 +383,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将null Color转换为BGR Scalar抛异常"() {
 		when:
-		OpencvUtils.toBGRColor((Color) null)
+		OpenCvUtils.toBGRColor((Color) null)
 
 		then:
 		thrown(NullPointerException)
@@ -391,7 +391,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将颜色字符串转换为BGR Scalar"() {
 		when:
-		def scalar = OpencvUtils.toBGRColor("#FF0000")
+		def scalar = OpenCvUtils.toBGRColor("#FF0000")
 
 		then:
 		scalar != null
@@ -406,7 +406,7 @@ class OpencvUtilsSpec extends Specification {
 		def color = new Color(255, 0, 0, 128)
 
 		when:
-		def scalar = OpencvUtils.toRGBAColor(color)
+		def scalar = OpenCvUtils.toRGBAColor(color)
 
 		then:
 		scalar != null
@@ -418,7 +418,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将null Color转换为RGBA Scalar抛异常"() {
 		when:
-		OpencvUtils.toRGBAColor((Color) null)
+		OpenCvUtils.toRGBAColor((Color) null)
 
 		then:
 		thrown(NullPointerException)
@@ -426,7 +426,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将颜色字符串转换为RGBA Scalar"() {
 		when:
-		def scalar = OpencvUtils.toRGBAColor("#FF0000")
+		def scalar = OpenCvUtils.toRGBAColor("#FF0000")
 
 		then:
 		scalar != null
@@ -441,7 +441,7 @@ class OpencvUtilsSpec extends Specification {
 		def color = new Color(255, 0, 0, 128)
 
 		when:
-		def scalar = OpencvUtils.toRGBColor(color)
+		def scalar = OpenCvUtils.toRGBColor(color)
 
 		then:
 		scalar != null
@@ -453,7 +453,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将null Color转换为RGB Scalar抛异常"() {
 		when:
-		OpencvUtils.toRGBColor((Color) null)
+		OpenCvUtils.toRGBColor((Color) null)
 
 		then:
 		thrown(NullPointerException)
@@ -461,7 +461,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "将颜色字符串转换为RGB Scalar"() {
 		when:
-		def scalar = OpencvUtils.toRGBColor("#FF0000")
+		def scalar = OpenCvUtils.toRGBColor("#FF0000")
 
 		then:
 		scalar != null
@@ -476,7 +476,7 @@ class OpencvUtilsSpec extends Specification {
 		def kernelData = [1.0f, 0.0f, -1.0f, 2.0f, 0.0f, -2.0f, 1.0f, 0.0f, -1.0f] as float[]
 
 		when:
-		def kernel = OpencvUtils.getKernel(kernelData)
+		def kernel = OpenCvUtils.getKernel(kernelData)
 
 		then:
 		kernel != null
@@ -489,7 +489,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "创建空卷积核抛异常"() {
 		when:
-		OpencvUtils.getKernel(new float[0])
+		OpenCvUtils.getKernel(new float[0])
 
 		then:
 		thrown(IllegalArgumentException)
@@ -497,7 +497,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "创建null卷积核抛异常"() {
 		when:
-		OpencvUtils.getKernel((float[]) null)
+		OpenCvUtils.getKernel((float[]) null)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -508,7 +508,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByWidth(size, 400)
+		def scaledSize = OpenCvUtils.scaleByWidth(size, 400)
 
 		then:
 		scaledSize.width() == 400
@@ -520,7 +520,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByWidth(size, 400)
+		def scaledSize = OpenCvUtils.scaleByWidth(size, 400)
 
 		then:
 		scaledSize.width() == 400
@@ -532,7 +532,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(600, 800)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByWidth(size, 300)
+		def scaledSize = OpenCvUtils.scaleByWidth(size, 300)
 
 		then:
 		scaledSize.width() == 300
@@ -544,7 +544,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		OpencvUtils.scaleByWidth(size, 0)
+		OpenCvUtils.scaleByWidth(size, 0)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -552,7 +552,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "按宽度缩放尺寸 - null尺寸抛异常"() {
 		when:
-		OpencvUtils.scaleByWidth(null, 400)
+		OpenCvUtils.scaleByWidth(null, 400)
 
 		then:
 		thrown(NullPointerException)
@@ -563,7 +563,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByHeight(size, 300)
+		def scaledSize = OpenCvUtils.scaleByHeight(size, 300)
 
 		then:
 		scaledSize.height() == 300
@@ -575,7 +575,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByHeight(size, 300)
+		def scaledSize = OpenCvUtils.scaleByHeight(size, 300)
 
 		then:
 		scaledSize.height() == 300
@@ -587,7 +587,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(600, 800)
 
 		when:
-		def scaledSize = OpencvUtils.scaleByHeight(size, 400)
+		def scaledSize = OpenCvUtils.scaleByHeight(size, 400)
 
 		then:
 		scaledSize.height() == 400
@@ -599,7 +599,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		OpencvUtils.scaleByHeight(size, 0)
+		OpenCvUtils.scaleByHeight(size, 0)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -607,7 +607,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "按高度缩放尺寸 - null尺寸抛异常"() {
 		when:
-		OpencvUtils.scaleByHeight(null, 300)
+		OpenCvUtils.scaleByHeight(null, 300)
 
 		then:
 		thrown(NullPointerException)
@@ -618,7 +618,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scale(size, 0.5)
+		def scaledSize = OpenCvUtils.scale(size, 0.5)
 
 		then:
 		scaledSize.width() == 400
@@ -630,7 +630,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scale(size, 2.0)
+		def scaledSize = OpenCvUtils.scale(size, 2.0)
 
 		then:
 		scaledSize.width() == 1600
@@ -642,7 +642,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		OpencvUtils.scale(size, 0)
+		OpenCvUtils.scale(size, 0)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -650,7 +650,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "按比例缩放尺寸 - null尺寸抛异常"() {
 		when:
-		OpencvUtils.scale(null, 0.5)
+		OpenCvUtils.scale(null, 0.5)
 
 		then:
 		thrown(NullPointerException)
@@ -661,7 +661,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scale(size, 400, 300)
+		def scaledSize = OpenCvUtils.scale(size, 400, 300)
 
 		then:
 		scaledSize.width() == 400
@@ -673,7 +673,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		def scaledSize = OpencvUtils.scale(size, 400, 400)
+		def scaledSize = OpenCvUtils.scale(size, 400, 400)
 
 		then:
 		scaledSize.width() <= 400
@@ -685,7 +685,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		OpencvUtils.scale(size, 0, 300)
+		OpenCvUtils.scale(size, 0, 300)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -696,7 +696,7 @@ class OpencvUtilsSpec extends Specification {
 		def size = new Size(800, 600)
 
 		when:
-		OpencvUtils.scale(size, 400, 0)
+		OpenCvUtils.scale(size, 400, 0)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -704,7 +704,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "按目标尺寸缩放尺寸 - null尺寸抛异常"() {
 		when:
-		OpencvUtils.scale(null, 400, 300)
+		OpenCvUtils.scale(null, 400, 300)
 
 		then:
 		thrown(NullPointerException)
@@ -712,7 +712,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "创建平移变换矩阵"() {
 		when:
-		def matrix = OpencvUtils.getMatrixMat(10, 20)
+		def matrix = OpenCvUtils.getMatrixMat(10, 20)
 
 		then:
 		matrix != null
@@ -726,14 +726,14 @@ class OpencvUtilsSpec extends Specification {
 	def "清理透明区域 - 4通道图像"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
-		def mat = OpencvUtils.read(file, opencv_imgcodecs.IMREAD_UNCHANGED)
+		def mat = OpenCvUtils.read(file, opencv_imgcodecs.IMREAD_UNCHANGED)
 
 		when:
-		OpencvUtils.cleanTransparency(mat)
+		OpenCvUtils.cleanTransparency(mat)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 
 		cleanup:
 		mat.release()
@@ -742,14 +742,14 @@ class OpencvUtilsSpec extends Specification {
 	def "清理透明区域 - 非4通道图像不处理"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		when:
-		OpencvUtils.cleanTransparency(mat)
+		OpenCvUtils.cleanTransparency(mat)
 
 		then:
 		mat != null
-		!OpencvUtils.isEmpty(mat)
+		!OpenCvUtils.isEmpty(mat)
 
 		cleanup:
 		mat.release()
@@ -757,7 +757,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "清理透明区域 - null图像抛异常"() {
 		when:
-		OpencvUtils.cleanTransparency(null)
+		OpenCvUtils.cleanTransparency(null)
 
 		then:
 		thrown(NullPointerException)
@@ -768,7 +768,7 @@ class OpencvUtilsSpec extends Specification {
 		def mat = new Mat()
 
 		when:
-		OpencvUtils.cleanTransparency(mat)
+		OpenCvUtils.cleanTransparency(mat)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -781,14 +781,14 @@ class OpencvUtilsSpec extends Specification {
 	def "校正EXIF方向 - 方向#orientation"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		when:
-		def correctedMat = OpencvUtils.correctOrientation(mat, orientation)
+		def correctedMat = OpenCvUtils.correctOrientation(mat, orientation)
 
 		then:
 		correctedMat != null
-		!OpencvUtils.isEmpty(correctedMat)
+		!OpenCvUtils.isEmpty(correctedMat)
 
 		cleanup:
 		mat.release()
@@ -801,14 +801,14 @@ class OpencvUtilsSpec extends Specification {
 	def "校正EXIF方向 - 正常方向不处理"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		when:
-		def correctedMat = OpencvUtils.correctOrientation(mat, 1)
+		def correctedMat = OpenCvUtils.correctOrientation(mat, 1)
 
 		then:
 		correctedMat != null
-		OpencvUtils.isNotEmpty(correctedMat)
+		OpenCvUtils.isNotEmpty(correctedMat)
 
 		cleanup:
 		mat.release()
@@ -817,7 +817,7 @@ class OpencvUtilsSpec extends Specification {
 
 	def "校正EXIF方向 - null图像抛异常"() {
 		when:
-		OpencvUtils.correctOrientation(null, 1)
+		OpenCvUtils.correctOrientation(null, 1)
 
 		then:
 		thrown(NullPointerException)
@@ -826,10 +826,10 @@ class OpencvUtilsSpec extends Specification {
 	def "校正EXIF方向 - 无效方向抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		when:
-		OpencvUtils.correctOrientation(mat, 9)
+		OpenCvUtils.correctOrientation(mat, 9)
 
 		then:
 		thrown(IllegalArgumentException)
@@ -841,10 +841,10 @@ class OpencvUtilsSpec extends Specification {
 	def "校正EXIF方向 - 方向0抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
-		def mat = OpencvUtils.read(file)
+		def mat = OpenCvUtils.read(file)
 
 		when:
-		OpencvUtils.correctOrientation(mat, 0)
+		OpenCvUtils.correctOrientation(mat, 0)
 
 		then:
 		thrown(IllegalArgumentException)
