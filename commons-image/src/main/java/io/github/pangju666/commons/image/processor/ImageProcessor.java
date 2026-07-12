@@ -157,7 +157,7 @@ import java.util.function.Function;
  *     .sharpen(0.3f)                  // 锐化
  *     .contrast(0.2f)                 // 增加对比度
  *     .brightness(0.1f)               // 增加亮度
- *     .transparency(0.5f)             // 调整透明度为 50%
+ *     .opacity(0.5f)             // 调整透明度为 50%
  *     .filter(new GrayFilter())       // 应用自定义滤镜（支持 java.awt.image.ImageFilter）
  *     .toFile(new File("out_filter.jpg"));
  *
@@ -528,7 +528,7 @@ public class ImageProcessor {
 	 * @throws IllegalArgumentException 当 opacity 超出 [0.0, 1.0] 范围时抛出
 	 * @since 2.1.0
 	 */
-	public ImageProcessor transparency(final float opacity) {
+	public ImageProcessor opacity(final float opacity) {
 		Validate.isTrue(opacity >= 0 && opacity <= 1, "opacity 必须大于等于 0 且小于等于 1");
 
 		this.outputImage = new Transparency(opacity).apply(this.outputImage);

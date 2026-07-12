@@ -1340,7 +1340,7 @@ class ImageProcessorSpec extends Specification {
 	}
 
 	@Unroll
-	def "transparency 调整透明度：#name"() {
+	def "opacity 调整透明度：#name"() {
 		given:
 		"准备源文件与参数"
 		def file = new File("${TEST_IMAGES_DIR}/${name}")
@@ -1355,7 +1355,7 @@ class ImageProcessorSpec extends Specification {
 				ImageProcessor.of(new ImageIOResource(file))
 			} else {
 				def editor = ImageProcessor.of(new ImageIOResource(file))
-				editor.transparency(0.5f)
+				editor.opacity(0.5f)
 				def img = editor.toBufferedImage()
 				assert img != null
 			}
@@ -1375,7 +1375,7 @@ class ImageProcessorSpec extends Specification {
 		name << NORMAL_IMAGES
 	}
 
-	def "transparency 超出范围抛异常"() {
+	def "opacity 超出范围抛异常"() {
 		given:
 		"准备源文件"
 		def file = new File("${TEST_IMAGES_DIR}/test.jpg")
@@ -1383,7 +1383,7 @@ class ImageProcessorSpec extends Specification {
 		when:
 		"执行处理"
 		def editor = ImageProcessor.of(new ImageIOResource(file))
-		editor.transparency(1.5f)
+		editor.opacity(1.5f)
 
 		then:
 		"抛出异常"
