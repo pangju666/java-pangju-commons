@@ -86,6 +86,7 @@ import java.util.function.Function;
  *   <li>缩放</li>
  *   <li>旋转</li>
  *   <li>翻转</li>
+ *   <li>平移</li>
  *   <li>灰度化</li>
  *   <li>修改亮度</li>
  *   <li>修改对比度</li>
@@ -589,19 +590,72 @@ public class ImageProcessor {
 
 	/**
 	 * 平移图像
+	 * <p>使用双线性插值和透明背景色对图像进行平移操作。</p>
 	 *
-	 * @param dx 水平平移距离（像素）
-	 * @param dy 垂直平移距离（像素）
+	 * <p><b>功能说明：</b></p>
+	 * <ul>
+	 *     <li>沿X轴和Y轴方向移动图像内容</li>
+	 *     <li>移动后空白区域填充透明背景色</li>
+	 *     <li>超出图像边界的内容被裁剪</li>
+	 * </ul>
+	 *
+	 * @param dx 水平平移距离（像素），正数向右移动，负数向左移动
+	 * @param dy 垂直平移距离（像素），正数向下移动，负数向上移动
 	 * @return 当前处理器实例，支持链式调用
 	 * @since 2.1.0
 	 */
-	public ImageProcessor translate(final int dx, final int dy) {
+	public ImageProcessor translate(final double dx, final double dy) {
+		return translate(dx, dy, opencv_imgproc.INTER_LINEAR, OpenCvConstants.TRANSPARENT_COLOR);
+	}
+
+	/**
+	 * 平移图像
+	 * <p>使用指定的插值方式和透明背景色对图像进行平移操作。</p>
+	 *
+	 * <p><b>功能说明：</b></p>
+	 * <ul>
+	 *     <li>沿X轴和Y轴方向移动图像内容</li>
+	 *     <li>移动后空白区域填充透明背景色</li>
+	 *     <li>超出图像边界的内容被裁剪</li>
+	 * </ul>
+	 *
+	 * @param dx    水平平移距离（像素），正数向右移动，负数向左移动
+	 * @param dy    垂直平移距离（像素），正数向下移动，负数向上移动
+	 * @param flags 插值方式（如：opencv_imgproc.INTER_LINEAR）
+	 * @return 当前处理器实例，支持链式调用
+	 * @since 2.1.0
+	 */
+	public ImageProcessor translate(final double dx, final double dy, final int flags) {
+		return translate(dx, dy, flags, OpenCvConstants.TRANSPARENT_COLOR);
+	}
+
+	/**
+	 * 平移图像
+	 * <p>使用指定的插值方式和边框填充色对图像进行平移操作。</p>
+	 *
+	 * <p><b>功能说明：</b></p>
+	 * <ul>
+	 *     <li>沿X轴和Y轴方向移动图像内容</li>
+	 *     <li>移动后空白区域填充指定的边框颜色</li>
+	 *     <li>超出图像边界的内容被裁剪</li>
+	 * </ul>
+	 *
+	 * @param dx          水平平移距离（像素），正数向右移动，负数向左移动
+	 * @param dy          垂直平移距离（像素），正数向下移动，负数向上移动
+	 * @param flags       插值方式（如：opencv_imgproc.INTER_LINEAR）
+	 * @param borderValue 边框填充色
+	 * @return 当前处理器实例，支持链式调用
+	 * @throws IllegalArgumentException 当borderValue为null时抛出
+	 * @since 2.1.0
+	 */
+	public ImageProcessor translate(final double dx, final double dy, final int flags, final Scalar borderValue) {
+		Validate.notNull(borderValue, "borderValue 不可为 null");
+
 		Mat image = new Mat();
 
 		Mat matrixMat = OpenCvUtils.createAffineTranslateMatrix(dx, dy);
-		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(),
-			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
-			OpenCvConstants.TRANSPARENT_COLOR);
+		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(), flags,
+			opencv_core.BORDER_CONSTANT, borderValue);
 		matrixMat.release();
 
 		this.outputImage.release();

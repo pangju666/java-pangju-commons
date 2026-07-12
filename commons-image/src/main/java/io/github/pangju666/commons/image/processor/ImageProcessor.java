@@ -16,10 +16,7 @@
 
 package io.github.pangju666.commons.image.processor;
 
-import com.twelvemonkeys.image.BrightnessContrastFilter;
-import com.twelvemonkeys.image.GrayFilter;
-import com.twelvemonkeys.image.ImageUtil;
-import com.twelvemonkeys.image.ResampleOp;
+import com.twelvemonkeys.image.*;
 import io.github.pangju666.commons.image.enums.FlipDirection;
 import io.github.pangju666.commons.image.enums.RotateDirection;
 import io.github.pangju666.commons.image.io.resource.ImageIOResource;
@@ -40,6 +37,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.color.ColorSpace;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.ImageFilter;
@@ -61,7 +59,7 @@ import java.util.function.Function;
  * <p><b>核心特性：</b></p>
  * <ul>
  *   <li><b>链式调用：</b> API 设计简洁，配置与处理顺序清晰。</li>
- *   <li><b>智能格式：</b> 自动根据透明通道选择输出格式（含 Alpha 通道默认为 PNG，否则为 JPG）。</li>
+ *   <li><b>灵活输出：</b> 支持指定输出格式，可根据需要选择 PNG、JPG 等格式。</li>
  *   <li><b>状态重置：</b> 支持 {@link #reset()} 方法将图像恢复至初始状态，便于重复使用或撤销操作。</li>
  *   <li><b>资源释放：</b> 支持 {@link #release()} 方法释放图像资源，减少内存占用，释放后处理器不可再使用。</li>
  *   <li><b>EXIF 支持：</b> 支持通过指定 EXIF 方向值进行图像方向校正，也可使用 {@link ImageIOResource} 已校正的图像避免重复处理。</li>
@@ -69,7 +67,7 @@ import java.util.function.Function;
  *   <li><b>丰富操作：</b>
  *     <ul>
  *       <li>缩放：支持按宽/高、按比例、强制尺寸等多种模式。</li>
- *       <li>调整：旋转、翻转、裁剪。</li>
+ *       <li>调整：旋转、翻转、平移、裁剪。</li>
  *       <li>调色：亮度、对比度、灰度化、透明度调整。</li>
  *       <li>特效：模糊、锐化、自定义滤镜。</li>
  *       <li>水印：支持图片和文字水印，提供九宫格方向定位和自定义坐标两种方式。</li>
@@ -100,6 +98,7 @@ import java.util.function.Function;
  *   <li>缩放</li>
  *   <li>旋转</li>
  *   <li>翻转</li>
+ *   <li>平移</li>
  *   <li>灰度化</li>
  *   <li>修改亮度</li>
  *   <li>修改对比度</li>
@@ -135,20 +134,20 @@ import java.util.function.Function;
  *     .scaleByHeight(600)             // 按高度等比缩放
  *     .scale(0.5)                     // 按比例缩放（50%）
  *     .resize(100, 100)               // 强制缩放到指定尺寸（不保持比例）
- *     .toFile(new File("out_scale.jpg"));
+ *     .toFile(new File("out_scale.jpg"), "jpg");
  *
  * // 3. 裁剪操作
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg")))
  *     .cropByCenter(400, 400)         // 居中裁剪
  *     .cropByRect(0, 0, 200, 200)     // 指定矩形区域裁剪
  *     .cropByOffset(10, 10, 20, 20)   // 按边距裁剪（上、下、左、右）
- *     .toFile(new File("out_crop.jpg"));
+ *     .toFile(new File("out_crop.jpg"), "jpg");
  *
  * // 4. 旋转与翻转
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg")))
  *     .rotate(RotateDirection.CW_90)  // 顺时针旋转 90 度
  *     .flip(FlipDirection.HORIZONTAL) // 水平翻转
- *     .toFile(new File("out_rotate.jpg"));
+ *     .toFile(new File("out_rotate.jpg"), "jpg");
  *
  * // 5. 色彩与滤镜
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg")))
@@ -159,17 +158,17 @@ import java.util.function.Function;
  *     .brightness(0.1f)               // 增加亮度
  *     .opacity(0.5f)             // 调整透明度为 50%
  *     .filter(new GrayFilter())       // 应用自定义滤镜（支持 java.awt.image.ImageFilter）
- *     .toFile(new File("out_filter.jpg"));
+ *     .toFile(new File("out_filter.jpg"), "jpg");
  *
  * // 6. 水印添加（支持图片与文字）
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg"), true))
  *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
  *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
- *     .toFile(new File("out_watermark.jpg"));
+ *     .toFile(new File("out_watermark.jpg"), "jpg");
  *
  * // 7. 格式转换与输出
  * ImageProcessor.of(new ImageIOResource(new File("input.png"))) // 输入 PNG
- *     .toFile(new File("output.jpg"), "JPG"); // 强制输出为 JPG
+ *     .toFile(new File("output.jpg"), "jpg"); // 强制输出为 JPG
  *
  * // 8. 复杂操作链（链式调用）
  * ImageProcessor.of(new ImageIOResource(new File("input.jpg"), true))
@@ -177,17 +176,17 @@ import java.util.function.Function;
  *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
  *     .blur(2.0f)                     // 3. 应用高斯模糊
  *     .addTextWatermark("PREVIEW", new TextWatermarkOption()) // 4. 添加水印
- *     .toFile(new File("processed.jpg"));
+ *     .toFile(new File("processed.jpg"), "jpg");
  *
  * // 9. 状态重置与多版本输出
  * ImageProcessor editor = ImageProcessor.of(new ImageIOResource(new File("original.png")));
  * // 输出缩略图
  * editor.scaleByWidth(200)
- *       .toFile(new File("thumbnail.png"));
+ *       .toFile(new File("thumbnail.png"), "png");
  * // 重置并输出带水印的高清图
  * editor.reset()
  *       .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
- *       .toFile(new File("watermarked_original.png"));
+ *       .toFile(new File("watermarked_original.png"), "png");
  * }</pre>
  *
  * @author pangju666
@@ -606,6 +605,60 @@ public class ImageProcessor {
 		Validate.notNull(direction, "direction 不可为 null");
 
 		this.outputImage = ImageUtil.createFlipped(this.outputImage, direction.getAxis());
+		return this;
+	}
+
+	/**
+	 * 平移图像
+	 * <p>使用双线性插值类型对图像进行平移操作。</p>
+	 *
+	 * <p><b>功能说明：</b></p>
+	 * <ul>
+	 *     <li>沿X轴和Y轴方向移动图像内容</li>
+	 *     <li>移动后空白区域填充背景色</li>
+	 *     <li>超出图像边界的内容被裁剪</li>
+	 * </ul>
+	 *
+	 * @param dx 水平平移距离（像素），正数向右移动，负数向左移动
+	 * @param dy 垂直平移距离（像素），正数向下移动，负数向上移动
+	 * @return 当前处理器实例，支持链式调用
+	 * @since 2.1.0
+	 */
+	public ImageProcessor translate(final double dx, final double dy) {
+		return translate(dx, dy, AffineTransformOp.TYPE_BILINEAR);
+	}
+
+	/**
+	 * 平移图像
+	 * <p>使用指定的插值类型对图像进行平移操作。</p>
+	 *
+	 * <p><b>功能说明：</b></p>
+	 * <ul>
+	 *     <li>沿X轴和Y轴方向移动图像内容</li>
+	 *     <li>移动后空白区域填充背景色</li>
+	 *     <li>超出图像边界的内容被裁剪</li>
+	 * </ul>
+	 *
+	 * <p><b>插值类型：</b></p>
+	 * <ul>
+	 *     <li>1 - 最近邻插值（速度快，质量较低）</li>
+	 *     <li>2 - 双线性插值（平衡速度和质量）</li>
+	 *     <li>3 - 双三次插值（质量高，速度较慢）</li>
+	 * </ul>
+	 *
+	 * @param dx                水平平移距离（像素），正数向右移动，负数向左移动
+	 * @param dy                垂直平移距离（像素），正数向下移动，负数向上移动
+	 * @param interpolationType 插值类型（1-3）
+	 * @return 当前处理器实例，支持链式调用
+	 * @throws IllegalArgumentException 当interpolationType不在1-3范围内时抛出
+	 * @since 2.1.0
+	 */
+	public ImageProcessor translate(final double dx, final double dy, final int interpolationType) {
+		Validate.inclusiveBetween(1, 3, interpolationType, "interpolationType 必须介于 1-3 之间");
+
+		this.outputImage = new AffineTransformOp(AffineTransform.getTranslateInstance(dx, dy), interpolationType)
+			.filter(outputImage, null);
+
 		return this;
 	}
 
