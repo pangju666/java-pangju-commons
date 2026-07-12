@@ -467,7 +467,7 @@ public class ImageProcessor {
 	 *
 	 * @param opacity 透明度值，范围 0.0（完全透明）~ 1.0（完全不透明）
 	 * @return 当前处理器实例，支持链式调用
-	 * @throws IllegalArgumentException 如果 alpha 超出 [0, 1] 范围
+	 * @throws IllegalArgumentException 如果 opacity 超出 [0, 1] 范围
 	 * @since 1.1.0
 	 */
 	public ImageProcessor opacity(final float opacity) {

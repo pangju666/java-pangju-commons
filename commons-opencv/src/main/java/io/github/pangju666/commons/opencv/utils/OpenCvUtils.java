@@ -370,7 +370,7 @@ public class OpenCvUtils {
 	 * @since 1.1.0
 	 */
 	public static Mat create3x3FloatKernel(final float[] kernelData) {
-		Validate.isTrue(ArrayUtils.isNotEmpty(kernelData), "kernelData 不可为空");
+		Validate.isTrue(ArrayUtils.getLength(kernelData) == 9, "kernelData 必须包含 9 个元素");
 
 		Mat kernel = new Mat(3, 3, opencv_core.CV_32F);
 		try (FloatIndexer idx = kernel.createIndexer()) {
