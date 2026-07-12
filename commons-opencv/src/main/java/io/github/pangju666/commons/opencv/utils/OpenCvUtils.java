@@ -22,7 +22,7 @@ import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
-import io.github.pangju666.commons.opencv.lang.OpencvConstants;
+import io.github.pangju666.commons.opencv.lang.OpenCvConstants;
 import io.github.pangju666.commons.opencv.processor.ImageProcessor;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -63,17 +63,17 @@ import java.util.Objects;
  * </ul>
  *
  * @author pangju666
- * @see OpencvConstants
+ * @see OpenCvConstants
  * @see ImageProcessor
  * @since 2.1.0
  */
-public class OpencvUtils {
+public class OpenCvUtils {
 	/**
 	 * 私有构造函数，防止实例化
 	 *
 	 * @since 2.1.0
 	 */
-	protected OpencvUtils() {
+	protected OpenCvUtils() {
 	}
 
 	/**
@@ -158,7 +158,7 @@ public class OpencvUtils {
 	 * @since 2.1.0
 	 */
 	public static Mat read(final File file) throws IOException {
-		return read(file, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
+		return read(file, OpenCvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class OpencvUtils {
 	public static Mat read(final InputStream inputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		return read(inputStream, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
+		return read(inputStream, OpenCvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class OpencvUtils {
 	 * @since 2.1.0
 	 */
 	public static Mat read(final byte[] bytes) {
-		return read(bytes, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE);
+		return read(bytes, OpenCvConstants.DEFAULT_IMAGE_COLOR_TYPE);
 	}
 
 	/**

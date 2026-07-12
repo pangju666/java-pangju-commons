@@ -19,11 +19,11 @@ package io.github.pangju666.commons.opencv.processor;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
-import io.github.pangju666.commons.opencv.io.resource.OpencvImageResource;
-import io.github.pangju666.commons.opencv.lang.OpencvConstants;
+import io.github.pangju666.commons.opencv.io.resource.OpenCvResource;
+import io.github.pangju666.commons.opencv.lang.OpenCvConstants;
 import io.github.pangju666.commons.opencv.model.ImageWatermarkOption;
 import io.github.pangju666.commons.opencv.model.TextWatermarkOption;
-import io.github.pangju666.commons.opencv.utils.OpencvUtils;
+import io.github.pangju666.commons.opencv.utils.OpenCvUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -46,7 +46,7 @@ import java.util.function.Function;
  * 基于 OpenCV 的图像处理器（链式调用风格）
  * <p>
  * 提供流式 API 以便对图像进行缩放、旋转、滤镜、亮度/对比度、灰度转换、透明度调整以及图片/文字水印等常见操作。<br />
- * 支持以 {@link OpencvImageResource}、输入流、{@link BytePointer} 或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
+ * 支持以 {@link OpenCvResource}、输入流、{@link BytePointer} 或 {@link Mat} 作为输入源，并可输出为文件、输出流、字节数组或 {@link Mat}。<br />
  * 可选地根据 EXIF 信息自动校正图像方向（当 EXIF 不存在或读取失败时不进行校正）。
  * </p>
  *
@@ -98,8 +98,8 @@ import java.util.function.Function;
  * <h3>代码示例</h3>
  * <pre>{@code
  * // 1. 构建实例
- * // 从 OpencvImageResource 构建
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")));
+ * // 从 OpenCvResource 构建
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")));
  * // 从输入流构建
  * ImageProcessor.of(inputStream);
  * // 从 BytePointer 构建
@@ -108,7 +108,7 @@ import java.util.function.Function;
  * ImageProcessor.of(mat);
  *
  * // 2. 缩放与调整大小
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .scaleByWidth(800)              // 按宽度等比缩放
  *     .scaleByHeight(600)             // 按高度等比缩放
  *     .scale(0.5)                     // 按比例缩放（50%）
@@ -117,21 +117,21 @@ import java.util.function.Function;
  *     .toFile(new File("out_scale.jpg"));
  *
  * // 3. 裁剪操作
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .cropByCenter(400, 400)         // 居中裁剪
  *     .cropByRect(0, 0, 200, 200)     // 指定矩形区域裁剪
  *     .cropByOffset(10, 10, 20, 20)   // 按边距裁剪（上、下、左、右）
  *     .toFile(new File("out_crop.jpg"));
  *
  * // 4. 旋转与翻转
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .rotate(RotateDirection.CLOCKWISE_90)  // 顺时针旋转 90 度
  *     .rotate(45)                            // 任意角度旋转（45度）
  *     .flip(FlipDirection.HORIZONTAL)        // 水平翻转
  *     .toFile(new File("out_rotate.jpg"));
  *
  * // 5. 色彩与滤镜
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .grayscale()                    // 转为灰度图
  *     .blur()                         // 均值模糊（默认尺寸）
  *     .gaussianBlur()                 // 高斯模糊（默认尺寸）
@@ -145,13 +145,13 @@ import java.util.function.Function;
  *     .toFile(new File("out_filter.jpg"));
  *
  * // 6. 水印添加（支持图片与文字）
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
  *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
  *     .toFile(new File("out_watermark.jpg"));
  *
  * // 7. 复杂操作链（链式调用）
- * ImageProcessor.of(new OpencvImageResource(new File("input.jpg")))
+ * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .cropByCenter(1000, 1000)       // 1. 先裁剪中心 1000x1000 区域
  *     .scaleByWidth(500)              // 2. 缩放到宽度 500px
  *     .gaussianBlur()                 // 3. 应用高斯模糊
@@ -159,7 +159,7 @@ import java.util.function.Function;
  *     .toFile(new File("processed.jpg"));
  *
  * // 8. 状态重置与多版本输出
- * ImageProcessor editor = ImageProcessor.of(new OpencvImageResource(new File("original.png")));
+ * ImageProcessor editor = ImageProcessor.of(new OpenCvResource(new File("original.png")));
  * // 输出缩略图
  * editor.scaleByWidth(200)
  *       .toFile(new File("thumbnail.png"));
@@ -177,7 +177,7 @@ import java.util.function.Function;
  * @see FlipDirection
  * @see io.github.pangju666.commons.opencv.model.ImageWatermarkOption
  * @see io.github.pangju666.commons.opencv.model.TextWatermarkOption
- * @see OpencvUtils
+ * @see OpenCvUtils
  * @since 2.1.0
  */
 public class ImageProcessor {
@@ -268,15 +268,15 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	protected ImageProcessor(final Mat inputImage, final int exifOrientation, final int flags, final String inputFormat) {
-		Validate.isTrue(OpencvUtils.isNotEmpty(inputImage), "inputImage 不存在图像数据");
+		Validate.isTrue(OpenCvUtils.isNotEmpty(inputImage), "inputImage 不存在图像数据");
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 
 		this.inputImage = inputImage;
 		this.inputFormat = StringUtils.defaultIfBlank(inputFormat, null);
 
 		if ((flags == opencv_imgcodecs.IMREAD_UNCHANGED || flags == opencv_imgcodecs.IMREAD_IGNORE_ORIENTATION) &&
-			exifOrientation != OpencvConstants.NORMAL_EXIF_ORIENTATION) {
-			this.outputImage = OpencvUtils.correctOrientation(this.inputImage, exifOrientation);
+			exifOrientation != OpenCvConstants.NORMAL_EXIF_ORIENTATION) {
+			this.outputImage = OpenCvUtils.correctOrientation(this.inputImage, exifOrientation);
 		} else {
 			this.outputImage = inputImage.clone();
 		}
@@ -286,24 +286,24 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 从 OpencvImageResource 创建处理器
+	 * 从 OpenCvResource 创建处理器
 	 *
 	 * <p>如果资源已校正 EXIF 方向，则使用校正后的图像；否则使用原始图像并根据 EXIF 方向值进行校正。</p>
 	 *
 	 * <p>会使用资源基于 MIME 类型推断的 format 作为输入图像格式</p>
 	 *
-	 * @param resource OpencvImageResource 对象，不能为 null
+	 * @param resource OpenCvResource 对象，不能为 null
 	 * @return 图像处理器实例
 	 * @throws IOException              如果读取图像失败
 	 * @throws IllegalArgumentException 如果 resource 为 null
 	 * @since 2.1.0
 	 */
-	public static ImageProcessor of(final OpencvImageResource resource) throws IOException {
+	public static ImageProcessor of(final OpenCvResource resource) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		if (resource.isOrientationCorrected()) {
 			return new ImageProcessor(resource.getImageMat(),
-				OpencvConstants.NORMAL_EXIF_ORIENTATION, resource.getFlags());
+				OpenCvConstants.NORMAL_EXIF_ORIENTATION, resource.getFlags());
 		}
 		return new ImageProcessor(resource.getImageMat(), resource.getExifOrientation(), resource.getFlags(),
 			resource.getFormat());
@@ -325,8 +325,8 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public static ImageProcessor of(final InputStream inputStream) throws IOException {
-		return of(inputStream, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
-			OpencvConstants.NORMAL_EXIF_ORIENTATION);
+		return of(inputStream, OpenCvConstants.DEFAULT_IMAGE_COLOR_TYPE,
+			OpenCvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
@@ -346,7 +346,7 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public static ImageProcessor of(final InputStream inputStream, final int flags) throws IOException {
-		return of(inputStream, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
+		return of(inputStream, flags, OpenCvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
@@ -364,8 +364,8 @@ public class ImageProcessor {
 		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
-		Mat image = OpencvUtils.read(inputStream, flags);
-		if (OpencvUtils.isEmpty(image)) {
+		Mat image = OpenCvUtils.read(inputStream, flags);
+		if (OpenCvUtils.isEmpty(image)) {
 			throw new IOException("图片读取失败");
 		}
 		return new ImageProcessor(image, exifOrientation, flags);
@@ -387,8 +387,8 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public static ImageProcessor of(final BytePointer bytePointer) {
-		return of(bytePointer, OpencvConstants.DEFAULT_IMAGE_COLOR_TYPE,
-			OpencvConstants.NORMAL_EXIF_ORIENTATION);
+		return of(bytePointer, OpenCvConstants.DEFAULT_IMAGE_COLOR_TYPE,
+			OpenCvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
@@ -407,7 +407,7 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public static ImageProcessor of(final BytePointer bytePointer, final int flags) {
-		return of(bytePointer, flags, OpencvConstants.NORMAL_EXIF_ORIENTATION);
+		return of(bytePointer, flags, OpenCvConstants.NORMAL_EXIF_ORIENTATION);
 	}
 
 	/**
@@ -440,7 +440,7 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public static ImageProcessor of(final Mat image) {
-		return new ImageProcessor(image, OpencvConstants.NORMAL_EXIF_ORIENTATION,
+		return new ImageProcessor(image, OpenCvConstants.NORMAL_EXIF_ORIENTATION,
 			opencv_imgcodecs.IMREAD_UNCHANGED);
 	}
 
@@ -559,7 +559,7 @@ public class ImageProcessor {
 		// 仿射旋转，边界填充背景色
 		opencv_imgproc.warpAffine(outputImage, newImage, rotateMat, newImageSize,
 			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
-			OpencvConstants.TRANSPARENT_COLOR);
+			OpenCvConstants.TRANSPARENT_COLOR);
 
 		this.outputImage.releaseReference();
 		this.outputImage = newImage;
@@ -598,10 +598,10 @@ public class ImageProcessor {
 	public ImageProcessor warpAffine(final int dx, final int dy) {
 		Mat image = new Mat();
 
-		Mat matrixMat = OpencvUtils.getMatrixMat(dx, dy);
+		Mat matrixMat = OpenCvUtils.getMatrixMat(dx, dy);
 		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(),
 			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
-			OpencvConstants.TRANSPARENT_COLOR);
+			OpenCvConstants.TRANSPARENT_COLOR);
 		matrixMat.releaseReference();
 
 		this.outputImage.releaseReference();
@@ -665,7 +665,7 @@ public class ImageProcessor {
 	public ImageProcessor scaleByWidth(final int targetWidth) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
-		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
+		Size size = OpenCvUtils.scaleByWidth(outputImage.size(), targetWidth);
 		return resize(size.width(), size.height());
 	}
 
@@ -689,7 +689,7 @@ public class ImageProcessor {
 	public ImageProcessor scaleByWidth(final int targetWidth, final int interpolationFlag) {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 
-		Size size = OpencvUtils.scaleByWidth(outputImage.size(), targetWidth);
+		Size size = OpenCvUtils.scaleByWidth(outputImage.size(), targetWidth);
 		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
@@ -704,7 +704,7 @@ public class ImageProcessor {
 	public ImageProcessor scaleByHeight(final int targetHeight) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
+		Size size = OpenCvUtils.scaleByHeight(outputImage.size(), targetHeight);
 		return resize(size.width(), size.height());
 	}
 
@@ -728,7 +728,7 @@ public class ImageProcessor {
 	public ImageProcessor scaleByHeight(final int targetHeight, final int interpolationFlag) {
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size size = OpencvUtils.scaleByHeight(outputImage.size(), targetHeight);
+		Size size = OpenCvUtils.scaleByHeight(outputImage.size(), targetHeight);
 		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
@@ -744,7 +744,7 @@ public class ImageProcessor {
 	public ImageProcessor scale(final double scalingFactor) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
-		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
+		Size size = OpenCvUtils.scale(outputImage.size(), scalingFactor);
 		return resize(size.width(), size.height());
 	}
 
@@ -768,7 +768,7 @@ public class ImageProcessor {
 	public ImageProcessor scale(final double scalingFactor, final int interpolationFlag) {
 		Validate.isTrue(scalingFactor > 0, "scalingFactor 必须大于 0");
 
-		Size size = OpencvUtils.scale(outputImage.size(), scalingFactor);
+		Size size = OpenCvUtils.scale(outputImage.size(), scalingFactor);
 		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
@@ -785,7 +785,7 @@ public class ImageProcessor {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size size = OpencvUtils.scale(outputImage.size(), targetWidth, targetHeight);
+		Size size = OpenCvUtils.scale(outputImage.size(), targetWidth, targetHeight);
 		return resize(size.width(), size.height());
 	}
 
@@ -811,7 +811,7 @@ public class ImageProcessor {
 		Validate.isTrue(targetWidth > 0, "targetWidth 必须大于 0");
 		Validate.isTrue(targetHeight > 0, "targetHeight 必须大于 0");
 
-		Size size = OpencvUtils.scale(outputImage.size(), targetWidth, targetHeight);
+		Size size = OpenCvUtils.scale(outputImage.size(), targetWidth, targetHeight);
 		return resize(size.width(), size.height(), interpolationFlag);
 	}
 
@@ -1073,7 +1073,7 @@ public class ImageProcessor {
 			-1, weight, -1,
 			0, -1, 0
 		};
-		Mat kernel = OpencvUtils.getKernel(kernelData);
+		Mat kernel = OpenCvUtils.getKernel(kernelData);
 
 		Mat image = new Mat();
 
@@ -1111,7 +1111,7 @@ public class ImageProcessor {
 			-1 * strength, 1, 1 * strength,
 			0, 1 * strength, 2 * strength
 		};
-		Mat kernel = OpencvUtils.getKernel(kernelData);
+		Mat kernel = OpenCvUtils.getKernel(kernelData);
 
 		Mat image = new Mat();
 
@@ -1255,7 +1255,7 @@ public class ImageProcessor {
 	 * @since 2.1.0
 	 */
 	public ImageProcessor addImageWatermark(final File watermarkImageFile) throws IOException {
-		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
+		try (Mat watermarkImageMat = OpenCvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
 			return addImageWatermark(watermarkImageMat, new ImageWatermarkOption());
 		}
 	}
@@ -1273,7 +1273,7 @@ public class ImageProcessor {
 	public ImageProcessor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(option, "option 不可为 null");
 
-		try (Mat watermarkImageMat = OpencvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
+		try (Mat watermarkImageMat = OpenCvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
 			return addImageWatermark(watermarkImageMat, option);
 		}
 	}
@@ -1306,10 +1306,10 @@ public class ImageProcessor {
 	public ImageProcessor addImageWatermark(final Mat watermarkImage, final ImageWatermarkOption option) {
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
-		Validate.isTrue(OpencvUtils.isNotEmpty(watermarkImage), "watermarkImage 不可为空");
+		Validate.isTrue(OpenCvUtils.isNotEmpty(watermarkImage), "watermarkImage 不可为空");
 
 		if (watermarkImage.channels() == 4) {
-			OpencvUtils.cleanTransparency(watermarkImage);
+			OpenCvUtils.cleanTransparency(watermarkImage);
 		}
 
 		Size outputImageSize = outputImage.size();
@@ -1317,21 +1317,21 @@ public class ImageProcessor {
 		Pair<Size, Size> watermarkImageSizeRange = option.getSizeLimitStrategy().apply(outputImageSize);
 
 		Mat targetWatermarkImage = new Mat();
-		Size targetWatermarkImageSize = OpencvUtils.scale(outputImageSize, option.getRelativeScaleFactor());
+		Size targetWatermarkImageSize = OpenCvUtils.scale(outputImageSize, option.getRelativeScaleFactor());
 
 		if (originalWatermarkSize.width() > originalWatermarkSize.height()) {
 			int targetWidth = Math.min(watermarkImageSizeRange.getRight().width(),
 				Math.max(watermarkImageSizeRange.getLeft().width(), targetWatermarkImageSize.width()));
 			if (targetWidth != targetWatermarkImageSize.width()) {
 				targetWatermarkImage = new Mat();
-				targetWatermarkImageSize = OpencvUtils.scaleByWidth(originalWatermarkSize, targetWidth);
+				targetWatermarkImageSize = OpenCvUtils.scaleByWidth(originalWatermarkSize, targetWidth);
 			}
 		} else {
 			int targetHeight = Math.min(watermarkImageSizeRange.getRight().height(),
 				Math.max(watermarkImageSizeRange.getLeft().height(), targetWatermarkImageSize.height()));
 			if (targetHeight != targetWatermarkImageSize.height()) {
 				targetWatermarkImage = new Mat();
-				targetWatermarkImageSize = OpencvUtils.scaleByHeight(originalWatermarkSize, targetHeight);
+				targetWatermarkImageSize = OpenCvUtils.scaleByHeight(originalWatermarkSize, targetHeight);
 			}
 		}
 
@@ -1461,8 +1461,8 @@ public class ImageProcessor {
 
 		Size imageSize = outputImage.size();
 
-		Scalar fillColor = OpencvUtils.toBGRColor(option.getFillColor());
-		Scalar strokeColor = OpencvUtils.toBGRColor(option.getStrokeColor());
+		Scalar fillColor = OpenCvUtils.toBGRColor(option.getFillColor());
+		Scalar strokeColor = OpenCvUtils.toBGRColor(option.getStrokeColor());
 		double fontScale = option.getFontScaleStrategy().applyAsDouble(outputImage.size(), option.getFontFace());
 
 		Size textSize = opencv_imgproc.getTextSize(watermarkText, option.getFontFace(), fontScale,
@@ -1700,7 +1700,7 @@ public class ImageProcessor {
 	 */
 	public byte[] toBytes(final String outputFormat) {
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(OpencvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
+		Validate.isTrue(OpenCvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes);
@@ -1725,7 +1725,7 @@ public class ImageProcessor {
 	public byte[] toBytes(final String outputFormat, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(OpencvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
+		Validate.isTrue(OpenCvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes, params);
