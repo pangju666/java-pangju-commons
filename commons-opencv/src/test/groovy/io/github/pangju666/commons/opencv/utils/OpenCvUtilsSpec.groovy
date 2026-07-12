@@ -712,7 +712,7 @@ class OpenCvUtilsSpec extends Specification {
 
 	def "创建平移变换矩阵"() {
 		when:
-		def matrix = OpenCvUtils.getMatrixMat(10, 20)
+		def matrix = OpenCvUtils.createAffineTranslateMatrix(10, 20)
 
 		then:
 		matrix != null

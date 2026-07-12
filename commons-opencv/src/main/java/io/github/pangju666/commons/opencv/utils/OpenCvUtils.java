@@ -369,7 +369,7 @@ public class OpenCvUtils {
 	 * @throws IllegalArgumentException 如果 kernelData 为 null 或空时抛出
 	 * @since 1.1.0
 	 */
-	public static Mat getKernel(final float[] kernelData) {
+	public static Mat create3x3FloatKernel(final float[] kernelData) {
 		Validate.isTrue(ArrayUtils.isNotEmpty(kernelData), "kernelData 不可为空");
 
 		Mat kernel = new Mat(3, 3, opencv_core.CV_32F);
@@ -491,7 +491,7 @@ public class OpenCvUtils {
 	 * @return 2x3 的平移变换矩阵
 	 * @since 1.1.0
 	 */
-	public static Mat getMatrixMat(final int dx, final int dy) {
+	public static Mat createAffineTranslateMatrix(final int dx, final int dy) {
 		Mat matrixMat = new Mat(2, 3, opencv_core.CV_64F);
 		try (DoubleIndexer indexer = matrixMat.createIndexer()) {
 			// 第一行 [1, 0, dx]

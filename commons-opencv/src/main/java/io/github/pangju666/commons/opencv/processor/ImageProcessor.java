@@ -483,7 +483,7 @@ public class ImageProcessor {
 				code = opencv_imgproc.COLOR_BGR2BGRA;
 			}
 			opencv_imgproc.cvtColor(outputImage, bgraMat, code);
-			outputImage.releaseReference();
+			outputImage.release();
 			outputImage = bgraMat;
 		}
 
@@ -496,7 +496,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_core.merge(channels, image);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -516,7 +516,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_core.rotate(outputImage, image, direction.getCode());
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -561,7 +561,7 @@ public class ImageProcessor {
 			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
 			OpenCvConstants.TRANSPARENT_COLOR);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = newImage;
 
 		return this;
@@ -581,7 +581,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_core.flip(outputImage, image, direction.getCode());
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -595,16 +595,16 @@ public class ImageProcessor {
 	 * @return 当前处理器实例，支持链式调用
 	 * @since 1.1.0
 	 */
-	public ImageProcessor warpAffine(final int dx, final int dy) {
+	public ImageProcessor translate(final int dx, final int dy) {
 		Mat image = new Mat();
 
-		Mat matrixMat = OpenCvUtils.getMatrixMat(dx, dy);
+		Mat matrixMat = OpenCvUtils.createAffineTranslateMatrix(dx, dy);
 		opencv_imgproc.warpAffine(outputImage, image, matrixMat, outputImage.size(),
 			opencv_imgproc.INTER_LINEAR, opencv_core.BORDER_CONSTANT,
 			OpenCvConstants.TRANSPARENT_COLOR);
-		matrixMat.releaseReference();
+		matrixMat.release();
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -649,7 +649,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_imgproc.resize(outputImage, image, new Size(width, height), 0, 0, interpolationFlag);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -840,7 +840,7 @@ public class ImageProcessor {
 		Rect rect = new Rect((imageSize.width() - width) / 2, (imageSize.height() - height) / 2, width, height);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -874,7 +874,7 @@ public class ImageProcessor {
 			imageSize.height() - topOffset - bottomOffset);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -908,7 +908,7 @@ public class ImageProcessor {
 		Rect rect = new Rect(x, y, width, height);
 		Mat image = outputImage.apply(rect).clone();
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -932,7 +932,7 @@ public class ImageProcessor {
 			opencv_imgproc.cvtColor(this.outputImage, image, opencv_imgproc.COLOR_BGRA2GRAY);
 		}
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -963,7 +963,7 @@ public class ImageProcessor {
 
 		opencv_imgproc.blur(this.outputImage, image, ksize);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1010,7 +1010,7 @@ public class ImageProcessor {
 
 		opencv_imgproc.GaussianBlur(this.outputImage, image, ksize, sigmaX);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1042,7 +1042,7 @@ public class ImageProcessor {
 
 		opencv_imgproc.medianBlur(this.outputImage, image, ksize);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1074,13 +1074,13 @@ public class ImageProcessor {
 			-1, weight, -1,
 			0, -1, 0
 		};
-		Mat kernel = OpenCvUtils.getKernel(kernelData);
+		Mat kernel = OpenCvUtils.create3x3FloatKernel(kernelData);
 
 		Mat image = new Mat();
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1112,13 +1112,13 @@ public class ImageProcessor {
 			-1 * strength, 1, 1 * strength,
 			0, 1 * strength, 2 * strength
 		};
-		Mat kernel = OpenCvUtils.getKernel(kernelData);
+		Mat kernel = OpenCvUtils.create3x3FloatKernel(kernelData);
 
 		Mat image = new Mat();
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1153,7 +1153,7 @@ public class ImageProcessor {
 
 		opencv_imgproc.threshold(this.outputImage, image, thresh, maxVal, type);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1192,7 +1192,7 @@ public class ImageProcessor {
 		opencv_imgproc.adaptiveThreshold(this.outputImage, image, maxValue, adaptiveMethod, thresholdType,
 			blockSize, c);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1221,7 +1221,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_core.convertScaleAbs(outputImage, image, alpha, 0);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1238,7 +1238,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 		opencv_core.convertScaleAbs(outputImage, image, 1, beta);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1362,7 +1362,7 @@ public class ImageProcessor {
 			originalAlpha.convertTo(finalAlpha, opencv_core.CV_32F, option.getOpacity() / 255.0, 0);
 
 			for (Mat mat : channels.get()) {
-				mat.releaseReference();
+				mat.release();
 			}
 		} else {
 			finalAlpha.create(targetWatermarkImageSize.height(), targetWatermarkImageSize.width(), opencv_core.CV_32F);
@@ -1375,12 +1375,12 @@ public class ImageProcessor {
 			opencv_core.split(targetWatermarkImage, channels);
 
 			Mat alphatMat = channels.pop_back();
-			alphatMat.releaseReference();
+			alphatMat.release();
 
 			opencv_core.merge(channels, watermarkBGR);
 
 			for (Mat mat : channels.get()) {
-				mat.releaseReference();
+				mat.release();
 			}
 		} else {
 			targetWatermarkImage.copyTo(watermarkBGR);
@@ -1529,7 +1529,7 @@ public class ImageProcessor {
 			image = new Mat();
 			opencv_core.addWeighted(outputImage, 1, textLayer, option.getOpacity(), 0, image);
 
-			textLayer.releaseReference();
+			textLayer.release();
 		} else {
 			image = outputImage.clone();
 
@@ -1542,7 +1542,7 @@ public class ImageProcessor {
 				option.getThickness(), opencv_imgproc.LINE_AA, false);
 		}
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1561,7 +1561,7 @@ public class ImageProcessor {
 
 		Mat image = operation.apply(this.outputImage);
 
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = image;
 
 		return this;
@@ -1775,7 +1775,7 @@ public class ImageProcessor {
 	 * @since 1.1.0
 	 */
 	public ImageProcessor reset() {
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = this.inputImage.clone();
 
 		return this;
@@ -1787,7 +1787,7 @@ public class ImageProcessor {
 	 * @since 1.1.0
 	 */
 	public void release() {
-		this.outputImage.releaseReference();
+		this.outputImage.release();
 		this.outputImage = null;
 	}
 }

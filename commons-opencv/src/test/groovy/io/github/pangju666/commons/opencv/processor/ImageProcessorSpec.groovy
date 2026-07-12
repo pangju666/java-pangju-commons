@@ -454,7 +454,7 @@ class ImageProcessorSpec extends Specification {
 		def editor = ImageProcessor.of(new OpenCvResource(file))
 
 		when:
-		editor.warpAffine(10, 20)
+		editor.translate(10, 20)
 
 		then:
 		editor.toMat() != null
