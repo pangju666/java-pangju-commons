@@ -545,6 +545,8 @@ public class ImageProcessor {
 		Validate.notNull(direction, "direction 不可为 null");
 
 		this.outputImage = ImageUtil.createRotated(this.outputImage, direction.getRadians());
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+
 		return this;
 	}
 
@@ -557,6 +559,8 @@ public class ImageProcessor {
 	 */
 	public ImageProcessor rotate(final double angle) {
 		this.outputImage = ImageUtil.createRotated(this.outputImage, Math.toRadians(angle));
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+
 		return this;
 	}
 
@@ -570,6 +574,7 @@ public class ImageProcessor {
 	 */
 	public ImageProcessor blur() {
 		this.outputImage = ImageUtil.blur(this.outputImage, 1.5f);
+
 		return this;
 	}
 
@@ -605,6 +610,8 @@ public class ImageProcessor {
 		Validate.notNull(direction, "direction 不可为 null");
 
 		this.outputImage = ImageUtil.createFlipped(this.outputImage, direction.getAxis());
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
+
 		return this;
 	}
 
@@ -658,6 +665,7 @@ public class ImageProcessor {
 
 		this.outputImage = new AffineTransformOp(AffineTransform.getTranslateInstance(dx, dy), interpolationType)
 			.filter(outputImage, null);
+		this.outputImageSize = new ImageSize(this.outputImage.getWidth(), this.outputImage.getHeight());
 
 		return this;
 	}
