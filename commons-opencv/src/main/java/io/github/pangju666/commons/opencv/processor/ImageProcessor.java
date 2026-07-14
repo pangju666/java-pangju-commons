@@ -91,8 +91,9 @@ import java.util.function.Function;
  *   <li>修改亮度</li>
  *   <li>修改对比度</li>
  *   <li>调整透明度</li>
- *   <li>锐化或模糊（这两个效果互斥，一般不会同时用）</li>
+ *   <li>锐化、模糊或浮雕（这些效果互斥，一般不会同时用）</li>
  *   <li>滤镜/阈值</li>
+ *   <li>自定义扩展（可选，使用 {@link #apply(Function)} 方法）</li>
  *   <li>添加水印</li>
  * </ol>
  *
@@ -892,6 +893,7 @@ public class ImageProcessor {
 
 		Rect rect = new Rect((imageSize.width() - width) / 2, (imageSize.height() - height) / 2, width, height);
 		Mat image = outputImage.apply(rect).clone();
+		rect.releaseReference();
 
 		this.outputImage.release();
 		this.outputImage = image;
@@ -926,6 +928,7 @@ public class ImageProcessor {
 		Rect rect = new Rect(leftOffset, topOffset, imageSize.width() - leftOffset - rightOffset,
 			imageSize.height() - topOffset - bottomOffset);
 		Mat image = outputImage.apply(rect).clone();
+		rect.releaseReference();
 
 		this.outputImage.release();
 		this.outputImage = image;
@@ -960,6 +963,7 @@ public class ImageProcessor {
 
 		Rect rect = new Rect(x, y, width, height);
 		Mat image = outputImage.apply(rect).clone();
+		rect.releaseReference();
 
 		this.outputImage.release();
 		this.outputImage = image;
@@ -992,13 +996,13 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 对图像进行均值模糊处理（默认 5x5 卷积核）
+	 * 对图像进行均值模糊处理（默认 3x3 卷积核）
 	 *
 	 * @return 当前处理器实例，支持链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor blur() {
-		return blur(new Size(5, 5));
+		return blur(new Size(3, 3));
 	}
 
 	/**
@@ -1023,13 +1027,13 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 对图像进行高斯模糊处理（默认 5x5 卷积核，sigma=0）
+	 * 对图像进行高斯模糊处理（默认 3x3 卷积核，sigma=0）
 	 *
 	 * @return 当前处理器实例，支持链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor gaussianBlur() {
-		return gaussianBlur(new Size(5, 5), 0);
+		return gaussianBlur(new Size(3, 3), 0);
 	}
 
 	/**
@@ -1132,6 +1136,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
+		kernel.release();
 
 		this.outputImage.release();
 		this.outputImage = image;
@@ -1140,13 +1145,13 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 对图像进行浮雕效果处理（默认强度 strength=1.0）
+	 * 对图像进行浮雕效果处理（默认强度 strength=0.5）
 	 *
 	 * @return 当前处理器实例，支持链式调用
 	 * @since 2.1.0
 	 */
 	public ImageProcessor emboss() {
-		return emboss(1.0f);
+		return emboss(0.5f);
 	}
 
 	/**
@@ -1170,6 +1175,7 @@ public class ImageProcessor {
 		Mat image = new Mat();
 
 		opencv_imgproc.filter2D(this.outputImage, image, -1, kernel);
+		kernel.release();
 
 		this.outputImage.release();
 		this.outputImage = image;
@@ -1249,16 +1255,6 @@ public class ImageProcessor {
 		this.outputImage = image;
 
 		return this;
-	}
-
-	/**
-	 * 调整图像对比度（默认 alpha=0.3）
-	 *
-	 * @return 当前处理器实例，支持链式调用
-	 * @since 2.1.0
-	 */
-	public ImageProcessor contrast() {
-		return contrast(0.3f);
 	}
 
 	/**
