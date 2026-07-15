@@ -48,8 +48,6 @@ import java.util.Objects;
  * <ul>
  *   <li><strong>多源输入支持：</strong>支持从 InputStream、ImageInputStream、字节数组、文件、RenderedImage 等多种来源读取图片</li>
  *   <li><strong>格式验证：</strong>自动检测并验证图片格式，仅支持 Tesseract 支持的图像类型</li>
- *   <li><strong>对象池管理：</strong>内置对象池管理 TessBaseAPI 实例，提高性能和资源利用率</li>
- *   <li><strong>灵活使用方式：</strong>提供便捷方式和手动管理两种使用模式</li>
  * </ul>
  *
  * <h2>支持的图像格式</h2>
@@ -59,21 +57,8 @@ import java.util.Objects;
  * 工具类会自动检测 MIME 类型并验证格式是否受支持。
  * </p>
  *
- * <h2>使用方式</h2>
- * <p>
- * 该工具类提供两种使用方式：
- * </p>
- * <ul>
- *   <li><strong>便捷方式：</strong>直接调用不需要 {@code tessBaseAPI} 参数的方法，会自动从对象池获取和归还对象</li>
- *   <li><strong>手动管理：</strong>调用需要 {@code tessBaseAPI} 参数的方法，自行管理对象生命周期，适合批量处理场景</li>
- * </ul>
- *
  * <h2>示例代码</h2>
  * <pre>{@code
- * // 便捷方式 - 自动管理对象池
- * String text = OcrUtils.ocrImage(imageFile);
- *
- * // 手动管理 - 适合批量处理
  * TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
  * try {
  *     String text1 = OcrUtils.ocrImage(tessBaseAPI, imageFile1);
@@ -95,124 +80,6 @@ public class OcrUtils {
 	 * @since 2.1.0
 	 */
 	protected OcrUtils() {
-	}
-
-	/**
-	 * 从 RenderedImage 读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 将 RenderedImage 转换为 PNG 格式的字节数组，然后调用字节数组版本的 OCR 方法进行识别。
-	 * </p>
-	 *
-	 * @param image RenderedImage 图片对象，不可为 null
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception           当转换图片、识别失败或对象池操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
-	 * @since 2.1.0
-	 */
-	public static String ocrImage(final RenderedImage image) throws Exception {
-		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, image);
-		} finally {
-			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
-	}
-
-	/**
-	 * 从 ImageInputStream 读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 从 ImageInputStream 读取所有字节到内存中，然后调用字节数组版本的 OCR 方法进行识别。
-	 * 该方法会保留输入流的原始位置。
-	 * </p>
-	 *
-	 * @param imageInputStream 图片输入流，不可为 null
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception           当读取输入流、识别失败或对象池操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
-	 * @since 2.1.0
-	 */
-	public static String ocrImage(final ImageInputStream imageInputStream) throws Exception {
-		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, imageInputStream);
-		} finally {
-			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
-	}
-
-	/**
-	 * 从字节数组读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 首先检测图片的 MIME 类型，确认是受支持的图片格式后，
-	 * 使用 Leptonica 库将字节数组转换为 PIX 图片对象，
-	 * 然后调用 TessBaseAPI 进行文字识别。
-	 * </p>
-	 *
-	 * @param imageData 图片字节数组，不可为 null 或空
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception           当解析图片、识别失败或对象池操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
-	 * @throws IllegalArgumentException 当参数为空或图片类型不支持时抛出
-	 * @since 2.1.0
-	 */
-	public static String ocrImage(final byte[] imageData) throws Exception {
-		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, imageData);
-		} finally {
-			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
-	}
-
-	/**
-	 * 从文件读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 首先检测图片文件的 MIME 类型，确认是受支持的图片格式后，
-	 * 使用 Leptonica 库将文件读取为 PIX 图片对象，
-	 * 然后调用 TessBaseAPI 进行文字识别。
-	 * </p>
-	 *
-	 * @param imageFile 图片文件，不可为 null，必须存在且可读
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception           当读取文件、解析图片、识别失败或对象池操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
-	 * @throws IllegalArgumentException 当图片类型不支持时抛出
-	 * @since 2.1.0
-	 */
-	public static String ocrImage(final File imageFile) throws Exception {
-		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, imageFile);
-		} finally {
-			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
-	}
-
-	/**
-	 * 从输入流读取图片并进行 OCR 识别
-	 * <p>
-	 * 自动从对象池获取 TessBaseAPI 实例，识别完成后自动归还到对象池。
-	 * 将输入流中的所有字节读取到内存中，然后调用字节数组版本的 OCR 方法进行识别。
-	 * 该方法会关闭输入流。
-	 * </p>
-	 *
-	 * @param inputStream 图片输入流，不可为 null
-	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws Exception           当读取输入流、解析图片、识别失败或对象池操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
-	 * @since 2.1.0
-	 */
-	public static String ocrImage(final InputStream inputStream) throws Exception {
-		TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
-		try {
-			return ocrImage(tessBaseAPI, inputStream);
-		} finally {
-			TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
-		}
 	}
 
 	/**
