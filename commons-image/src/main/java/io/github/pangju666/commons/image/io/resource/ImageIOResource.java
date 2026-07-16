@@ -26,7 +26,6 @@ import io.github.pangju666.commons.image.utils.ImageUtils;
 import io.github.pangju666.commons.io.exception.UnsupportedResourceException;
 import io.github.pangju666.commons.io.resource.IOResource;
 import io.github.pangju666.commons.io.utils.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -132,7 +131,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param resource 源资源（必须非null且未关闭）
-	 * @throws IOException              当资源读取失败时抛出
+	 * @throws IOException                  当资源读取失败时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
 	 */
@@ -154,7 +153,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param resource           源资源（必须非null且未关闭）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当资源读取失败时抛出
+	 * @throws IOException                  当资源读取失败时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
 	 */
@@ -207,7 +206,8 @@ public class ImageIOResource extends IOResource {
 				InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes());
 
 				try {
-					this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream, size.toBytes());
+					this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream,
+						byteArrayOutputStream.size());
 					exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 				} catch (ImageProcessingException ignored) {
 					this.metadata = new Metadata();
@@ -240,7 +240,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param resource        源资源（必须非null且未关闭）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当资源读取失败时抛出
+	 * @throws IOException                  当资源读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
@@ -301,7 +301,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param filePath 文件路径（必须非空）
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -322,7 +322,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param filePath           文件路径（必须非空）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -379,7 +379,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param filePath        文件路径（必须非空）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
@@ -428,7 +428,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param file 文件对象（必须非null）
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -449,7 +449,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param file               文件对象（必须非null）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -506,7 +506,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param file            文件对象（必须非null）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当文件读取失败时抛出
+	 * @throws IOException                  当文件读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
@@ -553,7 +553,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param bytes 字节数组（必须非空）
-	 * @throws IOException              当数据读取失败时抛出
+	 * @throws IOException                  当数据读取失败时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
 	 */
@@ -573,7 +573,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param bytes              字节数组（必须非空）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当数据读取失败时抛出
+	 * @throws IOException                  当数据读取失败时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
 	 */
@@ -601,7 +601,8 @@ public class ImageIOResource extends IOResource {
 			InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes());
 
 			try {
-				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream, size.toBytes());
+				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream,
+					byteArrayOutputStream.size());
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -631,7 +632,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param bytes           字节数组（必须非空）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当数据读取失败时抛出
+	 * @throws IOException                  当数据读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
@@ -680,7 +681,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
-	 * @throws IOException              当流读取失败时抛出
+	 * @throws IOException                  当流读取失败时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
 	 */
@@ -700,7 +701,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param inputStream        输入流（必须非null）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当流读取失败时抛出
+	 * @throws IOException                  当流读取失败时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
 	 */
@@ -728,7 +729,8 @@ public class ImageIOResource extends IOResource {
 			InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes());
 
 			try {
-				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream, size.toBytes());
+				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream,
+					byteArrayOutputStream.size());
 				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
 			} catch (ImageProcessingException ignored) {
 				this.metadata = new Metadata();
@@ -759,7 +761,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param inputStream     输入流（必须非null）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当流读取失败时抛出
+	 * @throws IOException                  当流读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
@@ -794,180 +796,6 @@ public class ImageIOResource extends IOResource {
 				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
 				this.image = ImageUtils.correctOrientation(image, exifOrientation);
 			}
-		}
-	}
-
-	/**
-	 * 基于ImageInputStream构造ImageIOResource（自动校正EXIF方向）
-	 * <p>从 ImageInputStream 创建 ImageIOResource，并在需要时根据 EXIF 方向信息校正图像方向。</p>
-	 *
-	 * <p>注意事项：</p>
-	 * <ul>
-	 *     <li>自动验证数据是否为图像类型</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
-	 *     <li>输入流位置会被重置到原始位置</li>
-	 * </ul>
-	 *
-	 * @param inputStream ImageInputStream（必须非null）
-	 * @throws IOException              当流读取失败时抛出
-	 * @throws UnsupportedResourceException 当 imageInputStream 不是受支持的图像数据流时抛出
-	 * @since 1.1.0
-	 */
-	public ImageIOResource(ImageInputStream inputStream) throws IOException {
-		this(inputStream, true);
-	}
-
-	/**
-	 * 基于ImageInputStream构造ImageIOResource（可选校正EXIF方向）
-	 * <p>从 ImageInputStream 创建 ImageIOResource，可选择是否根据 EXIF 方向信息校正图像方向。</p>
-	 *
-	 * <p>注意事项：</p>
-	 * <ul>
-	 *     <li>自动验证数据是否为图像类型</li>
-	 *     <li>当启用校正且EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
-	 *     <li>输入流位置会被重置到原始位置</li>
-	 * </ul>
-	 *
-	 * @param imageInputStream   ImageInputStream（必须非null）
-	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException              当流读取失败时抛出
-	 * @throws UnsupportedResourceException 当 imageInputStream 不是受支持的图像数据流时抛出
-	 * @since 1.1.0
-	 */
-	public ImageIOResource(ImageInputStream imageInputStream, boolean correctOrientation) throws IOException {
-		super(parse(imageInputStream), null);
-
-		validateImageType("imageInputStream 不是图像输入流");
-
-		if (StringUtils.isNotBlank(this.format)) {
-			String imageFormat = this.format.toUpperCase();
-
-			if (ImageConstants.getSupportedReadImageFormats().contains(imageFormat)) {
-				this.imageFormat = imageFormat;
-			} else {
-				this.imageFormat = null;
-			}
-		} else {
-			this.imageFormat = null;
-		}
-
-		this.orientationCorrected = correctOrientation;
-
-		if (correctOrientation) {
-			int exifOrientation = ImageConstants.NORMAL_EXIF_ORIENTATION;
-			InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes());
-
-			try {
-				this.metadata = ImageMetadataReader.readMetadata(byteArrayInputStream, size.toBytes());
-				exifOrientation = ImageUtils.getExifOrientation(this.metadata);
-			} catch (ImageProcessingException ignored) {
-				this.metadata = new Metadata();
-			}
-			byteArrayInputStream.reset();
-
-			if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
-				BufferedImage image = ImageIO.read(byteArrayInputStream);
-				if (Objects.isNull(image)) {
-					throw new IOException("图片读取失败");
-				}
-
-				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
-				this.image = ImageUtils.correctOrientation(image, exifOrientation);
-			}
-		}
-	}
-
-	/**
-	 * 基于ImageInputStream构造ImageIOResource（指定EXIF方向）
-	 * <p>从ImageInputStream创建ImageIOResource，使用指定的EXIF方向值进行校正。</p>
-	 *
-	 * <p>注意事项：</p>
-	 * <ul>
-	 *     <li>自动验证数据是否为图像类型</li>
-	 *     <li>当EXIF方向不为正常值时，自动解码图像并缓存校正后的结果</li>
-	 *     <li>输入流位置会被重置到原始位置</li>
-	 * </ul>
-	 *
-	 * @param imageInputStream ImageInputStream（必须非null）
-	 * @param exifOrientation  EXIF方向值（必须介于1-8之间）
-	 * @throws IOException              当流读取失败时抛出
-	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
-	 * @throws UnsupportedResourceException 当 imageInputStream 不是受支持的图像数据流时抛出
-	 * @since 1.1.0
-	 */
-	public ImageIOResource(ImageInputStream imageInputStream, int exifOrientation) throws IOException {
-		super(parse(imageInputStream), null);
-
-		Validate.inclusiveBetween(1, 8, exifOrientation, "exifOrientation 必须介于1-8之间");
-		validateImageType("imageInputStream 不是图像输入流");
-
-		if (StringUtils.isNotBlank(this.format)) {
-			String imageFormat = this.format.toUpperCase();
-
-			if (ImageConstants.getSupportedReadImageFormats().contains(imageFormat)) {
-				this.imageFormat = imageFormat;
-			} else {
-				this.imageFormat = null;
-			}
-		} else {
-			this.imageFormat = null;
-		}
-
-		this.orientationCorrected = true;
-
-		if (exifOrientation != ImageConstants.NORMAL_EXIF_ORIENTATION) {
-			try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-				BufferedImage image = ImageIO.read(byteArrayInputStream);
-				if (Objects.isNull(image)) {
-					throw new IOException("图片读取失败");
-				}
-
-				this.imageSize = new ImageSize(image.getWidth(), image.getHeight(), exifOrientation).getVisualSize();
-				this.image = ImageUtils.correctOrientation(image, exifOrientation);
-			}
-		}
-	}
-
-	/**
-	 * 解析ImageInputStream为ByteArrayOutputStream
-	 * <p>从ImageInputStream读取全部数据并转换为ByteArrayOutputStream。</p>
-	 *
-	 * <p>实现特性：</p>
-	 * <ul>
-	 *     <li>自动根据流大小计算合适的缓冲区大小</li>
-	 *     <li>读取完成后会重置流位置到原始位置</li>
-	 *     <li>使用try-finally确保流位置被正确恢复</li>
-	 * </ul>
-	 *
-	 * @param imageInputStream ImageInputStream（必须非null）
-	 * @return 包含流数据的ByteArrayOutputStream
-	 * @throws IOException              当流读取失败时抛出
-	 * @throws IllegalArgumentException 当imageInputStream为null时抛出
-	 * @since 1.1.0
-	 */
-	protected static ByteArrayOutputStream parse(final ImageInputStream imageInputStream) throws IOException {
-		Validate.notNull(imageInputStream, "imageInputStream 不可为 null");
-
-		long oldPos = imageInputStream.getStreamPosition();
-		imageInputStream.seek(0);
-
-		try {
-			int bufferSize = IOUtils.DEFAULT_BUFFER_SIZE;
-			long totalSize = imageInputStream.length();
-			if (totalSize != -1) {
-				bufferSize = IOUtils.getBufferSize(totalSize);
-			}
-			ByteArrayOutputStream bos = new ByteArrayOutputStream(bufferSize);
-
-			byte[] buffer = new byte[bufferSize];
-			int length;
-			while ((length = imageInputStream.read(buffer)) != -1) {
-				bos.write(buffer, 0, length);
-			}
-
-			return bos;
-		} finally {
-			imageInputStream.seek(oldPos);
 		}
 	}
 
@@ -1051,7 +879,8 @@ public class ImageIOResource extends IOResource {
 				}
 			} else {
 				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
-					metadata = ImageMetadataReader.readMetadata(byteArrayInputStream, size.toBytes());
+					metadata = ImageMetadataReader.readMetadata(byteArrayInputStream,
+						byteArrayOutputStream.size());
 				} catch (ImageProcessingException ignored) {
 					metadata = new Metadata();
 				}
@@ -1226,20 +1055,23 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * <p>验证内容：</p>
 	 * <ul>
-	 *     <li>MIME类型是否为图像类型</li>
-	 *     <li>图像类型是否支持读取</li>
+	 *     <li>资源是否为图像类型</li>
+	 *     <li>MIME类型是否支持读取</li>
+	 *     <li>图像格式是否支持读取（当MIME类型不支持时）</li>
 	 * </ul>
 	 *
 	 * @param message 验证失败时的错误消息
-	 * @throws UnsupportedResourceException 当资源不是图像类型，或当前 MIME 类型不支持 ImageIO 读取时抛出
-	 * @since 1.1.0
+	 * @throws UnsupportedResourceException 当资源不是图像类型，或当前 MIME 类型/图像格式不支持 ImageIO 读取时抛出
+	 * @since 2.1.0
 	 */
 	protected void validateImageType(String message) {
 		if (!isImage()) {
 			throw new UnsupportedResourceException(message);
 		}
 		if (!ImageUtils.isSupportReadType(mimeType)) {
-			throw new UnsupportedResourceException("不支持读取 " + mimeType + " 类型图像");
+			if (!ImageConstants.getSupportedReadImageFormats().contains(format)) {
+				throw new UnsupportedResourceException("不支持读取 " + format + " 类型图像");
+			}
 		}
 	}
 
