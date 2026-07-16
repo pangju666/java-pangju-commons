@@ -189,7 +189,7 @@ public class IOResource implements Closeable {
 				this.byteArrayOutputStream = null;
 			}
 		} else {
-			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(resource.size.toBytes()));
+			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(this.size.toBytes()));
 			this.byteArrayOutputStream.write(resource.newBufferedInputStream());
 		}
 	}
@@ -406,7 +406,7 @@ public class IOResource implements Closeable {
 				digest = FileUtils.computeDigest(file);
 			} else {
 				try (InputStream inputStream = byteArrayOutputStream.toInputStream()) {
-					digest = IOUtils.computeDigest(inputStream, size.toBytes());
+					digest = IOUtils.computeDigest(inputStream, byteArrayOutputStream.size());
 				}
 			}
 			return digest;
