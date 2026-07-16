@@ -1,8 +1,8 @@
 package io.github.pangju666.commons.tesseract.utils
 
 import io.github.pangju666.commons.tesseract.enums.PageSegmentationMode
+import io.github.pangju666.commons.tesseract.factory.TessBaseAPIFactory
 import io.github.pangju666.commons.tesseract.io.resource.TesseractResource
-import io.github.pangju666.commons.tesseract.lang.TesseractConstants
 import io.github.pangju666.commons.tesseract.model.TessBaseAPIOptions
 import org.bytedeco.leptonica.PIX
 import spock.lang.Specification
@@ -15,7 +15,8 @@ class TesseractUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
 		def options = new TessBaseAPIOptions()
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 
 		when:
 		def text = TesseractUtils.ocrImage(tessBaseAPI, resource, options)
@@ -25,7 +26,8 @@ class TesseractUtilsSpec extends Specification {
 		text instanceof String
 
 		cleanup:
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从TesseractResource识别 - null tessBaseAPI抛异常"() {
@@ -44,7 +46,8 @@ class TesseractUtilsSpec extends Specification {
 	def "从TesseractResource识别 - null resource抛异常"() {
 		given:
 		def options = new TessBaseAPIOptions()
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 
 		when:
 		TesseractUtils.ocrImage(tessBaseAPI, null as TesseractResource, options)
@@ -53,14 +56,16 @@ class TesseractUtilsSpec extends Specification {
 		thrown(NullPointerException)
 
 		cleanup:
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从TesseractResource识别 - null options抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 
 		when:
 		TesseractUtils.ocrImage(tessBaseAPI, resource, null)
@@ -69,7 +74,8 @@ class TesseractUtilsSpec extends Specification {
 		thrown(NullPointerException)
 
 		cleanup:
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - 正常情况"() {
@@ -77,7 +83,8 @@ class TesseractUtilsSpec extends Specification {
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
 		def options = new TessBaseAPIOptions()
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
 
 		when:
@@ -89,7 +96,8 @@ class TesseractUtilsSpec extends Specification {
 
 		cleanup:
 		pix.close()
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - null tessBaseAPI抛异常"() {
@@ -112,7 +120,8 @@ class TesseractUtilsSpec extends Specification {
 	def "从PIX识别 - null image抛异常"() {
 		given:
 		def options = new TessBaseAPIOptions()
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 
 		when:
 		TesseractUtils.ocrImage(tessBaseAPI, (PIX) null, options)
@@ -121,14 +130,16 @@ class TesseractUtilsSpec extends Specification {
 		thrown(NullPointerException)
 
 		cleanup:
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - null options抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
 
 		when:
@@ -139,7 +150,8 @@ class TesseractUtilsSpec extends Specification {
 
 		cleanup:
 		pix.close()
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - 使用页面分割模式"() {
@@ -148,7 +160,8 @@ class TesseractUtilsSpec extends Specification {
 		def resource = new TesseractResource(file)
 		def options = new TessBaseAPIOptions()
 		options.setPsm(PageSegmentationMode.AUTO_NO_OSD)
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
 
 		when:
@@ -160,7 +173,8 @@ class TesseractUtilsSpec extends Specification {
 
 		cleanup:
 		pix.close()
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - 使用图像分辨率"() {
@@ -169,7 +183,8 @@ class TesseractUtilsSpec extends Specification {
 		def resource = new TesseractResource(file)
 		def options = new TessBaseAPIOptions()
 		options.setPpi(300)
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
 
 		when:
@@ -181,7 +196,8 @@ class TesseractUtilsSpec extends Specification {
 
 		cleanup:
 		pix.close()
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "从PIX识别 - 使用识别区域"() {
@@ -190,7 +206,8 @@ class TesseractUtilsSpec extends Specification {
 		def resource = new TesseractResource(file)
 		def options = new TessBaseAPIOptions()
 		options.setRectangle(0, 0, 100, 100)
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
 
 		when:
@@ -202,7 +219,8 @@ class TesseractUtilsSpec extends Specification {
 
 		cleanup:
 		pix.close()
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 
 	def "批量处理 - 使用同一个TessBaseAPI"() {
@@ -212,7 +230,8 @@ class TesseractUtilsSpec extends Specification {
 		def resource1 = new TesseractResource(file1)
 		def resource2 = new TesseractResource(file2)
 		def options = new TessBaseAPIOptions()
-		def tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject()
+		def factory = new TessBaseAPIFactory()
+		def tessBaseAPI = factory.create()
 
 		when:
 		def text1 = TesseractUtils.ocrImage(tessBaseAPI, resource1, options)
@@ -223,6 +242,7 @@ class TesseractUtilsSpec extends Specification {
 		text2 != null
 
 		cleanup:
-		TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI)
+		tessBaseAPI.End()
+		tessBaseAPI.releaseReference()
 	}
 }

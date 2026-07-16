@@ -81,14 +81,67 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	 * <p>
 	 * 自动从类路径复制内置的语言数据包到临时目录，
 	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
-	 * 默认使用 "chi_sim+eng" 混合语言识别模式。
-	 * 使用默认的 OCR 引擎模式（DEFAULT）。
+	 * 默认使用中文（CHINESE）语言类型和默认 OCR 引擎模式（DEFAULT）。
 	 * </p>
 	 *
 	 * @throws IOException 当复制语言数据包文件失败时抛出
 	 * @since 1.1.0
 	 */
 	public TessBaseAPIFactory() throws IOException {
+		this(LanguageType.CHINESE, OcrEngineMode.DEFAULT);
+	}
+
+	/**
+	 * 使用指定的 OCR 引擎模式创建 TessBaseAPI 工厂
+	 * <p>
+	 * 自动从类路径复制内置的语言数据包到临时目录，
+	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
+	 * 默认使用中文（CHINESE）语言类型。
+	 * </p>
+	 *
+	 * @param ocrEngineMode OCR 引擎模式，不可为 null
+	 * @throws NullPointerException 当 ocrEngineMode 为 null 时抛出
+	 * @throws IOException          当复制语言数据包文件失败时抛出
+	 * @since 1.1.0
+	 */
+	public TessBaseAPIFactory(OcrEngineMode ocrEngineMode) throws IOException {
+		this(LanguageType.CHINESE, ocrEngineMode);
+	}
+
+	/**
+	 * 使用指定的语言类型创建 TessBaseAPI 工厂
+	 * <p>
+	 * 自动从类路径复制内置的语言数据包到临时目录，
+	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
+	 * 使用默认的 OCR 引擎模式（DEFAULT）。
+	 * </p>
+	 *
+	 * @param languageType 语言类型，不可为 null
+	 * @throws NullPointerException 当 languageType 为 null 时抛出
+	 * @throws IOException 当复制语言数据包文件失败时抛出
+	 * @since 1.1.0
+	 */
+	public TessBaseAPIFactory(LanguageType languageType) throws IOException {
+		this(languageType, OcrEngineMode.DEFAULT);
+	}
+
+	/**
+	 * 使用指定的语言类型和 OCR 引擎模式创建 TessBaseAPI 工厂
+	 * <p>
+	 * 自动从类路径复制内置的语言数据包到临时目录，
+	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
+	 * </p>
+	 *
+	 * @param languageType  语言类型，不可为 null
+	 * @param ocrEngineMode OCR 引擎模式，不可为 null
+	 * @throws NullPointerException 当 languageType 或 ocrEngineMode 为 null 时抛出
+	 * @throws IOException          当复制语言数据包文件失败时抛出
+	 * @since 1.1.0
+	 */
+	public TessBaseAPIFactory(LanguageType languageType, OcrEngineMode ocrEngineMode) throws IOException {
+		Validate.notNull(languageType, "languageType 不可为 null");
+		Validate.notNull(ocrEngineMode, "ocrEngineMode 不可为 null");
+
 		File dataDir = new File(FilenameUtils.separatorsToUnix(FileUtils.getTempDirectoryPath()), "tesseract_data");
 
 		File englishFile = new File(dataDir, "eng.traineddata");
@@ -119,8 +172,8 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 		}
 
 		this.dataPath = FilenameUtils.separatorsToUnix(dataDir.getAbsolutePath()) + "/";
-		this.language = "chi_sim+eng";
-		this.ocrEngineMode = OcrEngineMode.DEFAULT;
+		this.language = languageType.language;
+		this.ocrEngineMode = ocrEngineMode;
 	}
 
 	/**
@@ -238,5 +291,41 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 		TessBaseAPI tessBaseAPI = object.getObject();
 		tessBaseAPI.End();
 		tessBaseAPI.releaseReference();
+	}
+
+	/**
+	 * 语言类型枚举
+	 * <p>定义 Tesseract OCR 支持的语言类型。</p>
+	 *
+	 * @since 1.1.0
+	 */
+	public enum LanguageType {
+		/**
+		 * 英文
+		 *
+		 * @since 1.1.0
+		 */
+		ENGLISH("eng"),
+		/**
+		 * 简体中文
+		 *
+		 * @since 1.1.0
+		 */
+		CHINESE("chi_sim"),
+		/**
+		 * 中英文混合
+		 *
+		 * @since 1.1.0
+		 */
+		MIXED("chi_sim+eng");
+
+		/**
+		 * 语言代码
+		 */
+		public final String language;
+
+		LanguageType(String language) {
+			this.language = language;
+		}
 	}
 }
