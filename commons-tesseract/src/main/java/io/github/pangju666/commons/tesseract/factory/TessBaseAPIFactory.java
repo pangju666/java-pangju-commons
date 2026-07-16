@@ -77,38 +77,6 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	private final OcrEngineMode ocrEngineMode;
 
 	/**
-	 * 使用默认配置创建 TessBaseAPI 工厂
-	 * <p>
-	 * 自动从类路径复制内置的语言数据包到临时目录，
-	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
-	 * 默认使用中文（CHINESE）语言类型和默认 OCR 引擎模式（DEFAULT）。
-	 * </p>
-	 *
-	 * @throws IOException 当复制语言数据包文件失败时抛出
-	 * @since 1.1.0
-	 */
-	public TessBaseAPIFactory() throws IOException {
-		this(LanguageType.CHINESE, OcrEngineMode.DEFAULT);
-	}
-
-	/**
-	 * 使用指定的 OCR 引擎模式创建 TessBaseAPI 工厂
-	 * <p>
-	 * 自动从类路径复制内置的语言数据包到临时目录，
-	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
-	 * 默认使用中文（CHINESE）语言类型。
-	 * </p>
-	 *
-	 * @param ocrEngineMode OCR 引擎模式，不可为 null
-	 * @throws NullPointerException 当 ocrEngineMode 为 null 时抛出
-	 * @throws IOException          当复制语言数据包文件失败时抛出
-	 * @since 1.1.0
-	 */
-	public TessBaseAPIFactory(OcrEngineMode ocrEngineMode) throws IOException {
-		this(LanguageType.CHINESE, ocrEngineMode);
-	}
-
-	/**
 	 * 使用指定的语言类型创建 TessBaseAPI 工厂
 	 * <p>
 	 * 自动从类路径复制内置的语言数据包到临时目录，
