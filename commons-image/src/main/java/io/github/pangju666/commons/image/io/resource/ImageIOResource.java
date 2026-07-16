@@ -1062,7 +1062,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 当资源不是图像类型，或当前 MIME 类型/图像格式不支持 ImageIO 读取时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateImageType(String message) {
 		if (!isImage()) {

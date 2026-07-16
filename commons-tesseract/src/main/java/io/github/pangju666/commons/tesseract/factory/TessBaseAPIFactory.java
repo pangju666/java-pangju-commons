@@ -17,8 +17,8 @@
 package io.github.pangju666.commons.tesseract.factory;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.tesseract.enums.OcrEngineMode;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -47,6 +47,7 @@ import java.util.Objects;
  * </ul>
  * </p>
  *
+ * @see <a href="https://github.com/tesseract-ocr/tesseract/blob/main/doc/tesseract.1.asc">官方文档</a>
  * @author pangju666
  * @since 1.1.0
  */
@@ -68,11 +69,20 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	private final String language;
 
 	/**
+	 * OCR 引擎模式
+	 * <p>指定使用的 OCR 引擎类型</p>
+	 *
+	 * @since 1.1.0
+	 */
+	private final OcrEngineMode ocrEngineMode;
+
+	/**
 	 * 使用默认配置创建 TessBaseAPI 工厂
 	 * <p>
 	 * 自动从类路径复制内置的语言数据包到临时目录，
 	 * 包含英文(eng)、简体中文(chi_sim)和简体中文竖排(chi_sim_vert)三种语言包。
 	 * 默认使用 "chi_sim+eng" 混合语言识别模式。
+	 * 使用默认的 OCR 引擎模式（DEFAULT）。
 	 * </p>
 	 *
 	 * @throws IOException 当复制语言数据包文件失败时抛出
@@ -110,33 +120,52 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 
 		this.dataPath = FilenameUtils.separatorsToUnix(dataDir.getAbsolutePath()) + "/";
 		this.language = "chi_sim+eng";
+		this.ocrEngineMode = OcrEngineMode.DEFAULT;
 	}
 
 	/**
 	 * 使用指定的数据路径和语言创建 {@link TessBaseAPI} 工厂
+	 * <p>使用默认的 OCR 引擎模式（DEFAULT）</p>
 	 *
 	 * @param dataPath Tesseract 语言数据包路径，不可为 null 或空，必须是存在的目录
-	 * @param languages OCR 识别语言，不可为 null 或空
+	 * @param language OCR 识别语言，不可为 null 或空
 	 * @throws NullPointerException     当 dataPath 或 language 为 null 时抛出
 	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
 	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
 	 * @since 1.1.0
 	 */
-	public TessBaseAPIFactory(String dataPath, String... languages) {
-		Validate.notEmpty(languages, "languages 不能为空");
+	public TessBaseAPIFactory(String dataPath, String language) {
+		this(dataPath, language, OcrEngineMode.DEFAULT);
+	}
+
+	/**
+	 * 使用指定的数据路径、语言和 OCR 引擎模式创建 {@link TessBaseAPI} 工厂
+	 *
+	 * @param dataPath      Tesseract 语言数据包路径，不可为 null 或空，必须是存在的目录
+	 * @param language      OCR 识别语言，不可为 null 或空
+	 * @param ocrEngineMode OCR 引擎模式，不可为 null
+	 * @throws NullPointerException     当 dataPath、language 或 ocrEngineMode 为 null 时抛出
+	 * @throws IllegalArgumentException 当 dataPath 或 language 为空，或 dataPath 路径不存在/不是目录时抛出
+	 * @see <a href="https://github.com/tesseract-ocr/tessdata_best">语言数据包<b>Github</b>仓库</a>
+	 * @since 1.1.0
+	 */
+	public TessBaseAPIFactory(String dataPath, String language, OcrEngineMode ocrEngineMode) {
+		Validate.notBlank(language, "language 不能为空");
 		Validate.notBlank(dataPath, "dataPath 不能为空");
+		Validate.notNull(ocrEngineMode, "ocrEngineMode 不能为 null");
 
 		File dataDir = new File(dataPath);
 		Validate.isTrue(dataDir.exists(), "数据包路径不存在");
 		Validate.isTrue(dataDir.isDirectory(), "数据包路径不是一个目录");
 
 		this.dataPath = FilenameUtils.separatorsToUnix(dataPath);
-		this.language = StringUtils.join(languages, "+");
+		this.language = language;
+		this.ocrEngineMode = ocrEngineMode;
 	}
 
 	/**
 	 * 创建并初始化 TessBaseAPI 实例
-	 * <p>创建新的 TessBaseAPI 对象并使用配置的 dataPath 和 language 进行初始化，
+	 * <p>创建新的 TessBaseAPI 对象并使用配置的 dataPath、language 和 ocrEngineMode 进行初始化，
 	 * 如果初始化失败则抛出异常。</p>
 	 *
 	 * @return 初始化完成的 TessBaseAPI 实例
@@ -146,7 +175,7 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	@Override
 	public TessBaseAPI create() {
 		TessBaseAPI tessBaseAPI = new TessBaseAPI();
-		int initResult = tessBaseAPI.Init(dataPath, language);
+		int initResult = tessBaseAPI.Init(dataPath, language, ocrEngineMode.mode);
 		if (initResult != 0) {
 			throw new IllegalArgumentException("Tesseract 初始化失败，请检查语言包");
 		}
@@ -198,13 +227,16 @@ public class TessBaseAPIFactory extends BasePooledObjectFactory<TessBaseAPI> {
 	/**
 	 * 销毁 TessBaseAPI 对象
 	 * <p>在对象从池中移除时调用，用于释放对象占用的资源。
-	 * 调用 {@link TessBaseAPI#End()} 方法完全销毁 TessBaseAPI 实例。</p>
+	 * 调用 {@link TessBaseAPI#End()} 方法完全销毁 TessBaseAPI 实例，
+	 * 并调用 {@link TessBaseAPI#releaseReference()} 释放引用。</p>
 	 *
 	 * @param object 要销毁的 PooledObject 对象
 	 * @since 1.1.0
 	 */
 	@Override
 	public void destroyObject(PooledObject<TessBaseAPI> object) {
-		object.getObject().End();
+		TessBaseAPI tessBaseAPI = object.getObject();
+		tessBaseAPI.End();
+		tessBaseAPI.releaseReference();
 	}
 }
