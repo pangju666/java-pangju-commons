@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.lang.concurrent;
 
+import java.sql.Timestamp;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -48,8 +49,16 @@ public final class SystemClock {
 		scheduleClockUpdating();
 	}
 
+	private static SystemClock instance() {
+		return InstanceHolder.INSTANCE;
+	}
+
 	public static long now() {
-		return InstanceHolder.INSTANCE.currentTimeMillis();
+		return instance().currentTimeMillis();
+	}
+
+	public static String nowDate() {
+		return new Timestamp(instance().currentTimeMillis()).toString();
 	}
 
 	private void scheduleClockUpdating() {
