@@ -65,7 +65,9 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static XWPFTemplate compile(final File templateFile) throws IOException {
 		return compile(templateFile, Configure.createDefault());
 	}
@@ -79,7 +81,9 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static XWPFTemplate compile(final File templateFile, final Configure configure) throws IOException {
 		Validate.isTrue(XWPFDocumentUtils.isDocx(templateFile), "templateFile 不是docx文件");
 		Validate.notNull(configure, "configure 不可为 null");
@@ -95,7 +99,9 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static XWPFTemplate compile(final byte[] bytes) throws IOException {
 		return compile(bytes, Configure.createDefault());
 	}
@@ -109,7 +115,9 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
+	 * @deprecated
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static XWPFTemplate compile(final byte[] bytes, final Configure configure) throws IOException {
 		Validate.isTrue(XWPFDocumentUtils.isDocx(bytes), "bytes 不是docx文件数据");
 		Validate.notNull(configure, "configure 不可为 null");
