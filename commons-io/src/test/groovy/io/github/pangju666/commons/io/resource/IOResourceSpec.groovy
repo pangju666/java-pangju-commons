@@ -21,7 +21,7 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(f.absolutePath)
 
 		then:
-		resource.size == f.length()
+		resource.size.toBytes() == f.length()
 		resource.mimeType != null
 		resource.file == f
 	}
@@ -35,9 +35,8 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(f.absolutePath, true)
 
 		then:
-		resource.size == f.length()
+		resource.size.toBytes() == f.length()
 		resource.mimeType != null
-		resource.cacheContent
 	}
 
 	def "基于File对象构造IOResource"() {
@@ -49,7 +48,7 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(f)
 
 		then:
-		resource.size == f.length()
+		resource.size.toBytes() == f.length()
 		resource.mimeType != null
 		resource.file == f
 	}
@@ -63,8 +62,7 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(f, true)
 
 		then:
-		resource.size == f.length()
-		resource.cacheContent
+		resource.size.toBytes() == f.length()
 	}
 
 	def "基于字节数组构造IOResource"() {
@@ -75,10 +73,9 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(data)
 
 		then:
-		resource.size == data.length
+		resource.size.toBytes() == data.length
 		resource.mimeType != null
 		resource.bytes == data
-		!resource.cacheContent
 	}
 
 	def "基于输入流构造IOResource"() {
@@ -89,10 +86,9 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(new ByteArrayInputStream(data))
 
 		then:
-		resource.size == data.length
+		resource.size.toBytes() == data.length
 		resource.mimeType != null
 		resource.bytes == data
-		!resource.cacheContent
 	}
 
 	def "复制构造函数共享非临时文件"() {
@@ -174,7 +170,7 @@ class IOResourceSpec extends Specification {
 		def resource = new IOResource(data)
 
 		expect:
-		resource.size == data.length
+		resource.size.toBytes() == data.length
 	}
 
 	def "获取MIME类型"() {
@@ -511,7 +507,7 @@ class IOResourceSpec extends Specification {
 		resource.close()
 
 		expect:
-		resource.size == 4
+		resource.size.toBytes() == 4
 	}
 
 	def "已关闭资源获取MIME类型正常"() {

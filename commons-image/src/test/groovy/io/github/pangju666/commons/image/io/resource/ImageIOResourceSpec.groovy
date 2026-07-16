@@ -27,7 +27,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file.absolutePath)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == name.substring(name.lastIndexOf('.') + 1).toUpperCase()
 		resource.isImage()
 
@@ -43,7 +43,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file.absolutePath, false)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == "JPG"
 	}
 
@@ -55,7 +55,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file.absolutePath, 6)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == "JPG"
 	}
 
@@ -88,7 +88,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == name.substring(name.lastIndexOf('.') + 1).toUpperCase()
 		resource.isImage()
 
@@ -104,7 +104,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file, false)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == "PNG"
 	}
 
@@ -116,7 +116,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file, 3)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == "PNG"
 	}
 
@@ -139,7 +139,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(bytes)
 
 		then:
-		resource.size == bytes.length
+		resource.size.toBytes() == bytes.length
 		resource.format == null
 		resource.isImage()
 
@@ -156,7 +156,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(bytes, false)
 
 		then:
-		resource.size == bytes.length
+		resource.size.toBytes() == bytes.length
 		resource.format == null
 	}
 
@@ -169,7 +169,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(bytes, 5)
 
 		then:
-		resource.size == bytes.length
+		resource.size.toBytes() == bytes.length
 		resource.format == null
 	}
 
@@ -200,7 +200,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(inputStream)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == null
 		resource.isImage()
 
@@ -217,7 +217,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(inputStream, false)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == null
 	}
 
@@ -230,7 +230,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(inputStream, 8)
 
 		then:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 		resource.format == null
 	}
 
@@ -759,7 +759,7 @@ class ImageIOResourceSpec extends Specification {
 		def resource = new ImageIOResource(file)
 
 		expect:
-		resource.size == file.length()
+		resource.size.toBytes() == file.length()
 	}
 
 	def "getMimeType 继承方法正常工作"() {
