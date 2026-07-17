@@ -213,7 +213,7 @@ class DocxResourceSpec extends Specification {
 		resource.getDocument()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "compileTemplate - 正常情况"() {
@@ -342,7 +342,7 @@ class DocxResourceSpec extends Specification {
 		resource.compileTemplate()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "compileTemplate(Configure) - 关闭后调用抛异常"() {
@@ -355,7 +355,7 @@ class DocxResourceSpec extends Specification {
 		resource.compileTemplate(configure)
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "getDocument - 使用输入流构建后获取文档"() {
@@ -385,6 +385,6 @@ class DocxResourceSpec extends Specification {
 		resource.getDocument()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 }
