@@ -75,22 +75,6 @@ public class FFmpegResource extends IOResource {
 	}
 
 	/**
-	 * 从 IOResource 创建 FFmpegResource
-	 * <p>基于现有 {@link IOResource} 创建 FFmpegResource，并在构造完成后校验资源类型是否为音频或视频。</p>
-	 *
-	 * @param resource     IOResource 实例，不可为 null，且其 MIME 类型必须为音频或视频
-	 * @param cacheContent 是否缓存内容到内存
-	 * @throws IOException              当读取资源失败时抛出
-	 * @throws UnsupportedResourceException 当 resource 不是音频或视频资源时抛出
-	 * @since 2.1.0
-	 */
-	public FFmpegResource(IOResource resource, boolean cacheContent) throws IOException {
-		super(resource, cacheContent);
-
-		validateType("resource 不是音频或视频资源");
-	}
-
-	/**
 	 * 从文件路径创建 FFmpegResource
 	 *
 	 * @param filePath 文件路径，不可为 null，且对应文件必须为音频或视频资源
@@ -105,21 +89,6 @@ public class FFmpegResource extends IOResource {
 	}
 
 	/**
-	 * 从文件路径创建 FFmpegResource
-	 *
-	 * @param filePath     文件路径，不可为 null，且对应文件必须为音频或视频资源
-	 * @param cacheContent 是否缓存内容到内存
-	 * @throws IOException              当读取文件失败时抛出
-	 * @throws UnsupportedResourceException 当 filePath 对应资源不是音频或视频时抛出
-	 * @since 2.1.0
-	 */
-	public FFmpegResource(String filePath, boolean cacheContent) throws IOException {
-		super(filePath, cacheContent);
-
-		validateType("filePath 不是音频或视频文件路径");
-	}
-
-	/**
 	 * 从文件创建 FFmpegResource
 	 *
 	 * @param file 文件对象，不可为 null，且必须为音频或视频文件
@@ -129,21 +98,6 @@ public class FFmpegResource extends IOResource {
 	 */
 	public FFmpegResource(File file) throws IOException {
 		super(file);
-
-		validateType("file 不是音频或视频文件");
-	}
-
-	/**
-	 * 从文件创建 FFmpegResource
-	 *
-	 * @param file         文件对象，不可为 null，且必须为音频或视频文件
-	 * @param cacheContent 是否缓存内容到内存
-	 * @throws IOException              当读取文件失败时抛出
-	 * @throws UnsupportedResourceException 当 file 对应资源不是音频或视频时抛出
-	 * @since 2.1.0
-	 */
-	public FFmpegResource(File file, boolean cacheContent) throws IOException {
-		super(file, cacheContent);
 
 		validateType("file 不是音频或视频文件");
 	}
