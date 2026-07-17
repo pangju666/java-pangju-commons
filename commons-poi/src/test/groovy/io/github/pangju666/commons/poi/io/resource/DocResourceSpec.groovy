@@ -211,7 +211,7 @@ class DocResourceSpec extends Specification {
 		resource.getDocument()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "getDocument - 使用输入流构建后获取文档"() {
@@ -241,6 +241,6 @@ class DocResourceSpec extends Specification {
 		resource.getDocument()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 }

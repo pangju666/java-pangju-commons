@@ -298,7 +298,7 @@ class ExcelResourceSpec extends Specification {
 		resource.getWorkbook()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "getWorkbook - 使用输入流构建后获取工作簿 - XLS 格式"() {
@@ -390,6 +390,6 @@ class ExcelResourceSpec extends Specification {
 		resource.getWorkbook()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 }
