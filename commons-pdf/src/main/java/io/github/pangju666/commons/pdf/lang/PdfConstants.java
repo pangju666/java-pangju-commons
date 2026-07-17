@@ -16,6 +16,8 @@
 
 package io.github.pangju666.commons.pdf.lang;
 
+import java.util.Set;
+
 /**
  * PDF相关常量
  *
@@ -29,4 +31,28 @@ public class PdfConstants {
 	 * @since 1.0.0
 	 */
 	public static final String PDF_MIME_TYPE = "application/pdf";
+
+	/**
+	 * PDF支持的图片MIME类型集合
+	 * <p>
+	 * 包含PDF可以嵌入的图片格式对应的MIME类型：
+	 * JPEG、TIFF、GIF、BMP、PNG
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final Set<String> PDF_IMAGE_SUPPORTED_IMAGE_TYPES = Set.of(
+		"image/jpeg", "image/tiff", "image/gif", "image/bmp", "image/png");
+
+	/**
+	 * PDF支持的图片文件扩展名集合
+	 * <p>
+	 * 包含PDF可以嵌入的图片格式对应的文件扩展名：
+	 * jpg、jpeg、tif、tiff、gif、bmp、png
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
+	public static final Set<String> PDF_IMAGE_SUPPORTED_IMAGE_FORMATS = Set.of(
+		"jpg", "jpeg", "tif", "tiff", "gif", "bmp", "png");
 }

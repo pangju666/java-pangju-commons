@@ -1,34 +1,21 @@
 package io.github.pangju666.commons.pdf.utils
 
-
+import io.github.pangju666.commons.pdf.io.resource.PdfImageResource
+import io.github.pangju666.commons.pdf.io.resource.PdfResource
+import io.github.pangju666.commons.pdf.model.PdfRenderOptions
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.imageio.ImageIO
 import java.awt.*
 import java.awt.image.BufferedImage
+import java.util.List
 
 class PDDocumentUtilsSpec extends Specification {
 	File pdfFile = new File("e:\\project\\pangju\\pangju-commons\\commons-pdf\\src\\test\\resources\\test.pdf")
-
-	def "isPDF(File) 与 isPDF(byte[]) 检测"() {
-		given:
-		byte[] pdfBytes = pdfFile.bytes
-		File txt = File.createTempFile("not-pdf", ".txt")
-		txt.text = "abc"
-
-		expect:
-		PDDocumentUtils.isPDF(pdfFile)
-		PDDocumentUtils.isPDF(pdfBytes)
-		!PDDocumentUtils.isPDF(txt)
-		!PDDocumentUtils.isPDF("xyz".bytes)
-		!PDDocumentUtils.isPDF(new byte[0])
-
-		cleanup:
-		txt?.delete()
-	}
 
 	@Unroll
 	def "computeMemoryUsageSetting 返回预期策略: size=#size"() {
@@ -47,103 +34,190 @@ class PDDocumentUtilsSpec extends Specification {
 		]
 	}
 
-	def "getDocument 加载 PDF 与非法文件抛异常"() {
-		given:
-		File txt = File.createTempFile("not-pdf", ".txt")
-		txt.text = "abc"
-
+	def "createDocument 保留版本与文档信息"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument src = pdfResource.getDocument()
+		PDDocument dst = PDDocumentUtils.createDocument(src)
 
 		then:
-		doc != null
-		doc.numberOfPages > 0
-
-		when:
-		PDDocumentUtils.getDocument(txt)
-
-		then:
-		thrown(IllegalArgumentException)
+		dst != null
+		dst.version == src.version
+		dst.documentInformation?.title == src.documentInformation?.title
 
 		cleanup:
-		doc?.close()
-		txt?.delete()
+		pdfResource?.close()
+		dst?.close()
 	}
 
-	def "getDocument(含密码) 加载未加密 PDF"() {
+	def "copy 全部页面"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile, "password")
-
-		then:
-		doc != null
-		doc.numberOfPages > 0
-
-		cleanup:
-		doc?.close()
-	}
-
-	def "渲染所有页面为图像(默认与指定缩放)"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		def images1 = PDDocumentUtils.getPagesAsImage(doc)
-		def images2 = PDDocumentUtils.getPagesAsImage(doc, 2)
-
-		then:
-		images1.size() == doc.numberOfPages
-		images2.size() == doc.numberOfPages
-
-		cleanup:
-		doc?.close()
-	}
-
-	def "渲染指定页面集合为图像(过滤无效页码)"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		int total = doc.numberOfPages
-		def images = PDDocumentUtils.getPagesAsImage(doc, [1, 2, null, total + 5] as Set)
-
-		then:
-		images.size() == Math.min(2, total)
-
-		cleanup:
-		doc?.close()
-	}
-
-	def "渲染页面范围为图像(缩放与DPI)"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		int total = doc.numberOfPages
-		def rangeImages1 = PDDocumentUtils.getPagesAsImage(doc, 2, 1, Math.min(3, total))
-		def rangeImages2 = PDDocumentUtils.getPagesAsImageWithDPI(doc, 72f, 1, Math.min(3, total))
-
-		then:
-		rangeImages1.size() == rangeImages2.size()
-		rangeImages1.size() <= Math.min(3, total)
-
-		cleanup:
-		doc?.close()
-	}
-
-	def "copy/merge/split 操作"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
 		PDDocument copyAll = PDDocumentUtils.copy(doc)
-		PDDocument merged = PDDocumentUtils.merge([doc, copyAll], MemoryUsageSetting.setupMainMemoryOnly())
-		def splitDocs = PDDocumentUtils.split(doc, 1)
 
 		then:
 		copyAll.numberOfPages == doc.numberOfPages
+
+		cleanup:
+		copyAll?.close()
+		pdfResource?.close()
+	}
+
+	def "copy 指定结束页"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PDDocument copy = PDDocumentUtils.copy(doc, Math.min(2, total))
+
+		then:
+		copy.numberOfPages == Math.min(2, total)
+
+		cleanup:
+		copy?.close()
+		pdfResource?.close()
+	}
+
+	def "copy 指定页面范围"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PDDocument copy = PDDocumentUtils.copy(doc, 1, Math.min(2, total))
+
+		then:
+		copy.numberOfPages == Math.min(2, total)
+
+		cleanup:
+		copy?.close()
+		pdfResource?.close()
+	}
+
+	def "copy 指定页码集合"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PDDocument copy = PDDocumentUtils.copy(doc, [1, 1, total + 5, 2])
+
+		then:
+		copy.numberOfPages == Math.min(2, total)
+
+		cleanup:
+		copy?.close()
+		pdfResource?.close()
+	}
+
+	def "copy 空集合返回仅包含元数据的文档"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocument copy = PDDocumentUtils.copy(doc, null)
+
+		then:
+		copy != null
+		copy.numberOfPages == 0
+		copy.version == doc.version
+
+		cleanup:
+		copy?.close()
+		pdfResource?.close()
+	}
+
+	def "merge 合并文档"() {
+		when:
+		PdfResource pdfResource1 = new PdfResource(pdfFile)
+		PdfResource pdfResource2 = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource1.getDocument()
+		PDDocument copyAll = PDDocumentUtils.copy(doc)
+		PDDocument merged = PDDocumentUtils.merge([doc, copyAll], MemoryUsageSetting.setupMainMemoryOnly())
+
+		then:
 		merged.numberOfPages == doc.numberOfPages + copyAll.numberOfPages
-		splitDocs.size() == doc.numberOfPages
 
 		cleanup:
 		merged?.close()
 		copyAll?.close()
-		splitDocs?.each { it?.close() }
-		doc?.close()
+		pdfResource1?.close()
+		pdfResource2?.close()
 	}
 
-	def "addImage 添加字节图像到文档不抛异常"() {
+	def "merge 过滤 null 文档"() {
+		when:
+		PdfResource pdfResource1 = new PdfResource(pdfFile)
+		PdfResource pdfResource2 = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource1.getDocument()
+		PDDocument copyAll = PDDocumentUtils.copy(doc)
+		PDDocument merged = PDDocumentUtils.merge([doc, null, copyAll], MemoryUsageSetting.setupMainMemoryOnly())
+
+		then:
+		merged.numberOfPages == doc.numberOfPages + copyAll.numberOfPages
+
+		cleanup:
+		merged?.close()
+		copyAll?.close()
+		pdfResource1?.close()
+		pdfResource2?.close()
+	}
+
+	def "split 拆分文档"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		def splitDocs = PDDocumentUtils.split(doc, 1)
+
+		then:
+		splitDocs.size() == doc.numberOfPages
+
+		cleanup:
+		splitDocs?.each { it?.close() }
+		pdfResource?.close()
+	}
+
+	def "insertPage 插入页面到指定位置"() {
+		when:
+		PdfResource pdfResource1 = new PdfResource(pdfFile)
+		PdfResource pdfResource2 = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource1.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocument src = pdfResource2.getDocument()
+		PDPage page = src.getPage(0)
+
+		PDDocumentUtils.insertPage(doc, page, 1)
+
+		then:
+		doc.numberOfPages == originalPages + 1
+
+		cleanup:
+		doc?.close()
+		src?.close()
+		pdfResource1?.close()
+		pdfResource2?.close()
+	}
+
+	def "insertPage 插入位置超出页数添加到末尾"() {
+		when:
+		PdfResource pdfResource1 = new PdfResource(pdfFile)
+		PdfResource pdfResource2 = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource1.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocument src = pdfResource2.getDocument()
+		PDPage page = src.getPage(0)
+
+		PDDocumentUtils.insertPage(doc, page, originalPages + 10)
+
+		then:
+		doc.numberOfPages == originalPages + 1
+
+		cleanup:
+		doc?.close()
+		src?.close()
+		pdfResource1?.close()
+		pdfResource2?.close()
+	}
+
+	def "addImage 使用 PdfImageResource 添加图像"() {
 		given:
 		BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
 		def g = bi.graphics
@@ -153,255 +227,515 @@ class PDDocumentUtilsSpec extends Specification {
 		ByteArrayOutputStream out = new ByteArrayOutputStream()
 		ImageIO.write(bi, "png", out)
 		byte[] pngBytes = out.toByteArray()
+		PdfImageResource imageResource = new PdfImageResource(pngBytes)
 
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		PDDocumentUtils.addImage(doc, pngBytes, 1, 1, 16, 16)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocumentUtils.addImage(doc, imageResource)
 
 		then:
-		doc.numberOfPages >= 1
+		doc.numberOfPages == originalPages + 1
 
 		cleanup:
 		doc?.close()
+		imageResource?.close()
+		pdfResource?.close()
 		out?.close()
 	}
 
-	def "addImage(byte[]) 默认坐标抛异常"() {
+	def "addImage 使用 PdfImageResource 指定位置和尺寸"() {
 		given:
-		BufferedImage bi = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB)
+		BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
+		def g = bi.graphics
+		g.color = Color.RED
+		g.fillRect(0, 0, 16, 16)
+		g.dispose()
 		ByteArrayOutputStream out = new ByteArrayOutputStream()
 		ImageIO.write(bi, "png", out)
 		byte[] pngBytes = out.toByteArray()
+		PdfImageResource imageResource = new PdfImageResource(pngBytes)
 
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		PDDocumentUtils.addImage(doc, pngBytes)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocumentUtils.addImage(doc, imageResource, 0, 0, 16, 16)
 
 		then:
-		thrown(IllegalArgumentException)
+		doc.numberOfPages == originalPages + 1
 
 		cleanup:
 		doc?.close()
+		imageResource?.close()
+		pdfResource?.close()
 		out?.close()
 	}
 
-	def "addImage(File) 坐标添加与默认抛异常"() {
+	def "insertImage 使用 PdfImageResource 插入图像"() {
 		given:
-		BufferedImage bi = new BufferedImage(12, 12, BufferedImage.TYPE_INT_RGB)
-		File imgFile = File.createTempFile("img", ".png")
-		ImageIO.write(bi, "png", imgFile)
+		BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
+		def g = bi.graphics
+		g.color = Color.RED
+		g.fillRect(0, 0, 16, 16)
+		g.dispose()
+		ByteArrayOutputStream out = new ByteArrayOutputStream()
+		ImageIO.write(bi, "png", out)
+		byte[] pngBytes = out.toByteArray()
+		PdfImageResource imageResource = new PdfImageResource(pngBytes)
 
 		when:
-		PDDocument doc1 = PDDocumentUtils.getDocument(pdfFile)
-		PDDocumentUtils.addImage(doc1, imgFile, 1, 1, 12, 12)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocumentUtils.insertImage(doc, imageResource, 1)
 
 		then:
-		doc1.numberOfPages >= 1
-
-		when:
-		PDDocument doc2 = PDDocumentUtils.getDocument(pdfFile)
-		PDDocumentUtils.addImage(doc2, imgFile)
-
-		then:
-		thrown(IllegalArgumentException)
+		doc.numberOfPages == originalPages + 1
 
 		cleanup:
-		doc1?.close()
-		doc2?.close()
-		imgFile?.delete()
+		doc?.close()
+		imageResource?.close()
+		pdfResource?.close()
+		out?.close()
 	}
 
-	def "getPagesAsImageWithDPI(集合) 返回尺寸集合"() {
+	def "insertImage 使用 PdfImageResource 指定位置和尺寸"() {
+		given:
+		BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
+		def g = bi.graphics
+		g.color = Color.RED
+		g.fillRect(0, 0, 16, 16)
+		g.dispose()
+		ByteArrayOutputStream out = new ByteArrayOutputStream()
+		ImageIO.write(bi, "png", out)
+		byte[] pngBytes = out.toByteArray()
+		PdfImageResource imageResource = new PdfImageResource(pngBytes)
+
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int originalPages = doc.numberOfPages
+		PDDocumentUtils.insertImage(doc, imageResource, 1, 0, 0, 16, 16)
+
+		then:
+		doc.numberOfPages == originalPages + 1
+
+		cleanup:
+		doc?.close()
+		imageResource?.close()
+		pdfResource?.close()
+		out?.close()
+	}
+
+	def "renderPagesAsImage 渲染所有页面(默认选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		def images = PDDocumentUtils.renderPagesAsImage(doc)
+
+		then:
+		images.size() == doc.numberOfPages
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染所有页面(自定义选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PdfRenderOptions options = new PdfRenderOptions()
+		options.scale = 2.0f
+		def images = PDDocumentUtils.renderPagesAsImage(doc, options)
+
+		then:
+		images.size() == doc.numberOfPages
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染指定页面集合"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
 		int total = doc.numberOfPages
-		def images = PDDocumentUtils.getPagesAsImageWithDPI(doc, 72f, [1, 2, total + 10])
+		def images = PDDocumentUtils.renderPagesAsImage(doc, [1, 2, null, total + 5] as Set)
 
 		then:
 		images.size() == Math.min(2, total)
 
 		cleanup:
-		doc?.close()
+		pdfResource?.close()
 	}
 
-	def "createDocument 保留版本与文档信息"() {
+	def "renderPagesAsImage 渲染指定页面集合(自定义选项)"() {
 		when:
-		PDDocument src = PDDocumentUtils.getDocument(pdfFile)
-		PDDocument dst = PDDocumentUtils.createDocument(src)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PdfRenderOptions options = new PdfRenderOptions()
+		def images = PDDocumentUtils.renderPagesAsImage(doc, [1, 2] as Set, options)
 
 		then:
-		dst != null
-		dst.version == src.version
-		dst.documentInformation?.title == src.documentInformation?.title
+		images.size() == Math.min(2, total)
 
 		cleanup:
-		src?.close()
-		dst?.close()
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染页面范围(默认选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		def images = PDDocumentUtils.renderPagesAsImage(doc, Math.min(3, total))
+
+		then:
+		images.size() == Math.min(3, total)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染页面范围(自定义选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PdfRenderOptions options = new PdfRenderOptions()
+		def images = PDDocumentUtils.renderPagesAsImage(doc, Math.min(3, total), options)
+
+		then:
+		images.size() == Math.min(3, total)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染指定起始和结束页"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		def images = PDDocumentUtils.renderPagesAsImage(doc, 1, Math.min(2, total))
+
+		then:
+		images.size() == Math.min(2, total)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 渲染指定起始和结束页(自定义选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		int total = doc.numberOfPages
+		PdfRenderOptions options = new PdfRenderOptions()
+		def images = PDDocumentUtils.renderPagesAsImage(doc, 1, Math.min(2, total), options)
+
+		then:
+		images.size() == Math.min(2, total)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 使用消费者处理(默认选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		List<Integer> processedPages = []
+		PDDocumentUtils.renderPagesAsImage(doc) { image, page ->
+			processedPages.add(page)
+		}
+
+		then:
+		processedPages.size() == doc.numberOfPages
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 使用消费者处理(自定义选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		List<Integer> processedPages = []
+		PdfRenderOptions options = new PdfRenderOptions()
+		PDDocumentUtils.renderPagesAsImage(doc, options) { image, page ->
+			processedPages.add(page)
+		}
+
+		then:
+		processedPages.size() == doc.numberOfPages
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPagesAsImage 使用消费者处理指定页面集合"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		List<Integer> processedPages = []
+		PDDocumentUtils.renderPagesAsImage(doc, [1, 2] as Set) { image, page ->
+			processedPages.add(page)
+		}
+
+		then:
+		processedPages.size() == 2
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPageAsImage 渲染单个页面(默认选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		def image = PDDocumentUtils.renderPageAsImage(doc, 1)
+
+		then:
+		image != null
+		image.width > 0
+		image.height > 0
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "renderPageAsImage 渲染单个页面(自定义选项)"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PdfRenderOptions options = new PdfRenderOptions()
+		options.scale = 2.0f
+		def image = PDDocumentUtils.renderPageAsImage(doc, 1, options)
+
+		then:
+		image != null
+		image.width > 0
+		image.height > 0
+
+		cleanup:
+		pdfResource?.close()
 	}
 
 	def "getBookmarks 返回列表"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
 		def bookmarks = PDDocumentUtils.getBookmarks(doc)
 
 		then:
 		bookmarks != null
 
 		cleanup:
-		doc?.close()
+		pdfResource?.close()
 	}
 
-	def "copy 指定范围与集合"() {
+	def "参数校验异常 - copy"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		int total = doc.numberOfPages
-		PDDocument c1 = PDDocumentUtils.copy(doc, 1, Math.min(2, total))
-		PDDocument c2 = PDDocumentUtils.copy(doc, [1, 1, total + 5, 2])
+		PDDocumentUtils.copy(null)
 
 		then:
-		c1.numberOfPages == Math.min(2, total)
-		c2.numberOfPages == Math.min(2, total)
-
-		cleanup:
-		c1?.close()
-		c2?.close()
-		doc?.close()
-	}
-
-	def "getDocument(byte[]) 加载 PDF 与非法内容抛异常"() {
-		given:
-		byte[] pdfBytes = pdfFile.bytes
-		byte[] invalidBytes = "invalid".bytes
+		thrown(NullPointerException)
 
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfBytes)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.copy(doc, 0)
 
 		then:
-		doc != null
-		doc.numberOfPages > 0
+		thrown(IllegalArgumentException)
 
 		when:
-		PDDocumentUtils.getDocument(invalidBytes)
+		PDDocumentUtils.copy(doc, 1, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.copy(doc, 2, 1)
 
 		then:
 		thrown(IllegalArgumentException)
 
 		cleanup:
-		doc?.close()
+		pdfResource?.close()
 	}
 
-	def "getDocument(byte[], String) 加载 PDF"() {
-		given:
-		byte[] pdfBytes = pdfFile.bytes
-
+	def "参数校验异常 - merge"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfBytes, "password")
+		PDDocumentUtils.merge(null, MemoryUsageSetting.setupMainMemoryOnly())
 
 		then:
-		doc != null
-		doc.numberOfPages > 0
+		thrown(NullPointerException)
 
-		cleanup:
-		doc?.close()
+		when:
+		PDDocumentUtils.merge([], MemoryUsageSetting.setupMainMemoryOnly())
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.merge([null], null)
+
+		then:
+		thrown(NullPointerException)
 	}
 
-	def "getDocument(InputStream) 加载 PDF"() {
-		given:
-		InputStream inputStream = new ByteArrayInputStream(pdfFile.bytes)
-		InputStream invalidStream = new ByteArrayInputStream("invalid".bytes)
-
+	def "参数校验异常 - split"() {
 		when:
-		PDDocument doc = PDDocumentUtils.getDocument(inputStream)
+		PDDocumentUtils.split(null, 1)
 
 		then:
-		doc != null
-		doc.numberOfPages > 0
+		thrown(NullPointerException)
 
 		when:
-		PDDocumentUtils.getDocument(invalidStream)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		cleanup:
-		doc?.close()
-		inputStream?.close()
-		invalidStream?.close()
-	}
-
-	def "getDocument(InputStream, String) 加载 PDF"() {
-		given:
-		InputStream inputStream = new ByteArrayInputStream(pdfFile.bytes)
-
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(inputStream, "password")
-
-		then:
-		doc != null
-		doc.numberOfPages > 0
-
-		cleanup:
-		doc?.close()
-		inputStream?.close()
-	}
-
-	def "getPageAsImage 单页渲染"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		def image1 = PDDocumentUtils.getPageAsImage(doc, 1)
-		def image2 = PDDocumentUtils.getPageAsImage(doc, 1, 2)
-		def image3 = PDDocumentUtils.getPageAsImageWithDPI(doc, 1, 72f)
-
-		then:
-		image1 != null
-		image2 != null
-		image3 != null
-		image1.width > 0
-		image2.width > image1.width
-
-		cleanup:
-		doc?.close()
-	}
-
-	def "参数校验异常"() {
-		when:
-		PDDocument doc = PDDocumentUtils.getDocument(pdfFile)
-		PDDocumentUtils.getPagesAsImage(doc, 0, 1, 1)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		PDDocumentUtils.getPagesAsImageWithDPI(doc, 0f, [1])
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		PDDocumentUtils.getPagesAsImage(doc, 1, 2, 1)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		PDDocumentUtils.getPageAsImage(doc, 0)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		PDDocumentUtils.getPageAsImage(doc, 1, 0)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		PDDocumentUtils.getPageAsImageWithDPI(doc, 1, 0f)
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.split(doc, 0)
 
 		then:
 		thrown(IllegalArgumentException)
 
 		cleanup:
-		doc?.close()
+		pdfResource?.close()
+	}
+
+	def "参数校验异常 - insertPage"() {
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.insertPage(doc, null, 1)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PDDocumentUtils.insertPage(null, new PDPage(), 1)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PDDocumentUtils.insertPage(doc, new PDPage(), 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "参数校验异常 - addImage(PdfImageResource)"() {
+		when:
+		PDDocumentUtils.addImage(null, new PdfImageResource(new byte[0]))
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.addImage(doc, null as PdfImageResource)
+
+		then:
+		thrown(NullPointerException)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "参数校验异常 - insertImage(PdfImageResource)"() {
+		when:
+		PDDocumentUtils.insertImage(null, new PdfImageResource(new byte[0]), 1)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.insertImage(doc, null, 1)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PDDocumentUtils.insertImage(doc, new PdfImageResource(new byte[0]), 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "参数校验异常 - renderPagesAsImage"() {
+		when:
+		PDDocumentUtils.renderPagesAsImage(null)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.renderPagesAsImage(doc, null, null)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PDDocumentUtils.renderPagesAsImage(doc, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.renderPagesAsImage(doc, 1, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.renderPagesAsImage(doc, 2, 1)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		cleanup:
+		pdfResource?.close()
+	}
+
+	def "参数校验异常 - renderPageAsImage"() {
+		when:
+		PDDocumentUtils.renderPageAsImage(null, 1)
+
+		then:
+		thrown(NullPointerException)
+
+		when:
+		PdfResource pdfResource = new PdfResource(pdfFile)
+		PDDocument doc = pdfResource.getDocument()
+		PDDocumentUtils.renderPageAsImage(doc, 0)
+
+		then:
+		thrown(IllegalArgumentException)
+
+		when:
+		PDDocumentUtils.renderPageAsImage(doc, 0, null)
+
+		then:
+		thrown(NullPointerException)
+
+		cleanup:
+		pdfResource?.close()
 	}
 }
