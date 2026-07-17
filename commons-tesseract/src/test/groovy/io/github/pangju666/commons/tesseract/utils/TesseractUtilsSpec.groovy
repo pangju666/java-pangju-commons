@@ -3,7 +3,7 @@ package io.github.pangju666.commons.tesseract.utils
 import io.github.pangju666.commons.tesseract.enums.PageSegmentationMode
 import io.github.pangju666.commons.tesseract.factory.TessBaseAPIFactory
 import io.github.pangju666.commons.tesseract.io.resource.TesseractResource
-import io.github.pangju666.commons.tesseract.model.TessBaseAPIOptions
+import io.github.pangju666.commons.tesseract.model.TessBaseAPIOption
 import org.bytedeco.leptonica.PIX
 import spock.lang.Specification
 
@@ -14,7 +14,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
 
@@ -34,7 +34,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 
 		when:
 		TesseractUtils.ocrImage(null, resource, options)
@@ -45,7 +45,7 @@ class TesseractUtilsSpec extends Specification {
 
 	def "从TesseractResource识别 - null resource抛异常"() {
 		given:
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
 
@@ -60,7 +60,7 @@ class TesseractUtilsSpec extends Specification {
 		tessBaseAPI.releaseReference()
 	}
 
-	def "从TesseractResource识别 - null options抛异常"() {
+	def "从TesseractResource识别 - null option抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
@@ -82,7 +82,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
 		PIX pix = resource.getPix()
@@ -104,7 +104,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		PIX pix = resource.getPix()
 
 		when:
@@ -119,7 +119,7 @@ class TesseractUtilsSpec extends Specification {
 
 	def "从PIX识别 - null image抛异常"() {
 		given:
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
 
@@ -134,7 +134,7 @@ class TesseractUtilsSpec extends Specification {
 		tessBaseAPI.releaseReference()
 	}
 
-	def "从PIX识别 - null options抛异常"() {
+	def "从PIX识别 - null option抛异常"() {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
@@ -158,7 +158,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		options.setPsm(PageSegmentationMode.AUTO_NO_OSD)
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
@@ -181,7 +181,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		options.setPpi(300)
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
@@ -204,7 +204,7 @@ class TesseractUtilsSpec extends Specification {
 		given:
 		def file = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource = new TesseractResource(file)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		options.setRectangle(0, 0, 100, 100)
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
@@ -229,7 +229,7 @@ class TesseractUtilsSpec extends Specification {
 		def file2 = new File("${TEST_IMAGES_DIR}/test.png")
 		def resource1 = new TesseractResource(file1)
 		def resource2 = new TesseractResource(file2)
-		def options = new TessBaseAPIOptions()
+		def options = new TessBaseAPIOption()
 		def factory = new TessBaseAPIFactory(TessBaseAPIFactory.LanguageType.CHINESE)
 		def tessBaseAPI = factory.create()
 

@@ -23,7 +23,7 @@ import io.github.pangju666.commons.pdf.io.resource.PdfImageResource;
 import io.github.pangju666.commons.pdf.io.resource.PdfResource;
 import io.github.pangju666.commons.pdf.lang.PdfConstants;
 import io.github.pangju666.commons.pdf.model.Bookmark;
-import io.github.pangju666.commons.pdf.model.PdfRenderOptions;
+import io.github.pangju666.commons.pdf.model.PdfRenderOption;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Strings;
@@ -102,7 +102,7 @@ import java.util.stream.Collectors;
  * @see org.apache.pdfbox.io.MemoryUsageSetting
  * @see io.github.pangju666.commons.pdf.io.resource.PdfResource
  * @see io.github.pangju666.commons.pdf.io.resource.PdfImageResource
- * @see io.github.pangju666.commons.pdf.model.PdfRenderOptions
+ * @see PdfRenderOption
  * @see <a href="https://pdfbox.apache.org/">Apache PDFBox 官网</a>
  * @since 1.0.0
  */
@@ -945,7 +945,7 @@ public class PDDocumentUtils {
 	 * @throws IllegalArgumentException 当scale小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument, Collection)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, Collection, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, Collection, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale,
@@ -992,7 +992,7 @@ public class PDDocumentUtils {
 	 * @see #getPagesAsImage(PDDocument, Collection)
 	 * @see #getPagesAsImage(PDDocument, int, Collection)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, Collection, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, Collection, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
@@ -1065,7 +1065,7 @@ public class PDDocumentUtils {
 	 * @throws IllegalArgumentException 当scale小于等于0或页码无效时抛出
 	 * @see #getPagesAsImage(PDDocument, int, int)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, int, int, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, int, int, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale, final int startPage,
@@ -1120,7 +1120,7 @@ public class PDDocumentUtils {
 	 * @see #getPagesAsImageWithDPI(PDDocument, float, Collection)
 	 * @see #getPagesAsImage(PDDocument, int, int)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, int, int, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, int, int, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi,
@@ -1190,7 +1190,7 @@ public class PDDocumentUtils {
 	 * @throws IllegalArgumentException 当scale小于等于0时抛出
 	 * @see #getPagesAsImage(PDDocument)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImage(final PDDocument document, final int scale) throws IOException {
@@ -1233,7 +1233,7 @@ public class PDDocumentUtils {
 	 * @see #getPagesAsImage(PDDocument)
 	 * @see #getPagesAsImage(PDDocument, int)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPagesAsImage(PDDocument, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static List<BufferedImage> getPagesAsImageWithDPI(final PDDocument document, final float dpi) throws IOException {
@@ -1304,7 +1304,7 @@ public class PDDocumentUtils {
 	 * @throws IllegalArgumentException 当document为null或页码无效或scale小于等于0时抛出
 	 * @see #getPageAsImage(PDDocument, int)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPageAsImage(PDDocument, int, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPageAsImage(PDDocument, int, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static BufferedImage getPageAsImage(final PDDocument document, final int page, final int scale) throws IOException {
@@ -1346,7 +1346,7 @@ public class PDDocumentUtils {
 	 * @see #getPageAsImage(PDDocument, int)
 	 * @see #getPageAsImage(PDDocument, int, int)
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #renderPageAsImage(PDDocument, int, PdfRenderOptions)} 代替
+	 * @deprecated 请使用{@link #renderPageAsImage(PDDocument, int, PdfRenderOption)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static BufferedImage getPageAsImageWithDPI(final PDDocument document, final int page, final float dpi) throws IOException {
@@ -1361,7 +1361,7 @@ public class PDDocumentUtils {
 	/**
 	 * 将 PDF 文档指定页面渲染为图像列表（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions（缩放比例 1.0、RGB 图像类型、EXPORT 目标）渲染指定页面。
+	 * 使用默认的 PdfRenderOption（缩放比例 1.0、RGB 图像类型、EXPORT 目标）渲染指定页面。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
@@ -1372,28 +1372,28 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final Collection<Integer> pages) throws IOException {
-		return renderPagesAsImage(document, pages, new PdfRenderOptions());
+		return renderPagesAsImage(document, pages, new PdfRenderOption());
 	}
 
 	/**
 	 * 将 PDF 文档指定页面渲染为图像列表（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染指定页面。
+	 * 使用自定义的 PdfRenderOption 渲染指定页面。
 	 * 自动过滤无效页码并按页码排序。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
 	 * @param pages    要渲染的页码集合（从1开始），可为 null 或空
-	 * @param options  渲染选项，不可为 null
+	 * @param option  渲染选项，不可为 null
 	 * @return 渲染后的图像列表
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null 时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null 时抛出
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final Collection<Integer> pages,
-	                                                     final PdfRenderOptions options) throws IOException {
+	                                                     final PdfRenderOption option) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 
 		if (Objects.isNull(pages) || pages.isEmpty()) {
 			return Collections.emptyList();
@@ -1409,7 +1409,7 @@ public class PDDocumentUtils {
 		PDFRenderer renderer = new PDFRenderer(document);
 		List<BufferedImage> images = new ArrayList<>(validPages.size());
 		for (Integer page : validPages) {
-			BufferedImage pageImage = options.renderImage(renderer, page);
+			BufferedImage pageImage = option.renderImage(renderer, page);
 			images.add(pageImage);
 		}
 		return images;
@@ -1429,7 +1429,7 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final int endPage) throws IOException {
-		return renderPagesAsImage(document, 1, endPage, new PdfRenderOptions());
+		return renderPagesAsImage(document, 1, endPage, new PdfRenderOption());
 	}
 
 	/**
@@ -1440,21 +1440,21 @@ public class PDDocumentUtils {
 	 *
 	 * @param document PDF 文档对象，不可为 null
 	 * @param endPage  结束页码（从1开始），必须大于 0
-	 * @param options  渲染选项，不可为 null
+	 * @param option  渲染选项，不可为 null
 	 * @return 渲染后的图像列表
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null，或 endPage 小于等于 0 时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null，或 endPage 小于等于 0 时抛出
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final int endPage,
-	                                                     final PdfRenderOptions options) throws IOException {
-		return renderPagesAsImage(document, 1, endPage, options);
+	                                                     final PdfRenderOption option) throws IOException {
+		return renderPagesAsImage(document, 1, endPage, option);
 	}
 
 	/**
 	 * 将 PDF 文档指定页面范围渲染为图像列表（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染指定页面范围。
+	 * 使用默认的 PdfRenderOption 渲染指定页面范围。
 	 * </p>
 	 *
 	 * @param document  PDF 文档对象，不可为 null
@@ -1466,29 +1466,29 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final int startPage, final int endPage) throws IOException {
-		return renderPagesAsImage(document, startPage, endPage, new PdfRenderOptions());
+		return renderPagesAsImage(document, startPage, endPage, new PdfRenderOption());
 	}
 
 	/**
 	 * 将 PDF 文档指定页面范围渲染为图像列表（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染指定页面范围。
+	 * 使用自定义的 PdfRenderOption 渲染指定页面范围。
 	 * 自动调整超出文档范围的结束页码。
 	 * </p>
 	 *
 	 * @param document  PDF 文档对象，不可为 null
 	 * @param startPage 起始页码（从1开始），必须大于 0
 	 * @param endPage   结束页码（从1开始），必须大于等于 startPage
-	 * @param options   渲染选项，不可为 null
+	 * @param option   渲染选项，不可为 null
 	 * @return 渲染后的图像列表
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null，或页码无效时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null，或页码无效时抛出
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final int startPage, final int endPage,
-	                                                     final PdfRenderOptions options) throws IOException {
+	                                                     final PdfRenderOption option) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 		Validate.isTrue(startPage > 0, "startPage 不可为小于等于0");
 		Validate.isTrue(endPage > 0, "endPage 不可为小于等于0");
 		Validate.isTrue(endPage >= startPage, "endPage 必须大于等于 startPage");
@@ -1497,7 +1497,7 @@ public class PDDocumentUtils {
 		PDFRenderer renderer = new PDFRenderer(document);
 		List<BufferedImage> images = new ArrayList<>(maxPage - startPage + 1);
 		for (int currentPage = startPage; currentPage <= maxPage; currentPage++) {
-			BufferedImage pageImage = options.renderImage(renderer, currentPage);
+			BufferedImage pageImage = option.renderImage(renderer, currentPage);
 			images.add(pageImage);
 		}
 		return images;
@@ -1506,7 +1506,7 @@ public class PDDocumentUtils {
 	/**
 	 * 将 PDF 文档所有页面渲染为图像列表（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染文档所有页面。
+	 * 使用默认的 PdfRenderOption 渲染文档所有页面。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
@@ -1516,30 +1516,30 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static List<BufferedImage> renderPagesAsImage(final PDDocument document) throws IOException {
-		return renderPagesAsImage(document, new PdfRenderOptions());
+		return renderPagesAsImage(document, new PdfRenderOption());
 	}
 
 	/**
 	 * 将 PDF 文档所有页面渲染为图像列表（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染文档所有页面。
+	 * 使用自定义的 PdfRenderOption 渲染文档所有页面。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
-	 * @param options  渲染选项，不可为 null
+	 * @param option  渲染选项，不可为 null
 	 * @return 渲染后的图像列表
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null 时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null 时抛出
 	 * @since 2.1.0
 	 */
-	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final PdfRenderOptions options) throws IOException {
+	public static List<BufferedImage> renderPagesAsImage(final PDDocument document, final PdfRenderOption option) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 
 		PDFRenderer renderer = new PDFRenderer(document);
 		List<BufferedImage> images = new ArrayList<>(document.getNumberOfPages());
 		for (int i = 0; i < document.getNumberOfPages(); i++) {
-			images.add(options.renderImage(renderer, i + 1));
+			images.add(option.renderImage(renderer, i + 1));
 		}
 		return images;
 	}
@@ -1547,7 +1547,7 @@ public class PDDocumentUtils {
 	/**
 	 * 将 PDF 文档指定页面渲染为图像并通过消费者处理（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染指定页面，并通过消费者回调处理每个渲染的图像。
+	 * 使用默认的 PdfRenderOption 渲染指定页面，并通过消费者回调处理每个渲染的图像。
 	 * 渲染后会自动释放图像资源。
 	 * </p>
 	 *
@@ -1560,28 +1560,28 @@ public class PDDocumentUtils {
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final Collection<Integer> pages,
 	                                      final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
-		renderPagesAsImage(document, pages, new PdfRenderOptions(), imageConsumer);
+		renderPagesAsImage(document, pages, new PdfRenderOption(), imageConsumer);
 	}
 
 	/**
 	 * 将 PDF 文档指定页面渲染为图像并通过消费者处理（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染指定页面，并通过消费者回调处理每个渲染的图像。
+	 * 使用自定义的 PdfRenderOption 渲染指定页面，并通过消费者回调处理每个渲染的图像。
 	 * 自动过滤无效页码并按页码排序，渲染后会自动释放图像资源。
 	 * </p>
 	 *
 	 * @param document      PDF 文档对象，不可为 null
 	 * @param pages         要渲染的页码集合（从1开始），可为 null 或空
-	 * @param options       渲染选项，不可为 null
+	 * @param option       渲染选项，不可为 null
 	 * @param imageConsumer 图像消费者，不可为 null
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 、options 或 imageConsumer 为 null 时抛出
+	 * @throws IllegalArgumentException 当 document 、option 或 imageConsumer 为 null 时抛出
 	 * @since 2.1.0
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final Collection<Integer> pages,
-	                                      final PdfRenderOptions options, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
+	                                      final PdfRenderOption option, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(imageConsumer, "imageConsumer 不可为 null");
 
 		if (Objects.isNull(pages) || pages.isEmpty()) {
@@ -1597,7 +1597,7 @@ public class PDDocumentUtils {
 
 		PDFRenderer renderer = new PDFRenderer(document);
 		for (Integer page : validPages) {
-			BufferedImage pageImage = options.renderImage(renderer, page);
+			BufferedImage pageImage = option.renderImage(renderer, page);
 			imageConsumer.accept(pageImage, page);
 			pageImage.flush();
 		}
@@ -1619,7 +1619,7 @@ public class PDDocumentUtils {
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final int endPage,
 	                                      final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
-		renderPagesAsImage(document, 1, endPage, new PdfRenderOptions(), imageConsumer);
+		renderPagesAsImage(document, 1, endPage, new PdfRenderOption(), imageConsumer);
 	}
 
 	/**
@@ -1631,21 +1631,21 @@ public class PDDocumentUtils {
 	 *
 	 * @param document      PDF 文档对象，不可为 null
 	 * @param endPage       结束页码（从1开始），必须大于 0
-	 * @param options       渲染选项，不可为 null
+	 * @param option       渲染选项，不可为 null
 	 * @param imageConsumer 图像消费者，不可为 null
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null，或 endPage 小于等于 0 时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null，或 endPage 小于等于 0 时抛出
 	 * @since 2.1.0
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final int endPage,
-	                                      final PdfRenderOptions options, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
-		renderPagesAsImage(document, 1, endPage, options, imageConsumer);
+	                                      final PdfRenderOption option, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
+		renderPagesAsImage(document, 1, endPage, option, imageConsumer);
 	}
 
 	/**
 	 * 将 PDF 文档指定页面范围渲染为图像并通过消费者处理（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染指定页面范围，并通过消费者回调处理每个渲染的图像。
+	 * 使用默认的 PdfRenderOption 渲染指定页面范围，并通过消费者回调处理每个渲染的图像。
 	 * 渲染后会自动释放图像资源。
 	 * </p>
 	 *
@@ -1659,29 +1659,29 @@ public class PDDocumentUtils {
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final int startPage, final int endPage,
 	                                      final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
-		renderPagesAsImage(document, startPage, endPage, new PdfRenderOptions(), imageConsumer);
+		renderPagesAsImage(document, startPage, endPage, new PdfRenderOption(), imageConsumer);
 	}
 
 	/**
 	 * 将 PDF 文档指定页面范围渲染为图像并通过消费者处理（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染指定页面范围，并通过消费者回调处理每个渲染的图像。
+	 * 使用自定义的 PdfRenderOption 渲染指定页面范围，并通过消费者回调处理每个渲染的图像。
 	 * 自动调整超出文档范围的结束页码，渲染后会自动释放图像资源。
 	 * </p>
 	 *
 	 * @param document      PDF 文档对象，不可为 null
 	 * @param startPage     起始页码（从1开始），必须大于 0
 	 * @param endPage       结束页码（从1开始），必须大于等于 startPage
-	 * @param options       渲染选项，不可为 null
+	 * @param option       渲染选项，不可为 null
 	 * @param imageConsumer 图像消费者，不可为 null
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document、options 或 imageConsumer，或页码无效时抛出
+	 * @throws IllegalArgumentException 当 document、option 或 imageConsumer，或页码无效时抛出
 	 * @since 2.1.0
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final int startPage, final int endPage,
-	                                      final PdfRenderOptions options, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
+	                                      final PdfRenderOption option, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 		Validate.isTrue(startPage > 0, "startPage 不可为小于等于0");
 		Validate.isTrue(endPage > 0, "endPage 不可为小于等于0");
 		Validate.isTrue(endPage >= startPage, "endPage 必须大于等于 startPage");
@@ -1690,7 +1690,7 @@ public class PDDocumentUtils {
 		int maxPage = Math.min(document.getNumberOfPages(), endPage);
 		PDFRenderer renderer = new PDFRenderer(document);
 		for (int currentPage = startPage; currentPage <= maxPage; currentPage++) {
-			BufferedImage pageImage = options.renderImage(renderer, currentPage);
+			BufferedImage pageImage = option.renderImage(renderer, currentPage);
 			imageConsumer.accept(pageImage, currentPage);
 			pageImage.flush();
 		}
@@ -1699,7 +1699,7 @@ public class PDDocumentUtils {
 	/**
 	 * 将 PDF 文档所有页面渲染为图像并通过消费者处理（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染文档所有页面，并通过消费者回调处理每个渲染的图像。
+	 * 使用默认的 PdfRenderOption 渲染文档所有页面，并通过消费者回调处理每个渲染的图像。
 	 * 渲染后会自动释放图像资源。
 	 * </p>
 	 *
@@ -1710,32 +1710,32 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static void renderPagesAsImage(final PDDocument document, final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
-		renderPagesAsImage(document, new PdfRenderOptions(), imageConsumer);
+		renderPagesAsImage(document, new PdfRenderOption(), imageConsumer);
 	}
 
 	/**
 	 * 将 PDF 文档所有页面渲染为图像并通过消费者处理（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染文档所有页面，并通过消费者回调处理每个渲染的图像。
+	 * 使用自定义的 PdfRenderOption 渲染文档所有页面，并通过消费者回调处理每个渲染的图像。
 	 * 渲染后会自动释放图像资源。
 	 * </p>
 	 *
 	 * @param document      PDF 文档对象，不可为 null
-	 * @param options       渲染选项，不可为 null
+	 * @param option       渲染选项，不可为 null
 	 * @param imageConsumer 图像消费者，不可为 null
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document、options 或 imageConsumer 为 null 时抛出
+	 * @throws IllegalArgumentException 当 document、option 或 imageConsumer 为 null 时抛出
 	 * @since 2.1.0
 	 */
-	public static void renderPagesAsImage(final PDDocument document, final PdfRenderOptions options,
+	public static void renderPagesAsImage(final PDDocument document, final PdfRenderOption option,
 	                                      final ObjIntConsumer<BufferedImage> imageConsumer) throws IOException {
 		Validate.notNull(document, "document 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(imageConsumer, "imageConsumer 不可为 null");
 
 		PDFRenderer renderer = new PDFRenderer(document);
 		for (int i = 0; i < document.getNumberOfPages(); i++) {
-			BufferedImage pageImage = options.renderImage(renderer, i + 1);
+			BufferedImage pageImage = option.renderImage(renderer, i + 1);
 			imageConsumer.accept(pageImage, i + 1);
 			pageImage.flush();
 		}
@@ -1744,7 +1744,7 @@ public class PDDocumentUtils {
 	/**
 	 * 将 PDF 文档指定页面渲染为图像（使用默认渲染选项）
 	 * <p>
-	 * 使用默认的 PdfRenderOptions 渲染指定页面。
+	 * 使用默认的 PdfRenderOption 渲染指定页面。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
@@ -1755,27 +1755,27 @@ public class PDDocumentUtils {
 	 * @since 2.1.0
 	 */
 	public static BufferedImage renderPageAsImage(final PDDocument document, final int page) throws IOException {
-		return renderPageAsImage(document, page, new PdfRenderOptions());
+		return renderPageAsImage(document, page, new PdfRenderOption());
 	}
 
 	/**
 	 * 将 PDF 文档指定页面渲染为图像（使用自定义渲染选项）
 	 * <p>
-	 * 使用自定义的 PdfRenderOptions 渲染指定页面。
+	 * 使用自定义的 PdfRenderOption 渲染指定页面。
 	 * </p>
 	 *
 	 * @param document PDF 文档对象，不可为 null
 	 * @param page     页码（从1开始），必须大于 0
-	 * @param options  渲染选项，不可为 null
+	 * @param option  渲染选项，不可为 null
 	 * @return 渲染后的图像
 	 * @throws IOException              当渲染失败时抛出
-	 * @throws IllegalArgumentException 当 document 或 options 为 null，或页码无效时抛出
+	 * @throws IllegalArgumentException 当 document 或 option 为 null，或页码无效时抛出
 	 * @since 2.1.0
 	 */
-	public static BufferedImage renderPageAsImage(final PDDocument document, final int page, final PdfRenderOptions options) throws IOException {
-		Validate.notNull(options, "options 不可为 null");
+	public static BufferedImage renderPageAsImage(final PDDocument document, final int page, final PdfRenderOption option) throws IOException {
+		Validate.notNull(option, "option 不可为 null");
 
-		return options.renderImage(document, page);
+		return option.renderImage(document, page);
 	}
 
 	/**

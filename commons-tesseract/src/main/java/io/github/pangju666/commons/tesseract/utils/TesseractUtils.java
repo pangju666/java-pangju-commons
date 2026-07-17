@@ -18,7 +18,7 @@ package io.github.pangju666.commons.tesseract.utils;
 
 import io.github.pangju666.commons.tesseract.io.resource.TesseractResource;
 import io.github.pangju666.commons.tesseract.lang.TesseractConstants;
-import io.github.pangju666.commons.tesseract.model.TessBaseAPIOptions;
+import io.github.pangju666.commons.tesseract.model.TessBaseAPIOption;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacpp.BytePointer;
@@ -47,9 +47,9 @@ import java.util.Objects;
  * TessBaseAPI tessBaseAPI = TesseractConstants.getDefaultTessBaseApiPool().borrowObject();
  * try {
  *     TesseractResource resource = new TesseractResource(imageFile);
- *     TessBaseAPIOptions options = new TessBaseAPIOptions();
- *     options.setPsm(PageSegmentationMode.AUTO_NO_OSD);
- *     String text = TesseractUtils.ocrImage(tessBaseAPI, resource, options);
+ *     TessBaseAPIOption option = new TessBaseAPIOption();
+ *     option.setPsm(PageSegmentationMode.AUTO_NO_OSD);
+ *     String text = TesseractUtils.ocrImage(tessBaseAPI, resource, option);
  * } finally {
  *     TesseractConstants.getDefaultTessBaseApiPool().returnObject(tessBaseAPI);
  * }
@@ -58,7 +58,7 @@ import java.util.Objects;
  * @author pangju666
  * @see TessBaseAPI
  * @see TesseractResource
- * @see TessBaseAPIOptions
+ * @see TessBaseAPIOption
  * @see TesseractConstants
  * @since 2.1.0
  */
@@ -77,17 +77,17 @@ public class TesseractUtils {
 	 *
 	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
 	 * @param resource Tesseract 资源对象，不可为 null
-	 * @param options TessBaseAPI 配置选项，不可为 null
+	 * @param option TessBaseAPI 配置选项，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码）
-	 * @throws NullPointerException 当 tessBaseAPI、resource 或 options 为 null 时抛出
+	 * @throws NullPointerException 当 tessBaseAPI、resource 或 option 为 null 时抛出
 	 * @since 2.1.0
 	 */
 	public static String ocrImage(final TessBaseAPI tessBaseAPI, final TesseractResource resource,
-	                              final TessBaseAPIOptions options) {
+	                              final TessBaseAPIOption option) {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		try (PIX image = resource.getPix()) {
-			return ocrImage(tessBaseAPI, image, options);
+			return ocrImage(tessBaseAPI, image, option);
 		}
 	}
 
@@ -107,21 +107,21 @@ public class TesseractUtils {
 	 *
 	 * @param tessBaseAPI 已初始化的 TessBaseAPI 实例，不可为 null
 	 * @param image Leptonica PIX 图片对象，不可为 null
-	 * @param options TessBaseAPI 配置选项，不可为 null
+	 * @param option TessBaseAPI 配置选项，不可为 null
 	 * @return 识别出的文字内容（UTF-8 编码），如果识别失败返回空字符串
-	 * @throws NullPointerException 当 tessBaseAPI、image 或 options 为 null 时抛出
+	 * @throws NullPointerException 当 tessBaseAPI、image 或 option 为 null 时抛出
 	 * @throws IllegalArgumentException 当 tessBaseAPI 或 image 为空指针时抛出
 	 * @since 2.1.0
 	 */
-	public static String ocrImage(final TessBaseAPI tessBaseAPI, final PIX image, final TessBaseAPIOptions options) {
+	public static String ocrImage(final TessBaseAPI tessBaseAPI, final PIX image, final TessBaseAPIOption option) {
 		Validate.notNull(tessBaseAPI, "tessBaseAPI 不可为 null");
 		Validate.isTrue(!tessBaseAPI.isNull(), "tessBaseAPI 不可为 null");
 		Validate.notNull(image, "image 不可为 null");
 		Validate.isTrue(!tessBaseAPI.isNull(), "image 不可为 null");
-		Validate.notNull(options, "options 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
 
 		tessBaseAPI.SetImage(image);
-		options.configure(tessBaseAPI);
+		option.configure(tessBaseAPI);
 
 		try (BytePointer result = tessBaseAPI.GetUTF8Text()) {
 			if (Objects.isNull(result) || result.isNull()) {
