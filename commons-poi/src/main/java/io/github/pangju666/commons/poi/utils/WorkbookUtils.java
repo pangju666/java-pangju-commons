@@ -22,6 +22,7 @@ import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.DateUtils;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
+import io.github.pangju666.commons.poi.io.resource.ExcelResource;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
@@ -98,7 +99,9 @@ public class WorkbookUtils {
 	 * @return true-是XLS格式，false-不是XLS格式或文件不存在
 	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXls()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXls(final File file) throws IOException {
 		return FileUtils.isMimeType(file, PoiConstants.XLS_MIME_TYPE);
 	}
@@ -109,7 +112,9 @@ public class WorkbookUtils {
 	 * @param bytes 待检查的字节数组
 	 * @return true-是XLS格式，false-不是XLS格式或字节数组为空
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXls()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXls(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
@@ -125,7 +130,9 @@ public class WorkbookUtils {
 	 * @return true-是XLS格式，false-不是XLS格式或输入流为null
 	 * @throws IOException 当流读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXls()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXls(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
 			return false;
@@ -141,7 +148,9 @@ public class WorkbookUtils {
 	 * @return true-是XLSX格式，false-不是XLSX格式或文件不存在
 	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXlsx()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXlsx(final File file) throws IOException {
 		return FileUtils.isMimeType(file, PoiConstants.XLSX_MIME_TYPE);
 	}
@@ -152,7 +161,9 @@ public class WorkbookUtils {
 	 * @param bytes 待检查的字节数组
 	 * @return true-是XLSX格式，false-不是XLSX格式或字节数组为空
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXlsx()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXlsx(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
@@ -168,7 +179,9 @@ public class WorkbookUtils {
 	 * @return true-是XLSX格式，false-不是XLSX格式或输入流为null
 	 * @throws IOException 当流读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#isXlsx()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXlsx(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
 			return false;
@@ -184,7 +197,9 @@ public class WorkbookUtils {
 	 * @return true-是Excel工作簿格式，false-不是Excel工作簿格式或文件不存在
 	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isWorkbook(final File file) throws IOException {
 		return FileUtils.isAnyMimeType(file, PoiConstants.XLS_MIME_TYPE, PoiConstants.XLSX_MIME_TYPE);
 	}
@@ -195,7 +210,9 @@ public class WorkbookUtils {
 	 * @param bytes 待检查的字节数组
 	 * @return true-是Excel工作簿格式，false-不是Excel工作簿格式或字节数组为空
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isWorkbook(final byte[] bytes) {
 		if (ArrayUtils.isEmpty(bytes)) {
 			return false;
@@ -211,7 +228,9 @@ public class WorkbookUtils {
 	 * @return true-是Excel工作簿格式，false-不是Excel工作簿格式或输入流为null
 	 * @throws IOException 当流读取失败时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isWorkbook(final InputStream inputStream) throws IOException {
 		if (Objects.isNull(inputStream)) {
 			return false;
@@ -232,7 +251,9 @@ public class WorkbookUtils {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是Excel格式（XLS或XLSX）时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#getWorkbook()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static Workbook getWorkbook(final File file) throws IOException {
 		String mimeType = FileUtils.getMimeType(file);
 		Validate.isTrue(StringUtils.equalsAny(mimeType, PoiConstants.XLS_MIME_TYPE,
@@ -262,7 +283,9 @@ public class WorkbookUtils {
 	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是Excel格式（XLS或XLSX）时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link ExcelResource#getWorkbook()} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static Workbook getWorkbook(final byte[] bytes) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 
