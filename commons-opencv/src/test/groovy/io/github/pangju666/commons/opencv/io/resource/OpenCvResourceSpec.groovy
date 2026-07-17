@@ -421,7 +421,7 @@ class OpenCvResourceSpec extends Specification {
 
 		then:
 		"验证资源已关闭"
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "关闭后访问方法抛异常"() {
@@ -436,8 +436,8 @@ class OpenCvResourceSpec extends Specification {
 		resource.getImageSize()
 
 		then:
-		"抛出 IOException"
-		thrown(IOException)
+		"抛出 IllegalStateException"
+		thrown(IllegalStateException)
 	}
 
 	def "设置已关闭资源的尺寸抛异常"() {
@@ -452,8 +452,8 @@ class OpenCvResourceSpec extends Specification {
 		resource.setImageSize(new Size(100, 100))
 
 		then:
-		"抛出 IOException"
-		thrown(IOException)
+		"抛出 IllegalStateException"
+		thrown(IllegalStateException)
 	}
 
 	def "构造非图像文件抛异常"() {
@@ -597,8 +597,8 @@ class OpenCvResourceSpec extends Specification {
 		resource.toBytePointer()
 
 		then:
-		"抛出 IOException"
-		thrown(IOException)
+		"抛出 IllegalStateException"
+		thrown(IllegalStateException)
 	}
 
 	def "判断EXIF方向是否已校正 - 已校正"() {

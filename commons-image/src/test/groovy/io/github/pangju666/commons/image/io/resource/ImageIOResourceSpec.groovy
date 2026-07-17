@@ -382,7 +382,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.getImageSize()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// getMetadata 测试
@@ -422,7 +422,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.getMetadata()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// getFormat 测试
@@ -506,7 +506,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.getBufferedImage()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// getBufferedImageCopy 测试
@@ -584,7 +584,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.getBufferedImageCopy()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// openImageInputStream 测试
@@ -631,7 +631,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.newImageInputStream()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// setImageSize 测试
@@ -658,7 +658,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.setImageSize(new ImageSize(100, 100))
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// setMetadata 测试
@@ -685,7 +685,7 @@ class ImageIOResourceSpec extends Specification {
 		resource.setMetadata(new Metadata())
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	// close 测试

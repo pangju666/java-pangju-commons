@@ -811,7 +811,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return 图像尺寸对象（包含宽度、高度和EXIF方向）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 2.1.0
 	 */
 	public ImageSize getImageSize() throws IOException {
@@ -839,10 +839,9 @@ public class ImageIOResource extends IOResource {
 	 * <p>用于手动设置图像尺寸，覆盖自动计算的值。</p>
 	 *
 	 * @param imageSize 图像尺寸对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 2.1.0
 	 */
-	public void setImageSize(ImageSize imageSize) throws IOException {
+	public void setImageSize(ImageSize imageSize) {
 		checkClosed();
 
 		this.imageSize = imageSize;
@@ -860,7 +859,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当元数据读取失败时抛出
 	 * @since 2.1.0
 	 */
 	public Metadata getMetadata() throws IOException {
@@ -894,10 +893,9 @@ public class ImageIOResource extends IOResource {
 	 * <p>用于手动设置图像元数据，覆盖自动解析的值。</p>
 	 *
 	 * @param metadata 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 2.1.0
 	 */
-	public void setMetadata(Metadata metadata) throws IOException {
+	public void setMetadata(Metadata metadata) {
 		checkClosed();
 
 		this.metadata = metadata;
@@ -916,7 +914,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return BufferedImage对象（当启用方向校正时为校正后的图像）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 2.1.0
 	 */
 	public BufferedImage getBufferedImage() throws IOException {
@@ -988,7 +986,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return BufferedImage的深拷贝副本（当启用方向校正时为校正后图像的深拷贝）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @see #getBufferedImage()
 	 * @see ImageUtil#createCopy(BufferedImage)
 	 * @since 2.1.0
@@ -1036,7 +1034,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return ImageInputStream对象
-	 * @throws IOException 当资源已关闭或流创建失败时抛出
+	 * @throws IOException 当流创建失败时抛出
 	 * @since 2.1.0
 	 */
 	public ImageInputStream newImageInputStream() throws IOException {
