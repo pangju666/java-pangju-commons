@@ -217,7 +217,7 @@ class IOResourceSpec extends Specification {
 		resource.setDigest("digest")
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "文件模式获取文件对象"() {
@@ -278,7 +278,7 @@ class IOResourceSpec extends Specification {
 		resource.openInputStream()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "文件模式获取字节数组"() {
@@ -334,7 +334,7 @@ class IOResourceSpec extends Specification {
 		resource.getBytes()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "判断音频资源"() {
@@ -486,7 +486,7 @@ class IOResourceSpec extends Specification {
 		resource.getDigest()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "已关闭资源获取文件抛异常"() {
@@ -498,7 +498,7 @@ class IOResourceSpec extends Specification {
 		resource.getFile()
 
 		then:
-		thrown(IOException)
+		thrown(IllegalStateException)
 	}
 
 	def "已关闭资源获取大小正常"() {
@@ -517,25 +517,6 @@ class IOResourceSpec extends Specification {
 
 		expect:
 		resource.mimeType != null
-	}
-
-	def "设置输入流阈值"() {
-		setup:
-		IOResource.setInputStreamThreshold(8192)
-	}
-
-	def "设置非法阈值抛异常"() {
-		when:
-		IOResource.setInputStreamThreshold(0)
-
-		then:
-		thrown(IllegalArgumentException)
-
-		when:
-		IOResource.setInputStreamThreshold(-1)
-
-		then:
-		thrown(IllegalArgumentException)
 	}
 
 	def "文件模式计算摘要"() {

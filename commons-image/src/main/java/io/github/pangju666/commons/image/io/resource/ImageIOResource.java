@@ -131,7 +131,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param resource 源资源（必须非null且未关闭）
-	 * @throws IOException                  当资源读取失败时抛出
+	 * @throws IOException              当资源读取失败时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
 	 */
@@ -153,7 +153,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param resource           源资源（必须非null且未关闭）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException                  当资源读取失败时抛出
+	 * @throws IOException              当资源读取失败时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
 	 */
@@ -240,7 +240,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param resource        源资源（必须非null且未关闭）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException                  当资源读取失败时抛出
+	 * @throws IOException              当资源读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 resource 不是受支持的图像资源时抛出
 	 * @since 1.1.0
@@ -301,7 +301,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param filePath 文件路径（必须非空）
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -322,7 +322,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param filePath           文件路径（必须非空）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -379,7 +379,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param filePath        文件路径（必须非空）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 filePath 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
@@ -428,7 +428,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param file 文件对象（必须非null）
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -449,7 +449,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param file               文件对象（必须非null）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
 	 */
@@ -506,7 +506,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param file            文件对象（必须非null）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException                  当文件读取失败时抛出
+	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 file 对应资源不是受支持的图像文件时抛出
 	 * @since 1.1.0
@@ -553,7 +553,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param bytes 字节数组（必须非空）
-	 * @throws IOException                  当数据读取失败时抛出
+	 * @throws IOException              当数据读取失败时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
 	 */
@@ -573,7 +573,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param bytes              字节数组（必须非空）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException                  当数据读取失败时抛出
+	 * @throws IOException              当数据读取失败时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
 	 */
@@ -632,7 +632,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param bytes           字节数组（必须非空）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException                  当数据读取失败时抛出
+	 * @throws IOException              当数据读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 bytes 不是受支持的图像数据时抛出
 	 * @since 1.1.0
@@ -681,7 +681,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @param inputStream 输入流（必须非null）
-	 * @throws IOException                  当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
 	 */
@@ -701,7 +701,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param inputStream        输入流（必须非null）
 	 * @param correctOrientation 是否根据 EXIF 方向信息校正图像方向
-	 * @throws IOException                  当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
 	 */
@@ -761,7 +761,7 @@ public class ImageIOResource extends IOResource {
 	 *
 	 * @param inputStream     输入流（必须非null）
 	 * @param exifOrientation EXIF方向值（必须介于1-8之间）
-	 * @throws IOException                  当流读取失败时抛出
+	 * @throws IOException              当流读取失败时抛出
 	 * @throws IllegalArgumentException     当 exifOrientation 不在 1-8 范围内时抛出
 	 * @throws UnsupportedResourceException 当 inputStream 不是受支持的图像数据输入流时抛出
 	 * @since 1.1.0
@@ -811,7 +811,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return 图像尺寸对象（包含宽度、高度和EXIF方向）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public ImageSize getImageSize() throws IOException {
@@ -839,10 +839,9 @@ public class ImageIOResource extends IOResource {
 	 * <p>用于手动设置图像尺寸，覆盖自动计算的值。</p>
 	 *
 	 * @param imageSize 图像尺寸对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public void setImageSize(ImageSize imageSize) throws IOException {
+	public void setImageSize(ImageSize imageSize) {
 		checkClosed();
 
 		this.imageSize = imageSize;
@@ -860,7 +859,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当元数据读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public Metadata getMetadata() throws IOException {
@@ -894,10 +893,9 @@ public class ImageIOResource extends IOResource {
 	 * <p>用于手动设置图像元数据，覆盖自动解析的值。</p>
 	 *
 	 * @param metadata 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public void setMetadata(Metadata metadata) throws IOException {
+	public void setMetadata(Metadata metadata) {
 		checkClosed();
 
 		this.metadata = metadata;
@@ -916,7 +914,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return BufferedImage对象（当启用方向校正时为校正后的图像）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public BufferedImage getBufferedImage() throws IOException {
@@ -988,7 +986,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return BufferedImage的深拷贝副本（当启用方向校正时为校正后图像的深拷贝）
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @see #getBufferedImage()
 	 * @see ImageUtil#createCopy(BufferedImage)
 	 * @since 1.1.0
@@ -1036,7 +1034,7 @@ public class ImageIOResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return ImageInputStream对象
-	 * @throws IOException 当资源已关闭或流创建失败时抛出
+	 * @throws IOException 当流创建失败时抛出
 	 * @since 1.1.0
 	 */
 	public ImageInputStream newImageInputStream() throws IOException {

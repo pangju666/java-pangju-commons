@@ -254,7 +254,7 @@ class ImageProcessorSpec extends Specification {
 
 		cleanup:
 		editor.release()
-		mat.releaseReference()
+		mat.release()
 	}
 
 	def "从Mat创建编辑器 - 无效exifOrientation抛异常"() {

@@ -1054,7 +1054,7 @@ public class OpenCvResource extends IOResource {
 	 * <p>优先从元数据中获取尺寸，如果元数据中没有则从 Mat 中获取。结果会被缓存。</p>
 	 *
 	 * @return 图像尺寸对象
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当元数据读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public Size getImageSize() throws IOException {
@@ -1082,10 +1082,9 @@ public class OpenCvResource extends IOResource {
 	 * <p>用于手动设置图像尺寸，覆盖自动计算的值。</p>
 	 *
 	 * @param imageSize 图像尺寸对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public void setImageSize(Size imageSize) throws IOException {
+	public void setImageSize(Size imageSize) {
 		checkClosed();
 
 		this.imageSize = imageSize;
@@ -1096,7 +1095,7 @@ public class OpenCvResource extends IOResource {
 	 * <p>优先从缓存获取，若未缓存则从元数据中解析。结果会被缓存。</p>
 	 *
 	 * @return EXIF 方向值（1-8），如果无法解析则返回 1（正常方向）
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当元数据读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public int getExifOrientation() throws IOException {
@@ -1119,11 +1118,9 @@ public class OpenCvResource extends IOResource {
 	 * <p>用于手动设置 EXIF 方向值，覆盖自动解析的值。</p>
 	 *
 	 * @param exifOrientation EXIF 方向值（必须介于 1-8 之间），null 表示清除缓存
-	 * @throws IOException              当资源已关闭时抛出
-	 * @throws IllegalArgumentException 当 exifOrientation 不在 1-8 范围内时抛出
 	 * @since 1.1.0
 	 */
-	public void setExifOrientation(Integer exifOrientation) throws IOException {
+	public void setExifOrientation(Integer exifOrientation) {
 		checkClosed();
 
 		if (Objects.nonNull(exifOrientation)) {
@@ -1138,7 +1135,7 @@ public class OpenCvResource extends IOResource {
 	 * <p>使用 Metadata Extractor 解析图像元数据，如果解析失败返回空 Metadata 对象。结果会被缓存。</p>
 	 *
 	 * @return 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当元数据读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public Metadata getMetadata() throws IOException {
@@ -1171,10 +1168,9 @@ public class OpenCvResource extends IOResource {
 	 * <p>用于手动设置图像元数据，覆盖自动解析的值。</p>
 	 *
 	 * @param metadata 图像元数据对象
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public void setMetadata(Metadata metadata) throws IOException {
+	public void setMetadata(Metadata metadata) {
 		checkClosed();
 
 		this.metadata = metadata;
@@ -1191,7 +1187,7 @@ public class OpenCvResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return OpenCV Mat 图像对象
-	 * @throws IOException 当资源已关闭或图像读取失败时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public Mat getImageMat() throws IOException {
@@ -1225,7 +1221,7 @@ public class OpenCvResource extends IOResource {
 	 * <p>返回当前 Mat 对象的深拷贝，修改返回的 Mat 不会影响原始数据。</p>
 	 *
 	 * @return OpenCV Mat 图像对象的深拷贝
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当图像读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public Mat getImageMatCopy() throws IOException {
@@ -1252,7 +1248,7 @@ public class OpenCvResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return BytePointer 对象
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当从资源从读取字节数组失败时抛出
 	 * @since 1.1.0
 	 */
 	public BytePointer toBytePointer() throws IOException {
@@ -1288,7 +1284,7 @@ public class OpenCvResource extends IOResource {
 	@Override
 	public synchronized void close() throws IOException {
 		if (Objects.nonNull(this.imageMat)) {
-			this.imageMat.releaseReference();
+			this.imageMat.release();
 		}
 		if (Objects.nonNull(this.imageSize)) {
 			this.imageSize.releaseReference();

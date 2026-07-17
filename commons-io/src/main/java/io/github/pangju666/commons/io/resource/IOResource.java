@@ -189,7 +189,9 @@ public class IOResource implements Closeable {
 			}
 		} else {
 			this.byteArrayOutputStream = new ByteArrayOutputStream(IOUtils.getBufferSize(this.size.toBytes()));
-			this.byteArrayOutputStream.write(resource.newBufferedInputStream());
+			try (InputStream inputStream = resource.newBufferedInputStream()) {
+				this.byteArrayOutputStream.write(inputStream);
+			}
 		}
 	}
 
@@ -390,7 +392,7 @@ public class IOResource implements Closeable {
 	 * </ul>
 	 *
 	 * @return 摘要字符串
-	 * @throws IOException 当资源读取失败或已关闭时抛出
+	 * @throws IOException 当资源读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public String getDigest() throws IOException {
@@ -417,10 +419,9 @@ public class IOResource implements Closeable {
 	 * <p>用于手动设置已计算的摘要值。</p>
 	 *
 	 * @param digest 摘要字符串
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	public void setDigest(String digest) throws IOException {
+	public void setDigest(String digest) {
 		checkClosed();
 
 		this.digest = digest;
@@ -458,7 +459,7 @@ public class IOResource implements Closeable {
 	 * </ul>
 	 *
 	 * @return 文件对象
-	 * @throws IOException 当文件创建失败或资源已关闭时抛出
+	 * @throws IOException 当文件创建失败时抛出
 	 * @since 1.1.0
 	 */
 	public File getFile() throws IOException {
@@ -491,7 +492,7 @@ public class IOResource implements Closeable {
 	 * </ul>
 	 *
 	 * @return 输入流
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当流创建失败时抛出
 	 * @since 1.1.0
 	 */
 	public InputStream openInputStream() throws IOException {
@@ -516,7 +517,7 @@ public class IOResource implements Closeable {
 	 * </ul>
 	 *
 	 * @return 缓冲输入流
-	 * @throws IOException 当资源已关闭时抛出
+	 * @throws IOException 当流创建失败时抛出
 	 * @since 1.1.0
 	 */
 	public InputStream newBufferedInputStream() throws IOException {
@@ -541,7 +542,7 @@ public class IOResource implements Closeable {
 	 * </ul>
 	 *
 	 * @return 字节数组
-	 * @throws IOException 当文件读取失败或资源已关闭时抛出
+	 * @throws IOException 当文件读取失败时抛出
 	 * @since 1.1.0
 	 */
 	public byte[] getBytes() throws IOException {
@@ -674,14 +675,13 @@ public class IOResource implements Closeable {
 
 	/**
 	 * 检查资源是否已关闭
-	 * <p>如果已关闭则抛出IOException。</p>
+	 * <p>如果已关闭则抛出IllegalStateException。</p>
 	 *
-	 * @throws IOException 当资源已关闭时抛出
 	 * @since 1.1.0
 	 */
-	protected void checkClosed() throws IOException {
+	protected void checkClosed() {
 		if (closed) {
-			throw new IOException("IOResource 已关闭，禁止执行操作");
+			throw new IllegalStateException("IOResource 已关闭，禁止执行操作");
 		}
 	}
 

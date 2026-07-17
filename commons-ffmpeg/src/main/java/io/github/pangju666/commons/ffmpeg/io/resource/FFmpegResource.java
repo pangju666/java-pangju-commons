@@ -191,7 +191,7 @@ public class FFmpegResource extends IOResource {
 	 * </ul>
 	 *
 	 * @return FFmpegFrameGrabber 实例，调用方使用完毕后应手动关闭
-	 * @throws IOException 当资源已关闭，或创建输入流失败时抛出
+	 * @throws IOException 当创建输入流失败时抛出
 	 * @since 1.1.0
 	 */
 	public FFmpegFrameGrabber openFrameGrabber() throws IOException {
