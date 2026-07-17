@@ -21,6 +21,7 @@ import com.deepoove.poi.config.Configure;
 import com.deepoove.poi.data.RenderData;
 import com.deepoove.poi.template.ElementTemplate;
 import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.poi.io.resource.DocxResource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -65,7 +66,7 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用{@link DocxResource#compileTemplate()} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static XWPFTemplate compile(final File templateFile) throws IOException {
@@ -81,7 +82,7 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当文件不是DOCX格式时抛出
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用{@link DocxResource#compileTemplate(Configure)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static XWPFTemplate compile(final File templateFile, final Configure configure) throws IOException {
@@ -99,7 +100,7 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用{@link DocxResource#compileTemplate()} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static XWPFTemplate compile(final byte[] bytes) throws IOException {
@@ -115,7 +116,7 @@ public class XWPFTemplateUtils {
 	 * @throws IOException              当字节数组解析失败时抛出
 	 * @throws IllegalArgumentException 当字节数组不是DOCX格式时抛出
 	 * @since 1.0.0
-	 * @deprecated
+	 * @deprecated 请使用{@link DocxResource#compileTemplate(Configure)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static XWPFTemplate compile(final byte[] bytes, final Configure configure) throws IOException {

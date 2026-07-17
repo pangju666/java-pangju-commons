@@ -19,6 +19,7 @@ package io.github.pangju666.commons.poi.utils;
 import io.github.pangju666.commons.io.lang.IOConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.poi.io.resource.DocResource;
 import io.github.pangju666.commons.poi.lang.PoiConstants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -47,7 +48,9 @@ import java.util.Objects;
  *
  * @author pangju666
  * @since 1.0.0
+ * @deprecated 请使用{@link DocResource} 代替
  */
+@Deprecated(forRemoval = true, since = "2.1.0")
 public class HWPFDocumentUtils {
 	protected HWPFDocumentUtils() {
 	}
