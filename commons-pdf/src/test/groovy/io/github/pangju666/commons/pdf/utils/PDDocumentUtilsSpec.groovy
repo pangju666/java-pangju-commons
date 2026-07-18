@@ -2,7 +2,7 @@ package io.github.pangju666.commons.pdf.utils
 
 import io.github.pangju666.commons.pdf.io.resource.PdfImageResource
 import io.github.pangju666.commons.pdf.io.resource.PdfResource
-import io.github.pangju666.commons.pdf.model.PdfRenderOptions
+import io.github.pangju666.commons.pdf.model.PdfRenderOption
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -346,7 +346,7 @@ class PDDocumentUtilsSpec extends Specification {
 		when:
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		options.scale = 2.0f
 		def images = PDDocumentUtils.renderPagesAsImage(doc, options)
 
@@ -376,7 +376,7 @@ class PDDocumentUtilsSpec extends Specification {
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
 		int total = doc.numberOfPages
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		def images = PDDocumentUtils.renderPagesAsImage(doc, [1, 2] as Set, options)
 
 		then:
@@ -405,7 +405,7 @@ class PDDocumentUtilsSpec extends Specification {
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
 		int total = doc.numberOfPages
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		def images = PDDocumentUtils.renderPagesAsImage(doc, Math.min(3, total), options)
 
 		then:
@@ -434,7 +434,7 @@ class PDDocumentUtilsSpec extends Specification {
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
 		int total = doc.numberOfPages
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		def images = PDDocumentUtils.renderPagesAsImage(doc, 1, Math.min(2, total), options)
 
 		then:
@@ -465,7 +465,7 @@ class PDDocumentUtilsSpec extends Specification {
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
 		List<Integer> processedPages = []
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		PDDocumentUtils.renderPagesAsImage(doc, options) { image, page ->
 			processedPages.add(page)
 		}
@@ -512,7 +512,7 @@ class PDDocumentUtilsSpec extends Specification {
 		when:
 		PdfResource pdfResource = new PdfResource(pdfFile)
 		PDDocument doc = pdfResource.getDocument()
-		PdfRenderOptions options = new PdfRenderOptions()
+		PdfRenderOption options = new PdfRenderOption()
 		options.scale = 2.0f
 		def image = PDDocumentUtils.renderPageAsImage(doc, 1, options)
 

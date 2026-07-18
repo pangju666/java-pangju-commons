@@ -37,7 +37,7 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.1.0
  */
-public class TessBaseAPIOptions {
+public class TessBaseAPIOption {
 	/**
 	 * 图像分辨率（每英寸像素数）
 	 *

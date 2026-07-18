@@ -149,7 +149,7 @@ public class ExcelResource extends IOResource {
 					try {
 						workbook = new XSSFWorkbook(OPCPackage.open(file));
 					} catch (InvalidFormatException e) {
-						throw new UnsupportedResourceException("file 不是 xlsx 格式表格文件");
+						throw new UnsupportedResourceException("file 不是 xlsx 格式表格文件", e);
 					}
 				} else {
 					workbook = new XSSFWorkbook(newBufferedInputStream(), true);

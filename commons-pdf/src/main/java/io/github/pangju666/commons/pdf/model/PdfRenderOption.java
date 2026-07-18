@@ -36,7 +36,7 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.1.0
  */
-public class PdfRenderOptions {
+public class PdfRenderOption {
 	/**
 	 * 缩放比例，默认为 1.0
 	 * <p>
