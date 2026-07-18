@@ -1068,7 +1068,7 @@ public class ImageIOResource extends IOResource {
 		}
 		if (!ImageUtils.isSupportReadType(mimeType)) {
 			if (!ImageConstants.getSupportedReadImageFormats().contains(format)) {
-				throw new UnsupportedResourceException("不支持读取 " + format + " 类型图像");
+				throw new UnsupportedResourceException("不支持读取该图像", format, mimeType);
 			}
 		}
 	}
