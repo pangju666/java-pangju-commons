@@ -16,8 +16,9 @@
 
 package io.github.pangju666.commons.io.exception;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
-import java.util.Objects;
 
 /**
  * 不支持的资源异常
@@ -29,6 +30,64 @@ import java.util.Objects;
  * @since 1.1.0
  */
 public class UnsupportedResourceException extends RuntimeException {
+	/**
+	 * 使用异常消息、MIME 类型和格式创建 UnsupportedResourceException
+	 *
+	 * @param message  异常消息
+	 * @param mimeType MIME 类型
+	 * @param format   资源格式
+	 * @since 1.1.0
+	 */
+	public UnsupportedResourceException(String message, String mimeType, String format) {
+		super(String.format("%s，格式：%s，类型：%s", message, StringUtils.defaultString(mimeType),
+			StringUtils.defaultString(format)));
+	}
+
+	/**
+	 * 使用异常消息、文件、MIME 类型和格式创建 UnsupportedResourceException
+	 *
+	 * @param message  异常消息
+	 * @param file     文件对象
+	 * @param mimeType MIME 类型
+	 * @param format   资源格式
+	 * @since 1.1.0
+	 */
+	public UnsupportedResourceException(String message, File file, String mimeType, String format) {
+		super(String.format("%s，文件路径：%s，格式：%s，类型：%s", message,
+			StringUtils.defaultString(file.getAbsolutePath()), StringUtils.defaultString(mimeType),
+			StringUtils.defaultString(format)));
+	}
+
+	/**
+	 * 使用异常消息、MIME 类型、格式和原始异常创建 UnsupportedResourceException
+	 *
+	 * @param message  异常消息
+	 * @param mimeType MIME 类型
+	 * @param format   资源格式
+	 * @param cause    原始异常
+	 * @since 1.1.0
+	 */
+	public UnsupportedResourceException(String message, String mimeType, String format, Throwable cause) {
+		super(String.format("%s，格式：%s，类型：%s", message, StringUtils.defaultString(mimeType),
+			StringUtils.defaultString(format)), cause);
+	}
+
+	/**
+	 * 使用异常消息、文件、MIME 类型、格式和原始异常创建 UnsupportedResourceException
+	 *
+	 * @param message  异常消息
+	 * @param file     文件对象
+	 * @param mimeType MIME 类型
+	 * @param format   资源格式
+	 * @param cause    原始异常
+	 * @since 1.1.0
+	 */
+	public UnsupportedResourceException(String message, File file, String mimeType, String format, Throwable cause) {
+		super(String.format("%s，文件路径：%s，格式：%s，类型：%s", message,
+			StringUtils.defaultString(file.getAbsolutePath()), StringUtils.defaultString(mimeType),
+			StringUtils.defaultString(format)), cause);
+	}
+
 	/**
 	 * 使用异常消息创建 UnsupportedResourceException
 	 *
@@ -48,30 +107,5 @@ public class UnsupportedResourceException extends RuntimeException {
 	 */
 	public UnsupportedResourceException(String message, Throwable cause) {
 		super(message, cause);
-	}
-
-	/**
-	 * 使用文件和异常消息创建 UnsupportedResourceException
-	 * <p>当 {@code file} 不为 {@code null} 时，会自动将文件绝对路径拼接到异常消息中。</p>
-	 *
-	 * @param file    关联文件，可为 {@code null}
-	 * @param message 异常消息
-	 * @since 1.1.0
-	 */
-	public UnsupportedResourceException(File file, String message) {
-		super(Objects.nonNull(file) ? message + "，文件路径：" + file.getAbsolutePath() : message);
-	}
-
-	/**
-	 * 使用文件、异常消息和原因创建 UnsupportedResourceException
-	 * <p>当 {@code file} 不为 {@code null} 时，会自动将文件绝对路径拼接到异常消息中。</p>
-	 *
-	 * @param file    关联文件，可为 {@code null}
-	 * @param message 异常消息
-	 * @param cause   原始异常
-	 * @since 1.1.0
-	 */
-	public UnsupportedResourceException(File file, String message, Throwable cause) {
-		super(Objects.nonNull(file) ? message + "，文件路径：" + file.getAbsolutePath() : message, cause);
 	}
 }
