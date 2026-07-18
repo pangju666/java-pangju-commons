@@ -249,20 +249,20 @@ public class FFmpegConstants {
 	public static final int DEFAULT_AUDIO_CHANNELS = 2;
 
 	/**
-	 * 音频标准采样率
-	 * <p>44100 Hz，CD 音质标准</p>
+	 * CD 音频标准采样率
+	 * <p>44100 Hz，CD 音质标准采样率</p>
 	 *
 	 * @since 1.1.0
 	 */
-	public static final int AUDIO_STANDARD_SAMPLE_RATE = 44100;
+	public static final int CD_STANDARD_SAMPLE_RATE = 44100;
 
 	/**
-	 * 视频标准采样率
-	 * <p>48000 Hz，专业视频音频标准</p>
+	 * 广播音频标准采样率
+	 * <p>48000 Hz，专业视频和广播音频标准采样率</p>
 	 *
 	 * @since 1.1.0
 	 */
-	public static final int VIDEO_STANDARD_SAMPLE_RATE = 48000;
+	public static final int BROADCAST_STANDARD_SAMPLE_RATE = 48000;
 
 	/**
 	 * 私有构造函数，防止实例化

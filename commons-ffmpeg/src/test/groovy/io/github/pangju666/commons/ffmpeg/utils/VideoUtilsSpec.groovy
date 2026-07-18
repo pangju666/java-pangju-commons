@@ -16,9 +16,12 @@
 
 package io.github.pangju666.commons.ffmpeg.utils
 
-
-import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
-import io.github.pangju666.commons.ffmpeg.model.Video
+import io.github.pangju666.commons.ffmpeg.enums.VideoPreset
+import io.github.pangju666.commons.ffmpeg.io.resource.AudioResource
+import io.github.pangju666.commons.ffmpeg.io.resource.VideoResource
+import io.github.pangju666.commons.ffmpeg.model.AudioOutputOption
+import io.github.pangju666.commons.ffmpeg.model.VideoOutputOption
+import io.github.pangju666.commons.io.exception.UnsupportedResourceException
 import io.github.pangju666.commons.io.resource.IOResource
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -35,7 +38,7 @@ class VideoUtilsSpec extends Specification {
 	@TempDir
 	Path tempDir
 
-	def videoFiles = [
+	static def videoFiles = [
 		"1416529-hd_1920_1080_30fps.webm",
 		"1416529-uhd_2560_1440_30fps.mov",
 		"1416529-uhd_2560_1440_30fps.wmv",
@@ -51,10 +54,10 @@ class VideoUtilsSpec extends Specification {
 
 	def "转码到文件 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.transcode(resource, outputFile, outputVideo)
@@ -62,27 +65,35 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "转码到输出流 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def outputVideo = Video.WEBM_1080P
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
+		def outputFile = tempDir.resolve("output.mp4").toFile()
+		def outputStream = outputFile.newOutputStream()
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.transcode(resource, outputStream, outputVideo)
+		outputStream.close()
 
 		then:
 		noExceptionThrown()
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "提取视频流 - 使用源配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.extractVideo(resource, outputFile)
@@ -90,14 +101,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "提取视频流 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.extractVideo(resource, outputFile, outputVideo)
@@ -105,12 +119,15 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "提取视频流到输出流 - 使用源配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
 
 		when:
@@ -119,14 +136,17 @@ class VideoUtilsSpec extends Specification {
 
 		then:
 		noExceptionThrown()
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "提取音频流 - 指定输出配置"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos/video_with_audio.mp4").toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputAudio = Video.AUDIO_AAC_1080P
+		def resource = new VideoResource(videoFile)
+		def outputAudio = AudioOutputOption.aac()
 
 		when:
 		VideoUtils.extractAudio(resource, outputFile, outputAudio)
@@ -138,9 +158,9 @@ class VideoUtilsSpec extends Specification {
 
 	def "裁剪到文件 - 从开头裁剪指定时长"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
@@ -149,13 +169,16 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "裁剪到文件 - 指定时间段"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def start = Duration.ofSeconds(2)
 		def end = Duration.ofSeconds(7)
 
@@ -165,59 +188,19 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
-	def "裁剪到输出流 - 从开头裁剪指定时长"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def duration = Duration.ofSeconds(5)
-
-		when:
-		VideoUtils.cut(resource, outputStream, duration)
-
-		then:
-		noExceptionThrown()
-	}
-
-	def "裁剪到输出流 - 指定时间段"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def start = Duration.ofSeconds(2)
-		def end = Duration.ofSeconds(7)
-
-		when:
-		VideoUtils.cut(resource, outputStream, start, end)
-
-		then:
-		noExceptionThrown()
-	}
-
-	def "拼接 - 使用源配置"() {
-		given:
-		def videoFile1 = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def videoFile2 = Paths.get("src/test/resources/videos", videoFiles[1]).toFile()
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resources = [new FFmpegResource(videoFile1), new FFmpegResource(videoFile2)]
-
-		when:
-		VideoUtils.concat(resources, outputFile)
-
-		then:
-		outputFile.exists()
-		outputFile.length() > 0
-	}
 
 	def "拼接 - 指定输出配置"() {
 		given:
 		def videoFile1 = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def videoFile2 = Paths.get("src/test/resources/videos", videoFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resources = [new FFmpegResource(videoFile1), new FFmpegResource(videoFile2)]
-		def outputVideo = Video.MP4_1080P
+		def resources = [new VideoResource(videoFile1), new VideoResource(videoFile2)]
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.concat(resources, outputFile, outputVideo)
@@ -227,25 +210,11 @@ class VideoUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
-	def "拼接到输出流 - 使用源配置"() {
-		given:
-		def videoFile1 = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def videoFile2 = Paths.get("src/test/resources/videos", videoFiles[1]).toFile()
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def resources = [new FFmpegResource(videoFile1), new FFmpegResource(videoFile2)]
-
-		when:
-		VideoUtils.concat(resources, outputStream)
-
-		then:
-		noExceptionThrown()
-	}
-
 	def "调整速度到文件 - 使用源配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.adjustSpeed(resource, outputFile, 2.0f)
@@ -253,14 +222,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "调整速度到文件 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.adjustSpeed(resource, outputFile, 1.5f, outputVideo)
@@ -268,26 +240,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
-	def "调整速度到输出流 - 使用源配置"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-
-		when:
-		VideoUtils.adjustSpeed(resource, outputStream, 2.0f)
-
-		then:
-		noExceptionThrown()
-	}
 
 	def "抓取图像到文件 - 自动检测格式"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.jpg").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
@@ -296,13 +259,16 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "抓取图像到文件 - 指定格式"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.png").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
@@ -311,26 +277,33 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "抓取图像到OutputStream"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def outputStream = tempDir.resolve("output.jpg").toFile().newOutputStream()
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
 		VideoUtils.grabImageAtTimestamp(resource, timestamp, outputStream, "jpg")
+		outputStream.close()
 
 		then:
 		noExceptionThrown()
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "抓取图像返回BufferedImage"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
@@ -340,12 +313,15 @@ class VideoUtilsSpec extends Specification {
 		image != null
 		image.width > 0
 		image.height > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按间隔抓取图像列表"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def timeUnit = TimeUnit.SECONDS
 
 		when:
@@ -354,12 +330,15 @@ class VideoUtilsSpec extends Specification {
 		then:
 		images != null
 		images.size() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按间隔抓取图像回调"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def timeUnit = TimeUnit.SECONDS
 		def count = 0
 		def consumer = { BufferedImage image, long timestamp ->
@@ -371,12 +350,15 @@ class VideoUtilsSpec extends Specification {
 
 		then:
 		count > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按间隔抓取图像保存到目录 - 默认格式化器"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def timeUnit = TimeUnit.SECONDS
 		def outputDir = tempDir.resolve("images").toFile()
 
@@ -386,12 +368,15 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputDir.exists()
 		outputDir.listFiles().length > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按间隔抓取图像保存到目录 - 自定义格式化器"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
+		def resource = new VideoResource(videoFile)
 		def timeUnit = TimeUnit.SECONDS
 		def outputDir = tempDir.resolve("images").toFile()
 		def formatter = { long timestamp -> "frame_${timestamp}" as String } as Function<Long, String>
@@ -402,13 +387,16 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputDir.exists()
 		outputDir.listFiles().length > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按矩形裁剪到文件 - 输出裁剪分辨率"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByRect(resource, outputFile, 100, 100, 640, 480)
@@ -416,14 +404,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按矩形裁剪到文件 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.cropByRect(resource, outputFile, 100, 100, 640, 480, outputVideo)
@@ -431,26 +422,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
-	def "按矩形裁剪到输出流"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-
-		when:
-		VideoUtils.cropByRect(resource, outputStream, 100, 100, 640, 480)
-
-		then:
-		noExceptionThrown()
-	}
 
 	def "按偏移裁剪到文件 - 输出裁剪分辨率"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByOffset(resource, outputFile, 10, 10, 10, 10)
@@ -458,14 +440,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按偏移裁剪到文件 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.cropByOffset(resource, outputFile, 10, 10, 10, 10, outputVideo)
@@ -473,26 +458,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
-	def "按偏移裁剪到输出流"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-
-		when:
-		VideoUtils.cropByOffset(resource, outputStream, 10, 10, 10, 10)
-
-		then:
-		noExceptionThrown()
-	}
 
 	def "按中心裁剪到文件 - 输出裁剪分辨率"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByCenter(resource, outputFile, 640, 480)
@@ -500,14 +476,17 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "按中心裁剪到文件 - 指定输出配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputVideo = Video.MP4_1080P
+		def resource = new VideoResource(videoFile)
+		def outputVideo = VideoOutputOption.mp4WithH264(VideoPreset.FHD_1080P)
 
 		when:
 		VideoUtils.cropByCenter(resource, outputFile, 640, 480, outputVideo)
@@ -515,28 +494,18 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
-	}
 
-	def "按中心裁剪到输出流"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-
-		when:
-		VideoUtils.cropByCenter(resource, outputStream, 640, 480)
-
-		then:
-		noExceptionThrown()
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "替换音频 - 不循环填充"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[2]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def audioResource = new FFmpegResource(audioFile)
+		def videoResource = new VideoResource(videoFile)
+		def audioResource = new AudioResource(audioFile)
 
 		when:
 		VideoUtils.replaceAudio(videoResource, audioResource, outputFile)
@@ -544,63 +513,18 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
-	}
 
-	def "替换音频 - 循环填充"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[2]).toFile()
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def audioResource = new FFmpegResource(audioFile)
-
-		when:
-		VideoUtils.replaceAudio(videoResource, audioResource, outputFile, true)
-
-		then:
-		outputFile.exists()
-		outputFile.length() > 0
-	}
-
-	def "替换音频 - 指定输出配置"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def audioResource = new FFmpegResource(audioFile)
-		def outputVideo = Video.MP4_1080P
-
-		when:
-		VideoUtils.replaceAudio(videoResource, audioResource, outputFile, outputVideo, false)
-
-		then:
-		outputFile.exists()
-		outputFile.length() > 0
-	}
-
-	def "替换音频到输出流"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[2]).toFile()
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def videoResource = new FFmpegResource(videoFile)
-		def audioResource = new FFmpegResource(audioFile)
-
-		when:
-		VideoUtils.replaceAudio(videoResource, audioResource, outputStream)
-
-		then:
-		noExceptionThrown()
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "添加背景音乐 - 使用默认权重和源配置"() {
 		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
+		def videoFile = Paths.get("src/test/resources/videos", videoFileName).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[2]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def videoResource = new VideoResource(videoFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		VideoUtils.addBgm(videoResource, bgmResource, outputFile)
@@ -608,38 +532,9 @@ class VideoUtilsSpec extends Specification {
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
-	}
 
-	def "添加背景音乐 - 指定权重和输出配置"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(bgmFile)
-		def outputVideo = Video.MP4_1080P
-
-		when:
-		VideoUtils.addBgm(videoResource, bgmResource, outputFile, outputVideo, 0.3f)
-
-		then:
-		outputFile.exists()
-		outputFile.length() > 0
-	}
-
-	def "添加背景音乐到输出流 - 使用默认权重和源配置"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[2]).toFile()
-		def outputStream = tempDir.resolve("output.mp4").toFile().newOutputStream()
-		def videoResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(bgmFile)
-
-		when:
-		VideoUtils.addBgm(videoResource, bgmResource, outputStream)
-
-		then:
-		noExceptionThrown()
+		where:
+		videoFileName << videoFiles
 	}
 
 	def "cut方法 - resource为null时抛出NullPointerException"() {
@@ -658,83 +553,24 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.cut(resource, outputFile, duration)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "cut方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
 		VideoUtils.cut(resource, null as OutputStream, duration)
-
-		then:
-		thrown(NullPointerException)
-	}
-
-	def "concat方法 - resources为null时抛出NullPointerException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-
-		when:
-		VideoUtils.concat(null, outputFile)
-
-		then:
-		thrown(NullPointerException)
-	}
-
-	def "concat方法 - resources为空时抛出IllegalArgumentException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-
-		when:
-		VideoUtils.concat([], outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - resources包含null元素时抛出NullPointerException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resources = [null]
-
-		when:
-		VideoUtils.concat(resources, outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - resources包含非视频类型时抛出IllegalArgumentException"() {
-		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resources = [new FFmpegResource(audioFile)]
-
-		when:
-		VideoUtils.concat(resources, outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - outputStream为null时抛出NullPointerException"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resources = [new FFmpegResource(videoFile)]
-
-		when:
-		VideoUtils.concat(resources, null as OutputStream)
 
 		then:
 		thrown(NullPointerException)
@@ -755,19 +591,19 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.adjustSpeed(resource, outputFile, 2.0f)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "adjustSpeed方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.adjustSpeed(resource, null as OutputStream, 2.0f)
@@ -792,20 +628,20 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.jpg").toFile()
-		def resource = new FFmpegResource(audioFile)
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.grabImageAtTimestamp(resource, timestamp, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "grabImageAtTimestamp方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def timestamp = Duration.ofSeconds(5)
 
 		when:
@@ -830,19 +666,19 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.cropByRect(resource, outputFile, 100, 100, 640, 480)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "cropByRect方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByRect(resource, null as OutputStream, 100, 100, 640, 480)
@@ -866,19 +702,19 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.cropByOffset(resource, outputFile, 10, 10, 10, 10)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "cropByOffset方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByOffset(resource, null as OutputStream, 10, 10, 10, 10)
@@ -902,19 +738,19 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.cropByCenter(resource, outputFile, 640, 480)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "cropByCenter方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.cropByCenter(resource, null as OutputStream, 640, 480)
@@ -927,7 +763,7 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def audioResource = new FFmpegResource(audioFile)
+		def audioResource = new AudioResource(audioFile)
 
 		when:
 		VideoUtils.replaceAudio(null, audioResource, outputFile)
@@ -940,7 +776,7 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
+		def videoResource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.replaceAudio(videoResource, null, outputFile)
@@ -954,14 +790,14 @@ class VideoUtilsSpec extends Specification {
 		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(audioFile1)
-		def audioResource = new FFmpegResource(audioFile2)
 
 		when:
+		def videoResource = new VideoResource(audioFile1)
+		def audioResource = new AudioResource(audioFile2)
 		VideoUtils.replaceAudio(videoResource, audioResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "replaceAudio方法 - audioResource不是音频类型时抛出IllegalArgumentException"() {
@@ -969,22 +805,22 @@ class VideoUtilsSpec extends Specification {
 		def videoFile1 = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def videoFile2 = Paths.get("src/test/resources/videos", videoFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile1)
-		def audioResource = new FFmpegResource(videoFile2)
 
 		when:
+		def videoResource = new VideoResource(videoFile1)
+		def audioResource = new AudioResource(videoFile2)
 		VideoUtils.replaceAudio(videoResource, audioResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "replaceAudio方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def audioResource = new FFmpegResource(audioFile)
+		def videoResource = new VideoResource(videoFile)
+		def audioResource = new AudioResource(audioFile)
 
 		when:
 		VideoUtils.replaceAudio(videoResource, audioResource, null as OutputStream)
@@ -997,7 +833,7 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def bgmResource = new FFmpegResource(bgmFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		VideoUtils.addBgm(null, bgmResource, outputFile)
@@ -1010,7 +846,7 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
+		def videoResource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.addBgm(videoResource, null, outputFile)
@@ -1024,14 +860,14 @@ class VideoUtilsSpec extends Specification {
 		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(audioFile1)
-		def bgmResource = new FFmpegResource(audioFile2)
 
 		when:
+		def videoResource = new VideoResource(audioFile1)
+		def bgmResource = new AudioResource(audioFile2)
 		VideoUtils.addBgm(videoResource, bgmResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addBgm方法 - bgmResource不是音频类型时抛出IllegalArgumentException"() {
@@ -1039,22 +875,22 @@ class VideoUtilsSpec extends Specification {
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def videoFile2 = Paths.get("src/test/resources/videos", videoFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(videoFile2)
 
 		when:
+		def videoResource = new VideoResource(videoFile)
+		def bgmResource = new AudioResource(videoFile2)
 		VideoUtils.addBgm(videoResource, bgmResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addBgm方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def videoResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def videoResource = new VideoResource(videoFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		VideoUtils.addBgm(videoResource, bgmResource, null as OutputStream)
@@ -1078,19 +914,19 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.addTextWatermark(resource, outputFile, "test", "Arial")
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addTextWatermark方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 
 		when:
 		VideoUtils.addTextWatermark(resource, null as OutputStream, "test", "Arial")
@@ -1116,21 +952,21 @@ class VideoUtilsSpec extends Specification {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp4").toFile()
-		def resource = new FFmpegResource(audioFile)
 		def imageFile = Paths.get("src/test/resources/images", "watermark.png").toFile()
 		def watermarkImage = new IOResource(imageFile)
 
 		when:
+		def resource = new VideoResource(audioFile)
 		VideoUtils.addImageWatermark(resource, outputFile, watermarkImage)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addImageWatermark方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", videoFiles[0]).toFile()
-		def resource = new FFmpegResource(videoFile)
+		def resource = new VideoResource(videoFile)
 		def imageFile = Paths.get("src/test/resources/images", "watermark.png").toFile()
 		def watermarkImage = new IOResource(imageFile)
 

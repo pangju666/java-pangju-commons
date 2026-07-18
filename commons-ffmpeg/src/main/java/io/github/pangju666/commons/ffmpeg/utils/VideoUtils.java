@@ -18,17 +18,17 @@ package io.github.pangju666.commons.ffmpeg.utils;
 
 import io.github.pangju666.commons.ffmpeg.builder.FFmpegFiltersBuilder;
 import io.github.pangju666.commons.ffmpeg.enums.FrameType;
-import io.github.pangju666.commons.ffmpeg.io.FFmpegOutputStream;
-import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource;
-import io.github.pangju666.commons.ffmpeg.model.Audio;
+import io.github.pangju666.commons.ffmpeg.io.FFmpegOutputStreamAdapter;
+import io.github.pangju666.commons.ffmpeg.io.resource.AudioResource;
+import io.github.pangju666.commons.ffmpeg.io.resource.VideoResource;
+import io.github.pangju666.commons.ffmpeg.model.AudioOutputOption;
 import io.github.pangju666.commons.ffmpeg.model.ImageWatermarkOption;
 import io.github.pangju666.commons.ffmpeg.model.TextWatermarkOption;
-import io.github.pangju666.commons.ffmpeg.model.Video;
+import io.github.pangju666.commons.ffmpeg.model.VideoOutputOption;
 import io.github.pangju666.commons.io.resource.IOResource;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -66,11 +66,51 @@ import java.util.function.ObjLongConsumer;
  *     <li>图像抓取 - 在指定时间点抓取帧图像或按间隔抓取关键帧</li>
  * </ul>
  * </p>
+ * <h3>使用示例</h3>
+ * <pre>{@code
+ * // 转码视频文件
+ * VideoResource resource = VideoResource.of(new File("input.mp4"));
+ * VideoOutputOption option = VideoOutputOptionBuilder.h264().bitrate(5000000).build();
+ * VideoUtils.transcode(resource, new File("output.mp4"), option);
+ *
+ * // 裁剪视频（从开头裁剪 30 秒）
+ * VideoUtils.cut(resource, new File("cut.mp4"), Duration.ofSeconds(30));
+ *
+ * // 拼接多个视频文件
+ * List<VideoResource> resources = List.of(
+ *     VideoResource.of(new File("part1.mp4")),
+ *     VideoResource.of(new File("part2.mp4"))
+ * );
+ * VideoUtils.concat(resources, new File("merged.mp4"), option);
+ *
+ * // 调整播放速度（2倍速）
+ * VideoUtils.adjustSpeed(resource, new File("fast.mp4"), 2.0f);
+ *
+ * // 添加背景音乐
+ * AudioResource bgm = AudioResource.of(new File("bgm.mp3"));
+ * VideoUtils.addBgm(resource, bgm, new File("with-bgm.mp4"), 0.3f);
+ *
+ * // 添加文字水印
+ * VideoUtils.addTextWatermark(resource, new File("watermarked.mp4"), "水印文字", new File("font.ttf"));
+ *
+ * // 抓取视频帧
+ * BufferedImage image = VideoUtils.grabImageAtTimestamp(resource, Duration.ofSeconds(10));
+ * }</pre>
  *
  * @author pangju666
  * @since 1.1.0
+ * @see FFmpegUtils
+ * @see VideoOutputOption
  */
 public class VideoUtils {
+	/**
+	 * 支持的图片写入格式缓存
+	 * <p>
+	 * 缓存 ImageIO 支持的图片写入格式，避免重复调用 {@link ImageIO#getWriterFormatNames()}。
+	 * </p>
+	 *
+	 * @since 1.1.0
+	 */
 	private static volatile Set<String> SUPPORTED_WRITE_IMAGE_FORMATS;
 
 	/**
@@ -84,25 +124,24 @@ public class VideoUtils {
 	/**
 	 * 将视频资源转码并输出到文件
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputVideo 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void transcode(final FFmpegResource resource, final File outputFile, final Video outputVideo) throws IOException {
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
+	public static void transcode(final VideoResource resource, final File outputFile,
+	                             final VideoOutputOption outputOption) throws IOException {
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputVideo, FrameType.ALL,
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.ALL,
 				false);
 		}
 	}
@@ -112,22 +151,21 @@ public class VideoUtils {
 	 *
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo  输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource、outputStream 或 outputVideo 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param outputOption 输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputStream 或 outputOption 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void transcode(final FFmpegResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
+	public static void transcode(final VideoResource resource, final OutputStream outputStream,
+	                             final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo.getFormat());
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputVideo, FrameType.ALL,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.ALL,
 				false);
 		}
 	}
@@ -140,7 +178,7 @@ public class VideoUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
-	public static void extractVideo(final FFmpegResource resource, final File outputFile) throws IOException {
+	public static void extractVideo(final VideoResource resource, final File outputFile) throws IOException {
 		extractVideo(resource, outputFile, null);
 	}
 
@@ -152,30 +190,30 @@ public class VideoUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 1.1.0
 	 */
-	public static void extractVideo(final FFmpegResource resource, final OutputStream outputStream) throws IOException {
+	public static void extractVideo(final VideoResource resource, final OutputStream outputStream) throws IOException {
 		extractVideo(resource, outputStream, null);
 	}
 
 	/**
 	 * 从视频资源中提取视频流并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void extractVideo(final FFmpegResource resource, final File outputFile, final Video outputVideo) throws IOException {
+	public static void extractVideo(final VideoResource resource, final File outputFile,
+	                                final VideoOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputVideo, FrameType.VIDEO,
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.VIDEO,
 				false);
 		}
 	}
@@ -185,21 +223,20 @@ public class VideoUtils {
 	 *
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo  输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param outputOption 输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void extractVideo(final FFmpegResource resource, final OutputStream outputStream, final Video outputVideo) throws IOException {
+	public static void extractVideo(final VideoResource resource, final OutputStream outputStream,
+	                                final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputVideo, FrameType.VIDEO,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.VIDEO,
 				false);
 		}
 	}
@@ -207,24 +244,24 @@ public class VideoUtils {
 	/**
 	 * 从视频资源中提取音频流并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void extractAudio(final FFmpegResource resource, final File outputFile, final Audio outputAudio) throws IOException {
+	public static void extractAudio(final VideoResource resource, final File outputFile,
+	                                final AudioOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputAudio, "outputAudio 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputAudio, FrameType.AUDIO,
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.AUDIO,
 				false);
 		}
 	}
@@ -234,22 +271,21 @@ public class VideoUtils {
 	 *
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void extractAudio(final FFmpegResource resource, final OutputStream outputStream, final Audio outputAudio) throws IOException {
+	public static void extractAudio(final VideoResource resource, final OutputStream outputStream,
+	                                final AudioOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputAudio, "outputAudio 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputAudio, FrameType.AUDIO,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.AUDIO,
 				false);
 		}
 	}
@@ -260,10 +296,11 @@ public class VideoUtils {
 	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @param duration   裁剪时长
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Duration duration) throws IOException {
+	public static void cut(final VideoResource resource, final File outputFile, final Duration duration) throws IOException {
 		cut(resource, outputFile, null, Duration.ZERO, duration);
 	}
 
@@ -273,10 +310,11 @@ public class VideoUtils {
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @param duration     裁剪时长
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
+	public static void cut(final VideoResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
 		cut(resource, outputStream, null, Duration.ZERO, duration);
 	}
 
@@ -287,10 +325,12 @@ public class VideoUtils {
 	 * @param outputFile 输出文件
 	 * @param start      开始时间
 	 * @param end        结束时间
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
+	public static void cut(final VideoResource resource, final File outputFile, final Duration start,
+	                       final Duration end) throws IOException {
 		cut(resource, outputFile, null, start, end);
 	}
 
@@ -301,10 +341,11 @@ public class VideoUtils {
 	 * @param outputStream 输出流
 	 * @param start        开始时间
 	 * @param end          结束时间
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Duration start,
+	public static void cut(final VideoResource resource, final OutputStream outputStream, final Duration start,
 	                       final Duration end) throws IOException {
 		cut(resource, outputStream, null, start, end);
 	}
@@ -312,18 +353,17 @@ public class VideoUtils {
 	/**
 	 * 从开头裁剪视频到指定时长并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param outputVideo 输出视频配置
-	 * @param duration    裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出视频配置
+	 * @param duration     裁剪时长
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Video outputVideo,
+	public static void cut(final VideoResource resource, final File outputFile, final VideoOutputOption outputOption,
 	                       final Duration duration) throws IOException {
-		cut(resource, outputFile, outputVideo, Duration.ZERO, duration);
+		cut(resource, outputFile, outputOption, Duration.ZERO, duration);
 	}
 
 	/**
@@ -331,190 +371,113 @@ public class VideoUtils {
 	 *
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @param duration     裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Video outputVideo,
-	                       final Duration duration) throws IOException {
-		cut(resource, outputStream, outputVideo, Duration.ZERO, duration);
+	public static void cut(final VideoResource resource, final OutputStream outputStream,
+	                       final VideoOutputOption outputOption, final Duration duration) throws IOException {
+		cut(resource, outputStream, outputOption, Duration.ZERO, duration);
 	}
 
 	/**
 	 * 裁剪指定时间段的视频并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param outputVideo 输出视频配置
-	 * @param start       开始时间
-	 * @param end         结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出视频配置
+	 * @param start        开始时间
+	 * @param end          结束时间
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Video outputVideo,
+	public static void cut(final VideoResource resource, final File outputFile, final VideoOutputOption outputOption,
 	                       final Duration start, final Duration end) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.cut(grabber, recorder, outputVideo, start, end, FrameType.ALL,
+			FFmpegUtils.cut(grabber, recorder, outputOption, start, end, FrameType.ALL,
 				false);
 		}
 	}
 
 	/**
-	 * 裁剪指定时间段的视频并输出到输出流（指定输出音频配置）
+	 * 裁剪指定时间段的视频并输出到输出流（指定输出视频配置）
 	 *
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @param start        开始时间
 	 * @param end          结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Video outputVideo,
+	public static void cut(final VideoResource resource, final OutputStream outputStream, final VideoOutputOption outputOption,
 	                       final Duration start, final Duration end) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.cut(grabber, recorder, outputVideo, start, end, FrameType.ALL,
-				false);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.cut(grabber, recorder, outputOption, start, end, FrameType.ALL, false);
 		}
 	}
 
 	/**
-	 * 拼接多个视频资源并输出到文件（使用源视频配置）
-	 *
-	 * @param resources  视频资源集合
-	 * @param outputFile 输出文件
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
-	 * @since 1.1.0
-	 */
-	public static void concat(final Collection<FFmpegResource> resources, final File outputFile) throws IOException {
-		concat(resources, outputFile, null);
-	}
-
-	/**
-	 * 拼接多个视频资源并输出到输出流（使用源视频配置）
+	 * 拼接多个视频资源并输出到文件
 	 *
 	 * @param resources    视频资源集合
-	 * @param outputStream 输出流
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources、outputStream 为 null 或 resources 包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
+	 * @throws NullPointerException     当 outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 resources 为空或包含 null 元素时
 	 * @since 1.1.0
 	 */
-	public static void concat(final Collection<FFmpegResource> resources, final OutputStream outputStream) throws IOException {
-		concat(resources, outputStream, null);
-	}
-
-	/**
-	 * 拼接多个视频资源并输出到文件（指定输出配置）
-	 *
-	 * @param resources   视频资源集合
-	 * @param outputFile  输出文件
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
-	 * @since 1.1.0
-	 */
-	public static void concat(final Collection<FFmpegResource> resources, final File outputFile, final Video outputVideo) throws IOException {
+	public static void concat(final Collection<VideoResource> resources, final File outputFile,
+	                          final VideoOutputOption outputOption) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		Validate.isTrue(resources.stream().allMatch(resource ->
-			Objects.nonNull(resource) && resource.isVideo()), "resources 中存在为 null 或非视频类型的 FFmpegResource");
+		Validate.isTrue(resources.stream().allMatch(Objects::nonNull),
+			"resources 中存在为 null 的 VideoResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			boolean started = false;
-			for (FFmpegResource resource : resources) {
-				try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
-					grabber.start();
-
-					if (!started) {
-						FFmpegUtils.initRecorder(recorder, grabber, outputVideo, FrameType.ALL);
-						recorder.start();
-						started = true;
-					}
-
-					FFmpegUtils.recordFrames(recorder, grabber, FrameType.ALL, false);
-				}
-			}
+			doConcat(resources, outputOption, recorder);
 		}
 	}
 
 	/**
-	 * 拼接多个视频资源并输出到输出流（指定输出配置）
+	 * 拼接多个视频资源并输出到输出流
 	 *
 	 * @param resources    视频资源集合
 	 * @param outputStream 输出流
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources 或 outputStream 为 null 或 resources 包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非视频类型资源时
+	 * @throws NullPointerException     当 outputStream 或 outputOption 为 null 时
+	 * @throws IllegalArgumentException 当 resources 为空或包含 null 元素时
 	 * @since 1.1.0
 	 */
-	public static void concat(final Collection<FFmpegResource> resources, final OutputStream outputStream,
-	                          final Video outputVideo) throws IOException {
+	public static void concat(final Collection<VideoResource> resources, final OutputStream outputStream,
+	                          final VideoOutputOption outputOption) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.isTrue(resources.stream().allMatch(resource ->
-			Objects.nonNull(resource) && resource.isVideo()), "resources 中存在为 null 或非视频类型的 FFmpegResource");
+		Validate.isTrue(resources.stream().allMatch(Objects::nonNull),
+			"resources 中存在为 null 的 VideoResource");
 
-		FFmpegFrameRecorder recorder = null;
-		FFmpegOutputStream fFmpegOutputStream = null;
-
-		if (Objects.nonNull(outputVideo) && StringUtils.isNotBlank(outputVideo.getFormat())) {
-			fFmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo);
-			recorder = new FFmpegFrameRecorder(fFmpegOutputStream, 0);
-		}
-
-		boolean started = false;
-		for (FFmpegResource resource : resources) {
-			try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
-				grabber.start();
-
-				if (Objects.isNull(fFmpegOutputStream)) {
-					fFmpegOutputStream = new FFmpegOutputStream(outputStream, grabber.getFormat());
-					recorder = new FFmpegFrameRecorder(fFmpegOutputStream, 0);
-				}
-
-				if (!started) {
-					recorder = new FFmpegFrameRecorder(fFmpegOutputStream, 0);
-					FFmpegUtils.initRecorder(recorder, grabber, outputVideo, FrameType.ALL);
-					recorder.start();
-					started = true;
-				}
-
-				FFmpegUtils.recordFrames(recorder, grabber, FrameType.ALL, false);
-			}
-		}
-
-		if (Objects.nonNull(recorder)) {
-			recorder.close();
-		}
-		if (Objects.nonNull(fFmpegOutputStream)) {
-			fFmpegOutputStream.close();
+		try (FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption.getFormat());
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doConcat(resources, outputOption, recorder);
 		}
 	}
 
@@ -524,12 +487,11 @@ public class VideoUtils {
 	 * @param resource   输入视频资源
 	 * @param outputFile 输出文件
 	 * @param speed      播放速度（0.5-100）
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final File outputFile, final float speed) throws IOException {
+	public static void adjustSpeed(final VideoResource resource, final File outputFile, final float speed) throws IOException {
 		adjustSpeed(resource, outputFile, speed, null);
 	}
 
@@ -539,38 +501,35 @@ public class VideoUtils {
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @param speed        播放速度（0.5-100）
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final OutputStream outputStream, final float speed) throws IOException {
+	public static void adjustSpeed(final VideoResource resource, final OutputStream outputStream, final float speed) throws IOException {
 		adjustSpeed(resource, outputStream, speed, null);
 	}
 
 	/**
 	 * 调整视频播放速度并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param speed       播放速度（0.5-100）
-	 * @param outputVideo 输出视频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param speed        播放速度（0.5-100）
+	 * @param outputOption 输出视频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final File outputFile, final float speed,
-	                               final Video outputVideo) throws IOException {
+	public static void adjustSpeed(final VideoResource resource, final File outputFile, final float speed,
+	                               final VideoOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAdjustSpeed(grabber, recorder, speed, outputVideo);
+			doAdjustSpeed(grabber, recorder, speed, outputOption);
 		}
 	}
 
@@ -580,21 +539,20 @@ public class VideoUtils {
 	 * @param resource     输入视频资源
 	 * @param outputStream 输出流
 	 * @param speed        播放速度（0.5-100）
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final OutputStream outputStream, final float speed,
-	                               final Video outputVideo) throws IOException {
+	public static void adjustSpeed(final VideoResource resource, final OutputStream outputStream, final float speed,
+	                               final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doAdjustSpeed(grabber, recorder, speed, outputVideo);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doAdjustSpeed(grabber, recorder, speed, outputOption);
 		}
 	}
 
@@ -605,11 +563,11 @@ public class VideoUtils {
 	 * @param timestamp  时间点
 	 * @param outputFile 输出文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当输出格式不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImageAtTimestamp(final FFmpegResource resource, final Duration timestamp,
+	public static void grabImageAtTimestamp(final VideoResource resource, final Duration timestamp,
 	                                        final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -628,11 +586,11 @@ public class VideoUtils {
 	 * @param outputFile   输出文件
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputFile 或 outputFormat 为 null 时
+	 * @throws IllegalArgumentException 当 outputFormat 为空或不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImageAtTimestamp(final FFmpegResource resource, final Duration timestamp,
+	public static void grabImageAtTimestamp(final VideoResource resource, final Duration timestamp,
 	                                        final File outputFile, final String outputFormat) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
@@ -652,11 +610,11 @@ public class VideoUtils {
 	 * @param outputStream 图像输出流
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputStream 或 outputFormat 为 null 时
+	 * @throws IllegalArgumentException 当 outputFormat 为空或不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImageAtTimestamp(final FFmpegResource resource, final Duration timestamp,
+	public static void grabImageAtTimestamp(final VideoResource resource, final Duration timestamp,
 	                                        final ImageOutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
@@ -674,11 +632,11 @@ public class VideoUtils {
 	 * @param outputStream 输出流
 	 * @param outputFormat 输出图片格式
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputStream 或 outputFormat 为 null 时
+	 * @throws IllegalArgumentException 当 outputFormat 为空或不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImageAtTimestamp(final FFmpegResource resource, final Duration timestamp,
+	public static void grabImageAtTimestamp(final VideoResource resource, final Duration timestamp,
 	                                        final OutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
@@ -694,14 +652,12 @@ public class VideoUtils {
 	 * @param resource  输入视频资源
 	 * @param timestamp 时间点
 	 * @return 抓取的图像
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 为 null 时
 	 * @since 1.1.0
 	 */
-	public static BufferedImage grabImageAtTimestamp(final FFmpegResource resource, final Duration timestamp) throws IOException {
+	public static BufferedImage grabImageAtTimestamp(final VideoResource resource, final Duration timestamp) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
 			return FFmpegUtils.grabImageAtTimestamp(grabber, timestamp);
@@ -715,15 +671,13 @@ public class VideoUtils {
 	 * @param interval 间隔时间
 	 * @param timeUnit 时间单位
 	 * @return 抓取的图像列表
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 timeUnit 为 null 时
 	 * @since 1.1.0
 	 */
-	public static List<BufferedImage> grabImagePeriodically(final FFmpegResource resource, final long interval,
+	public static List<BufferedImage> grabImagePeriodically(final VideoResource resource, final long interval,
 	                                                        final TimeUnit timeUnit) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
 			return FFmpegUtils.grabImagePeriodically(grabber, interval, timeUnit);
@@ -737,15 +691,13 @@ public class VideoUtils {
 	 * @param interval 间隔时间
 	 * @param timeUnit 时间单位
 	 * @param consumer 图像消费者，接收图像和对应的时间戳（微秒）
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 consumer 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、timeUnit 或 consumer 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void grabImagePeriodically(final FFmpegResource resource, final long interval, final TimeUnit timeUnit,
+	public static void grabImagePeriodically(final VideoResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final ObjLongConsumer<BufferedImage> consumer) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.notNull(consumer, "consumer 不可为 null");
 		Validate.notNull(timeUnit, "timeUnit 不可为 null");
 
@@ -762,10 +714,12 @@ public class VideoUtils {
 	 * @param timeUnit     时间单位
 	 * @param outputFormat 输出图片格式
 	 * @param outputDir    输出目录
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource、timeUnit、outputFormat 或 outputDir 为 null 时
+	 * @throws IllegalArgumentException 当 outputFormat 为空或不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImagePeriodically(final FFmpegResource resource, final long interval, final TimeUnit timeUnit,
+	public static void grabImagePeriodically(final VideoResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final String outputFormat, final File outputDir) throws IOException {
 		grabImagePeriodically(resource, interval, timeUnit, outputFormat, outputDir, Object::toString);
 	}
@@ -780,15 +734,14 @@ public class VideoUtils {
 	 * @param outputDir         输出目录
 	 * @param filenameFormatter 文件名格式化器，接收时间戳返回文件名（不含扩展名）
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、timeUnit、outputFormat、outputDir 或 filenameFormatter 为 null 时
+	 * @throws IllegalArgumentException 当 outputFormat 为空或不支持时
 	 * @since 1.1.0
 	 */
-	public static void grabImagePeriodically(final FFmpegResource resource, final long interval, final TimeUnit timeUnit,
+	public static void grabImagePeriodically(final VideoResource resource, final long interval, final TimeUnit timeUnit,
 	                                         final String outputFormat, final File outputDir,
 	                                         final Function<Long, String> filenameFormatter) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
 		Validate.notNull(outputDir, "outputDir 不可为 null");
@@ -818,11 +771,11 @@ public class VideoUtils {
 	 * @param width      裁剪宽度
 	 * @param height     裁剪高度
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final File outputFile, final int x, final int y,
+	public static void cropByRect(final VideoResource resource, final File outputFile, final int x, final int y,
 	                              final int width, final int height) throws IOException {
 		cropByRect(resource, outputFile, x, y, width, height, true);
 	}
@@ -838,10 +791,10 @@ public class VideoUtils {
 	 * @param height       裁剪高度
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final OutputStream outputStream, final int x, final int y,
+	public static void cropByRect(final VideoResource resource, final OutputStream outputStream, final int x, final int y,
 	                              final int width, final int height) throws IOException {
 		cropByRect(resource, outputStream, x, y, width, height, true);
 	}
@@ -857,19 +810,18 @@ public class VideoUtils {
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final File outputFile, final int x, final int y,
+	public static void cropByRect(final VideoResource resource, final File outputFile, final int x, final int y,
 	                              final int width, final int height, final boolean outputCropResolution) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
 
@@ -889,23 +841,23 @@ public class VideoUtils {
 	 * @param width                裁剪宽度
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final OutputStream outputStream, final int x, final int y,
+	public static void cropByRect(final VideoResource resource, final OutputStream outputStream, final int x, final int y,
 	                              final int width, final int height, final boolean outputCropResolution) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
 			doCropByRect(grabber, recorder, x, y, width, height, null, outputCropResolution);
 		}
 	}
@@ -913,34 +865,33 @@ public class VideoUtils {
 	/**
 	 * 通过矩形区域裁剪视频画面并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param x           裁剪区域左上角 x 坐标
-	 * @param y           裁剪区域左上角 y 坐标
-	 * @param width       裁剪宽度
-	 * @param height      裁剪高度
-	 * @param outputVideo 输出视频配置
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param x            裁剪区域左上角 x 坐标
+	 * @param y            裁剪区域左上角 y 坐标
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final File outputFile, final int x, final int y,
-	                              final int width, final int height, final Video outputVideo) throws IOException {
+	public static void cropByRect(final VideoResource resource, final File outputFile, final int x, final int y,
+	                              final int width, final int height, final VideoOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doCropByRect(grabber, recorder, x, y, width, height, outputVideo, false);
+			doCropByRect(grabber, recorder, x, y, width, height, outputOption, false);
 		}
 	}
 
@@ -953,27 +904,26 @@ public class VideoUtils {
 	 * @param y            裁剪区域左上角 y 坐标
 	 * @param width        裁剪宽度
 	 * @param height       裁剪高度
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当坐标参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByRect(final FFmpegResource resource, final OutputStream outputStream, final int x, final int y,
-	                              final int width, final int height, final Video outputVideo) throws IOException {
+	public static void cropByRect(final VideoResource resource, final OutputStream outputStream, final int x, final int y,
+	                              final int width, final int height, final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doCropByRect(grabber, recorder, x, y, width, height, outputVideo, false);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption.getFormat());
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doCropByRect(grabber, recorder, x, y, width, height, outputOption, false);
 		}
 	}
 
@@ -987,11 +937,11 @@ public class VideoUtils {
 	 * @param leftOffset   左侧偏移
 	 * @param rightOffset  右侧偏移
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final File outputFile, final int topOffset,
+	public static void cropByOffset(final VideoResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset) throws IOException {
 		cropByOffset(resource, outputFile, topOffset, bottomOffset, leftOffset, rightOffset, true);
 	}
@@ -1007,10 +957,10 @@ public class VideoUtils {
 	 * @param rightOffset  右侧偏移
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final OutputStream outputStream, final int topOffset,
+	public static void cropByOffset(final VideoResource resource, final OutputStream outputStream, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset) throws IOException {
 		cropByOffset(resource, outputStream, topOffset, bottomOffset, leftOffset, rightOffset, true);
 	}
@@ -1026,16 +976,15 @@ public class VideoUtils {
 	 * @param rightOffset          右侧偏移
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final File outputFile, final int topOffset,
+	public static void cropByOffset(final VideoResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
 	                                final boolean outputCropResolution) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
@@ -1058,22 +1007,22 @@ public class VideoUtils {
 	 * @param leftOffset           左侧偏移
 	 * @param rightOffset          右侧偏移
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final OutputStream outputStream, final int topOffset,
+	public static void cropByOffset(final VideoResource resource, final OutputStream outputStream, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
 	                                final boolean outputCropResolution) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
 			doCropByOffset(grabber, recorder, topOffset, bottomOffset, leftOffset, rightOffset, null,
 				outputCropResolution);
 		}
@@ -1088,19 +1037,18 @@ public class VideoUtils {
 	 * @param bottomOffset 底部偏移
 	 * @param leftOffset   左侧偏移
 	 * @param rightOffset  右侧偏移
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final File outputFile, final int topOffset,
+	public static void cropByOffset(final VideoResource resource, final File outputFile, final int topOffset,
 	                                final int bottomOffset, final int leftOffset, final int rightOffset,
-	                                final Video outputVideo) throws IOException {
+	                                final VideoOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
@@ -1108,7 +1056,7 @@ public class VideoUtils {
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doCropByOffset(grabber, recorder, topOffset, bottomOffset, leftOffset, rightOffset, outputVideo,
+			doCropByOffset(grabber, recorder, topOffset, bottomOffset, leftOffset, rightOffset, outputOption,
 				false);
 		}
 	}
@@ -1122,26 +1070,25 @@ public class VideoUtils {
 	 * @param bottomOffset 底部偏移
 	 * @param leftOffset   左侧偏移
 	 * @param rightOffset  右侧偏移
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 offset 参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByOffset(final FFmpegResource resource, final OutputStream outputStream,
+	public static void cropByOffset(final VideoResource resource, final OutputStream outputStream,
 	                                final int topOffset, final int bottomOffset, final int leftOffset,
-	                                final int rightOffset, final Video outputVideo) throws IOException {
+	                                final int rightOffset, final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.isTrue(topOffset >= 0 && bottomOffset >= 0 && leftOffset >= 0 && rightOffset >= 0,
 			"offset 不能小于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doCropByOffset(grabber, recorder, topOffset, bottomOffset, leftOffset, rightOffset, outputVideo,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption.getFormat());
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doCropByOffset(grabber, recorder, topOffset, bottomOffset, leftOffset, rightOffset, outputOption,
 				false);
 		}
 	}
@@ -1154,11 +1101,11 @@ public class VideoUtils {
 	 * @param width      裁剪宽度
 	 * @param height     裁剪高度
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final File outputFile, final int width,
+	public static void cropByCenter(final VideoResource resource, final File outputFile, final int width,
 	                                final int height) throws IOException {
 		cropByCenter(resource, outputFile, width, height, true);
 	}
@@ -1172,10 +1119,10 @@ public class VideoUtils {
 	 * @param height       裁剪高度
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final OutputStream outputStream, final int width,
+	public static void cropByCenter(final VideoResource resource, final OutputStream outputStream, final int width,
 	                                final int height) throws IOException {
 		cropByCenter(resource, outputStream, width, height, true);
 	}
@@ -1189,17 +1136,16 @@ public class VideoUtils {
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final File outputFile, final int width,
+	public static void cropByCenter(final VideoResource resource, final File outputFile, final int width,
 	                                final int height, final boolean outputCropResolution) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
 
@@ -1217,21 +1163,21 @@ public class VideoUtils {
 	 * @param width                裁剪宽度
 	 * @param height               裁剪高度
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final OutputStream outputStream, final int width,
+	public static void cropByCenter(final VideoResource resource, final OutputStream outputStream, final int width,
 	                                final int height, final boolean outputCropResolution) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
 			doCropByCenter(grabber, recorder, width, height, null, outputCropResolution);
 		}
 	}
@@ -1239,30 +1185,29 @@ public class VideoUtils {
 	/**
 	 * 通过中心裁剪视频画面并输出到文件（指定输出视频配置）
 	 *
-	 * @param resource    输入视频资源
-	 * @param outputFile  输出文件
-	 * @param width       裁剪宽度
-	 * @param height      裁剪高度
-	 * @param outputVideo 输出视频配置
+	 * @param resource     输入视频资源
+	 * @param outputFile   输出文件
+	 * @param width        裁剪宽度
+	 * @param height       裁剪高度
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final File outputFile, final int width,
-	                                final int height, final Video outputVideo) throws IOException {
+	public static void cropByCenter(final VideoResource resource, final File outputFile, final int width,
+	                                final int height, final VideoOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doCropByCenter(grabber, recorder, width, height, outputVideo, false);
+			doCropByCenter(grabber, recorder, width, height, outputOption, false);
 		}
 	}
 
@@ -1273,25 +1218,24 @@ public class VideoUtils {
 	 * @param outputStream 输出流
 	 * @param width        裁剪宽度
 	 * @param height       裁剪高度
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当宽高参数小于0或越界时
 	 * @since 1.1.0
 	 */
-	public static void cropByCenter(final FFmpegResource resource, final OutputStream outputStream, final int width,
-	                                final int height, final Video outputVideo) throws IOException {
+	public static void cropByCenter(final VideoResource resource, final OutputStream outputStream, final int width,
+	                                final int height, final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.notNull(outputVideo, "outputVideo 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doCropByCenter(grabber, recorder, width, height, outputVideo, false);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption.getFormat());
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doCropByCenter(grabber, recorder, width, height, outputOption, false);
 		}
 	}
 
@@ -1302,11 +1246,10 @@ public class VideoUtils {
 	 * @param audioResource 音频资源
 	 * @param outputFile    输出文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
 	                                final File outputFile) throws IOException {
 		replaceAudio(videoResource, audioResource, outputFile, null, false);
 	}
@@ -1318,11 +1261,10 @@ public class VideoUtils {
 	 * @param audioResource 音频资源
 	 * @param outputStream  输出流
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
 	                                final OutputStream outputStream) throws IOException {
 		replaceAudio(videoResource, audioResource, outputStream, null, false);
 	}
@@ -1335,11 +1277,10 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
 	                                final File outputFile, final boolean loopFillAudio) throws IOException {
 		replaceAudio(videoResource, audioResource, outputFile, null, loopFillAudio);
 	}
@@ -1352,11 +1293,10 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
 	                                final OutputStream outputStream, final boolean loopFillAudio) throws IOException {
 		replaceAudio(videoResource, audioResource, outputStream, null, loopFillAudio);
 	}
@@ -1367,15 +1307,14 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
-	                                final File outputFile, final Video outputVideo) throws IOException {
-		replaceAudio(videoResource, audioResource, outputFile, outputVideo, false);
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
+	                                final File outputFile, final VideoOutputOption outputOption) throws IOException {
+		replaceAudio(videoResource, audioResource, outputFile, outputOption, false);
 	}
 
 	/**
@@ -1384,15 +1323,14 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
-	                                final OutputStream outputStream, final Video outputVideo) throws IOException {
-		replaceAudio(videoResource, audioResource, outputStream, outputVideo, false);
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
+	                                final OutputStream outputStream, final VideoOutputOption outputOption) throws IOException {
+		replaceAudio(videoResource, audioResource, outputStream, outputOption, false);
 	}
 
 	/**
@@ -1401,27 +1339,25 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
-	                                final File outputFile, final Video outputVideo, final boolean loopFillAudio) throws IOException {
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
+	                                final File outputFile, final VideoOutputOption outputOption,
+	                                final boolean loopFillAudio) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		Validate.notNull(videoResource, "resource 不可为 null");
-		Validate.isTrue(videoResource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.notNull(audioResource, "resource 不可为 null");
-		Validate.isTrue(audioResource.isAudio(), "不是音频类型 FFmpegResource");
+		Validate.notNull(videoResource, "videoResource 不可为 null");
+		Validate.notNull(audioResource, "audioResource 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber videoGrabber = videoResource.openFrameGrabber();
 		     FFmpegFrameGrabber audioGrabber = audioResource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, loopFillAudio);
+			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputOption, loopFillAudio);
 		}
 	}
 
@@ -1431,26 +1367,24 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param audioResource 音频资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 audioResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 audioResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、audioResource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void replaceAudio(final FFmpegResource videoResource, final FFmpegResource audioResource,
-	                                final OutputStream outputStream, final Video outputVideo, final boolean loopFillAudio) throws IOException {
+	public static void replaceAudio(final VideoResource videoResource, final AudioResource audioResource,
+	                                final OutputStream outputStream, final VideoOutputOption outputOption,
+	                                final boolean loopFillAudio) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.notNull(videoResource, "resource 不可为 null");
-		Validate.isTrue(videoResource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.notNull(audioResource, "resource 不可为 null");
-		Validate.isTrue(audioResource.isAudio(), "不是音频类型 FFmpegResource");
+		Validate.notNull(videoResource, "videoResource 不可为 null");
+		Validate.notNull(audioResource, "audioResource 不可为 null");
 
 		try (FFmpegFrameGrabber videoGrabber = videoResource.openFrameGrabber();
 		     FFmpegFrameGrabber audioGrabber = audioResource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, videoGrabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputVideo, loopFillAudio);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, videoGrabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doReplaceAudio(videoGrabber, audioGrabber, recorder, outputOption, loopFillAudio);
 		}
 	}
 
@@ -1461,11 +1395,10 @@ public class VideoUtils {
 	 * @param bgmResource   背景音乐资源
 	 * @param outputFile    输出文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
 	                          final File outputFile) throws IOException {
 		addBgm(videoResource, bgmResource, outputFile, null, AudioUtils.DEFAULT_BGM_WEIGHT);
 	}
@@ -1477,11 +1410,10 @@ public class VideoUtils {
 	 * @param bgmResource   背景音乐资源
 	 * @param outputStream  输出流
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
 	                          final OutputStream outputStream) throws IOException {
 		addBgm(videoResource, bgmResource, outputStream, null, AudioUtils.DEFAULT_BGM_WEIGHT);
 	}
@@ -1492,15 +1424,14 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param bgmResource   背景音乐资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource、outputOption 或 outputFile 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
-	                          final File outputFile, final Video outputVideo) throws IOException {
-		addBgm(videoResource, bgmResource, outputFile, outputVideo, AudioUtils.DEFAULT_BGM_WEIGHT);
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
+	                          final File outputFile, final VideoOutputOption outputOption) throws IOException {
+		addBgm(videoResource, bgmResource, outputFile, outputOption, AudioUtils.DEFAULT_BGM_WEIGHT);
 	}
 
 	/**
@@ -1509,15 +1440,14 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param bgmResource   背景音乐资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource、outputOption 或 outputStream 为 null 时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
-	                          final OutputStream outputStream, final Video outputVideo) throws IOException {
-		addBgm(videoResource, bgmResource, outputStream, outputVideo, AudioUtils.DEFAULT_BGM_WEIGHT);
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
+	                          final OutputStream outputStream, final VideoOutputOption outputOption) throws IOException {
+		addBgm(videoResource, bgmResource, outputStream, outputOption, AudioUtils.DEFAULT_BGM_WEIGHT);
 	}
 
 	/**
@@ -1528,11 +1458,11 @@ public class VideoUtils {
 	 * @param outputFile    输出文件
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 不大于0时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
 	                          final File outputFile, final float bgmWeight) throws IOException {
 		addBgm(videoResource, bgmResource, outputFile, null, bgmWeight);
 	}
@@ -1545,11 +1475,11 @@ public class VideoUtils {
 	 * @param outputStream  输出流
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 不大于0时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
 	                          final OutputStream outputStream, final float bgmWeight) throws IOException {
 		addBgm(videoResource, bgmResource, outputStream, null, bgmWeight);
 	}
@@ -1560,20 +1490,19 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param bgmResource   背景音乐资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 不大于0时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
-	                          final File outputFile, final Video outputVideo, final float bgmWeight) throws IOException {
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
+	                          final File outputFile, final VideoOutputOption outputOption,
+	                          final float bgmWeight) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(videoResource, "videoResource 不可为 null");
 		Validate.notNull(bgmResource, "bgmResource 不可为 null");
-		Validate.isTrue(videoResource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(bgmResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.isTrue(bgmWeight > 0, "bgmWeight 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
@@ -1581,7 +1510,7 @@ public class VideoUtils {
 		try (FFmpegFrameGrabber videoGrabber = videoResource.openFrameGrabber();
 		     FFmpegFrameGrabber bgmGrabber = bgmResource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAddBgm(videoGrabber, bgmGrabber, recorder, outputVideo, bgmWeight);
+			doAddBgm(videoGrabber, bgmGrabber, recorder, outputOption, bgmWeight);
 		}
 	}
 
@@ -1591,27 +1520,26 @@ public class VideoUtils {
 	 * @param videoResource 视频资源
 	 * @param bgmResource   背景音乐资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param bgmWeight     背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 outputStream、videoResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 videoResource 不是视频类型或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 videoResource、bgmResource、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 不大于0时
 	 * @since 1.1.0
 	 */
-	public static void addBgm(final FFmpegResource videoResource, final FFmpegResource bgmResource,
-	                          final OutputStream outputStream, final Video outputVideo, final float bgmWeight) throws IOException {
+	public static void addBgm(final VideoResource videoResource, final AudioResource bgmResource,
+	                          final OutputStream outputStream, final VideoOutputOption outputOption,
+	                          final float bgmWeight) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(videoResource, "videoResource 不可为 null");
 		Validate.notNull(bgmResource, "bgmResource 不可为 null");
-		Validate.isTrue(videoResource.isVideo(), "不是视频类型 FFmpegResource");
-		Validate.isTrue(bgmResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.isTrue(bgmWeight > 0, "bgmWeight 必须大于0");
 
 		try (FFmpegFrameGrabber videoGrabber = videoResource.openFrameGrabber();
 		     FFmpegFrameGrabber bgmGrabber = bgmResource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, videoGrabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doAddBgm(videoGrabber, bgmGrabber, recorder, outputVideo, bgmWeight);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, videoGrabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doAddBgm(videoGrabber, bgmGrabber, recorder, outputOption, bgmWeight);
 		}
 	}
 
@@ -1623,11 +1551,11 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontFile 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final String watermarkText,
+	public static void addTextWatermark(final VideoResource resource, final File outputFile, final String watermarkText,
 	                                    final File fontFile) throws IOException {
 		addTextWatermark(resource, outputFile, null, watermarkText, new TextWatermarkOption(fontFile));
 	}
@@ -1640,12 +1568,12 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontFile 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream, final String watermarkText,
-	                                    final File fontFile) throws IOException {
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                    final String watermarkText, final File fontFile) throws IOException {
 		addTextWatermark(resource, outputStream, null, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
@@ -1657,11 +1585,11 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontName 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final String watermarkText,
+	public static void addTextWatermark(final VideoResource resource, final File outputFile, final String watermarkText,
 	                                    final String fontName) throws IOException {
 		addTextWatermark(resource, outputFile, null, watermarkText, new TextWatermarkOption(fontName));
 	}
@@ -1674,11 +1602,11 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontName 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream, final String watermarkText,
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream, final String watermarkText,
 	                                    final String fontName) throws IOException {
 		addTextWatermark(resource, outputStream, null, watermarkText, new TextWatermarkOption(fontName));
 	}
@@ -1691,11 +1619,11 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、option 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final String watermarkText,
+	public static void addTextWatermark(final VideoResource resource, final File outputFile, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
 		addTextWatermark(resource, outputFile, null, watermarkText, option);
 	}
@@ -1708,12 +1636,12 @@ public class VideoUtils {
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、option 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream, final String watermarkText,
-	                                    final TextWatermarkOption option) throws IOException {
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                    final String watermarkText, final TextWatermarkOption option) throws IOException {
 		addTextWatermark(resource, outputStream, null, watermarkText, option);
 	}
 
@@ -1722,17 +1650,18 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontFile、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final Video outputVideo,
-	                                    final String watermarkText, final File fontFile) throws IOException {
-		addTextWatermark(resource, outputFile, outputVideo, watermarkText, new TextWatermarkOption(fontFile));
+	public static void addTextWatermark(final VideoResource resource, final File outputFile,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
+	                                    final File fontFile) throws IOException {
+		addTextWatermark(resource, outputFile, outputOption, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
 	/**
@@ -1740,17 +1669,18 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param fontFile      字体文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontFile、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String watermarkText, final File fontFile) throws IOException {
-		addTextWatermark(resource, outputStream, outputVideo, watermarkText, new TextWatermarkOption(fontFile));
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
+	                                    final File fontFile) throws IOException {
+		addTextWatermark(resource, outputStream, outputOption, watermarkText, new TextWatermarkOption(fontFile));
 	}
 
 	/**
@@ -1758,17 +1688,18 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontName、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final Video outputVideo,
-	                                    final String watermarkText, final String fontName) throws IOException {
-		addTextWatermark(resource, outputFile, outputVideo, watermarkText, new TextWatermarkOption(fontName));
+	public static void addTextWatermark(final VideoResource resource, final File outputFile,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
+	                                    final String fontName) throws IOException {
+		addTextWatermark(resource, outputFile, outputOption, watermarkText, new TextWatermarkOption(fontName));
 	}
 
 	/**
@@ -1776,17 +1707,18 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param fontName      字体名称
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、fontName、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String watermarkText, final String fontName) throws IOException {
-		addTextWatermark(resource, outputStream, outputVideo, watermarkText, new TextWatermarkOption(fontName));
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
+	                                    final String fontName) throws IOException {
+		addTextWatermark(resource, outputStream, outputOption, watermarkText, new TextWatermarkOption(fontName));
 	}
 
 	/**
@@ -1794,19 +1726,19 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputFile    输出文件
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkText、option、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final File outputFile, final Video outputVideo,
-	                                    final String watermarkText, final TextWatermarkOption option) throws IOException {
+	public static void addTextWatermark(final VideoResource resource, final File outputFile,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
+	                                    final TextWatermarkOption option) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notBlank(watermarkText, "watermarkText 不能为空");
 
@@ -1814,7 +1746,7 @@ public class VideoUtils {
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAddTextWatermark(grabber, recorder, outputVideo, watermarkText, option);
+			doAddTextWatermark(grabber, recorder, outputOption, watermarkText, option);
 		}
 	}
 
@@ -1823,26 +1755,26 @@ public class VideoUtils {
 	 *
 	 * @param resource      输入视频资源
 	 * @param outputStream  输出流
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource、watermarkText、option、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkText 为空时
 	 * @since 1.1.0
 	 */
-	public static void addTextWatermark(final FFmpegResource resource, final OutputStream outputStream,
-	                                    final Video outputVideo, final String watermarkText,
+	public static void addTextWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                    final VideoOutputOption outputOption, final String watermarkText,
 	                                    final TextWatermarkOption option) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notBlank(watermarkText, "watermarkText 不能为空");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doAddTextWatermark(grabber, recorder, outputVideo, watermarkText, option);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doAddTextWatermark(grabber, recorder, outputOption, watermarkText, option);
 		}
 	}
 
@@ -1853,11 +1785,11 @@ public class VideoUtils {
 	 * @param outputFile     输出文件
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final File outputFile, final IOResource watermarkImage) throws IOException {
+	public static void addImageWatermark(final VideoResource resource, final File outputFile, final IOResource watermarkImage) throws IOException {
 		addImageWatermark(resource, outputFile, null, watermarkImage, new ImageWatermarkOption());
 	}
 
@@ -1868,11 +1800,11 @@ public class VideoUtils {
 	 * @param outputStream   输出流
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final OutputStream outputStream,
+	public static void addImageWatermark(final VideoResource resource, final OutputStream outputStream,
 	                                     final IOResource watermarkImage) throws IOException {
 		addImageWatermark(resource, outputStream, null, watermarkImage, new ImageWatermarkOption());
 	}
@@ -1885,12 +1817,12 @@ public class VideoUtils {
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage、option 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final File outputFile, final IOResource watermarkImage,
-	                                     final ImageWatermarkOption option) throws IOException {
+	public static void addImageWatermark(final VideoResource resource, final File outputFile,
+	                                     final IOResource watermarkImage, final ImageWatermarkOption option) throws IOException {
 		addImageWatermark(resource, outputFile, null, watermarkImage, option);
 	}
 
@@ -1902,11 +1834,11 @@ public class VideoUtils {
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage、option 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final OutputStream outputStream,
+	public static void addImageWatermark(final VideoResource resource, final OutputStream outputStream,
 	                                     final IOResource watermarkImage, final ImageWatermarkOption option) throws IOException {
 		addImageWatermark(resource, outputStream, null, watermarkImage, option);
 	}
@@ -1916,16 +1848,16 @@ public class VideoUtils {
 	 *
 	 * @param resource       输入视频资源
 	 * @param outputFile     输出文件
-	 * @param outputVideo    输出视频配置
+	 * @param outputOption   输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final File outputFile, final Video outputVideo,
+	public static void addImageWatermark(final VideoResource resource, final File outputFile, final VideoOutputOption outputOption,
 	                                     final IOResource watermarkImage) throws IOException {
-		addImageWatermark(resource, outputFile, outputVideo, watermarkImage, new ImageWatermarkOption());
+		addImageWatermark(resource, outputFile, outputOption, watermarkImage, new ImageWatermarkOption());
 	}
 
 	/**
@@ -1933,16 +1865,16 @@ public class VideoUtils {
 	 *
 	 * @param resource       输入视频资源
 	 * @param outputStream   输出流
-	 * @param outputVideo    输出视频配置
+	 * @param outputOption   输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是视频类型时
+	 * @throws NullPointerException     当 resource、watermarkImage、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final OutputStream outputStream,
-	                                     final Video outputVideo, final IOResource watermarkImage) throws IOException {
-		addImageWatermark(resource, outputStream, outputVideo, watermarkImage, new ImageWatermarkOption());
+	public static void addImageWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                     final VideoOutputOption outputOption, final IOResource watermarkImage) throws IOException {
+		addImageWatermark(resource, outputStream, outputOption, watermarkImage, new ImageWatermarkOption());
 	}
 
 	/**
@@ -1950,17 +1882,18 @@ public class VideoUtils {
 	 *
 	 * @param resource       输入视频资源
 	 * @param outputFile     输出文件
-	 * @param outputVideo    输出视频配置
+	 * @param outputOption   输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
-	 * @throws IOException 当 I/O 错误发生时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource、watermarkImage、option、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final File outputFile, final Video outputVideo,
+	public static void addImageWatermark(final VideoResource resource, final File outputFile, final VideoOutputOption outputOption,
 	                                     final IOResource watermarkImage, final ImageWatermarkOption option) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 		Validate.isTrue(watermarkImage.isImage(), "watermarkImage 不是图片资源");
@@ -1969,7 +1902,7 @@ public class VideoUtils {
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			doAddImageWatermark(grabber, recorder, outputVideo, watermarkImage, option);
+			doAddImageWatermark(grabber, recorder, outputOption, watermarkImage, option);
 		}
 	}
 
@@ -1978,43 +1911,43 @@ public class VideoUtils {
 	 *
 	 * @param resource       输入视频资源
 	 * @param outputStream   输出流
-	 * @param outputVideo    输出视频配置
+	 * @param outputOption   输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 resource、watermarkImage、option、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 watermarkImage 不是图片资源时
 	 * @since 1.1.0
 	 */
-	public static void addImageWatermark(final FFmpegResource resource, final OutputStream outputStream,
-	                                     final Video outputVideo, final IOResource watermarkImage,
+	public static void addImageWatermark(final VideoResource resource, final OutputStream outputStream,
+	                                     final VideoOutputOption outputOption, final IOResource watermarkImage,
 	                                     final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isVideo(), "不是视频类型 FFmpegResource");
 		Validate.notNull(option, "option 不可为 null");
 		Validate.notNull(watermarkImage, "watermarkImage 不可为 null");
 		Validate.isTrue(watermarkImage.isImage(), "watermarkImage 不是图片资源");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputVideo, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			doAddImageWatermark(grabber, recorder, outputVideo, watermarkImage, option);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			doAddImageWatermark(grabber, recorder, outputOption, watermarkImage, option);
 		}
 	}
 
 	/**
 	 * 内部方法：执行调整视频播放速度
 	 *
-	 * @param grabber     视频抓取器
-	 * @param recorder    帧录制器
-	 * @param speed       播放速度（0.5-100）
-	 * @param outputVideo 输出视频配置
+	 * @param grabber      视频抓取器
+	 * @param recorder     帧录制器
+	 * @param speed        播放速度（0.5-100）
+	 * @param outputOption 输出视频配置
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 grabber 或 recorder 为 null 时
 	 * @since 1.1.0
 	 */
 	protected static void doAdjustSpeed(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder, final float speed,
-	                                    final Video outputVideo) throws IOException {
+	                                    final VideoOutputOption outputOption) throws IOException {
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
 
@@ -2027,7 +1960,7 @@ public class VideoUtils {
 			.addGlobalFilter(FFmpegUtils.getFpsFilter(grabber.getFrameRate()))
 			.build();
 
-		FFmpegUtils.applyFilter(grabber, recorder, outputVideo, videoFilters,
+		FFmpegUtils.applyFilter(grabber, recorder, outputOption, videoFilters,
 			grabber.hasAudio() ? FFmpegUtils.getAtempoFilter(speed) : null, FrameType.ALL,
 			false);
 	}
@@ -2041,7 +1974,7 @@ public class VideoUtils {
 	 * @param bottomOffset         底部偏移
 	 * @param leftOffset           左侧偏移
 	 * @param rightOffset          右侧偏移
-	 * @param outputVideo          输出视频配置
+	 * @param outputOption         输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 grabber 或 recorder 为 null 时
@@ -2050,7 +1983,7 @@ public class VideoUtils {
 	 */
 	protected static void doCropByOffset(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                     final int topOffset, final int bottomOffset, final int leftOffset,
-	                                     final int rightOffset, final Video outputVideo,
+	                                     final int rightOffset, final VideoOutputOption outputOption,
 	                                     final boolean outputCropResolution) throws IOException {
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
@@ -2070,16 +2003,16 @@ public class VideoUtils {
 				videoWidth, videoHeight, topOffset, bottomOffset, leftOffset, rightOffset));
 		}
 
-		Video cropOutputVideo = outputVideo;
+		VideoOutputOption cropOutputOption = outputOption;
 		if (outputCropResolution) {
-			cropOutputVideo = Video.builder(grabber)
-				.resolution(videoWidth - leftOffset - rightOffset, videoHeight - topOffset - bottomOffset)
-				.build();
+			cropOutputOption = new VideoOutputOption(grabber);
+			cropOutputOption.setImageWidth(videoWidth - leftOffset - rightOffset);
+			cropOutputOption.setImageHeight(videoHeight - topOffset - bottomOffset);
 		}
 
-		FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
-			String.format("crop=%d:%d:%s:%s", leftOffset, topOffset, "iw-" + (leftOffset + rightOffset),
-				"ih-" + (topOffset + bottomOffset)), null, FrameType.ALL, false);
+		FFmpegUtils.applyFilter(grabber, recorder, cropOutputOption, String.format("crop=%d:%d:%s:%s",
+				leftOffset, topOffset, "iw-" + (leftOffset + rightOffset), "ih-" + (topOffset + bottomOffset)),
+			null, FrameType.ALL, false);
 	}
 
 	/**
@@ -2091,7 +2024,7 @@ public class VideoUtils {
 	 * @param y                    裁剪区域左上角 y 坐标
 	 * @param width                裁剪宽度
 	 * @param height               裁剪高度
-	 * @param outputVideo          输出视频配置
+	 * @param outputOption         输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 grabber 或 recorder 为 null 时
@@ -2100,13 +2033,13 @@ public class VideoUtils {
 	 */
 	protected static void doCropByRect(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
 	                                   final int x, final int y, final int width, final int height,
-	                                   final Video outputVideo, final boolean outputCropResolution) throws IOException {
-		Validate.notNull(grabber, "resource 不可为 null");
+	                                   final VideoOutputOption outputOption, final boolean outputCropResolution) throws IOException {
+		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.isTrue(x >= 0, "x 不能小于0");
 		Validate.isTrue(y >= 0, "y 不能小于0");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		if (FFmpegUtils.isNotStarted(grabber)) {
 			grabber.start();
@@ -2121,14 +2054,15 @@ public class VideoUtils {
 				videoWidth, videoHeight, x, y, width, height));
 		}
 
-		Video cropOutputVideo = outputVideo;
+		VideoOutputOption cropOutputOption = outputOption;
 		if (outputCropResolution) {
-			cropOutputVideo = Video.builder(grabber).resolution(width, height).build();
+			cropOutputOption = new VideoOutputOption(grabber);
+			cropOutputOption.setImageWidth(videoWidth);
+			cropOutputOption.setImageHeight(videoHeight);
 		}
 
-		FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
-			FFmpegUtils.getCropFilter(x, y, width, height), null, FrameType.ALL,
-			false);
+		FFmpegUtils.applyFilter(grabber, recorder, cropOutputOption, FFmpegUtils.getCropFilter(
+			x, y, width, height), null, FrameType.ALL, false);
 	}
 
 	/**
@@ -2138,7 +2072,7 @@ public class VideoUtils {
 	 * @param recorder             帧录制器
 	 * @param width                裁剪宽度
 	 * @param height               裁剪高度
-	 * @param outputVideo          输出视频配置
+	 * @param outputOption         输出视频配置
 	 * @param outputCropResolution 是否输出裁剪后的分辨率
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 grabber 或 recorder 为 null 时
@@ -2146,12 +2080,12 @@ public class VideoUtils {
 	 * @since 1.1.0
 	 */
 	protected static void doCropByCenter(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
-	                                     final int width, final int height, final Video outputVideo,
+	                                     final int width, final int height, final VideoOutputOption outputOption,
 	                                     final boolean outputCropResolution) throws IOException {
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
-		Validate.isTrue(width > 0, "width 不能小于0");
-		Validate.isTrue(height > 0, "height 不能小于0");
+		Validate.isTrue(width > 0, "width 必须大于0");
+		Validate.isTrue(height > 0, "height 必须大于0");
 
 		if (FFmpegUtils.isNotStarted(grabber)) {
 			grabber.start();
@@ -2165,15 +2099,16 @@ public class VideoUtils {
 				videoWidth, videoHeight, width, height));
 		}
 
-		Video cropOutputVideo = outputVideo;
+		VideoOutputOption cropOutputOption = outputOption;
 		if (outputCropResolution) {
-			cropOutputVideo = Video.builder(grabber).resolution(width, height).build();
+			cropOutputOption = new VideoOutputOption(grabber);
+			cropOutputOption.setImageWidth(width);
+			cropOutputOption.setImageHeight(height);
 		}
 
-		FFmpegUtils.applyFilter(grabber, recorder, outputVideo, cropOutputVideo,
-			FFmpegUtils.getCropFilter((videoWidth - width) / 2,
-				(videoHeight - height) / 2, width, height), null, FrameType.ALL,
-			false);
+		FFmpegUtils.applyFilter(grabber, recorder, cropOutputOption, FFmpegUtils.getCropFilter(
+				(videoWidth - width) / 2, (videoHeight - height) / 2, width, height),
+			null, FrameType.ALL, false);
 	}
 
 	/**
@@ -2182,7 +2117,7 @@ public class VideoUtils {
 	 * @param videoGrabber 视频抓取器
 	 * @param bgmGrabber   背景音乐抓取器
 	 * @param recorder     帧录制器
-	 * @param outputVideo  输出视频配置
+	 * @param outputOption 输出视频配置
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 videoGrabber、bgmGrabber 或 recorder 为 null 时
@@ -2190,7 +2125,8 @@ public class VideoUtils {
 	 * @since 1.1.0
 	 */
 	protected static void doAddBgm(final FFmpegFrameGrabber videoGrabber, final FFmpegFrameGrabber bgmGrabber,
-	                               final FFmpegFrameRecorder recorder, final Video outputVideo, final float bgmWeight) throws IOException {
+	                               final FFmpegFrameRecorder recorder, final VideoOutputOption outputOption,
+	                               final float bgmWeight) throws IOException {
 		Validate.notNull(videoGrabber, "videoGrabber 不可为 null");
 		Validate.notNull(bgmGrabber, "bgmGrabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
@@ -2204,12 +2140,12 @@ public class VideoUtils {
 		}
 
 		if (!videoGrabber.hasAudio()) {
-			doReplaceAudio(videoGrabber, bgmGrabber, recorder, outputVideo, true);
+			doReplaceAudio(videoGrabber, bgmGrabber, recorder, outputOption, true);
 		} else {
-			Video video = Video.parse(videoGrabber);
+			VideoOutputOption defaultOutputOption = new VideoOutputOption(videoGrabber);
 
-			FFmpegUtils.applyFilter(List.of(videoGrabber, bgmGrabber), recorder, video,
-				ObjectUtils.defaultIfNull(outputVideo, video), null,
+			FFmpegUtils.applyFilter(List.of(videoGrabber, bgmGrabber), recorder,
+				ObjectUtils.defaultIfNull(outputOption, defaultOutputOption), null,
 				FFmpegUtils.getAddBgmFilter(videoGrabber, bgmGrabber, bgmWeight),
 				FrameType.ALL, false);
 		}
@@ -2220,7 +2156,7 @@ public class VideoUtils {
 	 *
 	 * @param grabber       视频抓取器
 	 * @param recorder      帧录制器
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param watermarkText 水印文字
 	 * @param option        水印配置
 	 * @throws IOException              当 I/O 错误发生时
@@ -2229,7 +2165,7 @@ public class VideoUtils {
 	 * @since 1.1.0
 	 */
 	protected static void doAddTextWatermark(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
-	                                         final Video outputVideo, final String watermarkText,
+	                                         final VideoOutputOption outputOption, final String watermarkText,
 	                                         final TextWatermarkOption option) throws IOException {
 		Validate.notNull(grabber, "grabber 不可为 null");
 		Validate.notNull(recorder, "recorder 不可为 null");
@@ -2241,7 +2177,7 @@ public class VideoUtils {
 		}
 
 		String videoFilters = option.toFFmpegFilter(watermarkText, grabber);
-		FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
+		FFmpegUtils.applyVideoFilter(grabber, recorder, outputOption, videoFilters,
 			FrameType.ALL, false);
 	}
 
@@ -2250,7 +2186,7 @@ public class VideoUtils {
 	 *
 	 * @param grabber        视频抓取器
 	 * @param recorder       帧录制器
-	 * @param outputVideo    输出视频配置
+	 * @param outputOption   输出视频配置
 	 * @param watermarkImage 水印图片文件
 	 * @param option         水印配置
 	 * @throws IOException              当 I/O 错误发生时
@@ -2259,7 +2195,7 @@ public class VideoUtils {
 	 * @since 1.1.0
 	 */
 	protected static void doAddImageWatermark(final FFmpegFrameGrabber grabber, final FFmpegFrameRecorder recorder,
-	                                          final Video outputVideo, final IOResource watermarkImage,
+	                                          final VideoOutputOption outputOption, final IOResource watermarkImage,
 	                                          final ImageWatermarkOption option) throws IOException {
 		Validate.notNull(recorder, "recorder 不可为 null");
 		Validate.notNull(grabber, "grabber 不可为 null");
@@ -2272,7 +2208,7 @@ public class VideoUtils {
 		}
 
 		String videoFilters = option.toFFmpegFilter(watermarkImage, grabber);
-		FFmpegUtils.applyVideoFilter(grabber, recorder, outputVideo, videoFilters,
+		FFmpegUtils.applyVideoFilter(grabber, recorder, outputOption, videoFilters,
 			FrameType.ALL, false);
 	}
 
@@ -2282,14 +2218,14 @@ public class VideoUtils {
 	 * @param videoGrabber  视频抓取器
 	 * @param audioGrabber  音频抓取器
 	 * @param recorder      帧录制器
-	 * @param outputVideo   输出视频配置
+	 * @param outputOption  输出视频配置
 	 * @param loopFillAudio 是否循环填充音频以匹配视频时长
 	 * @throws IOException          当 I/O 错误发生时
 	 * @throws NullPointerException 当 videoGrabber、audioGrabber 或 recorder 为 null 时
 	 * @since 1.1.0
 	 */
 	protected static void doReplaceAudio(final FFmpegFrameGrabber videoGrabber, final FFmpegFrameGrabber audioGrabber,
-	                                     final FFmpegFrameRecorder recorder, final Video outputVideo,
+	                                     final FFmpegFrameRecorder recorder, final VideoOutputOption outputOption,
 	                                     final boolean loopFillAudio) throws IOException {
 		Validate.notNull(videoGrabber, "videoGrabber 不可为 null");
 		Validate.notNull(audioGrabber, "audioGrabber 不可为 null");
@@ -2302,7 +2238,7 @@ public class VideoUtils {
 			audioGrabber.start();
 		}
 
-		FFmpegUtils.initRecorder(recorder, videoGrabber, audioGrabber, outputVideo, FrameType.ALL);
+		FFmpegUtils.initRecorder(recorder, videoGrabber, audioGrabber, outputOption, FrameType.ALL);
 		recorder.start();
 
 		long videoLengthInTime = videoGrabber.getLengthInTime();
@@ -2318,11 +2254,51 @@ public class VideoUtils {
 				.addGlobalFilter(FFmpegUtils.getAloopFilter(audioGrabber.getSampleRate(), audioLengthInTime))
 				.addGlobalFilter(FFmpegUtils.getAtrimFilter(videoLengthInTime))
 				.build();
-			FFmpegUtils.applyAudioFilter(audioGrabber, recorder, outputVideo, audioFilters,
+			FFmpegUtils.applyAudioFilter(audioGrabber, recorder, outputOption, audioFilters,
 				FrameType.AUDIO, true);
 		}
 	}
 
+	/**
+	 * 执行视频拼接操作
+	 * <p>
+	 * 初始化录制器并依次将多个视频资源的帧录制到输出中。
+	 * </p>
+	 *
+	 * @param resources    视频资源集合
+	 * @param outputOption 输出视频配置
+	 * @param recorder     帧录制器
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 recorder 为 null 时
+	 * @since 1.1.0
+	 */
+	protected static void doConcat(Collection<VideoResource> resources, VideoOutputOption outputOption,
+	                               FFmpegFrameRecorder recorder) throws IOException {
+		Validate.notNull(recorder, "recorder 不可为 null");
+
+		FFmpegUtils.initRecorder(recorder, null, outputOption, FrameType.ALL);
+		recorder.start();
+
+		for (VideoResource resource : resources) {
+			try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
+				if (FFmpegUtils.isNotStarted(grabber)) {
+					grabber.start();
+				}
+
+				FFmpegUtils.recordFrames(recorder, grabber, FrameType.ALL, false);
+			}
+		}
+	}
+
+	/**
+	 * 获取支持的图片写入格式
+	 * <p>
+	 * 使用双重检查锁定模式延迟初始化并缓存 ImageIO 支持的图片写入格式。
+	 * </p>
+	 *
+	 * @return 支持的图片写入格式集合
+	 * @since 1.1.0
+	 */
 	protected static Set<String> getSupportedWriteImageFormats() {
 		if (Objects.isNull(SUPPORTED_WRITE_IMAGE_FORMATS)) {
 			synchronized (VideoUtils.class) {
