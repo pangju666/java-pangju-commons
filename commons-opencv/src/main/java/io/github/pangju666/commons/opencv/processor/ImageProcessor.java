@@ -94,8 +94,8 @@ import java.util.function.Function;
  *   <li>修改对比度</li>
  *   <li>调整透明度</li>
  *   <li>锐化、模糊或浮雕（这些效果互斥，一般不会同时用）</li>
- *   <li>自定义扩展（可选，使用 {@link #apply(Function)} 方法）</li>
  *   <li>滤镜/阈值</li>
+ *   <li>自定义扩展（可选，使用 {@link #apply(Function)} 方法）</li>
  *   <li>添加水印</li>
  * </ol>
  *
@@ -151,7 +151,7 @@ import java.util.function.Function;
  * // 6. 水印添加（支持图片与文字）
  * ImageProcessor.of(new OpenCvResource(new File("input.jpg")))
  *     .addTextWatermark("CONFIDENTIAL", new TextWatermarkOption())
- *     .addImageWatermark(new File("logo.png"), new ImageWatermarkOption())
+ *     .addImageWatermark(new OpenCvResource(new File("logo.png")), new ImageWatermarkOption())
  *     .toFile(new File("out_watermark.jpg"));
  *
  * // 7. 复杂操作链（链式调用）
