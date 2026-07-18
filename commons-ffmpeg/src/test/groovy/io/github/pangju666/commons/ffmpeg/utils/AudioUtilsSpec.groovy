@@ -16,8 +16,12 @@
 
 package io.github.pangju666.commons.ffmpeg.utils
 
-import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource
-import io.github.pangju666.commons.ffmpeg.model.Audio
+
+import io.github.pangju666.commons.ffmpeg.io.resource.AudioResource
+import io.github.pangju666.commons.ffmpeg.lang.FFmpegConstants
+import io.github.pangju666.commons.ffmpeg.model.AudioOutputOption
+import io.github.pangju666.commons.io.exception.UnsupportedResourceException
+import org.bytedeco.ffmpeg.global.avcodec
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -29,7 +33,7 @@ class AudioUtilsSpec extends Specification {
 	@TempDir
 	Path tempDir
 
-	def audioFiles = [
+	static def audioFiles = [
 		"file_example_MP3_5MG.mp3",
 		"suzume_no_tojimari.flac",
 		"suzume_no_tojimari.ogg",
@@ -43,105 +47,144 @@ class AudioUtilsSpec extends Specification {
 
 	def "转码到文件 - 指定输出配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 
 		when:
-		AudioUtils.transcode(resource, outputFile, Audio.MP3)
+		AudioUtils.transcode(resource, outputFile, AudioOutputOption.mp3())
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		resource.getAudio().duration() == outputResource.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "转码到输出流 - 指定输出配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
-		def outputAudio = Audio.MP3
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
+		def resource = new AudioResource(audioFile)
+		def outputFile = tempDir.resolve("output.mp3").toFile()
+		def outputStream = outputFile.newOutputStream()
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.transcode(resource, outputStream, outputAudio)
+		outputStream.close()
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		noExceptionThrown()
+
+		resource.getAudio().duration() == outputResource.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "裁剪到文件 - 从开头裁剪指定时长"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
 		AudioUtils.cut(resource, outputFile, duration)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		//outputResource.getAudio().duration() == resource.getAudio().duration() - duration
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "裁剪到文件 - 指定时间段"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 		def start = Duration.ofSeconds(2)
 		def end = Duration.ofSeconds(7)
 
 		when:
 		AudioUtils.cut(resource, outputFile, start, end)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		//outputResource.getAudio().duration() == resource.getAudio().duration() - (end - start)
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "裁剪到输出流 - 从开头裁剪指定时长"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
+		def resource = new AudioResource(audioFile)
+		def outputFile = tempDir.resolve("output.mp3").toFile()
+		def outputStream = outputFile.newOutputStream()
 		def duration = Duration.ofSeconds(5)
 
 		when:
 		AudioUtils.cut(resource, outputStream, duration)
+		outputStream.close()
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		noExceptionThrown()
+
+		//outputResource.getAudio().duration() == resource.getAudio().duration() - duration
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "裁剪到输出流 - 指定时间段"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
+		def resource = new AudioResource(audioFile)
+		def outputFile = tempDir.resolve("output.mp3").toFile()
+		def outputStream = outputFile.newOutputStream()
 		def start = Duration.ofSeconds(2)
 		def end = Duration.ofSeconds(7)
 
 		when:
 		AudioUtils.cut(resource, outputStream, start, end)
+		outputStream.close()
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		noExceptionThrown()
-	}
 
-	def "拼接 - 使用源配置"() {
-		given:
-		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
-		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resources = [new FFmpegResource(audioFile1), new FFmpegResource(audioFile2)]
+		//outputResource.getAudio().duration() == resource.getAudio().duration() - (end - start)
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
 
-		when:
-		AudioUtils.concat(resources, outputFile)
-
-		then:
-		outputFile.exists()
-		outputFile.length() > 0
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "拼接 - 指定输出配置"() {
@@ -149,44 +192,46 @@ class AudioUtilsSpec extends Specification {
 		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resources = [new FFmpegResource(audioFile1), new FFmpegResource(audioFile2)]
-		def outputAudio = Audio.MP3
+		def resource1 = new AudioResource(audioFile1)
+		def resource2 = new AudioResource(audioFile2)
+		def resources = [resource1, resource2]
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.concat(resources, outputFile, outputAudio)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
-	}
 
-	def "拼接到输出流 - 使用源配置"() {
-		given:
-		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
-		def resources = [new FFmpegResource(audioFile1), new FFmpegResource(audioFile2)]
-
-		when:
-		AudioUtils.concat(resources, outputStream)
-
-		then:
-		noExceptionThrown()
+		//outputResource.getAudio().duration() == resource1.getAudio().duration() + resource2.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
 	}
 
 	def "拼接到输出流 - 指定输出配置"() {
 		given:
 		def audioFile1 = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def audioFile2 = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
-		def resources = [new FFmpegResource(audioFile1), new FFmpegResource(audioFile2)]
-		def outputAudio = Audio.MP3
+		def outputFile = tempDir.resolve("output.mp3").toFile()
+		def outputStream = outputFile.newOutputStream()
+		def resource1 = new AudioResource(audioFile1)
+		def resource2 = new AudioResource(audioFile2)
+		def resources = [resource1, resource2]
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.concat(resources, outputStream, outputAudio)
+		outputStream.close()
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		noExceptionThrown()
+
+		//outputResource.getAudio().duration() == resource1.getAudio().duration() + resource2.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
 	}
 
 	def "添加背景音乐 - 使用默认权重和源配置"() {
@@ -194,15 +239,20 @@ class AudioUtilsSpec extends Specification {
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def mainResource = new FFmpegResource(mainFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def mainResource = new AudioResource(mainFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		AudioUtils.addBgm(mainResource, bgmResource, outputFile)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		outputResource.getAudio().duration() == mainResource.getAudio().duration()
+		outputResource.getAudio().codecId() == mainResource.getAudio().codecId()
+		outputResource.getAudio().format() == mainResource.getAudio().format()
 	}
 
 	def "添加背景音乐 - 指定权重和输出配置"() {
@@ -210,116 +260,138 @@ class AudioUtilsSpec extends Specification {
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def mainResource = new FFmpegResource(mainFile)
-		def bgmResource = new FFmpegResource(bgmFile)
-		def outputAudio = Audio.MP3
+		def mainResource = new AudioResource(mainFile)
+		def bgmResource = new AudioResource(bgmFile)
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.addBgm(mainResource, bgmResource, outputFile, outputAudio, 0.3f)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		outputResource.getAudio().duration() == mainResource.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
 	}
 
 	def "添加背景音乐到输出流 - 使用默认权重和源配置"() {
 		given:
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[1]).toFile()
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
-		def mainResource = new FFmpegResource(mainFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def outputFile = tempDir.resolve("output.mp3").toFile()
+		def outputStream = outputFile.newOutputStream()
+		def mainResource = new AudioResource(mainFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		AudioUtils.addBgm(mainResource, bgmResource, outputStream)
+		outputStream.close()
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		noExceptionThrown()
+
+		outputResource.getAudio().duration() == mainResource.getAudio().duration()
+		outputResource.getAudio().codecId() == mainResource.getAudio().codecId()
+		outputResource.getAudio().format() == mainResource.getAudio().format()
 	}
 
 	def "调整速度 - 使用源配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 
 		when:
 		AudioUtils.adjustSpeed(resource, outputFile, 2.0f)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		//outputResource.getAudio().duration() == resource.getAudio().duration().dividedBy(2)
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "调整速度 - 指定输出配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputAudio = Audio.MP3
+		def resource = new AudioResource(audioFile)
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.adjustSpeed(resource, outputFile, 1.5f, outputAudio)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		!outputResource.getAudio().duration().isZero() && !outputResource.getAudio().duration().isNegative()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
+
+		where:
+		audioFileName << audioFiles
 	}
 
-	def "调整速度到输出流 - 使用源配置"() {
-		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
-
-		when:
-		AudioUtils.adjustSpeed(resource, outputStream, 2.0f)
-
-		then:
-		noExceptionThrown()
-	}
 
 	def "调整音量 - 使用源配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 
 		when:
 		AudioUtils.adjustVolume(resource, outputFile, 3.0f)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		outputResource.getAudio().duration() == outputResource.getAudio().duration()
+		outputResource.getAudio().codecId() == resource.getAudio().codecId()
+		outputResource.getAudio().format() == resource.getAudio().format()
+
+		where:
+		audioFileName << audioFiles
 	}
 
 	def "调整音量 - 指定输出配置"() {
 		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
+		def audioFile = Paths.get("src/test/resources/audios", audioFileName).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputAudio = Audio.MP3
+		def resource = new AudioResource(audioFile)
+		def outputAudio = AudioOutputOption.mp3()
 
 		when:
 		AudioUtils.adjustVolume(resource, outputFile, -2.0f, outputAudio)
+		def outputResource = new AudioResource(outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
+
+		outputResource.getAudio().duration() == outputResource.getAudio().duration()
+		outputResource.getAudio().codecId() == avcodec.AV_CODEC_ID_MP3
+		outputResource.getAudio().format() == FFmpegConstants.AUDIO_MP3_FORMAT
+
+		where:
+		audioFileName << audioFiles
 	}
 
-	def "调整音量到输出流 - 使用源配置"() {
-		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
-		def outputStream = tempDir.resolve("output.mp3").toFile().newOutputStream()
 
-		when:
-		AudioUtils.adjustVolume(resource, outputStream, 3.0f)
 
-		then:
-		noExceptionThrown()
-	}
 
 	def "cut方法 - resource为null时抛出NullPointerException"() {
 		given:
@@ -337,20 +409,20 @@ class AudioUtilsSpec extends Specification {
 		given:
 		def videoFile = Paths.get("src/test/resources/videos", "1416529-hd_1920_1080_30fps.webm").toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resource = new FFmpegResource(videoFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
+		def resource = new AudioResource(videoFile)
 		AudioUtils.cut(resource, outputFile, duration)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "cut方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resource = new FFmpegResource(audioFile)
+		def resource = new AudioResource(audioFile)
 		def duration = Duration.ofSeconds(5)
 
 		when:
@@ -360,70 +432,11 @@ class AudioUtilsSpec extends Specification {
 		thrown(NullPointerException)
 	}
 
-	def "concat方法 - resources为null时抛出NullPointerException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp3").toFile()
-
-		when:
-		AudioUtils.concat(null, outputFile)
-
-		then:
-		thrown(NullPointerException)
-	}
-
-	def "concat方法 - resources为空时抛出IllegalArgumentException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp3").toFile()
-
-		when:
-		AudioUtils.concat([], outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - resources包含null元素时抛出IllegalArgumentException"() {
-		given:
-		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resources = [null]
-
-		when:
-		AudioUtils.concat(resources, outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - resources包含非音频类型时抛出IllegalArgumentException"() {
-		given:
-		def videoFile = Paths.get("src/test/resources/videos", "1416529-hd_1920_1080_30fps.webm").toFile()
-		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def resources = [new FFmpegResource(videoFile)]
-
-		when:
-		AudioUtils.concat(resources, outputFile)
-
-		then:
-		thrown(IllegalArgumentException)
-	}
-
-	def "concat方法 - outputStream为null时抛出NullPointerException"() {
-		given:
-		def audioFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def resources = [new FFmpegResource(audioFile)]
-
-		when:
-		AudioUtils.concat(resources, null as File)
-
-		then:
-		thrown(NullPointerException)
-	}
-
 	def "addBgm方法 - mainResource为null时抛出NullPointerException"() {
 		given:
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def bgmResource = new FFmpegResource(bgmFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		AudioUtils.addBgm(null, bgmResource, outputFile)
@@ -436,7 +449,7 @@ class AudioUtilsSpec extends Specification {
 		given:
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def mainResource = new FFmpegResource(mainFile)
+		def mainResource = new AudioResource(mainFile)
 
 		when:
 		AudioUtils.addBgm(mainResource, null, outputFile)
@@ -450,14 +463,14 @@ class AudioUtilsSpec extends Specification {
 		def videoFile = Paths.get("src/test/resources/videos", "1416529-hd_1920_1080_30fps.webm").toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def mainResource = new FFmpegResource(videoFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
+		def mainResource = new AudioResource(videoFile)
 		AudioUtils.addBgm(mainResource, bgmResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addBgm方法 - bgmResource不是音频类型时抛出IllegalArgumentException"() {
@@ -465,22 +478,22 @@ class AudioUtilsSpec extends Specification {
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def videoFile = Paths.get("src/test/resources/videos", "1416529-hd_1920_1080_30fps.webm").toFile()
 		def outputFile = tempDir.resolve("output.mp3").toFile()
-		def mainResource = new FFmpegResource(mainFile)
-		def bgmResource = new FFmpegResource(videoFile)
 
 		when:
+		def mainResource = new AudioResource(mainFile)
+		def bgmResource = new AudioResource(videoFile)
 		AudioUtils.addBgm(mainResource, bgmResource, outputFile)
 
 		then:
-		thrown(IllegalArgumentException)
+		thrown(UnsupportedResourceException)
 	}
 
 	def "addBgm方法 - outputStream为null时抛出NullPointerException"() {
 		given:
 		def mainFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
 		def bgmFile = Paths.get("src/test/resources/audios", audioFiles[0]).toFile()
-		def mainResource = new FFmpegResource(mainFile)
-		def bgmResource = new FFmpegResource(bgmFile)
+		def mainResource = new AudioResource(mainFile)
+		def bgmResource = new AudioResource(bgmFile)
 
 		when:
 		AudioUtils.addBgm(mainResource, bgmResource, null as File)
@@ -488,4 +501,5 @@ class AudioUtilsSpec extends Specification {
 		then:
 		thrown(NullPointerException)
 	}
+
 }

@@ -302,7 +302,7 @@ public class ImageWatermarkOption {
 	 * @param grabber        FFmpeg 视频抓取器，不可为 null
 	 * @return FFmpeg overlay 滤镜字符串
 	 * @throws IOException              当操作失败时抛出
-	 * @throws NullPointerException 当参数为 null 时抛出
+	 * @throws NullPointerException     当参数为 null 时抛出
 	 * @throws IllegalArgumentException 当 grabber 不存在视频流时抛出
 	 * @since 2.1.0
 	 */
@@ -337,7 +337,7 @@ public class ImageWatermarkOption {
 	 * @param videoHeight    视频高度，必须大于 0
 	 * @return FFmpeg overlay 滤镜字符串
 	 * @throws IOException              当操作失败时抛出
-	 * @throws NullPointerException 当 watermarkImage 为 null 时抛出
+	 * @throws NullPointerException     当 watermarkImage 为 null 时抛出
 	 * @throws IllegalArgumentException 当参数无效时抛出
 	 * @since 2.1.0
 	 */
@@ -430,6 +430,6 @@ public class ImageWatermarkOption {
 		@Override
 		public int height() {
 			return height;
-			}
 		}
+	}
 }

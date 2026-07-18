@@ -17,12 +17,11 @@
 package io.github.pangju666.commons.ffmpeg.utils;
 
 import io.github.pangju666.commons.ffmpeg.enums.FrameType;
-import io.github.pangju666.commons.ffmpeg.io.FFmpegOutputStream;
-import io.github.pangju666.commons.ffmpeg.io.resource.FFmpegResource;
-import io.github.pangju666.commons.ffmpeg.model.Audio;
+import io.github.pangju666.commons.ffmpeg.io.FFmpegOutputStreamAdapter;
+import io.github.pangju666.commons.ffmpeg.io.resource.AudioResource;
+import io.github.pangju666.commons.ffmpeg.model.AudioOutputOption;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
@@ -51,31 +50,35 @@ import java.util.Objects;
  * </ul>
  * <h3>使用示例</h3>
  * <pre>{@code
- * // 转码音频
- * AudioUtils.transcode(resource, outputFile, Audio.MP3);
+ * // 转码音频文件
+ * AudioResource resource = AudioResource.of(new File("input.mp3"));
+ * AudioOutputOption option = AudioOutputOptionBuilder.aac().bitrate(128000).build();
+ * AudioUtils.transcode(resource, new File("output.aac"), option);
  *
- * // 裁剪音频（从开头裁剪10秒）
- * AudioUtils.cut(resource, outputFile, Duration.ofSeconds(10));
+ * // 裁剪音频（从开头裁剪 30 秒）
+ * AudioUtils.cut(resource, new File("cut.mp3"), Duration.ofSeconds(30));
  *
- * // 裁剪音频（指定时间段）
- * AudioUtils.cut(resource, outputFile, Duration.ofSeconds(5), Duration.ofSeconds(15));
- *
- * // 拼接多个音频
- * AudioUtils.concat(resources, outputFile);
+ * // 拼接多个音频文件
+ * List<AudioResource> resources = List.of(
+ *     AudioResource.of(new File("part1.mp3")),
+ *     AudioResource.of(new File("part2.mp3"))
+ * );
+ * AudioUtils.concat(resources, new File("merged.mp3"), option);
  *
  * // 添加背景音乐
- * AudioUtils.addBgm(mainResource, bgmResource, outputFile);
+ * AudioResource bgm = AudioResource.of(new File("bgm.mp3"));
+ * AudioUtils.addBgm(resource, bgm, new File("with-bgm.mp3"), 0.3f);
  *
- * // 调整播放速度
- * AudioUtils.adjustSpeed(resource, outputFile, 1.5f);
+ * // 调整播放速度（2倍速）
+ * AudioUtils.adjustSpeed(resource, new File("fast.mp3"), 2.0f);
  *
- * // 调整音量（增加3分贝）
- * AudioUtils.adjustVolume(resource, outputFile, 3.0f);
+ * // 调整音量（增加 5 分贝）
+ * AudioUtils.adjustVolume(resource, new File("loud.mp3"), 5.0f);
  * }</pre>
  *
  * @author pangju666
  * @see FFmpegUtils
- * @see Audio
+ * @see AudioOutputOption
  * @since 2.1.0
  */
 public class AudioUtils {
@@ -92,25 +95,23 @@ public class AudioUtils {
 	/**
 	 * 将音频资源转码并输出到文件
 	 *
-	 * @param resource    输入音频资源
-	 * @param outputFile  输出文件
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputAudio 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param resource     输入音频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void transcode(final FFmpegResource resource, final File outputFile, final Audio outputAudio) throws IOException {
-		Validate.notNull(outputAudio, "outputAudio 不可为 null");
+	public static void transcode(final AudioResource resource, final File outputFile, final AudioOutputOption outputOption) throws IOException {
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputAudio, FrameType.AUDIO,
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.AUDIO,
 				false);
 		}
 	}
@@ -120,22 +121,21 @@ public class AudioUtils {
 	 *
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource、outputStream 或 outputAudio 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputStream 或 outputOption 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void transcode(final FFmpegResource resource, final OutputStream outputStream, final Audio outputAudio) throws IOException {
-		Validate.notNull(outputAudio, "outputAudio 不可为 null");
+	public static void transcode(final AudioResource resource, final OutputStream outputStream,
+	                             final AudioOutputOption outputOption) throws IOException {
+		Validate.notNull(outputOption, "outputOption 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio.getFormat());
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.transcode(grabber, recorder, outputAudio, FrameType.AUDIO,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.transcode(grabber, recorder, outputOption, FrameType.AUDIO,
 				false);
 		}
 	}
@@ -146,13 +146,12 @@ public class AudioUtils {
 	 * @param resource   输入音频资源
 	 * @param outputFile 输出文件
 	 * @param duration   裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Duration duration) throws IOException {
-		cut(resource, outputFile, (Audio) null, Duration.ZERO, duration);
+	public static void cut(final AudioResource resource, final File outputFile, final Duration duration) throws IOException {
+		cut(resource, outputFile, (AudioOutputOption) null, Duration.ZERO, duration);
 	}
 
 	/**
@@ -161,13 +160,12 @@ public class AudioUtils {
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
 	 * @param duration     裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
-		cut(resource, outputStream, (Audio) null, Duration.ZERO, duration);
+	public static void cut(final AudioResource resource, final OutputStream outputStream, final Duration duration) throws IOException {
+		cut(resource, outputStream, (AudioOutputOption) null, Duration.ZERO, duration);
 	}
 
 	/**
@@ -177,12 +175,11 @@ public class AudioUtils {
 	 * @param outputFile 输出文件
 	 * @param start      开始时间
 	 * @param end        结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
+	public static void cut(final AudioResource resource, final File outputFile, final Duration start, final Duration end) throws IOException {
 		cut(resource, outputFile, null, start, end);
 	}
 
@@ -193,12 +190,11 @@ public class AudioUtils {
 	 * @param outputStream 输出流
 	 * @param start        开始时间
 	 * @param end          结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Duration start,
+	public static void cut(final AudioResource resource, final OutputStream outputStream, final Duration start,
 	                       final Duration end) throws IOException {
 		cut(resource, outputStream, null, start, end);
 	}
@@ -206,18 +202,17 @@ public class AudioUtils {
 	/**
 	 * 从开头裁剪音频到指定时长并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入音频资源
-	 * @param outputFile  输出文件
-	 * @param outputAudio 输出音频配置
-	 * @param duration    裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param resource     输入音频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出音频配置
+	 * @param duration     裁剪时长
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Audio outputAudio,
+	public static void cut(final AudioResource resource, final File outputFile, final AudioOutputOption outputOption,
 	                       final Duration duration) throws IOException {
-		cut(resource, outputFile, outputAudio, Duration.ZERO, duration);
+		cut(resource, outputFile, outputOption, Duration.ZERO, duration);
 	}
 
 	/**
@@ -225,42 +220,39 @@ public class AudioUtils {
 	 *
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
+	 * @param outputOption 输出音频配置
 	 * @param duration     裁剪时长
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Audio outputAudio,
+	public static void cut(final AudioResource resource, final OutputStream outputStream, final AudioOutputOption outputOption,
 	                       final Duration duration) throws IOException {
-		cut(resource, outputStream, outputAudio, Duration.ZERO, duration);
+		cut(resource, outputStream, outputOption, Duration.ZERO, duration);
 	}
 
 	/**
 	 * 裁剪指定时间段的音频并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入音频资源
-	 * @param outputFile  输出文件
-	 * @param outputAudio 输出音频配置
-	 * @param start       开始时间
-	 * @param end         结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param resource     输入音频资源
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出音频配置
+	 * @param start        开始时间
+	 * @param end          结束时间
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final File outputFile, final Audio outputAudio,
+	public static void cut(final AudioResource resource, final File outputFile, final AudioOutputOption outputOption,
 	                       final Duration start, final Duration end) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.cut(grabber, recorder, outputAudio, start, end, FrameType.AUDIO,
+			FFmpegUtils.cut(grabber, recorder, outputOption, start, end, FrameType.AUDIO,
 				false);
 		}
 	}
@@ -270,145 +262,74 @@ public class AudioUtils {
 	 *
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
+	 * @param outputOption 输出音频配置
 	 * @param start        开始时间
 	 * @param end          结束时间
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void cut(final FFmpegResource resource, final OutputStream outputStream, final Audio outputAudio,
+	public static void cut(final AudioResource resource, final OutputStream outputStream, final AudioOutputOption outputOption,
 	                       final Duration start, final Duration end) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.cut(grabber, recorder, outputAudio, start, end, FrameType.AUDIO,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.cut(grabber, recorder, outputOption, start, end, FrameType.AUDIO,
 				false);
 		}
 	}
 
 	/**
-	 * 拼接多个音频资源并输出到文件（使用源音频配置）
-	 *
-	 * @param resources  音频资源集合
-	 * @param outputFile 输出文件
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
-	 * @since 2.1.0
-	 */
-	public static void concat(final Collection<FFmpegResource> resources, final File outputFile) throws IOException {
-		concat(resources, outputFile, null);
-	}
-
-	/**
-	 * 拼接多个音频资源并输出到输出流（使用源音频配置）
+	 * 拼接多个音频资源并输出到文件
 	 *
 	 * @param resources    音频资源集合
-	 * @param outputStream 输出流
+	 * @param outputFile   输出文件
+	 * @param outputOption 输出音频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources、outputStream 为 null 或 resources 包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
+	 * @throws NullPointerException     当 outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 resources 为空或包含 null 元素 时
 	 * @since 2.1.0
 	 */
-	public static void concat(final Collection<FFmpegResource> resources, final OutputStream outputStream) throws IOException {
-		concat(resources, outputStream, null);
-	}
-
-	/**
-	 * 拼接多个音频资源并输出到文件（指定输出配置）
-	 *
-	 * @param resources   音频资源集合
-	 * @param outputFile  输出文件
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources 为 null 或包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
-	 * @since 2.1.0
-	 */
-	public static void concat(final Collection<FFmpegResource> resources, final File outputFile, final Audio outputAudio) throws IOException {
+	public static void concat(final Collection<AudioResource> resources, final File outputFile,
+	                          final AudioOutputOption outputOption) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
-		Validate.isTrue(resources.stream().allMatch(resource ->
-			Objects.nonNull(resource) && resource.isAudio()), "resources 中存在为 null 或非音频类型的 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
+		Validate.isTrue(resources.stream().allMatch(Objects::nonNull),
+			"resources 中存在为 null 的 AudioResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			boolean started = false;
-			for (FFmpegResource resource : resources) {
-				try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
-					grabber.start();
-
-					if (!started) {
-						FFmpegUtils.initRecorder(recorder, grabber, outputAudio, FrameType.AUDIO);
-						recorder.start();
-						started = true;
-					}
-
-					FFmpegUtils.recordFrames(recorder, grabber, FrameType.AUDIO, false);
-				}
-			}
+			doConcat(resources, outputOption, recorder);
 		}
 	}
 
 	/**
-	 * 拼接多个音频资源并输出到输出流（指定输出配置）
+	 * 拼接多个音频资源并输出到输出流
 	 *
 	 * @param resources    音频资源集合
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
+	 * @param outputOption 输出音频配置
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resources、outputStream 为 null 或 resources 包含 null 元素时
-	 * @throws IllegalArgumentException 当 resources 为空或包含非音频类型资源时
+	 * @throws NullPointerException     当 outputStream 或 outputOption 为 null 时
+	 * @throws IllegalArgumentException 当 resources 为空或包含 null 元素 时
 	 * @since 2.1.0
 	 */
-	public static void concat(final Collection<FFmpegResource> resources, final OutputStream outputStream,
-	                          final Audio outputAudio) throws IOException {
+	public static void concat(final Collection<AudioResource> resources, final OutputStream outputStream,
+	                          final AudioOutputOption outputOption) throws IOException {
 		Validate.notEmpty(resources, "resources 不可为空");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
-		Validate.isTrue(resources.stream().allMatch(resource ->
-			Objects.nonNull(resource) && resource.isAudio()), "resources 中存在为 null 或非音频类型的 FFmpegResource");
+		Validate.notNull(outputOption, "outputOption 不可为 null");
+		Validate.isTrue(resources.stream().allMatch(Objects::nonNull),
+			"resources 中存在为 null 的 AudioResource");
 
-		FFmpegFrameRecorder recorder = null;
-		FFmpegOutputStream fFmpegOutputStream = null;
-
-		if (Objects.nonNull(outputAudio) && StringUtils.isNotBlank(outputAudio.getFormat())) {
-			fFmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio);
-			recorder = new FFmpegFrameRecorder(fFmpegOutputStream, 0);
-		}
-
-		boolean started = false;
-		for (FFmpegResource resource : resources) {
-			try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
-				grabber.start();
-
-				if (Objects.isNull(fFmpegOutputStream)) {
-					fFmpegOutputStream = new FFmpegOutputStream(outputStream, grabber.getFormat());
-					recorder = new FFmpegFrameRecorder(fFmpegOutputStream, 0);
-				}
-
-				if (!started) {
-					recorder = new FFmpegFrameRecorder(outputStream, grabber.getAudioChannels());
-					FFmpegUtils.initRecorder(recorder, grabber, outputAudio, FrameType.AUDIO);
-					recorder.start();
-					started = true;
-				}
-
-				FFmpegUtils.recordFrames(recorder, grabber, FrameType.AUDIO, false);
-			}
-		}
-
-		if (Objects.nonNull(recorder)) {
-			recorder.close();
-		}
-		if (Objects.nonNull(fFmpegOutputStream)) {
-			fFmpegOutputStream.close();
+		try (FFmpegOutputStreamAdapter outputStreamAdapter = new FFmpegOutputStreamAdapter(outputStream, outputOption.getFormat());
+		     FFmpegFrameRecorder recorder = outputStreamAdapter.openFFmpegFrameRecorder()) {
+			doConcat(resources, outputOption, recorder);
 		}
 	}
 
@@ -418,12 +339,11 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputFile   输出文件
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 mainResource、bgmResource 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
 	                          final File outputFile) throws IOException {
 		addBgm(mainResource, bgmResource, outputFile, null, DEFAULT_BGM_WEIGHT);
 	}
@@ -434,12 +354,11 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputStream 输出流
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource、bgmResource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 mainResource、bgmResource 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
 	                          final OutputStream outputStream) throws IOException {
 		addBgm(mainResource, bgmResource, outputStream, null, DEFAULT_BGM_WEIGHT);
 	}
@@ -450,15 +369,14 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputFile   输出文件
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 mainResource、bgmResource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
-	                          final File outputFile, final Audio outputAudio) throws IOException {
-		addBgm(mainResource, bgmResource, outputFile, outputAudio, DEFAULT_BGM_WEIGHT);
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
+	                          final File outputFile, final AudioOutputOption outputOption) throws IOException {
+		addBgm(mainResource, bgmResource, outputFile, outputOption, DEFAULT_BGM_WEIGHT);
 	}
 
 	/**
@@ -467,15 +385,14 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource、bgmResource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 mainResource、bgmResource、outputOption 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
-	                          final OutputStream outputStream, final Audio outputAudio) throws IOException {
-		addBgm(mainResource, bgmResource, outputStream, outputAudio, DEFAULT_BGM_WEIGHT);
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
+	                          final OutputStream outputStream, final AudioOutputOption outputOption) throws IOException {
+		addBgm(mainResource, bgmResource, outputStream, outputOption, DEFAULT_BGM_WEIGHT);
 	}
 
 	/**
@@ -486,11 +403,11 @@ public class AudioUtils {
 	 * @param outputFile   输出文件
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 mainResource、bgmResource 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 小于等于 0 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
 	                          final File outputFile, final float bgmWeight) throws IOException {
 		addBgm(mainResource, bgmResource, outputFile, null, bgmWeight);
 	}
@@ -504,10 +421,10 @@ public class AudioUtils {
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
 	 * @throws NullPointerException     当 mainResource、bgmResource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @throws IllegalArgumentException 当 bgmWeight 小于等于 0 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
 	                          final OutputStream outputStream, final float bgmWeight) throws IOException {
 		addBgm(mainResource, bgmResource, outputStream, null, bgmWeight);
 	}
@@ -518,20 +435,18 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputFile   输出文件
-	 * @param outputAudio  输出音频配置
+	 * @param outputOption 输出音频配置
 	 * @param bgmWeight    背景音乐权重
 	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 mainResource 或 bgmResource 为 null 时
-	 * @throws IllegalArgumentException 当 mainResource 或 bgmResource 不是音频类型时
+	 * @throws NullPointerException     当 mainResource、bgmResource、outputOption 或 outputFile 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 小于等于 0 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
-	                          final File outputFile, final Audio outputAudio, final float bgmWeight) throws IOException {
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
+	                          final File outputFile, final AudioOutputOption outputOption, final float bgmWeight) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(mainResource, "mainResource 不可为 null");
-		Validate.isTrue(mainResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.notNull(bgmResource, "bgmResource 不可为 null");
-		Validate.isTrue(bgmResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.isTrue(bgmWeight > 0, "bgmWeight 必须大于0");
 
 		FileUtils.forceMkdirParent(outputFile);
@@ -539,10 +454,10 @@ public class AudioUtils {
 		try (FFmpegFrameGrabber mainGrabber = mainResource.openFrameGrabber();
 		     FFmpegFrameGrabber bgmGrabber = bgmResource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			Audio mainAudio = Audio.parse(mainGrabber);
+			AudioOutputOption defaultOutputOption = new AudioOutputOption(mainGrabber);
 
-			FFmpegUtils.applyFilter(List.of(mainGrabber, bgmGrabber), recorder, mainAudio,
-				ObjectUtils.getIfNull(outputAudio, mainAudio),
+			FFmpegUtils.applyFilter(List.of(mainGrabber, bgmGrabber), recorder,
+				ObjectUtils.getIfNull(outputOption, defaultOutputOption),
 				null, FFmpegUtils.getAddBgmFilter(mainGrabber, bgmGrabber, bgmWeight),
 				FrameType.AUDIO, false);
 		}
@@ -554,29 +469,28 @@ public class AudioUtils {
 	 * @param mainResource 主音频资源
 	 * @param bgmResource  背景音乐资源
 	 * @param outputStream 输出流
-	 * @param outputAudio  输出音频配置
+	 * @param outputOption 输出音频配置
 	 * @param bgmWeight    背景音乐权重
-	 * @throws IOException          当 I/O 错误发生时
-	 * @throws NullPointerException 当 outputStream 为 null 时
+	 * @throws IOException              当 I/O 错误发生时
+	 * @throws NullPointerException     当 mainResource、bgmResource、outputOption 或 outputStream 为 null 时
+	 * @throws IllegalArgumentException 当 bgmWeight 小于等于 0 时
 	 * @since 2.1.0
 	 */
-	public static void addBgm(final FFmpegResource mainResource, final FFmpegResource bgmResource,
-	                          final OutputStream outputStream, final Audio outputAudio, final float bgmWeight) throws IOException {
+	public static void addBgm(final AudioResource mainResource, final AudioResource bgmResource,
+	                          final OutputStream outputStream, final AudioOutputOption outputOption, final float bgmWeight) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(mainResource, "mainResource 不可为 null");
-		Validate.isTrue(mainResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.notNull(bgmResource, "bgmResource 不可为 null");
-		Validate.isTrue(bgmResource.isAudio(), "不是音频类型 FFmpegResource");
 		Validate.isTrue(bgmWeight > 0, "bgmWeight 必须大于0");
 
 		try (FFmpegFrameGrabber mainGrabber = mainResource.openFrameGrabber();
 		     FFmpegFrameGrabber bgmGrabber = bgmResource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio, mainGrabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			Audio mainAudio = Audio.parse(mainGrabber);
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, mainGrabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			AudioOutputOption defaultOutputOption = new AudioOutputOption(mainGrabber);
 
-			FFmpegUtils.applyFilter(List.of(mainGrabber, bgmGrabber), recorder, mainAudio,
-				ObjectUtils.getIfNull(outputAudio, mainAudio),
+			FFmpegUtils.applyFilter(List.of(mainGrabber, bgmGrabber), recorder,
+				ObjectUtils.getIfNull(outputOption, defaultOutputOption),
 				null, FFmpegUtils.getAddBgmFilter(mainGrabber, bgmGrabber, bgmWeight),
 				FrameType.AUDIO, false);
 		}
@@ -591,7 +505,7 @@ public class AudioUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 2.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final File outputFile, final float speed) throws IOException {
+	public static void adjustSpeed(final AudioResource resource, final File outputFile, final float speed) throws IOException {
 		adjustSpeed(resource, outputFile, speed, null);
 	}
 
@@ -604,33 +518,31 @@ public class AudioUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 2.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final OutputStream outputStream, final float speed) throws IOException {
+	public static void adjustSpeed(final AudioResource resource, final OutputStream outputStream, final float speed) throws IOException {
 		adjustSpeed(resource, outputStream, speed, null);
 	}
 
 	/**
 	 * 调整音频播放速度并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入音频资源
-	 * @param outputFile  输出文件
-	 * @param speed       播放速度（0.5-100）
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param resource     输入音频资源
+	 * @param outputFile   输出文件
+	 * @param speed        播放速度（0.5-100）
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final File outputFile, final float speed,
-	                               final Audio outputAudio) throws IOException {
+	public static void adjustSpeed(final AudioResource resource, final File outputFile, final float speed,
+	                               final AudioOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.applyAudioFilter(grabber, recorder, outputAudio,
+			FFmpegUtils.applyAudioFilter(grabber, recorder, outputOption,
 				FFmpegUtils.getAtempoFilter(speed), FrameType.AUDIO, false);
 		}
 	}
@@ -641,22 +553,20 @@ public class AudioUtils {
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
 	 * @param speed        播放速度（0.5-100）
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void adjustSpeed(final FFmpegResource resource, final OutputStream outputStream, final float speed,
-	                               final Audio outputAudio) throws IOException {
+	public static void adjustSpeed(final AudioResource resource, final OutputStream outputStream, final float speed,
+	                               final AudioOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.applyAudioFilter(grabber, recorder, outputAudio,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.applyAudioFilter(grabber, recorder, outputOption,
 				FFmpegUtils.getAtempoFilter(speed), FrameType.AUDIO, false);
 		}
 	}
@@ -670,7 +580,7 @@ public class AudioUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 2.1.0
 	 */
-	public static void adjustVolume(final FFmpegResource resource, final File outputFile, final float db) throws IOException {
+	public static void adjustVolume(final AudioResource resource, final File outputFile, final float db) throws IOException {
 		adjustVolume(resource, outputFile, db, null);
 	}
 
@@ -683,33 +593,31 @@ public class AudioUtils {
 	 * @throws IOException 当 I/O 错误发生时
 	 * @since 2.1.0
 	 */
-	public static void adjustVolume(final FFmpegResource resource, final OutputStream outputStream, final float db) throws IOException {
+	public static void adjustVolume(final AudioResource resource, final OutputStream outputStream, final float db) throws IOException {
 		adjustVolume(resource, outputStream, db, null);
 	}
 
 	/**
 	 * 调整音频音量并输出到文件（指定输出配置）
 	 *
-	 * @param resource    输入音频资源
-	 * @param outputFile  输出文件
-	 * @param db          音量变化的分贝值
-	 * @param outputAudio 输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param resource     输入音频资源
+	 * @param outputFile   输出文件
+	 * @param db           音量变化的分贝值
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputFile 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void adjustVolume(final FFmpegResource resource, final File outputFile, final float db,
-	                                final Audio outputAudio) throws IOException {
+	public static void adjustVolume(final AudioResource resource, final File outputFile, final float db,
+	                                final AudioOutputOption outputOption) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
 		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, 0)) {
-			FFmpegUtils.applyAudioFilter(grabber, recorder, outputAudio,
+			FFmpegUtils.applyAudioFilter(grabber, recorder, outputOption,
 				FFmpegUtils.getVolumeFilter(db), FrameType.AUDIO, false);
 		}
 	}
@@ -720,23 +628,52 @@ public class AudioUtils {
 	 * @param resource     输入音频资源
 	 * @param outputStream 输出流
 	 * @param db           音量变化的分贝值
-	 * @param outputAudio  输出音频配置
-	 * @throws IOException              当 I/O 错误发生时
-	 * @throws NullPointerException     当 resource 或 outputStream 为 null 时
-	 * @throws IllegalArgumentException 当 resource 不是音频类型时
+	 * @param outputOption 输出音频配置
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 resource、outputOption 或 outputStream 为 null 时
 	 * @since 2.1.0
 	 */
-	public static void adjustVolume(final FFmpegResource resource, final OutputStream outputStream, final float db,
-	                                final Audio outputAudio) throws IOException {
+	public static void adjustVolume(final AudioResource resource, final OutputStream outputStream, final float db,
+	                                final AudioOutputOption outputOption) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(resource, "resource 不可为 null");
-		Validate.isTrue(resource.isAudio(), "不是音频类型 FFmpegResource");
 
 		try (FFmpegFrameGrabber grabber = resource.openFrameGrabber();
-		     FFmpegOutputStream ffmpegOutputStream = new FFmpegOutputStream(outputStream, outputAudio, grabber);
-		     FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(ffmpegOutputStream, 0)) {
-			FFmpegUtils.applyAudioFilter(grabber, recorder, outputAudio,
+		     FFmpegOutputStreamAdapter adapter = new FFmpegOutputStreamAdapter(outputStream, outputOption, grabber);
+		     FFmpegFrameRecorder recorder = adapter.openFFmpegFrameRecorder()) {
+			FFmpegUtils.applyAudioFilter(grabber, recorder, outputOption,
 				FFmpegUtils.getVolumeFilter(db), FrameType.AUDIO, false);
+		}
+	}
+
+	/**
+	 * 执行音频拼接操作
+	 * <p>
+	 * 初始化录制器并依次将多个音频资源的帧录制到输出中。
+	 * </p>
+	 *
+	 * @param resources    音频资源集合
+	 * @param outputOption 输出音频配置
+	 * @param recorder     帧录制器
+	 * @throws IOException          当 I/O 错误发生时
+	 * @throws NullPointerException 当 recorder 为 null 时
+	 * @since 2.1.0
+	 */
+	protected static void doConcat(Collection<AudioResource> resources, AudioOutputOption outputOption,
+	                               FFmpegFrameRecorder recorder) throws IOException {
+		Validate.notNull(recorder, "recorder 不可为 null");
+
+		FFmpegUtils.initRecorder(recorder, null, outputOption, FrameType.AUDIO);
+		recorder.start();
+
+		for (AudioResource resource : resources) {
+			try (FFmpegFrameGrabber grabber = resource.openFrameGrabber()) {
+				if (FFmpegUtils.isNotStarted(grabber)) {
+					grabber.start();
+				}
+
+				FFmpegUtils.recordFrames(recorder, grabber, FrameType.AUDIO, false);
+			}
 		}
 	}
 }
