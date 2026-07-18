@@ -16,7 +16,9 @@
 
 package io.github.pangju666.commons.opencv.processor;
 
+import io.github.pangju666.commons.io.exception.UnsupportedResourceException;
 import io.github.pangju666.commons.io.utils.FileUtils;
+import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.opencv.enums.FlipDirection;
 import io.github.pangju666.commons.opencv.enums.RotateDirection;
 import io.github.pangju666.commons.opencv.io.resource.OpenCvResource;
@@ -1295,38 +1297,45 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 添加图片水印（从文件加载），使用默认水印配置。
+	 * 添加图片水印，使用默认水印配置。
+	 * <p>
+	 * 该方法会使用 {@link ImageWatermarkOption} 的默认配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
 	 *
-	 * <p>水印会根据默认配置自动调整大小、位置和透明度</p>
-	 *
-	 * @param watermarkImageFile 水印图片文件，不能为 null
-	 * @return 当前处理器实例，支持链式调用
-	 * @throws IOException              如果读取水印文件失败
-	 * @throws IllegalArgumentException 如果 watermarkImageFile 为 null
+	 * @param watermarkResource 水印图片资源，不可为 null
+	 * @return 当前处理器实例，用于链式调用
+	 * @throws IOException          当读取水印图片失败时抛出
+	 * @throws NullPointerException 当 watermarkResource 为 null 时抛出
+	 * @see ImageWatermarkOption
 	 * @since 1.1.0
 	 */
-	public ImageProcessor addImageWatermark(final File watermarkImageFile) throws IOException {
-		try (Mat watermarkImageMat = OpenCvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
-			return addImageWatermark(watermarkImageMat, new ImageWatermarkOption());
-		}
+	public ImageProcessor addImageWatermark(final OpenCvResource watermarkResource) throws IOException {
+		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
+
+		return addImageWatermark(watermarkResource.getImageMat(), new ImageWatermarkOption());
 	}
 
 	/**
-	 * 添加图片水印（从文件加载）
+	 * 添加图片水印，使用指定的水印配置选项。
+	 * <p>
+	 * 该方法会根据 {@link ImageWatermarkOption} 中的配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
 	 *
-	 * @param watermarkImageFile 水印图片文件，不能为 null
-	 * @param option             水印配置选项，不能为 null
-	 * @return 当前处理器实例，支持链式调用
-	 * @throws IOException              如果读取水印文件失败
-	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @param watermarkResource 水印图片资源，不可为 null
+	 * @param option            水印配置选项，包含缩放比例、透明度、位置方向、尺寸限制等，不可为 null
+	 * @return 当前处理器实例，用于链式调用
+	 * @throws IOException          当读取水印图片失败时抛出
+	 * @throws NullPointerException 当 watermarkResource 或 option 为 null 时抛出
+	 * @see ImageWatermarkOption
 	 * @since 1.1.0
 	 */
-	public ImageProcessor addImageWatermark(final File watermarkImageFile, final ImageWatermarkOption option) throws IOException {
+	public ImageProcessor addImageWatermark(final OpenCvResource watermarkResource, final ImageWatermarkOption option) throws IOException {
+		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
 		Validate.notNull(option, "option 不可为 null");
 
-		try (Mat watermarkImageMat = OpenCvUtils.read(watermarkImageFile, opencv_imgcodecs.IMREAD_UNCHANGED)) {
-			return addImageWatermark(watermarkImageMat, option);
-		}
+		return addImageWatermark(watermarkResource.getImageMat(), option);
 	}
 
 	/**
@@ -1618,17 +1627,24 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像保存到文件
+	 * 将处理后的图像输出到文件。
+	 * <p>
+	 * 输出格式由文件扩展名自动推断。如果输出文件的父目录不存在，会自动创建。
+	 * </p>
 	 *
-	 * <p>根据文件扩展名自动确定输出格式</p>
-	 *
-	 * @param outputFile 输出文件，不能为 null
-	 * @return 是否保存成功
-	 * @throws IllegalArgumentException 如果 outputFile 为 null
+	 * @param outputFile 输出文件，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入文件失败时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toFile(final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		String outputFormat = FilenameUtils.getExtension(outputFile.getName());
+		if (!OpenCvUtils.canWrite(outputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + outputFormat + "格式");
+		}
 
 		FileUtils.forceMkdirParent(outputFile);
 
@@ -1636,19 +1652,27 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像保存到文件（带编码参数）
+	 * 将处理后的图像输出到文件，指定编码参数。
+	 * <p>
+	 * 输出格式由文件扩展名自动推断。如果输出文件的父目录不存在，会自动创建。
+	 * </p>
 	 *
-	 * <p>根据文件扩展名自动确定输出格式</p>
-	 *
-	 * @param outputFile 输出文件，不能为 null
-	 * @param params     编码参数，不能为 null
-	 * @return 是否保存成功
-	 * @throws IllegalArgumentException 如果任一参数为 null
+	 * @param outputFile 输出文件，不可为 null
+	 * @param params     编码参数，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入文件失败时抛出
+	 * @throws NullPointerException         当 params 为 null 时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toFile(final File outputFile, final int... params) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(params, "params 不可为 null");
+
+		String outputFormat = FilenameUtils.getExtension(outputFile.getName());
+		if (!OpenCvUtils.canWrite(outputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + outputFormat + "格式");
+		}
 
 		FileUtils.forceMkdirParent(outputFile);
 
@@ -1656,14 +1680,14 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像写入输出流
+	 * 将处理后的图像输出到输出流。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * <p>使用默认的 outputFormat 编码图像</p>
-	 *
-	 * @param outputStream 输出流，不能为 null
-	 * @return 是否写入成功
-	 * @throws IOException              如果写入失败
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param outputStream 输出流，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException 当写入输出流失败时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
@@ -1671,15 +1695,16 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像写入输出流（带编码参数）
+	 * 将处理后的图像输出到输出流，指定编码参数。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * <p>使用默认的 outputFormat 编码图像</p>
-	 *
-	 * @param outputStream 输出流，不能为 null
-	 * @param params       编码参数，不能为 null
-	 * @return 是否写入成功
-	 * @throws IOException              如果写入失败
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param outputStream 输出流，不可为 null
+	 * @param params       编码参数，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException          当写入输出流失败时抛出
+	 * @throws NullPointerException 当 params 为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream, final int... params) throws IOException {
@@ -1687,15 +1712,15 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像写入输出流
+	 * 将处理后的图像输出到输出流，指定输出格式。
+	 * </p>
 	 *
-	 * <p>使用指定的 outputFormat 编码图像</p>
-	 *
-	 * @param outputFormat 图像格式，不能为 null 或空
-	 * @param outputStream 输出流，不能为 null
-	 * @return 是否写入成功
-	 * @throws IOException              如果写入失败
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param outputStream 输出流，不可为 null
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入输出流失败时抛出
+	 * @throws NullPointerException         当 outputStream 为 null 时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat) throws IOException {
@@ -1710,16 +1735,16 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像写入输出流（带编码参数）
+	 * 将处理后的图像输出到输出流，指定输出格式和编码参数。
+	 * </p>
 	 *
-	 * <p>使用指定的 outputFormat 编码图像</p>
-	 *
-	 * @param outputFormat       图像格式，不能为 null 或空
-	 * @param outputStream 输出流，不能为 null
-	 * @param params       编码参数，不能为 null
-	 * @return 是否写入成功
-	 * @throws IOException              如果写入失败
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param outputStream 输出流，不可为 null
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @param params       编码参数，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入输出流失败时抛出
+	 * @throws NullPointerException         当 outputStream 或 params 为 null 时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat, final int... params) throws IOException {
@@ -1734,12 +1759,12 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像转换为字节数组
+	 * 将处理后的图像转换为字节数组。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * <p>使用默认的 outputFormat 编码图像</p>
-	 *
-	 * @return 图像字节数组，失败时返回 null
-	 * @throws IllegalArgumentException 如果 format 无效
+	 * @return 图像的字节数组，如果编码失败返回 null
 	 * @since 1.1.0
 	 */
 	public byte[] toBytes() {
@@ -1747,13 +1772,14 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像转换为字节数组（带编码参数）
+	 * 将处理后的图像转换为字节数组，指定编码参数。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * <p>使用默认的 outputFormat 编码图像</p>
-	 *
-	 * @param params 编码参数，不能为 null
-	 * @return 图像字节数组，失败时返回 null
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param params 编码参数，不可为 null
+	 * @return 图像的字节数组，如果编码失败返回 null
+	 * @throws NullPointerException 当 params 为 null 时抛出
 	 * @since 1.1.0
 	 */
 	public byte[] toBytes(final int... params) {
@@ -1761,18 +1787,21 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像转换为字节数组
+	 * 将处理后的图像转换为字节数组，指定输出格式。
+	 * </p>
 	 *
-	 * <p>使用指定的 outputFormat 编码图像</p>
-	 *
-	 * @param outputFormat 图像格式，不能为 null 或空
-	 * @return 图像字节数组，失败时返回 null
-	 * @throws IllegalArgumentException 如果 format 无效
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @return 图像的字节数组，如果编码失败返回 null
+	 * @throws IllegalArgumentException       当 outputFormat 为空时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public byte[] toBytes(final String outputFormat) {
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(OpenCvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
+
+		if (!OpenCvUtils.canWrite(outputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + outputFormat + "格式");
+		}
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes);
@@ -1784,20 +1813,24 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * 将处理后的图像转换为字节数组（带编码参数）
+	 * 将处理后的图像转换为字节数组，指定输出格式和编码参数。
+	 * </p>
 	 *
-	 * <p>使用指定的 outputFormat 编码图像</p>
-	 *
-	 * @param outputFormat 图像格式，不能为 null 或空
-	 * @param params 编码参数，不能为 null
-	 * @return 图像字节数组，失败时返回 null
-	 * @throws IllegalArgumentException 如果任一参数无效
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @param params       编码参数，不可为 null
+	 * @return 图像的字节数组，如果编码失败返回 null
+	 * @throws IllegalArgumentException       当 outputFormat 为空时抛出
+	 * @throws NullPointerException         当 params 为 null 时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 1.1.0
 	 */
 	public byte[] toBytes(final String outputFormat, final int... params) {
 		Validate.notNull(params, "params 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
-		Validate.isTrue(OpenCvUtils.canWrite(outputFormat), "不支持输出 " + outputFormat + " 图像格式");
+
+		if (!OpenCvUtils.canWrite(outputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + outputFormat + "格式");
+		}
 
 		byte[] bytes = new byte[(int) (outputImage.rows() * outputImage.step())];
 		boolean result = opencv_imgcodecs.imencode(outputFormat, outputImage, bytes, params);

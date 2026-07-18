@@ -176,14 +176,14 @@ public class OpenCvResource extends IOResource {
 
 			if (Objects.nonNull(file)) {
 				if (!OpenCvUtils.canRead(file)) {
-					throw new UnsupportedResourceException(file, "无法从当前 resource 中读取图像");
+					throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 				}
 			} else {
 				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
 					imageMat = OpenCvUtils.read(byteArrayInputStream, this.flags);
 
 					if (OpenCvUtils.isEmpty(imageMat)) {
-						throw new UnsupportedResourceException("无法从当前 resource 中读取图像");
+						throw new UnsupportedResourceException("从当前 resource 中读取图像失败");
 					}
 				}
 			}
@@ -282,14 +282,14 @@ public class OpenCvResource extends IOResource {
 
 			if (Objects.nonNull(file)) {
 				if (!OpenCvUtils.canRead(file)) {
-					throw new UnsupportedResourceException(file, "无法从当前 resource 中读取图像");
+					throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 				}
 			} else {
 				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
 					imageMat = OpenCvUtils.read(byteArrayInputStream, this.flags);
 
 					if (OpenCvUtils.isEmpty(imageMat)) {
-						throw new UnsupportedResourceException("无法从当前 resource 中读取图像");
+						throw new UnsupportedResourceException("从当前 resource 中读取图像失败");
 					}
 				}
 			}
@@ -367,14 +367,14 @@ public class OpenCvResource extends IOResource {
 
 			if (Objects.nonNull(file)) {
 				if (!OpenCvUtils.canRead(file)) {
-					throw new UnsupportedResourceException(file, "无法从当前 resource 中读取图像");
+					throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 				}
 			} else {
 				try (InputStream byteArrayInputStream = IOUtils.toUnsynchronizedByteArrayInputStream(getBytes())) {
 					imageMat = OpenCvUtils.read(byteArrayInputStream, this.flags);
 
 					if (OpenCvUtils.isEmpty(imageMat)) {
-						throw new UnsupportedResourceException("无法从当前 resource 中读取图像");
+						throw new UnsupportedResourceException("从当前 resource 中读取图像失败");
 					}
 				}
 			}
@@ -468,7 +468,7 @@ public class OpenCvResource extends IOResource {
 
 		validateImageType("filePath 不是图像文件路径");
 		if (!OpenCvUtils.canRead(file)) {
-			throw new UnsupportedResourceException(file, "不支持读取当前文件");
+			throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 		}
 
 		this.flags = flags;
@@ -513,7 +513,7 @@ public class OpenCvResource extends IOResource {
 		validateImageType("filePath 不是图像文件路径");
 
 		if (!OpenCvUtils.canRead(file)) {
-			throw new UnsupportedResourceException(file, "不支持读取当前文件");
+			throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 		}
 
 		this.flags = flags;
@@ -594,7 +594,7 @@ public class OpenCvResource extends IOResource {
 		validateImageType("file 不是图像文件");
 
 		if (!OpenCvUtils.canRead(file)) {
-			throw new UnsupportedResourceException(file, "不支持读取当前文件");
+			throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 		}
 
 		this.flags = flags;
@@ -639,7 +639,7 @@ public class OpenCvResource extends IOResource {
 		validateImageType("file 不是图像文件");
 
 		if (!OpenCvUtils.canRead(file)) {
-			throw new UnsupportedResourceException(file, "不支持读取当前文件");
+			throw new UnsupportedResourceException("不支持读取该图像", file, format, mimeType);
 		}
 
 		this.flags = flags;
