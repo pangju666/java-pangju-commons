@@ -25,6 +25,7 @@ import io.github.pangju666.commons.image.model.ImageSize;
 import io.github.pangju666.commons.image.model.ImageWatermarkOption;
 import io.github.pangju666.commons.image.model.TextWatermarkOption;
 import io.github.pangju666.commons.image.utils.ImageUtils;
+import io.github.pangju666.commons.io.exception.UnsupportedResourceException;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import net.coobird.thumbnailator.filters.Caption;
 import net.coobird.thumbnailator.filters.Transparency;
@@ -1132,6 +1133,52 @@ public class ImageProcessor {
 	 * 然后将水印应用到当前图像上。
 	 * </p>
 	 *
+	 * @param watermarkResource 水印图片资源，不可为 null
+	 * @return 当前处理器实例，用于链式调用
+	 * @throws IOException          当读取水印图片失败时抛出
+	 * @throws NullPointerException 当 watermarkResource 为 null 时抛出
+	 * @see ImageWatermarkOption
+	 * @since 2.1.0
+	 */
+	public ImageProcessor addImageWatermark(final ImageIOResource watermarkResource) throws IOException {
+		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
+
+		this.outputImage = new ImageWatermarkOption().toWatermark(this.outputImageSize,
+			watermarkResource.getBufferedImage()).apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加图片水印，使用指定的水印配置选项。
+	 * <p>
+	 * 该方法会根据 {@link ImageWatermarkOption} 中的配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
+	 *
+	 * @param watermarkResource 水印图片资源，不可为 null
+	 * @param option            水印配置选项，包含缩放比例、透明度、位置方向、尺寸限制等，不可为 null
+	 * @return 当前处理器实例，用于链式调用
+	 * @throws IOException          当读取水印图片失败时抛出
+	 * @throws NullPointerException 当 watermarkResource 或 option 为 null 时抛出
+	 * @see ImageWatermarkOption
+	 * @since 2.1.0
+	 */
+	public ImageProcessor addImageWatermark(final ImageIOResource watermarkResource, final ImageWatermarkOption option) throws IOException {
+		Validate.notNull(watermarkResource, "watermarkResource 不可为 null");
+		Validate.notNull(option, "option 不可为 null");
+
+		this.outputImage = option.toWatermark(this.outputImageSize,
+			watermarkResource.getBufferedImage()).apply(this.outputImage);
+		return this;
+	}
+
+	/**
+	 * 添加图片水印，使用默认水印配置。
+	 * <p>
+	 * 该方法会使用 {@link ImageWatermarkOption} 的默认配置，自动计算水印尺寸、位置等参数，
+	 * 然后将水印应用到当前图像上。
+	 * </p>
+	 *
 	 * @param watermarkImage 水印图片，不可为 null
 	 * @return 当前处理器实例，用于链式调用
 	 * @see ImageWatermarkOption
@@ -1263,99 +1310,138 @@ public class ImageProcessor {
 		return this;
 	}
 
+
 	/**
-	 * 将处理后的图像保存到文件，使用当前实例的输出格式。
+	 * 将处理后的图像输出到文件。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。如果输出文件的父目录不存在，会自动创建。
+	 * </p>
 	 *
-	 * @param outputFile 输出文件
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException          当写入文件出错时
-	 * @throws NullPointerException 当输出文件为null时
+	 * @param outputFile 输出文件，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException 当写入文件失败时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toFile(final File outputFile) throws IOException {
-		return toFile(outputFile, this.outputFormat);
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		return ImageIO.write(toBufferedImage(), this.outputFormat.toUpperCase(), outputFile);
 	}
 
 	/**
-	 * 将处理后的图像保存到文件，使用指定的输出格式。
+	 * 将处理后的图像输出到文件，指定输出格式。
+	 * <p>
+	 * 如果输出文件的父目录不存在，会自动创建。
+	 * </p>
 	 *
-	 * @param outputFile   输出文件
-	 * @param outputFormat 输出格式（如 "PNG"、"JPG"）
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException              当写入文件出错时
-	 * @throws NullPointerException     当输出文件为null时
-	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @param outputFile   输出文件，不可为 null
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入文件失败时抛出
+	 * @throws IllegalArgumentException        当 outputFormat 为空时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toFile(final File outputFile, final String outputFormat) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
 
+		String upperCaseOutputFormat = outputFormat.toUpperCase();
+		if (!ImageConstants.getSupportedWriteImageFormats().contains(upperCaseOutputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + upperCaseOutputFormat + "格式");
+		}
+
 		FileUtils.forceMkdirParent(outputFile);
 
-		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), outputFile);
+		return ImageIO.write(toBufferedImage(), upperCaseOutputFormat, outputFile);
 	}
 
 	/**
-	 * 将处理后的图像写入输出流，使用当前实例的输出格式。
+	 * 将处理后的图像输出到输出流。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * @param outputStream 输出流
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException          当写入输出流出错时
-	 * @throws NullPointerException 当输出流为null时
+	 * @param outputStream 输出流，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException          当写入输出流失败时抛出
+	 * @throws NullPointerException 当 outputStream 为 null 时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream) throws IOException {
-		return toOutputStream(outputStream, this.outputFormat);
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), outputStream);
 	}
 
 	/**
-	 * 将处理后的图像写入输出流，使用指定的输出格式。
+	 * 将处理后的图像输出到输出流，指定输出格式。
+	 * </p>
 	 *
-	 * @param outputStream 输出流
-	 * @param outputFormat 输出格式（如 "PNG"、"JPG"）
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException              当写入输出流出错时
-	 * @throws NullPointerException     当输出流为null时
-	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @param outputStream 输出流，不可为 null
+	 * @param outputFormat 输出格式（如 jpg、png 等），不可为空
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入输出流失败时抛出
+	 * @throws NullPointerException         当 outputStream 为 null 时抛出
+	 * @throws IllegalArgumentException       当 outputFormat 为空时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toOutputStream(final OutputStream outputStream, final String outputFormat) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
 
-		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), outputStream);
+		String upperCaseOutputFormat = outputFormat.toUpperCase();
+		if (!ImageConstants.getSupportedWriteImageFormats().contains(upperCaseOutputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + upperCaseOutputFormat + "格式");
+		}
+
+		return ImageIO.write(toBufferedImage(), upperCaseOutputFormat, outputStream);
 	}
 
 	/**
-	 * 将处理后的图像写入图像输出流，使用当前实例的输出格式。
+	 * 将处理后的图像输出到图像输出流。
+	 * <p>
+	 * 使用当前处理器设置的输出格式。
+	 * </p>
 	 *
-	 * @param imageOutputStream 图像输出流
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException          当写入图像输出流出错时
-	 * @throws NullPointerException 当图像输出流为null时
+	 * @param imageOutputStream 图像输出流，不可为 null
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException          当写入图像输出流失败时抛出
+	 * @throws NullPointerException 当 imageOutputStream 为 null 时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream) throws IOException {
-		return toImageOutputStream(imageOutputStream, this.outputFormat);
+		Validate.notNull(imageOutputStream, "imageOutputStream 不可为 null");
+
+		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), imageOutputStream);
 	}
 
 	/**
-	 * 将处理后的图像写入图像输出流，使用指定的输出格式。
+	 * 将处理后的图像输出到图像输出流，指定输出格式。
+	 * </p>
 	 *
-	 * @param imageOutputStream 图像输出流
-	 * @param outputFormat      输出格式（如 "PNG"、"JPG"）
-	 * @return 如果写入成功则返回true，否则返回false
-	 * @throws IOException              当写入图像输出流出错时
-	 * @throws NullPointerException     当图像输出流为null时
-	 * @throws IllegalArgumentException 当outputFormat为null或空字符串时
+	 * @param imageOutputStream 图像输出流，不可为 null
+	 * @param outputFormat     输出格式（如 jpg、png 等），不可为空
+	 * @return 如果成功写入返回 true，否则返回 false
+	 * @throws IOException                  当写入图像输出流失败时抛出
+	 * @throws NullPointerException         当 imageOutputStream 为 null 时抛出
+	 * @throws IllegalArgumentException       当 outputFormat 为空时抛出
+	 * @throws UnsupportedResourceException 当输出格式不被支持时抛出
 	 * @since 2.1.0
 	 */
 	public boolean toImageOutputStream(final ImageOutputStream imageOutputStream, final String outputFormat) throws IOException {
 		Validate.notNull(imageOutputStream, "imageOutputStream 不可为 null");
 		Validate.notBlank(outputFormat, "outputFormat 不可为空");
 
-		return ImageIO.write(toBufferedImage(), outputFormat.toUpperCase(), imageOutputStream);
+		String upperCaseOutputFormat = outputFormat.toUpperCase();
+		if (!ImageConstants.getSupportedWriteImageFormats().contains(upperCaseOutputFormat)) {
+			throw new UnsupportedResourceException("不支持输出为" + upperCaseOutputFormat + "格式");
+		}
+
+		return ImageIO.write(toBufferedImage(), upperCaseOutputFormat, imageOutputStream);
 	}
 
 	/**
