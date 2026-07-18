@@ -219,7 +219,7 @@ public class PdfImageResource extends IOResource {
 		}
 		if (!PdfConstants.PDF_IMAGE_SUPPORTED_IMAGE_TYPES.contains(mimeType)) {
 			if (!PdfConstants.PDF_IMAGE_SUPPORTED_IMAGE_FORMATS.contains(format)) {
-				throw new UnsupportedResourceException("PDFBox 不支持读取 " + format + " 类型图像");
+				throw new UnsupportedResourceException("不支持读取该图像", format, mimeType);
 			}
 		}
 	}

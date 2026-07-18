@@ -158,7 +158,7 @@ public class TesseractResource extends IOResource {
 		}
 		if (!TesseractConstants.SUPPORTED_IMAGE_TYPES.contains(mimeType)) {
 			if (!TesseractConstants.SUPPORTED_IMAGE_FILE_FORMATS.contains(format)) {
-				throw new UnsupportedResourceException("不支持读取 " + format + " 类型图像");
+				throw new UnsupportedResourceException("不支持读取该图像", format, mimeType);
 			}
 		}
 	}
