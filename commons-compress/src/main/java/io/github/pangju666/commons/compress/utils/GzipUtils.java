@@ -16,12 +16,15 @@
 
 package io.github.pangju666.commons.compress.utils;
 
+import io.github.pangju666.commons.compress.io.resource.GzipResource;
 import io.github.pangju666.commons.compress.lang.CompressConstants;
 import io.github.pangju666.commons.io.lang.IOConstants;
+import io.github.pangju666.commons.io.resource.IOResource;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -69,12 +72,14 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
+ * @apiNote Zstd 格式在压缩率和速度上均优于 GZIP，建议在新项目中优先使用 {@link ZstdUtils}。
  * @see GzipCompressorInputStream
  * @see GzipCompressorOutputStream
+ * @see GzipResource
  * @since 1.0.0
  */
-public class GZipUtils {
-	protected GZipUtils() {
+public class GzipUtils {
+	protected GzipUtils() {
 	}
 
 	/**
@@ -86,7 +91,9 @@ public class GZipUtils {
 	 * @throws NullPointerException 当 {@code file} 为 {@code null} 时抛出
 	 * @throws IOException          当文件访问发生 I/O 异常时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link GzipResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static boolean isGZip(final File file) throws IOException {
 		return FileUtils.isMimeType(file, CompressConstants.GZIP_TYPE);
 	}
@@ -98,7 +105,9 @@ public class GZipUtils {
 	 * @param bytes 待检测的字节数组；为 {@code null} 或空数组将返回 {@code false}
 	 * @return 当且仅当字节数组非空且检测为 GZIP 时返回 {@code true}
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link GzipResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static boolean isGZip(final byte[] bytes) {
 		return ArrayUtils.isNotEmpty(bytes) &&
 			IOConstants.getDefaultTika().detect(bytes).equals(CompressConstants.GZIP_TYPE);
@@ -112,7 +121,9 @@ public class GZipUtils {
 	 * @return 当且仅当输入流非空且检测为 GZIP 时返回 {@code true}
 	 * @throws IOException 当流读取发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link GzipResource} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static boolean isGZip(final InputStream inputStream) throws IOException {
 		return Objects.nonNull(inputStream) &&
 			IOConstants.getDefaultTika().detect(inputStream).equals(CompressConstants.GZIP_TYPE);
@@ -131,45 +142,86 @@ public class GZipUtils {
 	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
 	 */
-	public static void compress(InputStream inputStream, OutputStream outputStream) throws IOException {
+	public static void compress(final InputStream inputStream, final OutputStream outputStream) throws IOException {
+		compress(inputStream, outputStream, new GzipParameters());
+	}
+
+	/**
+	 * 将输入流压缩为 GZIP 并写入到输出流（指定压缩参数）。
+	 * <p>
+	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()}。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭。
+	 * </p>
+	 *
+	 * @param inputStream  待压缩的输入流，非空
+	 * @param outputStream 目标输出流，非空
+	 * @param parameters   GZIP 压缩参数，非空
+	 * @throws NullPointerException 当 {@code inputStream}、{@code outputStream} 或 {@code parameters} 为 {@code null} 时抛出
+	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final InputStream inputStream, final OutputStream outputStream,
+	                            final GzipParameters parameters) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
+		Validate.notNull(parameters, "parameters 不可为 null");
 
 		if (outputStream instanceof GzipCompressorOutputStream compressorOutputStream) {
-			if (inputStream instanceof BufferedInputStream ||
-				inputStream instanceof UnsynchronizedBufferedInputStream) {
+			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 				inputStream.transferTo(compressorOutputStream);
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
 					bufferedInputStream.transferTo(compressorOutputStream);
 				}
 			}
-			compressorOutputStream.finish();
-		} else if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
-			try (GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
-				if (inputStream instanceof BufferedInputStream ||
-					inputStream instanceof UnsynchronizedBufferedInputStream) {
-					inputStream.transferTo(compressorOutputStream);
-				} else {
-					try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
-						bufferedInputStream.transferTo(compressorOutputStream);
-					}
-				}
-				compressorOutputStream.finish();
-			}
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
-			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream)) {
-				if (inputStream instanceof BufferedInputStream ||
-					inputStream instanceof UnsynchronizedBufferedInputStream) {
+			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream, parameters)) {
+				if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 					inputStream.transferTo(compressorOutputStream);
 				} else {
 					try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
-				compressorOutputStream.finish();
 			}
+		}
+	}
+
+	/**
+	 * 压缩 IOResource 到输出流。
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>使用默认 GZIP 压缩参数。</p>
+	 *
+	 * @param resource     IOResource 对象，必须非 null
+	 * @param outputStream 输出流，必须非 null
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
+	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final IOResource resource, final OutputStream outputStream) throws IOException {
+		compress(resource, outputStream, new GzipParameters());
+	}
+
+	/**
+	 * 压缩 IOResource 到输出流（指定压缩参数）。
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 *
+	 * @param resource     IOResource 对象，必须非 null
+	 * @param outputStream 输出流，必须非 null
+	 * @param parameters   GZIP 压缩参数，非空
+	 * @throws NullPointerException 当 {@code resource}、{@code outputStream} 或 {@code parameters} 为 null 时抛出
+	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final IOResource resource, final OutputStream outputStream, final GzipParameters parameters) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+		Validate.notNull(parameters, "parameters 不可为 null");
+
+		try (InputStream inputStream = resource.newBufferedInputStream();
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
+			compress(inputStream, bufferedOutputStream, parameters);
 		}
 	}
 
@@ -186,7 +238,9 @@ public class GZipUtils {
 	 * @throws FileNotFoundException 当 {@code inputFile} 不存在时抛出
 	 * @throws IOException           当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #compress(IOResource, OutputStream)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void compress(File inputFile, OutputStream outputStream) throws IOException {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -195,19 +249,16 @@ public class GZipUtils {
 			try (InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
 			}
-			compressorOutputStream.finish();
-		} else if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
+		} else if (outputStream instanceof BufferedOutputStream) {
 			try (GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream);
 			     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
-				compressorOutputStream.finish();
 			}
 		} else {
 			try (OutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
 			     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 				bufferedInputStream.transferTo(compressorOutputStream);
-				compressorOutputStream.finish();
 			}
 		}
 	}
@@ -222,7 +273,9 @@ public class GZipUtils {
 	 * @throws FileNotFoundException 当 {@code inputFile} 不存在时抛出
 	 * @throws IOException           当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #compress(IOResource, OutputStream)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void compress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -232,7 +285,123 @@ public class GZipUtils {
 		     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
 		     InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			bufferedInputStream.transferTo(compressorOutputStream);
-			compressorOutputStream.finish();
+		}
+	}
+
+	/**
+	 * 压缩输入流到文件。
+	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>使用默认 GZIP 压缩参数。</p>
+	 *
+	 * @param inputStream 输入流，必须非 null
+	 * @param outputFile  输出文件，必须非 null
+	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final InputStream inputStream, final File outputFile) throws IOException {
+		compress(inputStream, outputFile, new GzipParameters());
+	}
+
+	/**
+	 * 压缩输入流到文件（指定压缩参数）。
+	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 *
+	 * @param inputStream 输入流，必须非 null
+	 * @param outputFile  输出文件，必须非 null
+	 * @param parameters  GZIP 压缩参数，非空
+	 * @throws NullPointerException 当 {@code inputStream}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
+	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final InputStream inputStream, final File outputFile, final GzipParameters parameters) throws IOException {
+		Validate.notNull(inputStream, "inputStream 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile)) {
+			compress(inputStream, bufferedOutputStream, parameters);
+		}
+	}
+
+	/**
+	 * 压缩 IOResource 到文件。
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>使用默认 GZIP 压缩参数。</p>
+	 *
+	 * @param resource   IOResource 对象，必须非 null
+	 * @param outputFile 输出文件，必须非 null
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final IOResource resource, final File outputFile) throws IOException {
+		compress(resource, outputFile, new GzipParameters());
+	}
+
+	/**
+	 * 压缩 IOResource 到文件（指定压缩参数）。
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 *
+	 * @param resource   IOResource 对象，必须非 null
+	 * @param outputFile 输出文件，必须非 null
+	 * @param parameters GZIP 压缩参数，非空
+	 * @throws NullPointerException 当 {@code resource}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
+	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void compress(final IOResource resource, final File outputFile, final GzipParameters parameters) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		try (InputStream inputStream = resource.newBufferedInputStream();
+		     BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile)) {
+			compress(inputStream, bufferedOutputStream, parameters);
+		}
+	}
+
+	/**
+	 * 从 {@code GzipResource} 解压到输出流。
+	 * <p>通过 GzipResource 打开 GZIP 压缩输入流，将解压后的数据写入输出流。</p>
+	 *
+	 * @param resource     GzipResource 对象，必须非 null
+	 * @param outputStream 输出流，必须非 null
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
+	 * @throws IOException          当资源已关闭或解压过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void uncompress(final GzipResource resource, final OutputStream outputStream) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+		Validate.notNull(outputStream, "outputStream 不可为 null");
+
+		try (GzipCompressorInputStream gzipCompressorInputStream = resource.openGzipCompressorInputStream();
+		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
+			gzipCompressorInputStream.transferTo(bufferedOutputStream);
+		}
+	}
+
+	/**
+	 * 从 {@code GzipResource} 解压到文件。
+	 * <p>通过 GzipResource 打开 GZIP 压缩输入流，将解压后的数据写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 *
+	 * @param resource   GzipResource 对象，必须非 null
+	 * @param outputFile 输出文件，必须非 null
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IOException          当资源已关闭、文件写入或解压过程中发生 I/O 错误时抛出
+	 * @since 2.1.0
+	 */
+	public static void uncompress(final GzipResource resource, final File outputFile) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+
+		FileUtils.forceMkdirParent(outputFile);
+
+		try (GzipCompressorInputStream gzipCompressorInputStream = resource.openGzipCompressorInputStream();
+		     BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile)) {
+			gzipCompressorInputStream.transferTo(bufferedOutputStream);
 		}
 	}
 
@@ -248,7 +417,9 @@ public class GZipUtils {
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 {@code null} 时抛出
 	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #uncompress(GzipResource, OutputStream)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(InputStream inputStream, OutputStream outputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -295,19 +466,17 @@ public class GZipUtils {
 	 * @throws IllegalArgumentException 当 {@code inputFile} 不是有效的 GZIP 格式时抛出
 	 * @throws IOException              当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #uncompress(GzipResource, OutputStream)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(File inputFile, OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.isTrue(isGZip(inputFile), "inputFile 不是gz压缩文件");
 
 		try (InputStream bufferedInputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     GzipCompressorInputStream compressorInputStream = new GzipCompressorInputStream(bufferedInputStream)) {
-			if (outputStream instanceof BufferedOutputStream || outputStream instanceof ByteArrayOutputStream) {
-				compressorInputStream.transferTo(outputStream);
-			} else {
-				try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
-					compressorInputStream.transferTo(bufferedOutputStream);
-				}
+			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
+				compressorInputStream.transferTo(bufferedOutputStream);
 			}
 		}
 	}
@@ -322,7 +491,9 @@ public class GZipUtils {
 	 * @throws IllegalArgumentException 当 {@code inputFile} 不是有效的 GZIP 格式时抛出
 	 * @throws IOException              当读取/写入发生 I/O 错误时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #uncompress(GzipResource, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.isTrue(isGZip(inputFile), "inputFile 不是gz压缩文件");

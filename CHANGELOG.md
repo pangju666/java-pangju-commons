@@ -15,8 +15,18 @@
 - feat(io): FileUtils新增newBufferedOutputStream和newUnsynchronizedBufferedInputStream方法
 - perf(io): FileUtils废弃openUnsynchronizedBufferedInputStream方法和设置缓冲区的文件加解密方法
 - perf(io): FileUtils优化文件加解密方法和解析元数据方法
+- feat (io): FileUtils新增检查目录是否存在方法
+- perf (io): FileUtils优化检查文件方法
 - perf(compress): 优化参数校验
-- perf(compress): 将输入输出流改为带缓冲区的流
+- perf (compress): 各格式工具类优化实现
+- feat (compress): 新增各压缩格式的IOResource子类
+- feat (compress): CompressConstants新增zstd mimetype 常量
+- feat (compress): 新增Zstd压缩格式的依赖和工具类
+- refactor (compress): 重命名GZipUtils为GzipUtils
+- feat (compress): 新增ArchiveUtils归档格式通用工具类
+- feat (compress): ZipUtils新增分片压缩/解压和使用密码压缩/解压
+- feat (compress): SevenZUtils新增使用密码压缩/解压
+- feat (compress): 优化CompressUtils
 - perf(pdf): 优化参数校验
 - perf(pdf): 废弃从流中读取PDF文档
 - perf(poi): 优化参数校验
