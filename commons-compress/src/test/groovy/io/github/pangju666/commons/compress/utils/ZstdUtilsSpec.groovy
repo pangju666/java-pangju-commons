@@ -1,25 +1,25 @@
 package io.github.pangju666.commons.compress.utils
 
-import io.github.pangju666.commons.compress.io.resource.XZResource
+import io.github.pangju666.commons.compress.io.resource.ZstdResource
 import io.github.pangju666.commons.io.resource.IOResource
-import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream
-import org.tukaani.xz.LZMA2Options
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream
+import org.apache.commons.compress.compressors.zstandard.ZstdConstants
 import spock.lang.Specification
 
-class XZUtilsSpec extends Specification {
+class ZstdUtilsSpec extends Specification {
 
 	def "压缩输入流到输出流成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile);
 		     OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(inputStream, out)
+			ZstdUtils.compress(inputStream, out)
 		}
 
 		then:
@@ -27,18 +27,18 @@ class XZUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
-	def "压缩输入流到输出流指定压缩选项成功"() {
+	def "压缩输入流到输出流指定压缩级别成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile);
 		     OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(inputStream, out, new LZMA2Options())
+			ZstdUtils.compress(inputStream, out, ZstdConstants.ZSTD_CLEVEL_DEFAULT)
 		}
 
 		then:
@@ -48,15 +48,15 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩IOResource到输出流成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(new IOResource(inputFile), out)
+			ZstdUtils.compress(new IOResource(inputFile), out)
 		}
 
 		then:
@@ -64,17 +64,17 @@ class XZUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
-	def "压缩IOResource到输出流指定压缩选项成功"() {
+	def "压缩IOResource到输出流指定压缩级别成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(new IOResource(inputFile), out, new LZMA2Options())
+			ZstdUtils.compress(new IOResource(inputFile), out, ZstdConstants.ZSTD_CLEVEL_DEFAULT)
 		}
 
 		then:
@@ -84,15 +84,15 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩输入流到文件成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile)) {
-			XZUtils.compress(inputStream, outputFile)
+			ZstdUtils.compress(inputStream, outputFile)
 		}
 
 		then:
@@ -100,17 +100,17 @@ class XZUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
-	def "压缩输入流到文件指定压缩选项成功"() {
+	def "压缩输入流到文件指定压缩级别成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile)) {
-			XZUtils.compress(inputStream, outputFile, new LZMA2Options())
+			ZstdUtils.compress(inputStream, outputFile, ZstdConstants.ZSTD_CLEVEL_DEFAULT)
 		}
 
 		then:
@@ -120,46 +120,46 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩IOResource到文件成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
-		XZUtils.compress(new IOResource(inputFile), outputFile)
+		ZstdUtils.compress(new IOResource(inputFile), outputFile)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
 	}
 
-	def "压缩IOResource到文件指定压缩选项成功"() {
+	def "压缩IOResource到文件指定压缩级别成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
-		XZUtils.compress(new IOResource(inputFile), outputFile, new LZMA2Options())
+		ZstdUtils.compress(new IOResource(inputFile), outputFile, ZstdConstants.ZSTD_CLEVEL_DEFAULT)
 
 		then:
 		outputFile.exists()
 		outputFile.length() > 0
 	}
 
-	def "从XZResource解压到输出流成功"() {
+	def "从ZstdResource解压到输出流成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
-		File xzFile = new File("src/test/resources/test.xz")
+		File zstFile = new File("src/test/resources/test.zst")
 		File outputFile = new File(work, "output.txt")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.uncompress(new XZResource(xzFile), out)
+			ZstdUtils.uncompress(new ZstdResource(zstFile), out)
 		}
 
 		then:
@@ -167,15 +167,15 @@ class XZUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
-	def "从XZResource解压到文件成功"() {
+	def "从ZstdResource解压到文件成功"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
-		File xzFile = new File("src/test/resources/test.xz")
+		File zstFile = new File("src/test/resources/test.zst")
 		File outputFile = new File(work, "output.txt")
 
 		when:
-		XZUtils.uncompress(new XZResource(xzFile), outputFile)
+		ZstdUtils.uncompress(new ZstdResource(zstFile), outputFile)
 
 		then:
 		outputFile.exists()
@@ -184,13 +184,13 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩null输入流抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(null as InputStream, out)
+			ZstdUtils.compress(null as InputStream, out)
 		}
 
 		then:
@@ -199,32 +199,14 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩null输出流抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile)) {
-			XZUtils.compress(inputStream, null as OutputStream)
-		}
-
-		then:
-		thrown(NullPointerException)
-	}
-
-	def "压缩null压缩选项抛出异常"() {
-		setup:
-		File work = new File("target/test-work/xz")
-		work.mkdirs()
-		File inputFile = new File(work, "input.txt")
-		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
-
-		when:
-		try (InputStream inputStream = new FileInputStream(inputFile);
-		     OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(inputStream, out, null)
+			ZstdUtils.compress(inputStream, null as OutputStream)
 		}
 
 		then:
@@ -233,13 +215,13 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩null IOResource抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.compress(null as IOResource, out)
+			ZstdUtils.compress(null as IOResource, out)
 		}
 
 		then:
@@ -248,14 +230,14 @@ class XZUtilsSpec extends Specification {
 
 	def "压缩null输出文件抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile)) {
-			XZUtils.compress(inputStream, null as File)
+			ZstdUtils.compress(inputStream, null as File)
 		}
 
 		then:
@@ -264,49 +246,49 @@ class XZUtilsSpec extends Specification {
 
 	def "解压null输入流抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File outputFile = new File(work, "output.txt")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.uncompress(null as XZResource, out)
+			ZstdUtils.uncompress(null, out)
 		}
 
 		then:
 		thrown(NullPointerException)
 	}
 
-	def "解压null XZResource抛出异常"() {
+	def "解压null ZstdResource抛出异常"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File outputFile = new File(work, "output.txt")
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			XZUtils.uncompress(null as XZResource, out)
+			ZstdUtils.uncompress(null as ZstdResource, out)
 		}
 
 		then:
 		thrown(NullPointerException)
 	}
 
-	def "压缩使用已存在的XZCompressorOutputStream"() {
+	def "压缩使用已存在的ZstdCompressorOutputStream"() {
 		setup:
-		File work = new File("target/test-work/xz")
+		File work = new File("target/test-work/zstd")
 		work.mkdirs()
 		File inputFile = new File(work, "input.txt")
 		inputFile.text = "test content"
-		File outputFile = new File(work, "output.xz")
+		File outputFile = new File(work, "output.zst")
 
 		when:
 		try (InputStream inputStream = new FileInputStream(inputFile);
 		     FileOutputStream fos = new FileOutputStream(outputFile);
-		     XZCompressorOutputStream xos = XZCompressorOutputStream.builder()
+		     ZstdCompressorOutputStream zos = ZstdCompressorOutputStream.builder()
 				 .setOutputStream(fos)
 				 .get()) {
-			XZUtils.compress(inputStream, xos)
+			ZstdUtils.compress(inputStream, zos)
 		}
 
 		then:

@@ -54,6 +54,12 @@ public class CompressConstants {
 	 */
 	public static final String XZ_MIME_TYPE = "application/x-xz";
 	/**
+	 * zst压缩文件MIME类型
+	 *
+	 * @since 2.1.0
+	 */
+	public static final String ZSTD_MIME_TYPE = "application/zstd";
+	/**
 	 * 压缩文件路径分隔符
 	 *
 	 * @since 1.0.0
