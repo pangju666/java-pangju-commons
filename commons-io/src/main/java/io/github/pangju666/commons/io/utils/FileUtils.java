@@ -1303,43 +1303,31 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	/**
-	 * 常规文件校验（类型检查）
-	 * <p><strong>与{@link #check}的区别：</strong></p>
-	 * <ul>
-	 *     <li>额外验证文件类型为常规文件</li>
-	 *     <li>排除目录类型</li>
-	 *     <li>适用于需要严格文件验证的场景</li>
-	 * </ul>
+	 * 检查指定文件对象是否为有效的常规文件。
+	 * <p>验证文件对象非 null、存在且为常规文件类型（非目录）。</p>
 	 *
-	 * @param file    待校验的文件对象
-	 * @param message 校验失败时的异常消息
-	 * @throws IOException              当文件不存在时抛出
-	 * @throws IllegalArgumentException 当路径指向目录时抛出
-	 * @see #check(File, String)
-	 * @see File#isFile()
+	 * @param file    待检查的文件对象，必须非 null 且存在
+	 * @param message 当验证失败时的错误消息
+	 * @throws NullPointerException     当 file 参数为 null 时抛出
+	 * @throws IOException              当文件不存在或不可读时抛出
+	 * @throws IllegalArgumentException 当文件存在但不是常规文件时抛出
 	 * @since 1.0.0
 	 */
 	public static void checkFile(final File file, final String message) throws IOException {
 		check(file, message);
-		if (file.isDirectory()) {
+		if (!file.isFile()) {
 			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
 		}
 	}
 
 	/**
-	 * 条件文件校验（存在时才验证类型）
-	 * <p><strong>功能特性：</strong></p>
-	 * <ul>
-	 *     <li>仅当文件存在时才进行类型校验</li>
-	 *     <li>安全处理null输入</li>
-	 *     <li>适用于创建新文件前的校验场景</li>
-	 * </ul>
+	 * 检查指定文件对象是否为有效的常规文件（如果存在）。
+	 * <p>验证文件对象非 null；如果文件存在，则验证其为常规文件类型（非目录）。</p>
 	 *
-	 * @param file    待校验的文件对象
-	 * @param message 校验失败时的异常消息
-	 * @throws NullPointerException     当file为null时抛出
-	 * @throws IllegalArgumentException 当路径存在且指向目录时抛出
-	 * @see #checkFile(File, String)
+	 * @param file    待检查的文件对象，必须非 null
+	 * @param message 当验证失败时的错误消息
+	 * @throws NullPointerException     当 file 参数为 null 时抛出
+	 * @throws IllegalArgumentException 当文件存在但不是常规文件时抛出
 	 * @since 1.0.0
 	 */
 	public static void checkFileIfExist(final File file, final String message) {
@@ -1347,8 +1335,47 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			throw new NullPointerException(message);
 		}
 		if (file.exists()) {
-			if (file.isDirectory()) {
+			if (!file.isFile()) {
 				throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个文件路径");
+			}
+		}
+	}
+
+	/**
+	 * 检查指定文件对象是否为有效的目录。
+	 * <p>验证文件对象非 null、存在且为目录类型。</p>
+	 *
+	 * @param file    待检查的文件对象，必须非 null 且存在
+	 * @param message 当验证失败时的错误消息
+	 * @throws NullPointerException     当 file 参数为 null 时抛出
+	 * @throws IOException              当文件不存在或不可读时抛出
+	 * @throws IllegalArgumentException 当文件存在但不是目录时抛出
+	 * @since 2.1.0
+	 */
+	public static void checkDir(final File file, final String message) throws IOException {
+		check(file, message);
+		if (!file.isDirectory()) {
+			throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个目录路径");
+		}
+	}
+
+	/**
+	 * 检查指定文件对象是否为有效的目录（如果存在）。
+	 * <p>验证文件对象非 null；如果文件存在，则验证其为目录类型。</p>
+	 *
+	 * @param file    待检查的文件对象，必须非 null
+	 * @param message 当验证失败时的错误消息
+	 * @throws NullPointerException     当 file 参数为 null 时抛出
+	 * @throws IllegalArgumentException 当文件存在但不是目录时抛出
+	 * @since 2.1.0
+	 */
+	public static void checkDirIfExist(final File file, final String message) {
+		if (Objects.isNull(file)) {
+			throw new NullPointerException(message);
+		}
+		if (file.exists()) {
+			if (!file.isDirectory()) {
+				throw new IllegalArgumentException(file.getAbsolutePath() + " 不是一个目录路径");
 			}
 		}
 	}

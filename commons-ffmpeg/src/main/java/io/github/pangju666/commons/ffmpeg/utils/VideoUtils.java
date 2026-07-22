@@ -744,7 +744,7 @@ public class VideoUtils {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.isTrue(getSupportedWriteImageFormats().contains(outputFormat),
 			"不支持输出为 " + outputFormat + " 格式");
-		Validate.notNull(outputDir, "outputDir 不可为 null");
+		FileUtils.checkDirIfExist(outputDir, "outputDir 不可为 null");
 
 		FileUtils.forceMkdir(outputDir);
 
