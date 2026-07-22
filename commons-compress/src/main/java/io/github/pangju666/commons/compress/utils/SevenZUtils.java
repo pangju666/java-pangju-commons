@@ -53,40 +53,40 @@ import java.util.function.Consumer;
  * <h3>使用示例</h3>
  * <pre>{@code
  * // 1) 压缩单个文件到 .7z
- * SevenZUtils.compress(new File("input.txt"), new File("archive.7z"));
+ * SevenZUtils.archive(new File("input.txt"), new File("archive.7z"));
  *
  * // 2) 压缩加密的 7z 文件
- * SevenZUtils.compress(new File("input.txt"), new File("encrypted.7z"), "password");
+ * SevenZUtils.archive(new File("input.txt"), new File("encrypted.7z"), "password");
  *
  * // 3) 压缩目录到 SevenZOutputFile（不会自动关闭传入对象）
  * try (SevenZOutputFile szf = new SevenZOutputFile(new File("archive.7z"))) {
- *     SevenZUtils.compress(new File("inputDir"), szf);
+ *     SevenZUtils.archive(new File("inputDir"), szf);
  * }
  *
  * // 4) 批量压缩多个文件/目录到 .7z
  * List<File> inputs = List.of(new File("a.txt"), new File("b"), new File("c"));
- * SevenZUtils.compress(inputs, new File("batch.7z"));
+ * SevenZUtils.archive(inputs, new File("batch.7z"));
  *
  * // 5) 压缩到 SeekableByteChannel
  * try (SeekableByteChannel channel = FileChannel.open(new File("archive.7z").toPath(),
  *         StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
- *     SevenZUtils.compress(new File("input.txt"), channel);
+ *     SevenZUtils.archive(new File("input.txt"), channel);
  * }
  *
  * // 6) 压缩到加密的 SeekableByteChannel
  * try (SeekableByteChannel channel = FileChannel.open(new File("encrypted.7z").toPath(),
  *         StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
- *     SevenZUtils.compress(new File("input.txt"), channel, "password");
+ *     SevenZUtils.archive(new File("input.txt"), channel, "password");
  * }
  *
  * // 7) 使用 SevenZFile 解压（适合随机访问和大文件）
  * try (SevenZFile zf = SevenZFile.builder().setFile(new File("archive.7z")).get()) {
- *     SevenZUtils.uncompress(zf, new File("outputDir"));
+ *     SevenZUtils.extract(zf, new File("outputDir"));
  * }
  *
  * // 8) 使用 SevenZResource 解压
  * try (SevenZResource resource = new SevenZResource(new File("archive.7z"))) {
- *     SevenZUtils.uncompress(resource, new File("outputDir"));
+ *     SevenZUtils.extract(resource, new File("outputDir"));
  * }
  *
  * }</pre>
@@ -121,7 +121,7 @@ public class SevenZUtils {
 	 * <p>基于 Tika 的 MIME 类型检测。</p>
 	 *
 	 * @param bytes 待检测的字节数组；为 {@code null} 或空数组将返回 {@code false}
-	 * @return 当且仅当字节数组非空且检测为 {@code application/x-7z-compressed} 时返回 {@code true}
+	 * @return 当且仅当字节数组非空且检测为 {@code application/x-7z-archiveed} 时返回 {@code true}
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link SevenZResource} 代替
 	 */
@@ -136,7 +136,7 @@ public class SevenZUtils {
 	 * <p>基于 Tika 的 MIME 类型检测。</p>
 	 *
 	 * @param inputStream 待检测的输入流，非空
-	 * @return 当且仅当输入流非空且检测为 {@code application/x-7z-compressed} 时返回 {@code true}
+	 * @return 当且仅当输入流非空且检测为 {@code application/x-7z-archiveed} 时返回 {@code true}
 	 * @throws NullPointerException 当 {@code inputStream} 为 {@code null} 时抛出
 	 * @throws IOException          当流读取发生 I/O 错误时抛出
 	 * @since 1.0.0
@@ -158,7 +158,7 @@ public class SevenZUtils {
 	 * @throws IllegalArgumentException 当 {@code inputFile} 不是有效的 7z 格式或 {@code outputDir} 存在但不是目录时抛出
 	 * @throws IOException              当输入文件不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #uncompress(SevenZResource, File)} 代替
+	 * @deprecated 请使用{@link #extract(SevenZResource, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
@@ -166,25 +166,7 @@ public class SevenZUtils {
 		Validate.isTrue(is7z(inputFile), "inputFile 不是7z压缩文件");
 
 		try (SevenZFile sevenZFile = SevenZFile.builder().setFile(inputFile).get()) {
-			uncompress(sevenZFile, outputDir);
-		}
-	}
-
-	/**
-	 * 从 {@code SevenZResource} 对象解压缩到指定目录。
-	 * <p>通过 SevenZResource 打开 SevenZFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
-	 *
-	 * @param resource  7z 资源对象，必须非 null
-	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
-	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
-	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
-	 * @since 2.1.0
-	 */
-	public static void uncompress(final SevenZResource resource, final File outputDir) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-
-		try (SevenZFile sevenZFile = resource.openSevenZFile()) {
-			uncompress(sevenZFile, outputDir);
+			extract(sevenZFile, outputDir);
 		}
 	}
 
@@ -204,11 +186,11 @@ public class SevenZUtils {
 	 *                                  <li>磁盘空间不足</li>
 	 *                                  </ul>
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #extract(SevenZResource, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final SevenZFile sevenZFile, final File outputDir) throws IOException {
-		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
-
-		ArchiveUtils.uncompress(sevenZFile.getEntries().iterator(), outputDir, sevenZFile::getInputStream);
+		extract(sevenZFile, outputDir);
 	}
 
 	/**
@@ -226,14 +208,144 @@ public class SevenZUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
+		archive(inputFile, outputFile);
+	}
+
+	/**
+	 * 压缩文件/目录到 SevenZOutputFile 对象。
+	 * <p>将单个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 *
+	 * @param inputFile        要压缩的文件或目录，必须存在且可读
+	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code sevenZOutputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, SevenZOutputFile)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final File inputFile, final SevenZOutputFile sevenZOutputFile) throws IOException {
+		archive(inputFile, sevenZOutputFile);
+	}
+
+	/**
+	 * 压缩多个文件/目录到 7z 文件。
+	 * <p>将多个文件或目录（递归包含子目录）压缩为单个 7z 格式文件。</p>
+	 *
+	 * @param inputFiles 要压缩的文件/目录集合，必须非空且所有元素必须存在
+	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException     当 {@code inputFiles} 或 {@code outputFile} 为 {@code null} 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空集合或集合中存在不存在的文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>集合中存在不可读的文件</li>
+	 *                                  <li>输出文件不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, File)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archive(inputFiles, outputFile);
+	}
+
+	/**
+	 * 压缩多个文件/目录到 SevenZOutputFile 对象。
+	 * <p>将多个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 *
+	 * @param inputFiles       要压缩的文件/目录集合，必须非空且所有元素必须存在
+	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
+	 * @throws NullPointerException     当 {@code inputFiles} 或 {@code sevenZOutputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空集合或集合中存在不存在的文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>集合中存在不可读的文件</li>
+	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, SevenZOutputFile)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile) throws IOException {
+		archive(inputFiles, sevenZOutputFile);
+	}
+
+	/**
+	 * 从 {@code SevenZResource} 对象解压缩到指定目录。
+	 * <p>通过 SevenZResource 打开 SevenZFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param resource  7z 资源对象，必须非 null
+	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 2.1.0
+	 */
+	public static void extract(final SevenZResource resource, final File outputDir) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+
+		try (SevenZFile sevenZFile = resource.openSevenZFile()) {
+			extract(sevenZFile, outputDir);
+		}
+	}
+
+	/**
+	 * 从 {@code SevenZFile} 对象解压缩到指定目录。
+	 * <p>使用已初始化的 SevenZFile 对象将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param sevenZFile 已初始化的 SevenZFile 对象，必须处于可读取状态且不为 null
+	 * @param outputDir  解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException     当 {@code sevenZFile} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputDir} 存在但不是目录时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>sevenZFile 已关闭或不可读</li>
+	 *                                  <li>输出目录不可写</li>
+	 *                                  <li>解压过程中发生 I/O 错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 2.1.0
+	 */
+	public static void extract(final SevenZFile sevenZFile, final File outputDir) throws IOException {
+		Validate.notNull(sevenZFile, "sevenZFile 不可为 null");
+
+		ArchiveUtils.extract(sevenZFile.getEntries().iterator(), outputDir, sevenZFile::getInputStream);
+	}
+
+	/**
+	 * 压缩文件/目录到 7z 文件。
+	 * <p>将单个文件或目录（递归包含子目录）压缩为 7z 格式文件。</p>
+	 *
+	 * @param inputFile  要压缩的文件或目录，必须存在且可读
+	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输出文件不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 2.1.0
+	 */
+	public static void archive(final File inputFile, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			compress(inputFile, sevenZOutputFile);
+			archive(inputFile, sevenZOutputFile);
 		}
 	}
 
@@ -255,7 +367,7 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final SevenZMethod method) throws IOException {
+	public static void archive(final File inputFile, final File outputFile, final SevenZMethod method) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notNull(method, "method 不可为 null");
 
@@ -263,7 +375,7 @@ public class SevenZUtils {
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
 			SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-			compress(inputFile, sevenZOutputFile,
+			archive(inputFile, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -285,14 +397,14 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile,
+	public static void archive(final File inputFile, final File outputFile,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			compress(inputFile, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFile, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -313,14 +425,14 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final String password) throws IOException {
+	public static void archive(final File inputFile, final File outputFile, final String password) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
-			compress(inputFile, sevenZOutputFile);
+			archive(inputFile, sevenZOutputFile);
 		}
 	}
 
@@ -343,7 +455,7 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final String password, final SevenZMethod method) throws IOException {
+	public static void archive(final File inputFile, final File outputFile, final String password, final SevenZMethod method) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 		Validate.notNull(method, "method 不可为 null");
@@ -352,7 +464,7 @@ public class SevenZUtils {
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
 			SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-			compress(inputFile, sevenZOutputFile,
+			archive(inputFile, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -375,7 +487,7 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final String password,
+	public static void archive(final File inputFile, final File outputFile, final String password,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
@@ -383,7 +495,7 @@ public class SevenZUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
-			compress(inputFile, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFile, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -398,11 +510,11 @@ public class SevenZUtils {
 	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel) throws IOException {
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
-			compress(inputFile, sevenZOutputFile);
+			archive(inputFile, sevenZOutputFile);
 		}
 	}
 
@@ -419,13 +531,13 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final SevenZMethod method) throws IOException {
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final SevenZMethod method) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notNull(method, "method 不可为 null");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
 			SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-			compress(inputFile, sevenZOutputFile,
+			archive(inputFile, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -442,12 +554,12 @@ public class SevenZUtils {
 	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel,
-	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel,
+	                           final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
-			compress(inputFile, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFile, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -463,12 +575,12 @@ public class SevenZUtils {
 	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final String password) throws IOException {
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final String password) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
-			compress(inputFile, sevenZOutputFile);
+			archive(inputFile, sevenZOutputFile);
 		}
 	}
 
@@ -486,7 +598,7 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final String password,
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final String password,
 	                            final SevenZMethod method) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
@@ -494,7 +606,7 @@ public class SevenZUtils {
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
 			SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-			compress(inputFile, sevenZOutputFile,
+			archive(inputFile, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -512,13 +624,13 @@ public class SevenZUtils {
 	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final String password,
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final String password,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
-			compress(inputFile, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFile, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -537,13 +649,13 @@ public class SevenZUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SevenZOutputFile sevenZOutputFile) throws IOException {
+	public static void archive(final File inputFile, final SevenZOutputFile sevenZOutputFile) throws IOException {
 		FileUtils.check(inputFile, "inputFile 不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 
-		compress(inputFile, sevenZOutputFile, (Consumer<SevenZArchiveEntry>) null);
+		archive(inputFile, sevenZOutputFile, (Consumer<SevenZArchiveEntry>) null);
 	}
 
 	/**
@@ -565,13 +677,13 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SevenZOutputFile sevenZOutputFile, final SevenZMethod method) throws IOException {
+	public static void archive(final File inputFile, final SevenZOutputFile sevenZOutputFile, final SevenZMethod method) throws IOException {
 		FileUtils.check(inputFile, "inputFile 不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 		Validate.notNull(method, "method 不可为 null");
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-		compress(inputFile, sevenZOutputFile,
+		archive(inputFile, sevenZOutputFile,
 			archiveEntry -> archiveEntry.setContentMethods(configuration));
 	}
 
@@ -593,7 +705,7 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final File inputFile, final SevenZOutputFile sevenZOutputFile,
+	public static void archive(final File inputFile, final SevenZOutputFile sevenZOutputFile,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.check(inputFile, "inputFile 不可为 null");
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
@@ -619,15 +731,15 @@ public class SevenZUtils {
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			compress(inputFiles, sevenZOutputFile);
+			archive(inputFiles, sevenZOutputFile);
 		}
 	}
 
@@ -649,7 +761,7 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final SevenZMethod method) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final SevenZMethod method) throws IOException {
 		Validate.notNull(method, "method 不可为 null");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -657,7 +769,7 @@ public class SevenZUtils {
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			compress(inputFiles, sevenZOutputFile,
+			archive(inputFiles, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -679,14 +791,14 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile,
+	public static void archive(final Collection<File> inputFiles, final File outputFile,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			compress(inputFiles, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFiles, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -707,14 +819,14 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final String password) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final String password) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile);
+			archive(inputFiles, sevenZOutputFile);
 		}
 	}
 
@@ -737,7 +849,7 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final String password,
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final String password,
 	                            final SevenZMethod method) throws IOException {
 		Validate.notNull(method, "method 不可为 null");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -747,7 +859,7 @@ public class SevenZUtils {
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile,
+			archive(inputFiles, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -770,7 +882,7 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final String password,
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final String password,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
@@ -778,7 +890,7 @@ public class SevenZUtils {
 		FileUtils.forceMkdirParent(outputFile);
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFiles, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -798,11 +910,11 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
-			compress(inputFiles, sevenZOutputFile);
+			archive(inputFiles, sevenZOutputFile);
 		}
 	}
 
@@ -824,14 +936,14 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final SevenZMethod method) throws IOException {
 		Validate.notNull(method, "method 不可为 null");
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
-			compress(inputFiles, sevenZOutputFile,
+			archive(inputFiles, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -853,12 +965,12 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
-	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	                           final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel)) {
-			compress(inputFiles, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFiles, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -879,13 +991,13 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final String password) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile);
+			archive(inputFiles, sevenZOutputFile);
 		}
 	}
 
@@ -908,14 +1020,14 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final String password, final SevenZMethod method) throws IOException {
 		Validate.notNull(method, "method 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile,
+			archive(inputFiles, sevenZOutputFile,
 				archiveEntry -> archiveEntry.setContentMethods(configuration));
 		}
 	}
@@ -938,13 +1050,13 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final String password, final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputChannel, password.toCharArray())) {
-			compress(inputFiles, sevenZOutputFile, archiveEntryConsumer);
+			archive(inputFiles, sevenZOutputFile, archiveEntryConsumer);
 		}
 	}
 
@@ -962,10 +1074,10 @@ public class SevenZUtils {
 	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile) throws IOException {
-		compress(inputFiles, sevenZOutputFile, (Consumer<SevenZArchiveEntry>) null);
+	public static void archive(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile) throws IOException {
+		archive(inputFiles, sevenZOutputFile, (Consumer<SevenZArchiveEntry>) null);
 	}
 
 	/**
@@ -986,12 +1098,12 @@ public class SevenZUtils {
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile,
-	                            final SevenZMethod method) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile,
+	                           final SevenZMethod method) throws IOException {
 		Validate.notNull(method, "method 不可为 null");
 
 		SevenZMethodConfiguration configuration = new SevenZMethodConfiguration(method);
-		compress(inputFiles, sevenZOutputFile,
+		archive(inputFiles, sevenZOutputFile,
 			archiveEntry -> archiveEntry.setContentMethods(configuration));
 	}
 
@@ -1012,7 +1124,7 @@ public class SevenZUtils {
 	 *                                  </ul>
 	 * @since 2.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile,
+	public static void archive(final Collection<File> inputFiles, final SevenZOutputFile sevenZOutputFile,
 	                            final Consumer<SevenZArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(sevenZOutputFile, "sevenZOutputFile 不可为 null");
 		Validate.notEmpty(inputFiles, "inputFiles 不可为空");

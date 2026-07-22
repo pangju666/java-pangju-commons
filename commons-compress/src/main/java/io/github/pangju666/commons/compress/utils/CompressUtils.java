@@ -173,9 +173,9 @@ public class CompressUtils {
 	 *   <li><code>gz</code>：调用 {@link GzipUtils#compress(IOResource, File)}（单文件压缩）。</li>
 	 *   <li><code>xz</code>：调用 {@link XZUtils#compress(IOResource, File)}（单文件压缩）。</li>
 	 *   <li><code>zst</code>：调用 {@link ZstdUtils#compress(IOResource, File)}（单文件压缩）。</li>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#compress(File, File)}。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#compress(File, File)}。</li>
-	 *   <li><code>tar</code>：调用 {@link TarUtils#compress(File, File)}。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#archive(File, File)}。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#archive(File, File)}。</li>
+	 *   <li><code>tar</code>：调用 {@link TarUtils#archive(File, File)}。</li>
 	 *   <li><code>tgz</code>/<code>tar.gz</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 GZIP 压缩，最后删除临时 TAR 文件。</li>
 	 *   <li><code>txz</code>/<code>tar.xz</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 XZ 压缩，最后删除临时 TAR 文件。</li>
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 Zstandard 压缩，最后删除临时 TAR 文件。</li>
@@ -199,9 +199,9 @@ public class CompressUtils {
 			case "gz" -> GzipUtils.compress(new IOResource(inputFile), outputFile);
 			case "xz" -> XZUtils.compress(new IOResource(inputFile), outputFile);
 			case "zst" -> ZstdUtils.compress(new IOResource(inputFile), outputFile);
-			case "7z" -> SevenZUtils.compress(inputFile, outputFile);
-			case "zip" -> ZipUtils.compress(inputFile, outputFile);
-			case "tar" -> TarUtils.compress(inputFile, outputFile);
+			case "7z" -> SevenZUtils.archive(inputFile, outputFile);
+			case "zip" -> ZipUtils.archive(inputFile, outputFile);
+			case "tar" -> TarUtils.archive(inputFile, outputFile);
 			case "tgz", "tar.gz" -> {
 				File tarFile = compressTmpTarFile(inputFile, outputFile);
 
@@ -238,9 +238,9 @@ public class CompressUtils {
 	 * <p>
 	 * 支持格式：
 	 * <ul>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#compress(Collection, File)}。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#compress(Collection, File)}。</li>
-	 *   <li><code>tar</code>：调用 {@link TarUtils#compress(Collection, File)}。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#archive(Collection, File)}。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#archive(Collection, File)}。</li>
+	 *   <li><code>tar</code>：调用 {@link TarUtils#archive(Collection, File)}。</li>
 	 *   <li><code>tgz</code>/<code>tar.gz</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 GZIP 压缩到目标文件，最后删除临时 TAR。</li>
 	 *   <li><code>txz</code>/<code>tar.xz</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 XZ 压缩到目标文件，最后删除临时 TAR。</li>
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 Zstandard 压缩到目标文件，最后删除临时 TAR。</li>
@@ -259,9 +259,9 @@ public class CompressUtils {
 		String outputFilename = outputFile.getName();
 		String outputFormat = getOutputFormat(outputFilename);
 		switch (outputFormat) {
-			case "7z" -> SevenZUtils.compress(inputFiles, outputFile);
-			case "zip" -> ZipUtils.compress(inputFiles, outputFile);
-			case "tar" -> TarUtils.compress(inputFiles, outputFile);
+			case "7z" -> SevenZUtils.archive(inputFiles, outputFile);
+			case "zip" -> ZipUtils.archive(inputFiles, outputFile);
+			case "tar" -> TarUtils.archive(inputFiles, outputFile);
 			case "tgz", "tar.gz" -> {
 				File tarFile = compressTmpTarFile(inputFiles, outputFile);
 
@@ -298,8 +298,8 @@ public class CompressUtils {
 	 * <p>
 	 * 支持格式：
 	 * <ul>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#compress(File, File, String)}。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#compress(File, File, String)}。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#archive(File, File, String)}。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#archive(File, File, String)}。</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -317,8 +317,8 @@ public class CompressUtils {
 
 		String format = FilenameUtils.getExtension(outputFile.getName()).toLowerCase();
 		switch (format) {
-			case "7z" -> SevenZUtils.compress(inputFile, outputFile, password);
-			case "zip" -> ZipUtils.compress(inputFile, outputFile, password);
+			case "7z" -> SevenZUtils.archive(inputFile, outputFile, password);
+			case "zip" -> ZipUtils.archive(inputFile, outputFile, password);
 			default -> throw new UnsupportedOperationException("不支持使用密码压缩为 " + format + " 格式");
 		}
 	}
@@ -328,8 +328,8 @@ public class CompressUtils {
 	 * <p>
 	 * 支持格式：
 	 * <ul>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#compress(Collection, File, String)}。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#compress(List, File, String)}。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#archive(Collection, File, String)}。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#archive(List, File, String)}。</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -347,8 +347,8 @@ public class CompressUtils {
 
 		String format = FilenameUtils.getExtension(outputFile.getName()).toLowerCase();
 		switch (format) {
-			case "7z" -> SevenZUtils.compress(inputFiles, outputFile, password);
-			case "zip" -> ZipUtils.compress(inputFiles, outputFile, password);
+			case "7z" -> SevenZUtils.archive(inputFiles, outputFile, password);
+			case "zip" -> ZipUtils.archive(inputFiles, outputFile, password);
 			default -> throw new UnsupportedOperationException("不支持使用密码压缩为 " + format + " 格式");
 		}
 	}
@@ -391,9 +391,9 @@ public class CompressUtils {
 	 * <p>
 	 * 支持格式：
 	 * <ul>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#uncompress(SevenZResource, File)}，目标位置为目录。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#uncompress(ZipResource, File)}，目标位置为目录。</li>
-	 *   <li><code>tar</code>：调用 {@link TarUtils#uncompress(TarResource, File)}，目标位置为目录。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#extract(SevenZResource, File)}，目标位置为目录。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#extract(ZipResource, File)}，目标位置为目录。</li>
+	 *   <li><code>tar</code>：调用 {@link TarUtils#extract(TarResource, File)}，目标位置为目录。</li>
 	 *   <li><code>gz</code>/<code>xz</code>/<code>zst</code>：先解压到临时 TAR 文件，然后：
 	 *     <ul>
 	 *       <li>若解压后的文件为 TAR 格式（通过 MIME 类型检测），则自动解压 TAR 内容到目标位置。</li>
@@ -415,11 +415,11 @@ public class CompressUtils {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		if (resource.is7z()) {
-			SevenZUtils.uncompress(new SevenZResource(resource), destination);
+			SevenZUtils.extract(new SevenZResource(resource), destination);
 		} else if (resource.isZip()) {
-			ZipUtils.uncompress(new ZipResource(resource), destination);
+			ZipUtils.extract(new ZipResource(resource), destination);
 		} else if (resource.isTar()) {
-			TarUtils.uncompress(new TarResource(resource), destination);
+			TarUtils.extract(new TarResource(resource), destination);
 		} else if (resource.isXz() || resource.isZstd() || resource.isGzip()) {
 			String baseName = FilenameUtils.getBaseName(destination.getName());
 			File outputFile = new File(destination.getParent(), baseName + "-" + UUID.randomUUID() + ".tar");
@@ -434,7 +434,7 @@ public class CompressUtils {
 
 			if (FileUtils.isMimeType(outputFile, CompressConstants.TAR_MIME_TYPE)) {
 				try (TarFile tarFile = new TarFile(outputFile)) {
-					TarUtils.uncompress(tarFile, destination);
+					TarUtils.extract(tarFile, destination);
 				} finally {
 					FileUtils.forceDeleteIfExist(outputFile);
 				}
@@ -455,8 +455,8 @@ public class CompressUtils {
 	 * <p>
 	 * 支持格式：
 	 * <ul>
-	 *   <li><code>7z</code>：调用 {@link SevenZUtils#uncompress(SevenZResource, File)}。</li>
-	 *   <li><code>zip</code>：调用 {@link ZipUtils#uncompress(ZipResource, File, String)}。</li>
+	 *   <li><code>7z</code>：调用 {@link SevenZUtils#extract(SevenZResource, File)}。</li>
+	 *   <li><code>zip</code>：调用 {@link ZipUtils#extract(ZipResource, File, String)}。</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -473,9 +473,9 @@ public class CompressUtils {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		if (resource.is7z()) {
-			SevenZUtils.uncompress(new SevenZResource(resource, password), outputFile);
+			SevenZUtils.extract(new SevenZResource(resource, password), outputFile);
 		} else if (resource.isZip()) {
-			ZipUtils.uncompress(new ZipResource(resource), outputFile, password);
+			ZipUtils.extract(new ZipResource(resource), outputFile, password);
 		} else {
 			throw new UnsupportedOperationException("不支持解压 " + resource.getFormat() + " 格式");
 		}
@@ -653,7 +653,7 @@ public class CompressUtils {
 		String baseName = FilenameUtils.getBaseName(outputFile.getName());
 		File tmpTarFile = new File(FileUtils.getTempDirectory(), baseName + "-" + UUID.randomUUID() + ".tar");
 
-		TarUtils.compress(inputFiles, tmpTarFile);
+		TarUtils.archive(inputFiles, tmpTarFile);
 
 		return tmpTarFile;
 	}
@@ -672,7 +672,7 @@ public class CompressUtils {
 		String baseName = FilenameUtils.getBaseName(outputFile.getName());
 		File tmpTarFile = new File(FileUtils.getTempDirectory(), baseName + "-" + UUID.randomUUID() + ".tar");
 
-		TarUtils.compress(inputFile, tmpTarFile);
+		TarUtils.archive(inputFile, tmpTarFile);
 
 		return tmpTarFile;
 	}

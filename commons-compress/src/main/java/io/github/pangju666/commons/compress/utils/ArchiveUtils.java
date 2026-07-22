@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * 通用压缩文件工具类。
@@ -54,17 +53,17 @@ import java.util.function.Supplier;
  * <pre>{@code
  * // 1) 使用 ArchiveInputStream 解压
  * try (TarArchiveInputStream tais = new TarArchiveInputStream(inputStream)) {
- *     ArchiveUtils.uncompress(tais, new File("outputDir"));
+ *     ArchiveUtils.extract(tais, new File("outputDir"));
  * }
  *
  * // 2) 使用迭代器和提取器解压（适用于 7z 等格式）
  * try (SevenZFile zf = SevenZFile.builder().setFile(file).get()) {
- *     ArchiveUtils.uncompress(zf.getEntries().iterator(), new File("outputDir"), zf::getInputStream);
+ *     ArchiveUtils.extract(zf.getEntries().iterator(), new File("outputDir"), zf::getInputStream);
  * }
  *
  * // 3) 压缩单个文件（底层调用）
  * try (TarArchiveOutputStream taos = new TarArchiveOutputStream(outputStream)) {
- *     ArchiveUtils.compress(new File("input.txt"), taos, entry -> {
+ *     ArchiveUtils.archive(new File("input.txt"), taos, entry -> {
  *         // 自定义条目处理逻辑
  *         System.out.println("Adding: " + entry.getName());
  *     });
@@ -73,7 +72,7 @@ import java.util.function.Supplier;
  * // 4) 批量压缩多个文件（底层调用）
  * try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(outputStream)) {
  *     List<File> files = List.of(new File("a.txt"), new File("b.txt"));
- *     ArchiveUtils.compress(files, zaos, entry -> {
+ *     ArchiveUtils.archive(files, zaos, entry -> {
  *         // 自定义条目处理逻辑
  *         entry.setComment("Compressed by ArchiveUtils");
  *     });
@@ -107,7 +106,7 @@ public class ArchiveUtils {
 	 * @throws IOException          当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	static <T extends ArchiveEntry> void uncompress(final Iterator<T> archiveEntries, final File outputDir,
+	static <T extends ArchiveEntry> void extract(final Iterator<T> archiveEntries, final File outputDir,
 	                                                final ArchiveEntryExtractor<T> extractor) throws IOException {
 		Validate.notNull(archiveEntries, "archiveEntries 不可为 null");
 		FileUtils.checkDirIfExist(outputDir, "outputDir 不可为 null");
@@ -145,7 +144,7 @@ public class ArchiveUtils {
 	 * @throws IOException          当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
-	public static <T extends ArchiveEntry> void uncompress(final ArchiveInputStream<T> archiveInputStream,
+	public static <T extends ArchiveEntry> void extract(final ArchiveInputStream<T> archiveInputStream,
 	                                                       final File outputDir) throws IOException {
 		Validate.notNull(archiveInputStream, "archiveInputStream 不可为 null");
 		FileUtils.checkDirIfExist(outputDir, "outputDir 不可为 null");
@@ -172,23 +171,6 @@ public class ArchiveUtils {
 		}
 	}
 
-	static <T extends ArchiveEntry> void compress(final InputStream inputStream,
-	                                              final ArchiveOutputStream<T> archiveOutputStream,
-	                                              final Supplier<T> archiveEntrySupplier,
-	                                              final Consumer<T> archiveEntryConsumer) throws IOException {
-		Validate.notNull(archiveEntrySupplier, "archiveEntrySupplier 不可为 null");
-		Validate.notNull(inputStream, "inputStream 不可为 null");
-		Validate.notNull(archiveOutputStream, "archiveOutputStream 不可为 null");
-
-		T archiveEntry = archiveEntrySupplier.get();
-		if (Objects.nonNull(archiveEntryConsumer)) {
-			archiveEntryConsumer.accept(archiveEntry);
-		}
-		archiveOutputStream.putArchiveEntry(archiveEntry);
-		inputStream.transferTo(archiveOutputStream);
-		archiveOutputStream.closeArchiveEntry();
-	}
-
 	/**
 	 * 压缩单个文件或目录到归档输出流。
 	 * <p>将文件或目录（递归包含子目录）压缩到指定的归档输出流中，通过 Consumer 对每个归档条目进行自定义处理。</p>
@@ -202,7 +184,7 @@ public class ArchiveUtils {
 	 * @throws IOException              当文件读取失败或写入输出流失败时抛出
 	 * @since 2.1.0
 	 */
-	public static <T extends ArchiveEntry> void compress(final File inputFile,
+	public static <T extends ArchiveEntry> void archive(final File inputFile,
 	                                                     final ArchiveOutputStream<T> archiveOutputStream,
 	                                                     final Consumer<T> archiveEntryConsumer) throws IOException {
 		Validate.notNull(archiveOutputStream, "archiveOutputStream 不可为 null");
@@ -228,7 +210,7 @@ public class ArchiveUtils {
 	 * @throws IOException              当文件读取失败或写入输出流失败时抛出
 	 * @since 2.1.0
 	 */
-	public static <T extends ArchiveEntry> void compress(final Collection<File> inputFiles,
+	public static <T extends ArchiveEntry> void archive(final Collection<File> inputFiles,
 	                                                     final ArchiveOutputStream<T> archiveOutputStream,
 	                                                     final Consumer<T> archiveEntryConsumer) throws IOException {
 		Validate.notNull(archiveOutputStream, "archiveOutputStream 不可为 null");
