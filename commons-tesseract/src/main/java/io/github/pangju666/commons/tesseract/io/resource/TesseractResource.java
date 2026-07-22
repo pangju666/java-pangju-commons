@@ -128,6 +128,8 @@ public class TesseractResource extends IOResource {
 	 * @since 1.1.0
 	 */
 	public PIX getPix() {
+		checkClosed();
+
 		if (Objects.nonNull(file)) {
 			return leptonica.pixRead(file.getAbsolutePath());
 		} else {

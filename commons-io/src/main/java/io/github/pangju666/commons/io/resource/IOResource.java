@@ -165,9 +165,12 @@ public class IOResource implements Closeable {
 	 * @param cacheContent 是否缓存内容（仅对文件模式有效）
 	 * @throws IOException              当文件读取失败时抛出
 	 * @throws IllegalArgumentException 当resource已关闭时抛出
+	 * @throws NullPointerException 当resource为null时抛出
 	 * @since 1.1.0
 	 */
 	public IOResource(IOResource resource, boolean cacheContent) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+
 		if (resource.closed) {
 			throw new IllegalArgumentException("resource 已关闭");
 		}
