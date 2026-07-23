@@ -23,7 +23,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile)
+		ZipUtils.archive(inputFile, outputFile)
 
 		then:
 		outputFile.exists()
@@ -39,7 +39,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archive(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -56,7 +56,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compress(inputFile, outputFile) { ZipArchiveEntry entry ->
+		ZipUtils.archive(inputFile, outputFile) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -76,7 +76,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archive(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -96,7 +96,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress(inputFile, out)
+			ZipUtils.archive(inputFile, out)
 		}
 
 		then:
@@ -114,7 +114,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress(inputFile, out, Deflater.DEFAULT_COMPRESSION)
+			ZipUtils.archive(inputFile, out, Deflater.DEFAULT_COMPRESSION)
 		}
 
 		then:
@@ -133,7 +133,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress(inputFile, out) { ZipArchiveEntry entry ->
+			ZipUtils.archive(inputFile, out) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -155,7 +155,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress(inputFile, out, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+			ZipUtils.archive(inputFile, out, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -177,7 +177,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress(inputFile, channel)
+			ZipUtils.archive(inputFile, channel)
 		}
 
 		then:
@@ -196,7 +196,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress(inputFile, channel, Deflater.DEFAULT_COMPRESSION)
+			ZipUtils.archive(inputFile, channel, Deflater.DEFAULT_COMPRESSION)
 		}
 
 		then:
@@ -216,7 +216,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress(inputFile, channel) { ZipArchiveEntry entry ->
+			ZipUtils.archive(inputFile, channel) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -239,7 +239,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress(inputFile, channel, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+			ZipUtils.archive(inputFile, channel, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -261,7 +261,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2], outputFile)
+		ZipUtils.archive([inputFile1, inputFile2], outputFile)
 
 		then:
 		outputFile.exists()
@@ -279,7 +279,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archive([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -298,7 +298,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2], outputFile) { ZipArchiveEntry entry ->
+		ZipUtils.archive([inputFile1, inputFile2], outputFile) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -320,7 +320,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archive([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -342,7 +342,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress([inputFile1, inputFile2], out)
+			ZipUtils.archive([inputFile1, inputFile2], out)
 		}
 
 		then:
@@ -362,7 +362,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress([inputFile1, inputFile2], out, Deflater.DEFAULT_COMPRESSION)
+			ZipUtils.archive([inputFile1, inputFile2], out, Deflater.DEFAULT_COMPRESSION)
 		}
 
 		then:
@@ -383,7 +383,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress([inputFile1, inputFile2], out) { ZipArchiveEntry entry ->
+			ZipUtils.archive([inputFile1, inputFile2], out) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -407,7 +407,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			ZipUtils.compress([inputFile1, inputFile2], out, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+			ZipUtils.archive([inputFile1, inputFile2], out, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -431,7 +431,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress([inputFile1, inputFile2], channel)
+			ZipUtils.archive([inputFile1, inputFile2], channel)
 		}
 
 		then:
@@ -452,7 +452,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress([inputFile1, inputFile2], channel, Deflater.DEFAULT_COMPRESSION)
+			ZipUtils.archive([inputFile1, inputFile2], channel, Deflater.DEFAULT_COMPRESSION)
 		}
 
 		then:
@@ -474,7 +474,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress([inputFile1, inputFile2], channel) { ZipArchiveEntry entry ->
+			ZipUtils.archive([inputFile1, inputFile2], channel) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -499,7 +499,7 @@ class ZipUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ZipUtils.compress([inputFile1, inputFile2], channel, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+			ZipUtils.archive([inputFile1, inputFile2], channel, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -519,7 +519,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, new ZipParameters())
+		ZipUtils.archive(inputFile, outputFile, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -537,7 +537,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2] as List<File>, outputFile, new ZipParameters())
+		ZipUtils.archive([inputFile1, inputFile2] as List<File>, outputFile, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -553,7 +553,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, "123456")
+		ZipUtils.archive(inputFile, outputFile, "123456")
 
 		then:
 		outputFile.exists()
@@ -571,7 +571,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2] as List<File>, outputFile, "123456")
+		ZipUtils.archive([inputFile1, inputFile2] as List<File>, outputFile, "123456")
 
 		then:
 		outputFile.exists()
@@ -589,7 +589,7 @@ class ZipUtilsSpec extends Specification {
 		parameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD)
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, "123456", parameters)
+		ZipUtils.archive(inputFile, outputFile, "123456", parameters)
 
 		then:
 		outputFile.exists()
@@ -609,7 +609,7 @@ class ZipUtilsSpec extends Specification {
 		parameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD)
 
 		when:
-		ZipUtils.compress([inputFile1, inputFile2] as List<File>, outputFile, "123456", parameters)
+		ZipUtils.archive([inputFile1, inputFile2] as List<File>, outputFile, "123456", parameters)
 
 		then:
 		outputFile.exists()
@@ -625,7 +625,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir)
+		ZipUtils.extract(new ZipResource(zipFile), outputDir)
 
 		then:
 		outputDir.exists()
@@ -641,7 +641,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir, true)
+		ZipUtils.extract(new ZipResource(zipFile), outputDir, true)
 
 		then:
 		outputDir.exists()
@@ -658,7 +658,7 @@ class ZipUtilsSpec extends Specification {
 
 		when:
 		try (ZipFile zip = ZipFile.builder().setFile(zipFile).get()) {
-			ZipUtils.uncompress(zip, outputDir)
+			ZipUtils.extract(zip, outputDir)
 		}
 
 		then:
@@ -675,7 +675,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir, "123456")
+		ZipUtils.extract(new ZipResource(zipFile), outputDir, "123456")
 
 		then:
 		outputDir.exists()
@@ -691,7 +691,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir)
+		ZipUtils.extract(new ZipResource(zipFile), outputDir)
 
 		then:
 		outputDir.exists()
@@ -707,7 +707,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir)
+		ZipUtils.extract(new ZipResource(zipFile), outputDir)
 
 		then:
 		outputDir.exists()
@@ -723,7 +723,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir, "password-split")
+		ZipUtils.extract(new ZipResource(zipFile), outputDir, "password-split")
 
 		then:
 		outputDir.exists()
@@ -737,7 +737,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(null as File, outputFile)
+		ZipUtils.archive(null as File, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -751,7 +751,7 @@ class ZipUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		ZipUtils.compress(inputFile, null as File)
+		ZipUtils.archive(inputFile, null as File)
 
 		then:
 		thrown(NullPointerException)
@@ -765,7 +765,7 @@ class ZipUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		ZipUtils.compress(inputFile, null as OutputStream)
+		ZipUtils.archive(inputFile, null as OutputStream)
 
 		then:
 		thrown(NullPointerException)
@@ -779,7 +779,7 @@ class ZipUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		ZipUtils.compress(inputFile, null as FileChannel)
+		ZipUtils.archive(inputFile, null as FileChannel)
 
 		then:
 		thrown(NullPointerException)
@@ -794,7 +794,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, null as ZipParameters)
+		ZipUtils.archive(inputFile, outputFile, null as ZipParameters)
 
 		then:
 		thrown(NullPointerException)
@@ -809,7 +809,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, "")
+		ZipUtils.archive(inputFile, outputFile, "")
 
 		then:
 		thrown(IllegalArgumentException)
@@ -824,7 +824,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(inputFile, outputFile, null as String)
+		ZipUtils.archive(inputFile, outputFile, null as String)
 
 		then:
 		thrown(NullPointerException)
@@ -837,7 +837,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compress(null as Collection<File>, outputFile)
+		ZipUtils.archive(null as Collection<File>, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -851,7 +851,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(null as ZipResource, outputDir)
+		ZipUtils.extract(null as ZipResource, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -865,7 +865,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(null as ZipFile, outputDir)
+		ZipUtils.extract(null as ZipFile, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -880,7 +880,7 @@ class ZipUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		ZipUtils.uncompress(new ZipResource(zipFile), outputDir, null as String)
+		ZipUtils.extract(new ZipResource(zipFile), outputDir, null as String)
 
 		then:
 		thrown(NullPointerException)
@@ -898,7 +898,7 @@ class ZipUtilsSpec extends Specification {
 		try (FileOutputStream fos = new FileOutputStream(outputFile)
 		     BufferedOutputStream bos = new BufferedOutputStream(fos)
 		     ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(bos)) {
-			ZipUtils.compress(inputFile, zaos)
+			ZipUtils.archive(inputFile, zaos)
 		}
 
 		then:
@@ -917,7 +917,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile)
+		ZipUtils.archiveSplit(inputFile, outputFile)
 
 		then:
 		outputFile.exists()
@@ -933,7 +933,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archiveSplit(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -950,7 +950,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit(inputFile, outputFile) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -970,7 +970,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -989,7 +989,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, 1024 * 1024 as long)
+		ZipUtils.archiveSplit(inputFile, outputFile, 1024 * 1024 as long)
 
 		then:
 		outputFile.exists()
@@ -1005,7 +1005,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archiveSplit(inputFile, outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -1022,7 +1022,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, 1024 * 1024 as long) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit(inputFile, outputFile, 1024 * 1024 as long) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1042,7 +1042,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit(inputFile, outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1063,7 +1063,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile)
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile)
 
 		then:
 		outputFile.exists()
@@ -1081,7 +1081,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -1100,7 +1100,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1122,7 +1122,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1143,7 +1143,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, 1024 * 1024 as long)
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, 1024 * 1024 as long)
 
 		then:
 		outputFile.exists()
@@ -1161,7 +1161,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION)
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION)
 
 		then:
 		outputFile.exists()
@@ -1180,7 +1180,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, 1024 * 1024 as long) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, 1024 * 1024 as long) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1202,7 +1202,7 @@ class ZipUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2], outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
+		ZipUtils.archiveSplit([inputFile1, inputFile2], outputFile, 1024 * 1024, Deflater.DEFAULT_COMPRESSION) { ZipArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -1223,7 +1223,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2] as List<File>, outputFile, new ZipParameters())
+		ZipUtils.archiveSplit([inputFile1, inputFile2] as List<File>, outputFile, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -1241,7 +1241,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2] as List<File>, outputFile, 1024 * 1024 as long, new ZipParameters())
+		ZipUtils.archiveSplit([inputFile1, inputFile2] as List<File>, outputFile, 1024 * 1024 as long, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -1259,7 +1259,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456")
+		ZipUtils.archiveSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456")
 
 		then:
 		outputFile.exists()
@@ -1277,7 +1277,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456", 1024 * 1024 as long)
+		ZipUtils.archiveSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456", 1024 * 1024 as long)
 
 		then:
 		outputFile.exists()
@@ -1297,7 +1297,7 @@ class ZipUtilsSpec extends Specification {
 		parameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD)
 
 		when:
-		ZipUtils.compressSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456", 1024 * 1024 as long, parameters)
+		ZipUtils.archiveSplit([inputFile1, inputFile2] as List<File>, outputFile, "123456", 1024 * 1024 as long, parameters)
 
 		then:
 		outputFile.exists()
@@ -1313,7 +1313,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, new ZipParameters())
+		ZipUtils.archiveSplit(inputFile, outputFile, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -1329,7 +1329,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, 1024 * 1024, new ZipParameters())
+		ZipUtils.archiveSplit(inputFile, outputFile, 1024 * 1024, new ZipParameters())
 
 		then:
 		outputFile.exists()
@@ -1345,7 +1345,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, "123456")
+		ZipUtils.archiveSplit(inputFile, outputFile, "123456")
 
 		then:
 		outputFile.exists()
@@ -1361,7 +1361,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, "123456", 1024 * 1024)
+		ZipUtils.archiveSplit(inputFile, outputFile, "123456", 1024 * 1024)
 
 		then:
 		outputFile.exists()
@@ -1379,7 +1379,7 @@ class ZipUtilsSpec extends Specification {
 		parameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD)
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, "123456", 1024 * 1024, parameters)
+		ZipUtils.archiveSplit(inputFile, outputFile, "123456", 1024 * 1024, parameters)
 
 		then:
 		outputFile.exists()
@@ -1397,7 +1397,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputDir, outputFile)
+		ZipUtils.archiveSplit(inputDir, outputFile)
 
 		then:
 		outputFile.exists()
@@ -1411,7 +1411,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(null as File, outputFile)
+		ZipUtils.archiveSplit(null as File, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -1425,7 +1425,7 @@ class ZipUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		ZipUtils.compressSplit(inputFile, null as File)
+		ZipUtils.archiveSplit(inputFile, null as File)
 
 		then:
 		thrown(NullPointerException)
@@ -1438,7 +1438,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(null as Collection<File>, outputFile)
+		ZipUtils.archiveSplit(null as Collection<File>, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -1453,7 +1453,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, null as ZipParameters)
+		ZipUtils.archiveSplit(inputFile, outputFile, null as ZipParameters)
 
 		then:
 		thrown(NullPointerException)
@@ -1468,7 +1468,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, "")
+		ZipUtils.archiveSplit(inputFile, outputFile, "")
 
 		then:
 		thrown(IllegalArgumentException)
@@ -1483,7 +1483,7 @@ class ZipUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.zip")
 
 		when:
-		ZipUtils.compressSplit(inputFile, outputFile, null as String)
+		ZipUtils.archiveSplit(inputFile, outputFile, null as String)
 
 		then:
 		thrown(NullPointerException)

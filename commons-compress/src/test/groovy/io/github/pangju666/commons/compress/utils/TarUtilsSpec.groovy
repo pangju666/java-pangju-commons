@@ -17,7 +17,7 @@ class TarUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.tar")
 
 		when:
-		TarUtils.compress(inputFile, outputFile)
+		TarUtils.archive(inputFile, outputFile)
 
 		then:
 		outputFile.exists()
@@ -34,7 +34,7 @@ class TarUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		TarUtils.compress(inputFile, outputFile) { TarArchiveEntry entry ->
+		TarUtils.archive(inputFile, outputFile) { TarArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -55,7 +55,7 @@ class TarUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.tar")
 
 		when:
-		TarUtils.compress(inputDir, outputFile)
+		TarUtils.archive(inputDir, outputFile)
 
 		then:
 		outputFile.exists()
@@ -72,7 +72,7 @@ class TarUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			TarUtils.compress(inputFile, out)
+			TarUtils.archive(inputFile, out)
 		}
 
 		then:
@@ -91,7 +91,7 @@ class TarUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			TarUtils.compress(inputFile, out) { TarArchiveEntry entry ->
+			TarUtils.archive(inputFile, out) { TarArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -113,7 +113,7 @@ class TarUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.tar")
 
 		when:
-		TarUtils.compress([inputFile1, inputFile2], outputFile)
+		TarUtils.archive([inputFile1, inputFile2], outputFile)
 
 		then:
 		outputFile.exists()
@@ -132,7 +132,7 @@ class TarUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		TarUtils.compress([inputFile1, inputFile2], outputFile) { TarArchiveEntry entry ->
+		TarUtils.archive([inputFile1, inputFile2], outputFile) { TarArchiveEntry entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -154,7 +154,7 @@ class TarUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			TarUtils.compress([inputFile1, inputFile2], out)
+			TarUtils.archive([inputFile1, inputFile2], out)
 		}
 
 		then:
@@ -175,7 +175,7 @@ class TarUtilsSpec extends Specification {
 
 		when:
 		try (OutputStream out = new FileOutputStream(outputFile)) {
-			TarUtils.compress([inputFile1, inputFile2], out) { TarArchiveEntry entry ->
+			TarUtils.archive([inputFile1, inputFile2], out) { TarArchiveEntry entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -196,7 +196,7 @@ class TarUtilsSpec extends Specification {
 
 		when:
 		try (TarFile tar = new TarFile(tarFile)) {
-			TarUtils.uncompress(tar, outputDir)
+			TarUtils.extract(tar, outputDir)
 		}
 
 		then:
@@ -213,7 +213,7 @@ class TarUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		TarUtils.uncompress(new TarResource(tarFile), outputDir)
+		TarUtils.extract(new TarResource(tarFile), outputDir)
 
 		then:
 		outputDir.exists()
@@ -227,7 +227,7 @@ class TarUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.tar")
 
 		when:
-		TarUtils.compress(null as File, outputFile)
+		TarUtils.archive(null as File, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -241,7 +241,7 @@ class TarUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		TarUtils.compress(inputFile, null as File)
+		TarUtils.archive(inputFile, null as File)
 
 		then:
 		thrown(NullPointerException)
@@ -255,7 +255,7 @@ class TarUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		TarUtils.compress(inputFile, null as OutputStream)
+		TarUtils.archive(inputFile, null as OutputStream)
 
 		then:
 		thrown(NullPointerException)
@@ -268,7 +268,7 @@ class TarUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.tar")
 
 		when:
-		TarUtils.compress(null as Collection<File>, outputFile)
+		TarUtils.archive(null as Collection<File>, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -282,7 +282,7 @@ class TarUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		TarUtils.uncompress(null as TarFile, outputDir)
+		TarUtils.extract(null as TarFile, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -296,7 +296,7 @@ class TarUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		TarUtils.uncompress(null as TarResource, outputDir)
+		TarUtils.extract(null as TarResource, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -314,7 +314,7 @@ class TarUtilsSpec extends Specification {
 		try (FileOutputStream fos = new FileOutputStream(outputFile);
 		     BufferedOutputStream bos = new BufferedOutputStream(fos);
 		     TarArchiveOutputStream taos = new TarArchiveOutputStream(bos)) {
-			TarUtils.compress(inputFile, taos)
+			TarUtils.archive(inputFile, taos)
 		}
 
 		then:
@@ -336,7 +336,7 @@ class TarUtilsSpec extends Specification {
 		try (FileOutputStream fos = new FileOutputStream(outputFile);
 		     BufferedOutputStream bos = new BufferedOutputStream(fos);
 		     TarArchiveOutputStream taos = new TarArchiveOutputStream(bos)) {
-			TarUtils.compress([inputFile1, inputFile2], taos)
+			TarUtils.archive([inputFile1, inputFile2], taos)
 		}
 
 		then:

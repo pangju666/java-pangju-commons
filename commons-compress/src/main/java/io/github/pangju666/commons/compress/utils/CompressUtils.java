@@ -203,7 +203,7 @@ public class CompressUtils {
 			case "zip" -> ZipUtils.archive(inputFile, outputFile);
 			case "tar" -> TarUtils.archive(inputFile, outputFile);
 			case "tgz", "tar.gz" -> {
-				File tarFile = compressTmpTarFile(inputFile, outputFile);
+				File tarFile = archiveTmpTarFile(inputFile, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					GzipUtils.compress(inputStream, outputFile);
@@ -212,7 +212,7 @@ public class CompressUtils {
 				}
 			}
 			case "txz", "tar.xz" -> {
-				File tarFile = compressTmpTarFile(inputFile, outputFile);
+				File tarFile = archiveTmpTarFile(inputFile, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					XZUtils.compress(inputStream, outputFile);
@@ -221,7 +221,7 @@ public class CompressUtils {
 				}
 			}
 			case "tzst", "tar.zst" -> {
-				File tarFile = compressTmpTarFile(inputFile, outputFile);
+				File tarFile = archiveTmpTarFile(inputFile, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					ZstdUtils.compress(inputStream, outputFile);
@@ -263,7 +263,7 @@ public class CompressUtils {
 			case "zip" -> ZipUtils.archive(inputFiles, outputFile);
 			case "tar" -> TarUtils.archive(inputFiles, outputFile);
 			case "tgz", "tar.gz" -> {
-				File tarFile = compressTmpTarFile(inputFiles, outputFile);
+				File tarFile = archiveTmpTarFile(inputFiles, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					GzipUtils.compress(inputStream, outputFile);
@@ -272,7 +272,7 @@ public class CompressUtils {
 				}
 			}
 			case "txz", "tar.xz" -> {
-				File tarFile = compressTmpTarFile(inputFiles, outputFile);
+				File tarFile = archiveTmpTarFile(inputFiles, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					XZUtils.compress(inputStream, outputFile);
@@ -281,7 +281,7 @@ public class CompressUtils {
 				}
 			}
 			case "tzst", "tar.zst" -> {
-				File tarFile = compressTmpTarFile(inputFiles, outputFile);
+				File tarFile = archiveTmpTarFile(inputFiles, outputFile);
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					ZstdUtils.compress(inputStream, outputFile);
@@ -649,7 +649,7 @@ public class CompressUtils {
 	 * @throws IOException 压缩失败时抛出
 	 * @since 2.1.0
 	 */
-	private static File compressTmpTarFile(final Collection<File> inputFiles, final File outputFile) throws IOException {
+	private static File archiveTmpTarFile(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		String baseName = FilenameUtils.getBaseName(outputFile.getName());
 		File tmpTarFile = new File(FileUtils.getTempDirectory(), baseName + "-" + UUID.randomUUID() + ".tar");
 
@@ -668,7 +668,7 @@ public class CompressUtils {
 	 * @throws IOException 压缩失败时抛出
 	 * @since 2.1.0
 	 */
-	private static File compressTmpTarFile(final File inputFile, final File outputFile) throws IOException {
+	private static File archiveTmpTarFile(final File inputFile, final File outputFile) throws IOException {
 		String baseName = FilenameUtils.getBaseName(outputFile.getName());
 		File tmpTarFile = new File(FileUtils.getTempDirectory(), baseName + "-" + UUID.randomUUID() + ".tar");
 
