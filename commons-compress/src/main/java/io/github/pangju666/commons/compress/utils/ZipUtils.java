@@ -1209,6 +1209,8 @@ public class ZipUtils {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notEmpty(inputFiles, "inputFiles 不可为空");
 		Validate.notNull(parameters, "parameters 不可为 null");
+		Validate.isTrue(inputFiles.stream().allMatch(FileUtils::existFile),
+			"inputFiles 中存在为 null 或不存在的文件");
 
 		FileUtils.forceMkdirParent(outputFile);
 
@@ -1340,7 +1342,12 @@ public class ZipUtils {
 	 */
 	public static void archive(final List<File> inputFiles, final File outputFile, final String password,
 	                            final ZipParameters parameters) throws IOException {
+		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
+		Validate.notEmpty(inputFiles, "inputFiles 不可为空");
 		Validate.notBlank(password, "password 不可为空");
+		Validate.notNull(parameters, "parameters 不可为 null");
+		Validate.isTrue(inputFiles.stream().allMatch(FileUtils::existFile),
+			"inputFiles 中存在为 null 或不存在的文件");
 
 		parameters.setEncryptFiles(true);
 		if (Objects.isNull(parameters.getEncryptionMethod()) || parameters.getEncryptionMethod() == EncryptionMethod.NONE) {
