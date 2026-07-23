@@ -98,6 +98,9 @@ import java.util.function.Consumer;
  * @since 1.0.0
  */
 public class SevenZUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected SevenZUtils() {
 	}
 

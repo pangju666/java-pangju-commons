@@ -137,6 +137,9 @@ public class ZipUtils {
 	 */
 	protected static final long MAX_SPLIT_SIZE = DataSize.ofGigabytes(4).toBytes();
 
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected ZipUtils() {
 	}
 

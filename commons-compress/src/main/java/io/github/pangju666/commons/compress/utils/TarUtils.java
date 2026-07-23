@@ -65,6 +65,11 @@ import java.util.function.Consumer;
  * List<File> inputs = List.of(new File("a.txt"), new File("b"), new File("c"));
  * TarUtils.archive(inputs, new File("batch.tar"));
  *
+ * // 4) 使用 TarResource 解压 TAR 文件到目录
+ * try (TarResource resource = new TarResource(new File("archive.tar"))) {
+ *     TarUtils.extract(resource, new File("outputDir"));
+ * }
+ *
  * // 5) 解压输入流
  * try (InputStream in = new FileInputStream("archive.tar");
  * 		TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(in)) {
@@ -85,6 +90,9 @@ import java.util.function.Consumer;
  * @since 1.0.0
  */
 public class TarUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected TarUtils() {
 	}
 

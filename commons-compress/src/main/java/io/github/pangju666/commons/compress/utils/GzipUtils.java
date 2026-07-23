@@ -79,6 +79,9 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class GzipUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected GzipUtils() {
 	}
 

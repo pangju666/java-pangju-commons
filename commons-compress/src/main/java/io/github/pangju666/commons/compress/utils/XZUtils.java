@@ -80,6 +80,9 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class XZUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected XZUtils() {
 	}
 

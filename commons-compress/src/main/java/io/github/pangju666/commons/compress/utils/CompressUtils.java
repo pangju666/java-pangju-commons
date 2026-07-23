@@ -100,7 +100,7 @@ import java.util.UUID;
  */
 public class CompressUtils {
 	/**
-	 * 私有构造函数，防止实例化。
+	 * 受保护的构造函数，防止实例化。
 	 */
 	protected CompressUtils() {
 	}
@@ -451,7 +451,7 @@ public class CompressUtils {
 	}
 
 	/**
-	 * 使用密码将加密压缩资源解压到目标文件。
+	 * 使用密码将加密压缩资源解压到目标目录。
 	 * <p>
 	 * 支持格式：
 	 * <ul>
@@ -460,22 +460,22 @@ public class CompressUtils {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param resource   压缩资源对象，必须非 null
-	 * @param outputFile 解压出的目标文件，若父目录不存在会尝试创建
-	 * @param password   解压密码，必须非空
+	 * @param resource  压缩资源对象，必须非 null
+	 * @param outputDir 解压目标目录，若父目录不存在会尝试创建
+	 * @param password  解压密码，必须非空
 	 * @throws NullPointerException          当 {@code resource} 或 {@code password} 为 {@code null} 时
 	 * @throws IllegalArgumentException      当 {@code password} 为空时
 	 * @throws UnsupportedOperationException 当资源格式不在支持列表中时
 	 * @throws IOException                   底层读写失败或目标工具类抛出的 IO 异常
 	 * @since 2.1.0
 	 */
-	public static void uncompress(final CompressResource resource, final File outputFile, final String password) throws IOException {
+	public static void uncompress(final CompressResource resource, final File outputDir, final String password) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 
 		if (resource.is7z()) {
-			SevenZUtils.extract(new SevenZResource(resource, password), outputFile);
+			SevenZUtils.extract(new SevenZResource(resource, password), outputDir);
 		} else if (resource.isZip()) {
-			ZipUtils.extract(new ZipResource(resource), outputFile, password);
+			ZipUtils.extract(new ZipResource(resource), outputDir, password);
 		} else {
 			throw new UnsupportedOperationException("不支持解压 " + resource.getFormat() + " 格式");
 		}

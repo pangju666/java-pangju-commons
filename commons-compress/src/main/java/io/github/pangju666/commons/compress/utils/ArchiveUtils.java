@@ -89,7 +89,7 @@ import java.util.function.Consumer;
  */
 public class ArchiveUtils {
 	/**
-	 * 私有构造函数，防止实例化。
+	 * 受保护的构造函数，防止实例化。
 	 */
 	protected ArchiveUtils() {
 	}

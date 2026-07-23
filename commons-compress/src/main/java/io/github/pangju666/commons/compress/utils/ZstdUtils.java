@@ -77,7 +77,7 @@ import java.io.*;
  */
 public class ZstdUtils {
 	/**
-	 * 私有构造函数，防止实例化。
+	 * 受保护的构造函数，防止实例化。
 	 */
 	protected ZstdUtils() {
 	}
