@@ -79,6 +79,9 @@ import java.util.Objects;
  * @since 1.0.0
  */
 public class GzipUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected GzipUtils() {
 	}
 
@@ -158,7 +161,7 @@ public class GzipUtils {
 	 * @param parameters   GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code inputStream}、{@code outputStream} 或 {@code parameters} 为 {@code null} 时抛出
 	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream,
 	                            final GzipParameters parameters) throws IOException {
@@ -197,7 +200,7 @@ public class GzipUtils {
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream) throws IOException {
 		compress(resource, outputStream, new GzipParameters());
@@ -212,7 +215,7 @@ public class GzipUtils {
 	 * @param parameters   GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code resource}、{@code outputStream} 或 {@code parameters} 为 null 时抛出
 	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream, final GzipParameters parameters) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -297,7 +300,7 @@ public class GzipUtils {
 	 * @param outputFile  输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile) throws IOException {
 		compress(inputStream, outputFile, new GzipParameters());
@@ -312,7 +315,7 @@ public class GzipUtils {
 	 * @param parameters  GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code inputStream}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
 	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile, final GzipParameters parameters) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -334,7 +337,7 @@ public class GzipUtils {
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile) throws IOException {
 		compress(resource, outputFile, new GzipParameters());
@@ -349,7 +352,7 @@ public class GzipUtils {
 	 * @param parameters GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code resource}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
 	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile, final GzipParameters parameters) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -371,7 +374,7 @@ public class GzipUtils {
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当资源已关闭或解压过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void uncompress(final GzipResource resource, final OutputStream outputStream) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -391,7 +394,7 @@ public class GzipUtils {
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当资源已关闭、文件写入或解压过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void uncompress(final GzipResource resource, final File outputFile) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");

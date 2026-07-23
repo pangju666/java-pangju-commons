@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 
 /**
  * TAR 压缩/解压工具类。
- * <p>基于 Apache Commons Compress 提供 TAR 的压缩与解压能力。</p>
+ * <p>基于 Apache Commons archive 提供 TAR 的压缩与解压能力。</p>
  *
  * <h3>核心特性</h3>
  * <ul>
@@ -54,26 +54,26 @@ import java.util.function.Consumer;
  * <h3>使用示例</h3>
  * <pre>{@code
  * // 1) 压缩单个文件到 .tar
- * TarUtils.compress(new File("input.txt"), new File("archive.tar"));
+ * TarUtils.archive(new File("input.txt"), new File("archive.tar"));
  *
  * // 2) 压缩目录到输出流（不会自动关闭传入流）
  * try (FileOutputStream fos = new FileOutputStream("archive.tar")) {
- *     TarUtils.compress(new File("inputDir"), fos);
+ *     TarUtils.archive(new File("inputDir"), fos);
  * }
  *
  * // 3) 批量压缩多个文件/目录到 .tar
  * List<File> inputs = List.of(new File("a.txt"), new File("b"), new File("c"));
- * TarUtils.compress(inputs, new File("batch.tar"));
+ * TarUtils.archive(inputs, new File("batch.tar"));
  *
  * // 5) 解压输入流
  * try (InputStream in = new FileInputStream("archive.tar");
  * 		TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(in)) {
- *     TarUtils.uncompress(tarArchiveInputStream, new File("outputDir"));
+ *     TarUtils.extract(tarArchiveInputStream, new File("outputDir"));
  * }
  *
  * // 6) 使用 TarFile 解压（适合随机访问和大文件）
  * try (TarFile tarFile = new TarFile(new File("archive.tar"))) {
- *     TarUtils.uncompress(tarFile, new File("outputDir"));
+ *     TarUtils.extract(tarFile, new File("outputDir"));
  * }
  * }</pre>
  *
@@ -85,6 +85,9 @@ import java.util.function.Consumer;
  * @since 1.0.0
  */
 public class TarUtils {
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected TarUtils() {
 	}
 
@@ -146,7 +149,7 @@ public class TarUtils {
 	 * @throws IllegalArgumentException 当 {@code inputFile} 不是 TAR 格式时抛出
 	 * @throws IOException              当输入文件不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #uncompress(TarResource, File)} 代替
+	 * @deprecated 请使用{@link #extract(TarResource, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
@@ -155,7 +158,7 @@ public class TarUtils {
 
 		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-			ArchiveUtils.uncompress(tarArchiveInputStream, outputDir);
+			ArchiveUtils.extract(tarArchiveInputStream, outputDir);
 		}
 	}
 
@@ -168,7 +171,7 @@ public class TarUtils {
 	 * @throws NullPointerException     当 {@code outputDir} 为 {@code null} 时抛出
 	 * @throws IOException              当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #uncompress(TarResource, File)} 代替
+	 * @deprecated 请使用{@link #extract(TarResource, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
@@ -177,7 +180,7 @@ public class TarUtils {
 
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		     TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-			ArchiveUtils.uncompress(tarArchiveInputStream, outputDir);
+			ArchiveUtils.extract(tarArchiveInputStream, outputDir);
 		}
 	}
 
@@ -190,23 +193,23 @@ public class TarUtils {
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputDir} 为 {@code null} 时抛出
 	 * @throws IOException          当输入流不可读或已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #uncompress(TarArchiveInputStream, File)} 代替
+	 * @deprecated 请使用{@link #extract(TarArchiveInputStream, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final InputStream inputStream, final File outputDir) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof TarArchiveInputStream) {
-			uncompress((TarArchiveInputStream) inputStream, outputDir);
+			extract((TarArchiveInputStream) inputStream, outputDir);
 		} else {
 			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 				try (TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(inputStream)) {
-					uncompress(archiveInputStream, outputDir);
+					extract(archiveInputStream, outputDir);
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				     TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(bufferedInputStream)) {
-					uncompress(archiveInputStream, outputDir);
+					extract(archiveInputStream, outputDir);
 				}
 			}
 		}
@@ -222,9 +225,11 @@ public class TarUtils {
 	 * @throws IllegalArgumentException 当 outputDir 存在但不是目录时抛出
 	 * @throws IOException              当输入流不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #extract(TarArchiveInputStream, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final TarArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
-		ArchiveUtils.uncompress(tarArchiveInputStream, outputDir);
+		extract(tarArchiveInputStream, outputDir);
 	}
 
 	/**
@@ -235,29 +240,11 @@ public class TarUtils {
 	 * @throws NullPointerException 当 {@code tarFile} 或 {@code outputDir} 为 {@code null} 时抛出
 	 * @throws IOException          当 {@code tarFile} 已关闭或不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #extract(TarFile, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final TarFile tarFile, final File outputDir) throws IOException {
-		Validate.notNull(tarFile, "tarFile 不可为 null");
-
-		ArchiveUtils.uncompress(tarFile.getEntries().iterator(), outputDir, tarFile::getInputStream);
-	}
-
-	/**
-	 * 从 {@code TarResource} 对象解压缩到指定目录。
-	 * <p>通过 TarResource 打开 TarFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
-	 *
-	 * @param resource  TAR 资源对象，必须非 null
-	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
-	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
-	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
-	 * @since 2.1.0
-	 */
-	public static void uncompress(final TarResource resource, final File outputDir) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-
-		try (TarFile tarFile = resource.openTarFile()) {
-			uncompress(tarFile, outputDir);
-		}
+		extract(tarFile, outputDir);
 	}
 
 	/**
@@ -274,9 +261,142 @@ public class TarUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                              </ul>
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		compress(inputFile, outputFile, null);
+		archive(inputFile, outputFile);
+	}
+
+	/**
+	 * 压缩文件/目录到输出流。
+	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 *
+	 * @param inputFile    要压缩的文件或目录，必须存在且可读
+	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputStream} 为 {@code null} 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出流不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误</li>
+	 *                              </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, OutputStream)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
+		archive(inputFile, outputStream);
+	}
+
+	/**
+	 * 批量压缩文件/目录到 TAR 文件。
+	 * <p>将多个文件或目录（递归包含子目录）压缩为单个 TAR 格式文件。</p>
+	 *
+	 * @param inputFiles 要压缩的文件/目录集合，必须非空且所有文件必须存在
+	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException     当 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, File)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archive(inputFiles, outputFile);
+	}
+
+	/**
+	 * 批量压缩文件/目录到输出流。
+	 * <p>将多个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 *
+	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
+	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
+	 * @throws NullPointerException     当 {@code outputStream} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输出流不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, OutputStream)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
+		archive(inputFiles, outputStream);
+	}
+
+	/**
+	 * 从 {@code TarArchiveInputStream} 解压到指定目录。
+	 * <p>将 TAR 归档输入流的内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param tarArchiveInputStream TAR 归档输入流，必须非 null
+	 * @param outputDir             解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException     当 tarArchiveInputStream 或 outputDir 为 null 时抛出
+	 * @throws IllegalArgumentException 当 outputDir 存在但不是目录时抛出
+	 * @throws IOException              当输入流不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final TarArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
+		ArchiveUtils.extract(tarArchiveInputStream, outputDir);
+	}
+
+	/**
+	 * 从 {@code TarFile} 解压到指定目录。
+	 *
+	 * @param tarFile   已初始化的 {@code TarFile}，必须可读且非空
+	 * @param outputDir 解压目标目录；若不存在则自动创建父目录
+	 * @throws NullPointerException 当 {@code tarFile} 或 {@code outputDir} 为 {@code null} 时抛出
+	 * @throws IOException          当 {@code tarFile} 已关闭或不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final TarFile tarFile, final File outputDir) throws IOException {
+		Validate.notNull(tarFile, "tarFile 不可为 null");
+
+		ArchiveUtils.extract(tarFile.getEntries().iterator(), outputDir, tarFile::getInputStream);
+	}
+
+	/**
+	 * 从 {@code TarResource} 对象解压缩到指定目录。
+	 * <p>通过 TarResource 打开 TarFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param resource  TAR 资源对象，必须非 null
+	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final TarResource resource, final File outputDir) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+
+		try (TarFile tarFile = resource.openTarFile()) {
+			extract(tarFile, outputDir);
+		}
+	}
+
+	/**
+	 * 压缩文件/目录到 TAR 文件。
+	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式文件。</p>
+	 *
+	 * @param inputFile  要压缩的文件或目录，必须存在且可读
+	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出文件不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                              </ul>
+	 * @since 1.1.0
+	 */
+	public static void archive(final File inputFile, final File outputFile) throws IOException {
+		archive(inputFile, outputFile, null);
 	}
 
 	/**
@@ -294,9 +414,9 @@ public class TarUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile,
+	public static void archive(final File inputFile, final File outputFile,
 	                            final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -304,7 +424,7 @@ public class TarUtils {
 
 		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
-			ArchiveUtils.compress(inputFile, tarArchiveOutputStream, archiveEntryConsumer);
+			ArchiveUtils.archive(inputFile, tarArchiveOutputStream, archiveEntryConsumer);
 		}
 	}
 
@@ -321,10 +441,10 @@ public class TarUtils {
 	 *                                  <li>输出流不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
-		compress(inputFile, outputStream, null);
+	public static void archive(final File inputFile, final OutputStream outputStream) throws IOException {
+		archive(inputFile, outputStream, null);
 	}
 
 	/**
@@ -342,18 +462,18 @@ public class TarUtils {
 	 *                                  <li>输出流不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream,
-	                            final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
+	public static void archive(final File inputFile, final OutputStream outputStream,
+	                           final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof TarArchiveOutputStream) {
-			ArchiveUtils.compress(inputFile, (TarArchiveOutputStream) outputStream, archiveEntryConsumer);
+			ArchiveUtils.archive(inputFile, (TarArchiveOutputStream) outputStream, archiveEntryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFile, tarArchiveOutputStream, archiveEntryConsumer);
+				ArchiveUtils.archive(inputFile, tarArchiveOutputStream, archiveEntryConsumer);
 			}
 		}
 	}
@@ -372,10 +492,10 @@ public class TarUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		compress(inputFiles, outputFile, null);
+	public static void archive(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archive(inputFiles, outputFile, null);
 	}
 
 	/**
@@ -393,9 +513,9 @@ public class TarUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile,
+	public static void archive(final Collection<File> inputFiles, final File outputFile,
 	                            final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -403,7 +523,7 @@ public class TarUtils {
 
 		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
-			ArchiveUtils.compress(inputFiles, tarArchiveOutputStream, archiveEntryConsumer);
+			ArchiveUtils.archive(inputFiles, tarArchiveOutputStream, archiveEntryConsumer);
 		}
 	}
 
@@ -420,10 +540,10 @@ public class TarUtils {
 	 *                                      <li>输出流不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
-		compress(inputFiles, outputStream, null);
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
+		archive(inputFiles, outputStream, null);
 	}
 
 	/**
@@ -441,18 +561,18 @@ public class TarUtils {
 	 *                                      <li>输出流不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream,
-	                            final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream,
+	                           final Consumer<TarArchiveEntry> archiveEntryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof TarArchiveOutputStream) {
-			ArchiveUtils.compress(inputFiles, (TarArchiveOutputStream) outputStream, archiveEntryConsumer);
+			ArchiveUtils.archive(inputFiles, (TarArchiveOutputStream) outputStream, archiveEntryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFiles, tarArchiveOutputStream, archiveEntryConsumer);
+				ArchiveUtils.archive(inputFiles, tarArchiveOutputStream, archiveEntryConsumer);
 			}
 		}
 	}
@@ -473,7 +593,7 @@ public class TarUtils {
 	 * @param parent                 归档内的父路径前缀，空或空白表示顶层
 	 * @throws IOException 写入目录条目或递归处理子项时发生的 I/O 异常
 	 * @since 1.0.0
-	 * @deprecated 请使用 {@link ArchiveUtils#compress(File, ArchiveOutputStream, Consumer)}
+	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static void addDir(File inputDir, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {
@@ -514,7 +634,7 @@ public class TarUtils {
 	 * @param parent                 归档内的父路径前缀，空或空白表示顶层
 	 * @throws IOException 打开文件或写入条目内容时发生的 I/O 异常（包括 {@link FileNotFoundException}）
 	 * @since 1.0.0
-	 * @deprecated 请使用 {@link ArchiveUtils#compress(File, ArchiveOutputStream, Consumer)}
+	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static void addFile(File inputFile, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {

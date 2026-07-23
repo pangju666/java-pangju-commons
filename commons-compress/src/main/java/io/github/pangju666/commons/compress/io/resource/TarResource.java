@@ -74,14 +74,14 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class TarResource extends IOResource {
 	/**
 	 * TAR 文件编码
 	 * <p>用于读取 TAR 文件中的文件名，默认为 null（使用系统默认编码）</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final Charset encoding;
 
@@ -95,7 +95,7 @@ public class TarResource extends IOResource {
 	 * @param resource IO 资源对象
 	 * @throws IOException                  读取资源失败时抛出
 	 * @throws UnsupportedResourceException 资源不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(IOResource resource) throws IOException {
 		super(resource);
@@ -115,7 +115,7 @@ public class TarResource extends IOResource {
 	 * @param filePath TAR 文件路径
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(String filePath) throws IOException {
 		this(filePath, null);
@@ -127,7 +127,7 @@ public class TarResource extends IOResource {
 	 * @param file TAR 文件对象
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(File file) throws IOException {
 		this(file, null);
@@ -139,7 +139,7 @@ public class TarResource extends IOResource {
 	 * @param bytes TAR 格式的字节数组
 	 * @throws IOException                  读取数据失败时抛出
 	 * @throws UnsupportedResourceException 数据不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(byte[] bytes) throws IOException {
 		this(bytes, null);
@@ -151,7 +151,7 @@ public class TarResource extends IOResource {
 	 * @param inputStream TAR 格式的输入流
 	 * @throws IOException                  读取流失败时抛出
 	 * @throws UnsupportedResourceException 流数据不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(InputStream inputStream) throws IOException {
 		this(inputStream, null);
@@ -167,7 +167,7 @@ public class TarResource extends IOResource {
 	 * @param encoding 字符编码，可为 null
 	 * @throws IOException                  读取资源失败时抛出
 	 * @throws UnsupportedResourceException 资源不是 TAR 格式或不是 TarResource 类型时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(IOResource resource, Charset encoding) throws IOException {
 		super(resource);
@@ -186,7 +186,7 @@ public class TarResource extends IOResource {
 	 * @param encoding 字符编码，可为 null
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(String filePath, Charset encoding) throws IOException {
 		super(filePath);
@@ -203,7 +203,7 @@ public class TarResource extends IOResource {
 	 * @param encoding 字符编码，可为 null
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(File file, Charset encoding) throws IOException {
 		super(file);
@@ -220,7 +220,7 @@ public class TarResource extends IOResource {
 	 * @param encoding 字符编码，可为 null
 	 * @throws IOException                  读取数据失败时抛出
 	 * @throws UnsupportedResourceException 数据不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(byte[] bytes, Charset encoding) throws IOException {
 		super(bytes);
@@ -237,7 +237,7 @@ public class TarResource extends IOResource {
 	 * @param encoding    字符编码，可为 null
 	 * @throws IOException                  读取流失败时抛出
 	 * @throws UnsupportedResourceException 流数据不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarResource(InputStream inputStream, Charset encoding) throws IOException {
 		super(inputStream);
@@ -256,7 +256,7 @@ public class TarResource extends IOResource {
 	 *
 	 * @return TAR 归档输入流
 	 * @throws IOException 资源已关闭或打开流失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarArchiveInputStream openTarArchiveInputStream() throws IOException {
 		checkClosed();
@@ -279,7 +279,7 @@ public class TarResource extends IOResource {
 	 *
 	 * @return TAR 文件对象
 	 * @throws IOException 资源已关闭或打开文件失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public TarFile openTarFile() throws IOException {
 		checkClosed();
@@ -309,7 +309,7 @@ public class TarResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 资源不是 TAR 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
 		if (!CompressConstants.TAR_MIME_TYPE.equals(mimeType)) {

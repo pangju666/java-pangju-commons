@@ -64,14 +64,14 @@ import java.util.Objects;
  * }</pre>
  *
  * @author pangju666
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class SevenZResource extends IOResource {
 	/**
 	 * 7Z 文件密码
 	 * <p>用于打开加密的 7Z 文件，如果为 null 表示文件未加密</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final String password;
 
@@ -85,7 +85,7 @@ public class SevenZResource extends IOResource {
 	 * @param resource IO 资源对象
 	 * @throws IOException                  读取资源失败时抛出
 	 * @throws UnsupportedResourceException 资源不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(IOResource resource) throws IOException {
 		super(resource);
@@ -108,7 +108,7 @@ public class SevenZResource extends IOResource {
 	 * @param filePath 7Z 文件路径
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(String filePath) throws IOException {
 		super(filePath);
@@ -127,7 +127,7 @@ public class SevenZResource extends IOResource {
 	 * @param file 7Z 文件对象
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(File file) throws IOException {
 		super(file);
@@ -146,7 +146,7 @@ public class SevenZResource extends IOResource {
 	 * @param bytes 7Z 数据字节数组
 	 * @throws IOException                  读取数据失败时抛出
 	 * @throws UnsupportedResourceException 数据不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(byte[] bytes) throws IOException {
 		super(bytes);
@@ -165,7 +165,7 @@ public class SevenZResource extends IOResource {
 	 * @param inputStream 7Z 数据输入流
 	 * @throws IOException                  读取流失败时抛出
 	 * @throws UnsupportedResourceException 流数据不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(InputStream inputStream) throws IOException {
 		super(inputStream);
@@ -186,7 +186,7 @@ public class SevenZResource extends IOResource {
 	 * @throws IOException                  读取资源失败时抛出
 	 * @throws UnsupportedResourceException 资源不是 7Z 格式时抛出
 	 * @throws IllegalArgumentException     当 password 为空时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(IOResource resource, String password) throws IOException {
 		super(resource);
@@ -210,7 +210,7 @@ public class SevenZResource extends IOResource {
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 7Z 格式时抛出
 	 * @throws IllegalArgumentException     当 password 为空时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(String filePath, String password) throws IOException {
 		super(filePath);
@@ -232,7 +232,7 @@ public class SevenZResource extends IOResource {
 	 * @throws IOException                  读取文件失败时抛出
 	 * @throws UnsupportedResourceException 文件不是 7Z 格式时抛出
 	 * @throws IllegalArgumentException     当 password 为空时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(File file, String password) throws IOException {
 		super(file);
@@ -254,7 +254,7 @@ public class SevenZResource extends IOResource {
 	 * @throws IOException                  读取数据失败时抛出
 	 * @throws UnsupportedResourceException 数据不是 7Z 格式时抛出
 	 * @throws IllegalArgumentException     当 password 为空时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(byte[] bytes, String password) throws IOException {
 		super(bytes);
@@ -276,7 +276,7 @@ public class SevenZResource extends IOResource {
 	 * @throws IOException                  读取流失败时抛出
 	 * @throws UnsupportedResourceException 流数据不是 7Z 格式时抛出
 	 * @throws IllegalArgumentException     当 password 为空时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZResource(InputStream inputStream, String password) throws IOException {
 		super(inputStream);
@@ -296,7 +296,7 @@ public class SevenZResource extends IOResource {
 	 *
 	 * @return SevenZFile 实例
 	 * @throws IOException 资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZFile openSevenZFile() throws IOException {
 		checkClosed();
@@ -326,7 +326,7 @@ public class SevenZResource extends IOResource {
 	 * @return SevenZFile 实例
 	 * @throws IOException          资源已关闭时抛出
 	 * @throws NullPointerException 当 maxMemoryLimit 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public SevenZFile openSevenZFile(DataSize maxMemoryLimit) throws IOException {
 		checkClosed();
@@ -357,7 +357,7 @@ public class SevenZResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 资源不是 7Z 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
 		if (!CompressConstants.SEVEN_Z_MIME_TYPE.equals(mimeType)) {

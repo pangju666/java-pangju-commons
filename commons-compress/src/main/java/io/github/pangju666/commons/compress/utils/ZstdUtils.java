@@ -73,11 +73,11 @@ import java.io.*;
  * @see ZstdCompressorInputStream
  * @see ZstdCompressorOutputStream
  * @see ZstdResource
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class ZstdUtils {
 	/**
-	 * 私有构造函数，防止实例化。
+	 * 受保护的构造函数，防止实例化。
 	 */
 	protected ZstdUtils() {
 	}
@@ -92,7 +92,7 @@ public class ZstdUtils {
 	 * @param outputStream 输出流，必须非 null（如果传入 {@code ZstdCompressorOutputStream} 则不会关闭它）
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream) throws IOException {
 		compress(inputStream, outputStream, ZstdConstants.ZSTD_CLEVEL_DEFAULT);
@@ -108,7 +108,7 @@ public class ZstdUtils {
 	 * @param level        压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream, final int level) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -148,7 +148,7 @@ public class ZstdUtils {
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream) throws IOException {
 		compress(resource, outputStream, ZstdConstants.ZSTD_CLEVEL_DEFAULT);
@@ -163,7 +163,7 @@ public class ZstdUtils {
 	 * @param level        压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream, final int level) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -183,7 +183,7 @@ public class ZstdUtils {
 	 * @param outputFile  输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile) throws IOException {
 		compress(inputStream, outputFile, ZstdConstants.ZSTD_CLEVEL_DEFAULT);
@@ -198,7 +198,7 @@ public class ZstdUtils {
 	 * @param level       压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile, final int level) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
@@ -220,7 +220,7 @@ public class ZstdUtils {
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile) throws IOException {
 		compress(resource, outputFile, ZstdConstants.ZSTD_CLEVEL_DEFAULT);
@@ -235,7 +235,7 @@ public class ZstdUtils {
 	 * @param level      压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile, final int level) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -257,7 +257,7 @@ public class ZstdUtils {
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
 	 * @throws IOException          当资源已关闭或解压过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void uncompress(final ZstdResource resource, final OutputStream outputStream) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
@@ -277,7 +277,7 @@ public class ZstdUtils {
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
 	 * @throws IOException          当资源已关闭、文件写入或解压过程中发生 I/O 错误时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void uncompress(final ZstdResource resource, final File outputFile) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");

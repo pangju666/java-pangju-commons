@@ -63,7 +63,7 @@ import java.io.InputStream;
  * @author pangju666
  * @see IOResource
  * @see ZstdCompressorInputStream
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class ZstdResource extends IOResource {
 	/**
@@ -73,7 +73,7 @@ public class ZstdResource extends IOResource {
 	 * @param resource IOResource 对象，必须非 null
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdResource(IOResource resource) throws IOException {
 		super(resource);
@@ -90,7 +90,7 @@ public class ZstdResource extends IOResource {
 	 * @param filePath 文件路径，必须非 null 且指向存在的 Zstd 文件
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdResource(String filePath) throws IOException {
 		super(filePath);
@@ -105,7 +105,7 @@ public class ZstdResource extends IOResource {
 	 * @param file File 对象，必须非 null 且指向存在的 Zstd 文件
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdResource(File file) throws IOException {
 		super(file);
@@ -120,7 +120,7 @@ public class ZstdResource extends IOResource {
 	 * @param bytes Zstd 格式的字节数组，必须非 null
 	 * @throws IOException                  当检测 MIME 类型失败时抛出
 	 * @throws UnsupportedResourceException 当字节数组不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdResource(byte[] bytes) throws IOException {
 		super(bytes);
@@ -135,7 +135,7 @@ public class ZstdResource extends IOResource {
 	 * @param inputStream 输入流，必须非 null
 	 * @throws IOException                  当检测 MIME 类型失败时抛出
 	 * @throws UnsupportedResourceException 当输入流不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdResource(InputStream inputStream) throws IOException {
 		super(inputStream);
@@ -149,7 +149,7 @@ public class ZstdResource extends IOResource {
 	 *
 	 * @return Zstd 压缩输入流
 	 * @throws IOException 当资源已关闭或打开输入流失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZstdCompressorInputStream openZstdCompressorInputStream() throws IOException {
 		checkClosed();
@@ -163,7 +163,7 @@ public class ZstdResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 当 MIME 类型不是 Zstd 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
 		if (!CompressConstants.ZSTD_MIME_TYPE.equals(mimeType)) {

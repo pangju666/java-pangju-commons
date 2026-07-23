@@ -1350,7 +1350,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @throws NullPointerException     当 file 参数为 null 时抛出
 	 * @throws IOException              当文件不存在或不可读时抛出
 	 * @throws IllegalArgumentException 当文件存在但不是目录时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void checkDir(final File file, final String message) throws IOException {
 		check(file, message);
@@ -1367,7 +1367,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	 * @param message 当验证失败时的错误消息
 	 * @throws NullPointerException     当 file 参数为 null 时抛出
 	 * @throws IllegalArgumentException 当文件存在但不是目录时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public static void checkDirIfExist(final File file, final String message) {
 		if (Objects.isNull(file)) {

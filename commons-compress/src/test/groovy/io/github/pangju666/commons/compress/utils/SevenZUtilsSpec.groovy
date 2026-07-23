@@ -20,7 +20,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile)
+		SevenZUtils.archive(inputFile, outputFile)
 
 		then:
 		outputFile.exists()
@@ -36,7 +36,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, SevenZMethod.COPY)
+		SevenZUtils.archive(inputFile, outputFile, SevenZMethod.COPY)
 
 		then:
 		outputFile.exists()
@@ -53,7 +53,7 @@ class SevenZUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile) { entry ->
+		SevenZUtils.archive(inputFile, outputFile) { entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -72,7 +72,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, "password")
+		SevenZUtils.archive(inputFile, outputFile, "password")
 
 		then:
 		outputFile.exists()
@@ -88,7 +88,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, "password", SevenZMethod.COPY)
+		SevenZUtils.archive(inputFile, outputFile, "password", SevenZMethod.COPY)
 
 		then:
 		outputFile.exists()
@@ -105,7 +105,7 @@ class SevenZUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, "password") { entry ->
+		SevenZUtils.archive(inputFile, outputFile, "password") { entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -126,7 +126,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel)
+			SevenZUtils.archive(inputFile, channel)
 		}
 
 		then:
@@ -145,7 +145,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel, SevenZMethod.COPY)
+			SevenZUtils.archive(inputFile, channel, SevenZMethod.COPY)
 		}
 
 		then:
@@ -165,7 +165,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel) { entry ->
+			SevenZUtils.archive(inputFile, channel) { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -187,7 +187,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel, "password")
+			SevenZUtils.archive(inputFile, channel, "password")
 		}
 
 		then:
@@ -206,7 +206,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel, "password", SevenZMethod.COPY)
+			SevenZUtils.archive(inputFile, channel, "password", SevenZMethod.COPY)
 		}
 
 		then:
@@ -226,7 +226,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress(inputFile, channel, "password") { entry ->
+			SevenZUtils.archive(inputFile, channel, "password") { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -247,7 +247,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress(inputFile, sevenZOutputFile)
+			SevenZUtils.archive(inputFile, sevenZOutputFile)
 		}
 
 		then:
@@ -265,7 +265,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress(inputFile, sevenZOutputFile, SevenZMethod.COPY)
+			SevenZUtils.archive(inputFile, sevenZOutputFile, SevenZMethod.COPY)
 		}
 
 		then:
@@ -284,7 +284,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress(inputFile, sevenZOutputFile) { entry ->
+			SevenZUtils.archive(inputFile, sevenZOutputFile) { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -306,7 +306,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile)
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile)
 
 		then:
 		outputFile.exists()
@@ -324,7 +324,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile, SevenZMethod.COPY)
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile, SevenZMethod.COPY)
 
 		then:
 		outputFile.exists()
@@ -343,7 +343,7 @@ class SevenZUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile) { entry ->
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile) { entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -364,7 +364,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile, "password")
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile, "password")
 
 		then:
 		outputFile.exists()
@@ -382,7 +382,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile, "password", SevenZMethod.COPY)
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile, "password", SevenZMethod.COPY)
 
 		then:
 		outputFile.exists()
@@ -401,7 +401,7 @@ class SevenZUtilsSpec extends Specification {
 		def processedEntries = []
 
 		when:
-		SevenZUtils.compress([inputFile1, inputFile2], outputFile, "password") { entry ->
+		SevenZUtils.archive([inputFile1, inputFile2], outputFile, "password") { entry ->
 			processedEntries.add(entry.name)
 		}
 
@@ -424,7 +424,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel)
+			SevenZUtils.archive([inputFile1, inputFile2], channel)
 		}
 
 		then:
@@ -445,7 +445,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel, SevenZMethod.COPY)
+			SevenZUtils.archive([inputFile1, inputFile2], channel, SevenZMethod.COPY)
 		}
 
 		then:
@@ -467,7 +467,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel) { entry ->
+			SevenZUtils.archive([inputFile1, inputFile2], channel) { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -491,7 +491,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel, "password")
+			SevenZUtils.archive([inputFile1, inputFile2], channel, "password")
 		}
 
 		then:
@@ -512,7 +512,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel, "password", SevenZMethod.COPY)
+			SevenZUtils.archive([inputFile1, inputFile2], channel, "password", SevenZMethod.COPY)
 		}
 
 		then:
@@ -534,7 +534,7 @@ class SevenZUtilsSpec extends Specification {
 		when:
 		try (FileChannel channel = FileChannel.open(outputFile.toPath(),
 			StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			SevenZUtils.compress([inputFile1, inputFile2], channel, "password") { entry ->
+			SevenZUtils.archive([inputFile1, inputFile2], channel, "password") { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -557,7 +557,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress([inputFile1, inputFile2], sevenZOutputFile)
+			SevenZUtils.archive([inputFile1, inputFile2], sevenZOutputFile)
 		}
 
 		then:
@@ -577,7 +577,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress([inputFile1, inputFile2], sevenZOutputFile, SevenZMethod.COPY)
+			SevenZUtils.archive([inputFile1, inputFile2], sevenZOutputFile, SevenZMethod.COPY)
 		}
 
 		then:
@@ -598,7 +598,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(outputFile)) {
-			SevenZUtils.compress([inputFile1, inputFile2], sevenZOutputFile) { entry ->
+			SevenZUtils.archive([inputFile1, inputFile2], sevenZOutputFile) { entry ->
 				processedEntries.add(entry.name)
 			}
 		}
@@ -619,7 +619,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZFile sevenZ = SevenZFile.builder().setFile(sevenZFile).get()) {
-			SevenZUtils.uncompress(sevenZ, outputDir)
+			SevenZUtils.extract(sevenZ, outputDir)
 		}
 
 		then:
@@ -636,7 +636,7 @@ class SevenZUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		SevenZUtils.uncompress(new SevenZResource(sevenZFile), outputDir)
+		SevenZUtils.extract(new SevenZResource(sevenZFile), outputDir)
 
 		then:
 		outputDir.exists()
@@ -653,7 +653,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZFile sevenZ = SevenZFile.builder().setFile(sevenZFile).setPassword("123456".toCharArray()).get()) {
-			SevenZUtils.uncompress(sevenZ, outputDir)
+			SevenZUtils.extract(sevenZ, outputDir)
 		}
 
 		then:
@@ -670,7 +670,7 @@ class SevenZUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		SevenZUtils.uncompress(new SevenZResource(sevenZFile, "123456"), outputDir)
+		SevenZUtils.extract(new SevenZResource(sevenZFile, "123456"), outputDir)
 
 		then:
 		outputDir.exists()
@@ -684,7 +684,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(null as File, outputFile)
+		SevenZUtils.archive(null as File, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -698,7 +698,7 @@ class SevenZUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		SevenZUtils.compress(inputFile, null as File)
+		SevenZUtils.archive(inputFile, null as File)
 
 		then:
 		thrown(NullPointerException)
@@ -713,7 +713,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, null as SevenZMethod)
+		SevenZUtils.archive(inputFile, outputFile, null as SevenZMethod)
 
 		then:
 		thrown(NullPointerException)
@@ -728,7 +728,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, "")
+		SevenZUtils.archive(inputFile, outputFile, "")
 
 		then:
 		thrown(IllegalArgumentException)
@@ -743,7 +743,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(inputFile, outputFile, null as String)
+		SevenZUtils.archive(inputFile, outputFile, null as String)
 
 		then:
 		thrown(NullPointerException)
@@ -757,7 +757,7 @@ class SevenZUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		SevenZUtils.compress(inputFile, null as FileChannel)
+		SevenZUtils.archive(inputFile, null as FileChannel)
 
 		then:
 		thrown(NullPointerException)
@@ -771,7 +771,7 @@ class SevenZUtilsSpec extends Specification {
 		inputFile.text = "test content"
 
 		when:
-		SevenZUtils.compress(inputFile, null as SevenZOutputFile)
+		SevenZUtils.archive(inputFile, null as SevenZOutputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -784,7 +784,7 @@ class SevenZUtilsSpec extends Specification {
 		File outputFile = new File(work, "output.7z")
 
 		when:
-		SevenZUtils.compress(null as Collection<File>, outputFile)
+		SevenZUtils.archive(null as Collection<File>, outputFile)
 
 		then:
 		thrown(NullPointerException)
@@ -798,7 +798,7 @@ class SevenZUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		SevenZUtils.uncompress(null as SevenZFile, outputDir)
+		SevenZUtils.extract(null as SevenZFile, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -812,7 +812,7 @@ class SevenZUtilsSpec extends Specification {
 		outputDir.mkdirs()
 
 		when:
-		SevenZUtils.uncompress(null as SevenZResource, outputDir)
+		SevenZUtils.extract(null as SevenZResource, outputDir)
 
 		then:
 		thrown(NullPointerException)
@@ -826,7 +826,7 @@ class SevenZUtilsSpec extends Specification {
 
 		when:
 		try (SevenZFile sevenZ = SevenZFile.builder().setFile(sevenZFile).get()) {
-			SevenZUtils.uncompress(sevenZ, null as File)
+			SevenZUtils.extract(sevenZ, null as File)
 		}
 
 		then:

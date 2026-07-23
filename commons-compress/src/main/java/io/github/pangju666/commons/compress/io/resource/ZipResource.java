@@ -73,14 +73,14 @@ import java.util.regex.Pattern;
  * }</pre>
  *
  * @author pangju666
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class ZipResource extends IOResource {
 	/**
 	 * ZIP 文件编码。
 	 * <p>用于读取 ZIP 文件中的文件名和注释，默认为 UTF-8。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final Charset encoding;
 
@@ -88,7 +88,7 @@ public class ZipResource extends IOResource {
 	 * 是否使用 Unicode 扩展字段。
 	 * <p>设置为 true 时，将使用 Unicode 扩展字段来正确处理非 ASCII 文件名。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final boolean useUnicodeExtraFields;
 
@@ -96,7 +96,7 @@ public class ZipResource extends IOResource {
 	 * 分片文件最大数量。
 	 * <p>对于分片 ZIP 文件，表示分片的总数；对于普通 ZIP 文件，值为 1。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected final int maxNumberOfDisks;
 
@@ -108,7 +108,7 @@ public class ZipResource extends IOResource {
 	 * @param resource IO 资源对象
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(IOResource resource) throws IOException {
 		super(resource);
@@ -138,7 +138,7 @@ public class ZipResource extends IOResource {
 	 * @param filePath ZIP 文件路径
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(String filePath) throws IOException {
 		this(filePath, StandardCharsets.UTF_8, true);
@@ -151,7 +151,7 @@ public class ZipResource extends IOResource {
 	 * @param file ZIP 文件对象
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(File file) throws IOException {
 		this(file, StandardCharsets.UTF_8, true);
@@ -164,7 +164,7 @@ public class ZipResource extends IOResource {
 	 * @param bytes ZIP 数据字节数组
 	 * @throws IOException                  当读取数据失败时抛出
 	 * @throws UnsupportedResourceException 当数据不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(byte[] bytes) throws IOException {
 		this(bytes, StandardCharsets.UTF_8, true);
@@ -177,7 +177,7 @@ public class ZipResource extends IOResource {
 	 * @param inputStream ZIP 数据输入流
 	 * @throws IOException                  当读取流失败时抛出
 	 * @throws UnsupportedResourceException 当流数据不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(InputStream inputStream) throws IOException {
 		this(inputStream, StandardCharsets.UTF_8, true);
@@ -192,7 +192,7 @@ public class ZipResource extends IOResource {
 	 * @param useUnicodeExtraFields 是否使用 Unicode 扩展字段
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(IOResource resource, boolean useUnicodeExtraFields) throws IOException {
 		this(resource, StandardCharsets.UTF_8, useUnicodeExtraFields);
@@ -206,7 +206,7 @@ public class ZipResource extends IOResource {
 	 * @param useUnicodeExtraFields 是否使用 Unicode 扩展字段
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(String filePath, boolean useUnicodeExtraFields) throws IOException {
 		this(filePath, StandardCharsets.UTF_8, useUnicodeExtraFields);
@@ -220,7 +220,7 @@ public class ZipResource extends IOResource {
 	 * @param useUnicodeExtraFields 是否使用 Unicode 扩展字段
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(File file, boolean useUnicodeExtraFields) throws IOException {
 		this(file, StandardCharsets.UTF_8, useUnicodeExtraFields);
@@ -234,7 +234,7 @@ public class ZipResource extends IOResource {
 	 * @param useUnicodeExtraFields 是否使用 Unicode 扩展字段
 	 * @throws IOException                  当读取数据失败时抛出
 	 * @throws UnsupportedResourceException 当数据不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(byte[] bytes, boolean useUnicodeExtraFields) throws IOException {
 		this(bytes, StandardCharsets.UTF_8, useUnicodeExtraFields);
@@ -248,7 +248,7 @@ public class ZipResource extends IOResource {
 	 * @param useUnicodeExtraFields 是否使用 Unicode 扩展字段
 	 * @throws IOException                  当读取流失败时抛出
 	 * @throws UnsupportedResourceException 当流数据不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(InputStream inputStream, boolean useUnicodeExtraFields) throws IOException {
 		this(inputStream, StandardCharsets.UTF_8, useUnicodeExtraFields);
@@ -264,7 +264,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(IOResource resource, Charset encoding) throws IOException {
 		this(resource, encoding, true);
@@ -279,7 +279,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(String filePath, Charset encoding) throws IOException {
 		this(filePath, encoding, true);
@@ -294,7 +294,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(File file, Charset encoding) throws IOException {
 		this(file, encoding, true);
@@ -309,7 +309,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取数据失败时抛出
 	 * @throws UnsupportedResourceException 当数据不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(byte[] bytes, Charset encoding) throws IOException {
 		this(bytes, encoding, true);
@@ -324,7 +324,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取流失败时抛出
 	 * @throws UnsupportedResourceException 当流数据不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(InputStream inputStream, Charset encoding) throws IOException {
 		this(inputStream, encoding, true);
@@ -340,7 +340,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(IOResource resource, Charset encoding, boolean useUnicodeExtraFields) throws IOException {
 		super(resource);
@@ -370,7 +370,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(String filePath, Charset encoding, boolean useUnicodeExtraFields) throws IOException {
 		super(filePath);
@@ -394,7 +394,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(File file, Charset encoding, boolean useUnicodeExtraFields) throws IOException {
 		super(file);
@@ -418,7 +418,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取数据失败时抛出
 	 * @throws UnsupportedResourceException 当数据不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(byte[] bytes, Charset encoding, boolean useUnicodeExtraFields) throws IOException {
 		super(bytes);
@@ -442,7 +442,7 @@ public class ZipResource extends IOResource {
 	 * @throws IOException                  当读取流失败时抛出
 	 * @throws UnsupportedResourceException 当流数据不是 ZIP 格式时抛出
 	 * @throws IllegalArgumentException     当 encoding 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipResource(InputStream inputStream, Charset encoding, boolean useUnicodeExtraFields) throws IOException {
 		super(inputStream);
@@ -464,7 +464,7 @@ public class ZipResource extends IOResource {
 	 * @param file ZIP 文件
 	 * @return 分片文件总数（包括主文件）
 	 * @see ZipFile.Builder#setMaxNumberOfDisks(long)
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static int getMaxNumberOfDisks(final File file) {
 		String originalName = file.getName();
@@ -493,7 +493,7 @@ public class ZipResource extends IOResource {
 	 *
 	 * @return ZipArchiveInputStream 实例
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipArchiveInputStream openZipArchiveInputStream() throws IOException {
 		checkClosed();
@@ -509,7 +509,7 @@ public class ZipResource extends IOResource {
 	 * @param allowStoredEntriesWithDataDescriptor 是否允许带数据描述符的存储条目
 	 * @return ZipArchiveInputStream 实例
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipArchiveInputStream openZipArchiveInputStream(boolean allowStoredEntriesWithDataDescriptor) throws IOException {
 		checkClosed();
@@ -526,7 +526,7 @@ public class ZipResource extends IOResource {
 	 * @param skipSplitSig                         是否尝试跳过开头的 zip 分卷签名。若要读取分卷归档，需将此参数设为 true。
 	 * @return ZipArchiveInputStream 实例
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipArchiveInputStream openZipArchiveInputStream(boolean allowStoredEntriesWithDataDescriptor,
 	                                                       boolean skipSplitSig) throws IOException {
@@ -544,7 +544,7 @@ public class ZipResource extends IOResource {
 	 *
 	 * @return ZipFile 实例
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipFile openZipFile() throws IOException {
 		checkClosed();
@@ -574,7 +574,7 @@ public class ZipResource extends IOResource {
 	 * @param ignoreLocalFileHeader 是否忽略本地文件头
 	 * @return ZipFile 实例
 	 * @throws IOException 当资源已关闭时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public ZipFile openZipFile(boolean ignoreLocalFileHeader) throws IOException {
 		checkClosed();
@@ -606,7 +606,7 @@ public class ZipResource extends IOResource {
 	 * @throws NullPointerException     当资源已关闭时抛出
 	 * @throws IllegalArgumentException 当 password 为空时抛出
 	 * @throws IOException              当打开 ZIP 文件失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public net.lingala.zip4j.ZipFile openZipFile(String password) throws IOException {
 		checkClosed();
@@ -623,7 +623,7 @@ public class ZipResource extends IOResource {
 	 * <p>对于分片 ZIP 文件，返回分片的总数；对于普通 ZIP 文件，返回 1。</p>
 	 *
 	 * @return 分片文件最大数量
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public int getMaxNumberOfDisks() {
 		checkClosed();
@@ -637,7 +637,7 @@ public class ZipResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 当资源不是 ZIP 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
 		if (!CompressConstants.ZIP_MIME_TYPE.equals(mimeType)) {

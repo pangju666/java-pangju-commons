@@ -67,7 +67,7 @@ import java.io.InputStream;
  * @see IOResource
  * @see XZCompressorInputStream
  * @see XZUtils
- * @since 2.1.0
+ * @since 1.1.0
  */
 public class XZResource extends IOResource {
 	/**
@@ -77,7 +77,7 @@ public class XZResource extends IOResource {
 	 * @param resource IOResource 对象，必须非 null
 	 * @throws IOException                  当读取资源失败时抛出
 	 * @throws UnsupportedResourceException 当资源不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZResource(IOResource resource) throws IOException {
 		super(resource);
@@ -94,7 +94,7 @@ public class XZResource extends IOResource {
 	 * @param filePath 文件路径，必须非 null 且指向存在的 XZ 文件
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZResource(String filePath) throws IOException {
 		super(filePath);
@@ -109,7 +109,7 @@ public class XZResource extends IOResource {
 	 * @param file File 对象，必须非 null 且指向存在的 XZ 文件
 	 * @throws IOException                  当读取文件失败时抛出
 	 * @throws UnsupportedResourceException 当文件不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZResource(File file) throws IOException {
 		super(file);
@@ -124,7 +124,7 @@ public class XZResource extends IOResource {
 	 * @param bytes XZ 格式的字节数组，必须非 null
 	 * @throws IOException                  当检测 MIME 类型失败时抛出
 	 * @throws UnsupportedResourceException 当字节数组不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZResource(byte[] bytes) throws IOException {
 		super(bytes);
@@ -139,7 +139,7 @@ public class XZResource extends IOResource {
 	 * @param inputStream 输入流，必须非 null
 	 * @throws IOException                  当检测 MIME 类型失败时抛出
 	 * @throws UnsupportedResourceException 当输入流不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZResource(InputStream inputStream) throws IOException {
 		super(inputStream);
@@ -153,7 +153,7 @@ public class XZResource extends IOResource {
 	 *
 	 * @return XZ 压缩输入流
 	 * @throws IOException 当资源已关闭或打开输入流失败时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZCompressorInputStream openXZCompressorInputStream() throws IOException {
 		checkClosed();
@@ -171,7 +171,7 @@ public class XZResource extends IOResource {
 	 * @return XZ 压缩输入流
 	 * @throws IOException          当资源已关闭或打开输入流失败时抛出
 	 * @throws NullPointerException 当 maxMemoryLimit 为 null 时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	public XZCompressorInputStream openXZCompressorInputStream(DataSize maxMemoryLimit) throws IOException {
 		checkClosed();
@@ -191,7 +191,7 @@ public class XZResource extends IOResource {
 	 *
 	 * @param message 验证失败时的错误消息
 	 * @throws UnsupportedResourceException 当 MIME 类型不是 XZ 格式时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected void validateType(String message) {
 		if (!CompressConstants.XZ_MIME_TYPE.equals(mimeType)) {

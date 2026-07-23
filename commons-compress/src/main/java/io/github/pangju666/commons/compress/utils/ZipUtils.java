@@ -62,47 +62,47 @@ import java.util.zip.Deflater;
  * <h3>使用示例</h3>
  * <pre>{@code
  * // 1) 压缩单个文件到 .zip
- * ZipUtils.compress(new File("input.txt"), new File("archive.zip"));
+ * ZipUtils.archive(new File("input.txt"), new File("archive.zip"));
  *
  * // 2) 压缩目录到输出流（不会自动关闭传入流）
  * try (FileOutputStream fos = new FileOutputStream("archive.zip")) {
- *     ZipUtils.compress(new File("inputDir"), fos);
+ *     ZipUtils.archive(new File("inputDir"), fos);
  * }
  *
  * // 3) 批量压缩多个文件/目录到 .zip
  * List<File> inputs = List.of(new File("a.txt"), new File("b"), new File("c"));
- * ZipUtils.compress(inputs, new File("batch.zip"));
+ * ZipUtils.archive(inputs, new File("batch.zip"));
  *
  * // 4) 使用 ZipResource 解压 ZIP 文件到目录
  * try (ZipResource resource = new ZipResource(new File("archive.zip"))) {
- *     ZipUtils.uncompress(resource, new File("outputDir"));
+ *     ZipUtils.extract(resource, new File("outputDir"));
  * }
  *
  * // 5) 解压输入流
  * try (InputStream in = new FileInputStream("archive.zip");
  * 		ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(in)) {
- *     ZipUtils.uncompress(zipArchiveInputStream, new File("outputDir"));
+ *     ZipUtils.extract(zipArchiveInputStream, new File("outputDir"));
  * }
  *
  * // 6) 使用 ZipFile 解压（适合随机访问和大文件）
  * try (ZipFile zf = new ZipFile(new File("archive.zip"))) {
- *     ZipUtils.uncompress(zf, new File("outputDir"));
+ *     ZipUtils.extract(zf, new File("outputDir"));
  * }
  *
  * // 7) 解压加密的 ZIP 文件
- * ZipUtils.uncompress(new File("encrypted.zip"), "password", new File("outputDir"));
+ * ZipUtils.extract(new File("encrypted.zip"), "password", new File("outputDir"));
  *
  * // 8) 创建加密的 ZIP 文件
- * ZipUtils.compress(new File("input.txt"), new File("encrypted.zip"), "password");
+ * ZipUtils.archive(new File("input.txt"), new File("encrypted.zip"), "password");
  *
  * // 9) 分片压缩文件（使用默认分片大小）
- * ZipUtils.compressSplit(new File("largefile.txt"), new File("split.zip"));
+ * ZipUtils.archiveSplit(new File("largefile.txt"), new File("split.zip"));
  *
  * // 10) 分片压缩文件（指定分片大小）
- * ZipUtils.compressSplit(new File("largefile.txt"), new File("split.zip"), DataSize.ofMegabytes(10).toBytes());
+ * ZipUtils.archiveSplit(new File("largefile.txt"), new File("split.zip"), DataSize.ofMegabytes(10).toBytes());
  *
  * // 11) 分片压缩加密 ZIP 文件
- * ZipUtils.compressSplit(new File("largefile.txt"), new File("encrypted-split.zip"), "password");
+ * ZipUtils.archiveSplit(new File("largefile.txt"), new File("encrypted-split.zip"), "password");
  * }</pre>
  *
  * @author pangju666
@@ -118,7 +118,7 @@ public class ZipUtils {
 	 * 默认分片大小（2GB）。
 	 * <p>用于分片压缩时的默认分片大小。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static final long DEFAULT_SPLIT_SIZE = DataSize.ofGigabytes(2).toBytes();
 
@@ -126,17 +126,20 @@ public class ZipUtils {
 	 * 最小分片大小（64KB）。
 	 * <p>分片压缩时的最小分片大小限制。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static final long MIN_SPLIT_SIZE = DataSize.ofKilobytes(64).toBytes();
 	/**
 	 * 最大分片大小（4GB）。
 	 * <p>分片压缩时的最大分片大小限制。</p>
 	 *
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
 	protected static final long MAX_SPLIT_SIZE = DataSize.ofGigabytes(4).toBytes();
 
+	/**
+	 * 受保护的构造函数，防止实例化。
+	 */
 	protected ZipUtils() {
 	}
 
@@ -200,7 +203,7 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @deprecated 请使用 {@link #uncompress(ZipResource, File)} 代替
+	 * @deprecated 请使用 {@link #extract(ZipResource, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
@@ -209,7 +212,7 @@ public class ZipUtils {
 
 		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
 		     ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
-			ArchiveUtils.uncompress(zipArchiveInputStream, outputDir);
+			ArchiveUtils.extract(zipArchiveInputStream, outputDir);
 		}
 	}
 
@@ -227,7 +230,7 @@ public class ZipUtils {
 	 *                                      <li>解压过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @deprecated 请使用 {@link #uncompress(ZipResource, File)} 代替
+	 * @deprecated 请使用 {@link #extract(ZipResource, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
@@ -236,7 +239,7 @@ public class ZipUtils {
 
 		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes);
 		     ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(inputStream)) {
-			ArchiveUtils.uncompress(zipArchiveInputStream, outputDir);
+			ArchiveUtils.extract(zipArchiveInputStream, outputDir);
 		}
 	}
 
@@ -258,62 +261,25 @@ public class ZipUtils {
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
 	 * @since 1.0.0
-	 * @deprecated 请使用{@link #uncompress(ZipArchiveInputStream, File)} 代替
+	 * @deprecated 请使用{@link #extract(ZipArchiveInputStream, File)} 代替
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final InputStream inputStream, final File outputDir) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
 		if (inputStream instanceof ZipArchiveInputStream) {
-			uncompress((ZipArchiveInputStream) inputStream, outputDir);
+			extract((ZipArchiveInputStream) inputStream, outputDir);
 		} else {
 			if (inputStream instanceof BufferedInputStream || inputStream instanceof UnsynchronizedBufferedInputStream) {
 				try (ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(inputStream)) {
-					uncompress(archiveInputStream, outputDir);
+					extract(archiveInputStream, outputDir);
 				}
 			} else {
 				try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream);
 				     ZipArchiveInputStream archiveInputStream = new ZipArchiveInputStream(bufferedInputStream)) {
-					uncompress(archiveInputStream, outputDir);
+					extract(archiveInputStream, outputDir);
 				}
 			}
-		}
-	}
-
-	/**
-	 * 从 {@code ZipResource} 对象解压缩到指定目录。
-	 * <p>通过 ZipResource 打开 ZipFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
-	 *
-	 * @param resource  ZIP 资源对象，必须非 null
-	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
-	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
-	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
-	 * @since 2.1.0
-	 */
-	public static void uncompress(final ZipResource resource, final File outputDir) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-
-		try (ZipFile zipFile = resource.openZipFile()) {
-			uncompress(zipFile, outputDir);
-		}
-	}
-
-	/**
-	 * 从 {@code ZipResource} 对象解压缩到指定目录，可选择忽略本地文件头。
-	 * <p>通过 ZipResource 打开 ZipFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
-	 *
-	 * @param resource              ZIP 资源对象，必须非 null
-	 * @param outputDir             解压目标目录，会自动创建不存在的目录结构
-	 * @param ignoreLocalFileHeader 是否忽略本地文件头，某些损坏的 ZIP 文件可能需要设置为 true
-	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
-	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
-	 * @since 2.1.0
-	 */
-	public static void uncompress(final ZipResource resource, final File outputDir, final boolean ignoreLocalFileHeader) throws IOException {
-		Validate.notNull(resource, "resource 不可为 null");
-
-		try (ZipFile zipFile = resource.openZipFile(ignoreLocalFileHeader)) {
-			uncompress(zipFile, outputDir);
 		}
 	}
 
@@ -327,9 +293,11 @@ public class ZipUtils {
 	 * @throws IllegalArgumentException 当 outputDir 存在但不是目录时抛出
 	 * @throws IOException              当输入流不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #extract(ZipArchiveInputStream, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final ZipArchiveInputStream zipArchiveInputStream, final File outputDir) throws IOException {
-		ArchiveUtils.uncompress(zipArchiveInputStream, outputDir);
+		extract(zipArchiveInputStream, outputDir);
 	}
 
 	/**
@@ -348,11 +316,175 @@ public class ZipUtils {
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
 	 * @since 1.0.0
+	 * @deprecated 请使用{@link #extract(ZipFile, File)} 代替
 	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
 	public static void uncompress(final ZipFile zipFile, final File outputDir) throws IOException {
+		extract(zipFile, outputDir);
+	}
+
+	/**
+	 * 压缩文件/目录到 ZIP 文件。
+	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式文件。</p>
+	 *
+	 * @param inputFile  要压缩的文件或目录，必须存在且可读
+	 * @param outputFile 输出 ZIP 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出文件不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误</li>
+	 *                                  <li>磁盘空间不足</li>
+	 *                              </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, File)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final File inputFile, final File outputFile) throws IOException {
+		archive(inputFile, outputFile);
+	}
+
+	/**
+	 * 压缩文件/目录到输出流。
+	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流。</p>
+	 *
+	 * @param inputFile    要压缩的文件或目录，必须存在且可读
+	 * @param outputStream 输出流对象，必须可写且不为 null（方法不会自动关闭此流）
+	 * @throws NullPointerException 当 {@code outputStream} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出流不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误</li>
+	 *                              </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(File, OutputStream)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
+		archive(inputFile, outputStream);
+	}
+
+	/**
+	 * 批量压缩文件/目录到ZIP文件
+	 * <p>将多个文件或目录(递归包含子目录)压缩为单个ZIP格式文件</p>
+	 *
+	 * @param inputFiles 要压缩的文件集合，必须非空且所有文件必须存在
+	 * @param outputFile 输出ZIP文件路径，会自动创建父目录并覆盖已存在文件
+	 * @throws NullPointerException     当outputFile为null时抛出
+	 * @throws IllegalArgumentException 当出现以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>outputFile存在但不是文件</li>
+	 *                                  </ul>
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生I/O错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, File)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archive(inputFiles, outputFile);
+	}
+
+	/**
+	 * 批量压缩文件/目录到输出流。
+	 * <p>将多个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 *
+	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
+	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
+	 * @throws NullPointerException     当 {@code outputStream} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输出流不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                  </ul>
+	 * @since 1.0.0
+	 * @deprecated 请使用{@link #archive(Collection, OutputStream)} 代替
+	 */
+	@Deprecated(forRemoval = true, since = "2.1.0")
+	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
+		archive(inputFiles, outputStream);
+	}
+
+	/**
+	 * 从 {@code ZipResource} 对象解压缩到指定目录。
+	 * <p>通过 ZipResource 打开 ZipFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param resource  ZIP 资源对象，必须非 null
+	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final ZipResource resource, final File outputDir) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+
+		try (ZipFile zipFile = resource.openZipFile()) {
+			extract(zipFile, outputDir);
+		}
+	}
+
+	/**
+	 * 从 {@code ZipResource} 对象解压缩到指定目录，可选择忽略本地文件头。
+	 * <p>通过 ZipResource 打开 ZipFile 并将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param resource              ZIP 资源对象，必须非 null
+	 * @param outputDir             解压目标目录，会自动创建不存在的目录结构
+	 * @param ignoreLocalFileHeader 是否忽略本地文件头，某些损坏的 ZIP 文件可能需要设置为 true
+	 * @throws NullPointerException 当 {@code resource} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IOException          当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final ZipResource resource, final File outputDir, final boolean ignoreLocalFileHeader) throws IOException {
+		Validate.notNull(resource, "resource 不可为 null");
+
+		try (ZipFile zipFile = resource.openZipFile(ignoreLocalFileHeader)) {
+			extract(zipFile, outputDir);
+		}
+	}
+
+	/**
+	 * 从 {@code ZipArchiveInputStream} 解压到指定目录。
+	 * <p>将 ZIP 归档输入流的内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param zipArchiveInputStream ZIP 归档输入流，必须非 null
+	 * @param outputDir             解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException     当 zipArchiveInputStream 或 outputDir 为 null 时抛出
+	 * @throws IllegalArgumentException 当 outputDir 存在但不是目录时抛出
+	 * @throws IOException              当输入流不可读、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @since 1.1.0
+	 */
+	public static void extract(final ZipArchiveInputStream zipArchiveInputStream, final File outputDir) throws IOException {
+		ArchiveUtils.extract(zipArchiveInputStream, outputDir);
+	}
+
+	/**
+	 * 从 {@code ZipFile} 对象解压缩到指定目录。
+	 * <p>使用已初始化的 ZipFile 对象将内容解压到指定目录，自动创建不存在的目录结构并保持原始文件层级关系。</p>
+	 *
+	 * @param zipFile   已初始化的 ZipFile 对象，必须处于可读取状态且不为 null
+	 * @param outputDir 解压目标目录，会自动创建不存在的目录结构
+	 * @throws NullPointerException     当 {@code zipFile} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputDir} 存在但不是目录时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>zipFile 已关闭或不可读</li>
+	 *                                      <li>输出目录不可写</li>
+	 *                                      <li>解压过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
+	 * @since 1.1.0
+	 */
+	public static void extract(final ZipFile zipFile, final File outputDir) throws IOException {
 		Validate.notNull(zipFile, "zipFile 不可为 null");
 
-		ArchiveUtils.uncompress(zipFile.getEntries().asIterator(), outputDir, zipFile::getInputStream);
+		ArchiveUtils.extract(zipFile.getEntries().asIterator(), outputDir, zipFile::getInputStream);
 	}
 
 	/**
@@ -365,9 +497,9 @@ public class ZipUtils {
 	 * @throws NullPointerException     当 resource、password 或 outputDir 为 null 时抛出
 	 * @throws IllegalArgumentException 当 password 为空时抛出
 	 * @throws IOException              当资源已关闭、输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void uncompress(final ZipResource resource, final File outputDir, final String password) throws IOException {
+	public static void extract(final ZipResource resource, final File outputDir, final String password) throws IOException {
 		Validate.notNull(resource, "resource 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
 		FileUtils.checkDirIfExist(outputDir, "outputDir 不可为 null");
@@ -393,10 +525,10 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile) throws IOException {
-		compress(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archive(final File inputFile, final File outputFile) throws IOException {
+		archive(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -418,10 +550,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final int level) throws IOException {
-		compress(inputFile, outputFile, level, null);
+	public static void archive(final File inputFile, final File outputFile, final int level) throws IOException {
+		archive(inputFile, outputFile, level, null);
 	}
 
 	/**
@@ -439,11 +571,11 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile,
+	public static void archive(final File inputFile, final File outputFile,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compress(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archive(inputFile, outputFile, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -466,9 +598,9 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final int level,
+	public static void archive(final File inputFile, final File outputFile, final int level,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -477,7 +609,7 @@ public class ZipUtils {
 		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -494,18 +626,18 @@ public class ZipUtils {
 	 *                                  <li>输出流不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
+	public static void archive(final File inputFile, final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
-			ArchiveUtils.compress(inputFile, (ZipArchiveOutputStream) outputStream,
+			ArchiveUtils.archive(inputFile, (ZipArchiveOutputStream) outputStream,
 				null);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFile, zipArchiveOutputStream, null);
+				ArchiveUtils.archive(inputFile, zipArchiveOutputStream, null);
 			}
 		}
 	}
@@ -528,10 +660,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream, final int level) throws IOException {
-		compress(inputFile, outputStream, level, null);
+	public static void archive(final File inputFile, final OutputStream outputStream, final int level) throws IOException {
+		archive(inputFile, outputStream, level, null);
 	}
 
 	/**
@@ -548,18 +680,18 @@ public class ZipUtils {
 	 *                                  <li>输出流不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream,
-	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
+	public static void archive(final File inputFile, final OutputStream outputStream,
+	                           final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
-			ArchiveUtils.compress(inputFile, (ZipArchiveOutputStream) outputStream, entryConsumer);
+			ArchiveUtils.archive(inputFile, (ZipArchiveOutputStream) outputStream, entryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+				ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 			}
 		}
 	}
@@ -583,21 +715,21 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final OutputStream outputStream, final int level,
+	public static void archive(final File inputFile, final OutputStream outputStream, final int level,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
 			ZipArchiveOutputStream zipArchiveOutputStream = (ZipArchiveOutputStream) outputStream;
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				zipArchiveOutputStream.setLevel(level);
-				ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+				ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 			}
 		}
 	}
@@ -615,10 +747,10 @@ public class ZipUtils {
 	 *                                  <li>输出通道不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel) throws IOException {
-		compress(inputFile, outputChannel, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel) throws IOException {
+		archive(inputFile, outputChannel, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -639,10 +771,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final int level) throws IOException {
-		compress(inputFile, outputChannel, level, null);
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final int level) throws IOException {
+		archive(inputFile, outputChannel, level, null);
 	}
 
 	/**
@@ -659,11 +791,11 @@ public class ZipUtils {
 	 *                                  <li>输出通道不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel,
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compress(inputFile, outputChannel, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archive(inputFile, outputChannel, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -685,15 +817,15 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final SeekableByteChannel outputChannel, final int level,
-	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
+	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final int level,
+	                           final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputChannel)) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -714,10 +846,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生I/O错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		compress(inputFiles, outputFile, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archive(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archive(inputFiles, outputFile, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -739,10 +871,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final int level) throws IOException {
-		compress(inputFiles, outputFile, level, null);
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final int level) throws IOException {
+		archive(inputFiles, outputFile, level, null);
 	}
 
 	/**
@@ -760,11 +892,11 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile,
+	public static void archive(final Collection<File> inputFiles, final File outputFile,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compress(inputFiles, outputFile, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archive(inputFiles, outputFile, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -787,9 +919,9 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final File outputFile, final int level,
+	public static void archive(final Collection<File> inputFiles, final File outputFile, final int level,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -798,7 +930,7 @@ public class ZipUtils {
 		try (BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(outputFile);
 		     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -815,18 +947,18 @@ public class ZipUtils {
 	 *                                      <li>输出流不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
-			ArchiveUtils.compress(inputFiles, (ZipArchiveOutputStream) outputStream,
+			ArchiveUtils.archive(inputFiles, (ZipArchiveOutputStream) outputStream,
 				null);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, null);
+				ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, null);
 			}
 		}
 	}
@@ -849,10 +981,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream, final int level) throws IOException {
-		compress(inputFiles, outputStream, level, null);
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream, final int level) throws IOException {
+		archive(inputFiles, outputStream, level, null);
 	}
 
 	/**
@@ -869,18 +1001,18 @@ public class ZipUtils {
 	 *                                      <li>输出流不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream,
-	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream,
+	                           final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
-			ArchiveUtils.compress(inputFiles, (ZipArchiveOutputStream) outputStream, entryConsumer);
+			ArchiveUtils.archive(inputFiles, (ZipArchiveOutputStream) outputStream, entryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
-				ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+				ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 			}
 		}
 	}
@@ -904,21 +1036,21 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream, final int level,
+	public static void archive(final Collection<File> inputFiles, final OutputStream outputStream, final int level,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
 		if (outputStream instanceof ZipArchiveOutputStream) {
 			ZipArchiveOutputStream zipArchiveOutputStream = (ZipArchiveOutputStream) outputStream;
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(bufferedOutputStream)) {
 				zipArchiveOutputStream.setLevel(level);
-				ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+				ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 			}
 		}
 	}
@@ -936,10 +1068,10 @@ public class ZipUtils {
 	 *                                      <li>输出通道不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel) throws IOException {
-		compress(inputFiles, outputChannel, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel) throws IOException {
+		archive(inputFiles, outputChannel, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -960,10 +1092,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel, final int level) throws IOException {
-		compress(inputFiles, outputChannel, level, null);
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel, final int level) throws IOException {
+		archive(inputFiles, outputChannel, level, null);
 	}
 
 	/**
@@ -980,11 +1112,11 @@ public class ZipUtils {
 	 *                                      <li>输出通道不可写</li>
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compress(inputFiles, outputChannel, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archive(inputFiles, outputChannel, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -1006,15 +1138,15 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
+	public static void archive(final Collection<File> inputFiles, final SeekableByteChannel outputChannel,
 	                            final int level, final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		Validate.notNull(outputChannel, "outputChannel 不可为 null");
 
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputChannel)) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -1033,9 +1165,9 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final ZipParameters parameters) throws IOException {
+	public static void archive(final File inputFile, final File outputFile, final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.check(inputFile, "inputFile 不可为 null");
 		Validate.notNull(parameters, "parameters 不可为 null");
@@ -1071,9 +1203,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final List<File> inputFiles, final File outputFile, final ZipParameters parameters) throws IOException {
+	public static void archive(final List<File> inputFiles, final File outputFile, final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notEmpty(inputFiles, "inputFiles 不可为空");
 		Validate.notNull(parameters, "parameters 不可为 null");
@@ -1113,10 +1245,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final String password) throws IOException {
-		compress(inputFile, outputFile, password, new ZipParameters());
+	public static void archive(final File inputFile, final File outputFile, final String password) throws IOException {
+		archive(inputFile, outputFile, password, new ZipParameters());
 	}
 
 	/**
@@ -1135,10 +1267,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final List<File> inputFiles, final File outputFile, final String password) throws IOException {
-		compress(inputFiles, outputFile, password, new ZipParameters());
+	public static void archive(final List<File> inputFiles, final File outputFile, final String password) throws IOException {
+		archive(inputFiles, outputFile, password, new ZipParameters());
 	}
 
 	/**
@@ -1158,9 +1290,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final File inputFile, final File outputFile, final String password,
+	public static void archive(final File inputFile, final File outputFile, final String password,
 	                            final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.check(inputFile, "inputFile 不可为 null");
@@ -1204,9 +1336,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compress(final List<File> inputFiles, final File outputFile, final String password,
+	public static void archive(final List<File> inputFiles, final File outputFile, final String password,
 	                            final ZipParameters parameters) throws IOException {
 		Validate.notBlank(password, "password 不可为空");
 
@@ -1242,10 +1374,10 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile) throws IOException {
-		compressSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
+	public static void archiveSplit(final File inputFile, final File outputFile) throws IOException {
+		archiveSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
 			null);
 	}
 
@@ -1268,10 +1400,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final int level) throws IOException {
-		compressSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, level, null);
+	public static void archiveSplit(final File inputFile, final File outputFile, final int level) throws IOException {
+		archiveSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, level, null);
 	}
 
 	/**
@@ -1289,11 +1421,11 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile,
+	public static void archiveSplit(final File inputFile, final File outputFile,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
+		archiveSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
 			entryConsumer);
 	}
 
@@ -1317,11 +1449,11 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final int level,
+	public static void archiveSplit(final File inputFile, final File outputFile, final int level,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, level, entryConsumer);
+		archiveSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, level, entryConsumer);
 	}
 
 	/**
@@ -1339,10 +1471,10 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final long zipSplitSize) throws IOException {
-		compressSplit(inputFile, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archiveSplit(final File inputFile, final File outputFile, final long zipSplitSize) throws IOException {
+		archiveSplit(inputFile, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -1365,10 +1497,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final long zipSplitSize, final int level) throws IOException {
-		compressSplit(inputFile, outputFile, zipSplitSize, level, null);
+	public static void archiveSplit(final File inputFile, final File outputFile, final long zipSplitSize, final int level) throws IOException {
+		archiveSplit(inputFile, outputFile, zipSplitSize, level, null);
 	}
 
 	/**
@@ -1387,11 +1519,11 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final long zipSplitSize,
+	public static void archiveSplit(final File inputFile, final File outputFile, final long zipSplitSize,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFile, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archiveSplit(inputFile, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -1415,9 +1547,9 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final long zipSplitSize,
+	public static void archiveSplit(final File inputFile, final File outputFile, final long zipSplitSize,
 	                                 final int level, final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 
@@ -1426,7 +1558,7 @@ public class ZipUtils {
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile,
 			Math.min(Math.max(zipSplitSize, MIN_SPLIT_SIZE), MAX_SPLIT_SIZE))) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFile, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFile, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -1444,10 +1576,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile) throws IOException {
-		compressSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile) throws IOException {
+		archiveSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
 			null);
 	}
 
@@ -1470,10 +1602,10 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final int level) throws IOException {
-		compressSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, level, null);
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final int level) throws IOException {
+		archiveSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, level, null);
 	}
 
 	/**
@@ -1491,11 +1623,11 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
+		archiveSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, Deflater.DEFAULT_COMPRESSION,
 			entryConsumer);
 	}
 
@@ -1519,11 +1651,11 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final int level,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final int level,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, level, entryConsumer);
+		archiveSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, level, entryConsumer);
 	}
 
 	/**
@@ -1541,10 +1673,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize) throws IOException {
-		compressSplit(inputFiles, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, null);
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize) throws IOException {
+		archiveSplit(inputFiles, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, null);
 	}
 
 	/**
@@ -1567,11 +1699,11 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
 	                                 final int level) throws IOException {
-		compressSplit(inputFiles, outputFile, zipSplitSize, level, null);
+		archiveSplit(inputFiles, outputFile, zipSplitSize, level, null);
 	}
 
 	/**
@@ -1590,11 +1722,11 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
 	                                 final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
-		compressSplit(inputFiles, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, entryConsumer);
+		archiveSplit(inputFiles, outputFile, zipSplitSize, Deflater.DEFAULT_COMPRESSION, entryConsumer);
 	}
 
 	/**
@@ -1618,9 +1750,9 @@ public class ZipUtils {
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
 	 * @see Deflater#NO_COMPRESSION
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
+	public static void archiveSplit(final Collection<File> inputFiles, final File outputFile, final long zipSplitSize,
 	                                 final int level, final Consumer<ZipArchiveEntry> entryConsumer) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notEmpty(inputFiles, "inputFiles 不可为空");
@@ -1630,7 +1762,7 @@ public class ZipUtils {
 		try (ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputFile,
 			Math.min(Math.max(zipSplitSize, MIN_SPLIT_SIZE), MAX_SPLIT_SIZE))) {
 			zipArchiveOutputStream.setLevel(level);
-			ArchiveUtils.compress(inputFiles, zipArchiveOutputStream, entryConsumer);
+			ArchiveUtils.archive(inputFiles, zipArchiveOutputStream, entryConsumer);
 		}
 	}
 
@@ -1650,10 +1782,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final List<File> inputFiles, final File outputFile, final ZipParameters parameters) throws IOException {
-		compressSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, parameters);
+	public static void archiveSplit(final List<File> inputFiles, final File outputFile, final ZipParameters parameters) throws IOException {
+		archiveSplit(inputFiles, outputFile, DEFAULT_SPLIT_SIZE, parameters);
 	}
 
 	/**
@@ -1673,9 +1805,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final List<File> inputFiles, final File outputFile, final long splitLength,
+	public static void archiveSplit(final List<File> inputFiles, final File outputFile, final long splitLength,
 	                                 final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notEmpty(inputFiles, "inputFiles 不可为空");
@@ -1712,10 +1844,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final List<File> inputFiles, final File outputFile, final String password) throws IOException {
-		compressSplit(inputFiles, outputFile, password, DEFAULT_SPLIT_SIZE, new ZipParameters());
+	public static void archiveSplit(final List<File> inputFiles, final File outputFile, final String password) throws IOException {
+		archiveSplit(inputFiles, outputFile, password, DEFAULT_SPLIT_SIZE, new ZipParameters());
 	}
 
 	/**
@@ -1735,11 +1867,11 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final List<File> inputFiles, final File outputFile, final String password,
+	public static void archiveSplit(final List<File> inputFiles, final File outputFile, final String password,
 	                                 final long splitLength) throws IOException {
-		compressSplit(inputFiles, outputFile, password, splitLength, new ZipParameters());
+		archiveSplit(inputFiles, outputFile, password, splitLength, new ZipParameters());
 	}
 
 	/**
@@ -1760,9 +1892,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final List<File> inputFiles, final File outputFile, final String password,
+	public static void archiveSplit(final List<File> inputFiles, final File outputFile, final String password,
 	                                 final long splitLength, final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.notBlank(password, "password 不可为空");
@@ -1803,10 +1935,10 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final ZipParameters parameters) throws IOException {
-		compressSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, parameters);
+	public static void archiveSplit(final File inputFile, final File outputFile, final ZipParameters parameters) throws IOException {
+		archiveSplit(inputFile, outputFile, DEFAULT_SPLIT_SIZE, parameters);
 	}
 
 	/**
@@ -1825,9 +1957,9 @@ public class ZipUtils {
 	 *                                  <li>压缩过程中发生 I/O 错误</li>
 	 *                                  <li>磁盘空间不足</li>
 	 *                              </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final long splitLength,
+	public static void archiveSplit(final File inputFile, final File outputFile, final long splitLength,
 	                                 final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.check(inputFile, "inputFile 不可为 null");
@@ -1866,10 +1998,10 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final String password) throws IOException {
-		compressSplit(inputFile, outputFile, password, DEFAULT_SPLIT_SIZE, new ZipParameters());
+	public static void archiveSplit(final File inputFile, final File outputFile, final String password) throws IOException {
+		archiveSplit(inputFile, outputFile, password, DEFAULT_SPLIT_SIZE, new ZipParameters());
 	}
 
 	/**
@@ -1889,11 +2021,11 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final String password,
+	public static void archiveSplit(final File inputFile, final File outputFile, final String password,
 	                                 final long splitLength) throws IOException {
-		compressSplit(inputFile, outputFile, password, splitLength, new ZipParameters());
+		archiveSplit(inputFile, outputFile, password, splitLength, new ZipParameters());
 	}
 
 	/**
@@ -1914,9 +2046,9 @@ public class ZipUtils {
 	 *                                      <li>压缩过程中发生 I/O 错误</li>
 	 *                                      <li>磁盘空间不足</li>
 	 *                                  </ul>
-	 * @since 2.1.0
+	 * @since 1.1.0
 	 */
-	public static void compressSplit(final File inputFile, final File outputFile, final String password,
+	public static void archiveSplit(final File inputFile, final File outputFile, final String password,
 	                                 final long splitLength, final ZipParameters parameters) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		FileUtils.check(inputFile, "inputFile 不可为 null");
@@ -1960,7 +2092,7 @@ public class ZipUtils {
 	 *                                  <li>添加过程中发生 I/O 错误</li>
 	 *                              </ul>
 	 * @since 1.0.0
-	 * @deprecated 请使用 {@link ArchiveUtils#compress(File, ArchiveOutputStream, Consumer)}
+	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static void addDir(File inputDir, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
@@ -2001,7 +2133,7 @@ public class ZipUtils {
 	 *                                  <li>添加过程中发生 I/O 错误</li>
 	 *                              </ul>
 	 * @since 1.0.0
-	 * @deprecated 请使用 {@link ArchiveUtils#compress(File, ArchiveOutputStream, Consumer)}
+	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
 	@Deprecated(forRemoval = true, since = "2.1.0")
 	protected static void addFile(File inputFile, ZipArchiveOutputStream zipArchiveOutputStream, String parent) throws IOException {
