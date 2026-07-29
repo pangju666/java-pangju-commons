@@ -28,18 +28,21 @@
 
 ## 模块说明
 
-| 模块名称                 | 描述                                                   |
-|:---------------------|:-----------------------------------------------------|
-| `commons-lang`       | 基础工具库，包含字符串、日期、集合、JSON、树结构等常用辅助开发工具类                 |
-| `commons-io`         | 基于 Apache Tika 和 Commons IO 的 IO 处理与文件类型识别工具库        |
-| `commons-crypto`     | 基于 Jasypt 的加解密与安全处理工具库                               |
-| `commons-validation` | 基于 Jakarta Validation 的公共校验工具库                       |
-| `commons-image`      | 基于 Metadata Extractor 和 TwelveMonkeys 的图像处理与元数据提取工具库 |
-| `commons-imageio`    | ImageIO 扩展解析库，集成多种图像格式支持                             |
-| `commons-compress`   | 基于 Apache Commons Compress 的压缩与解压工具库                 |
-| `commons-pdf`        | 基于 Apache PDFBox 的 PDF 处理工具库                         |
-| `commons-poi`        | 基于 Apache POI 和 poi-tl 的 Office 文档处理工具库              |
-| `commons-geo`        | 地理坐标转换与空间计算工具库                                       |
+| 模块名称             | 描述                                                                      |
+|:---------------------|:--------------------------------------------------------------------------|
+| `commons-lang`       | 基础工具库，包含字符串、日期、集合、JSON、树结构等常用辅助开发工具类      |
+| `commons-io`         | 基于 Apache Tika 和 Commons IO 的 IO 处理与文件类型识别工具库             |
+| `commons-crypto`     | 基于 Jasypt 的加解密与安全处理工具库                                      |
+| `commons-validation` | 基于 Jakarta Validation 的公共校验工具库                                  |
+| `commons-image`      | 基于 Metadata Extractor、 TwelveMonkeys 和 thumbnailator 的图像处理工具库 |
+| `commons-imageio`    | ImageIO 扩展解析库，集成多种图像格式支持                                  |
+| `commons-compress`   | 基于 Apache Commons Compress 和 zip4j 的压缩与解压工具库                  |
+| `commons-ffmpeg`     | 基于 Javacv 和 FFmpeg 的视频与音频处理工具库                              |
+| `commons-opencv`     | 基于 opencv 的图像处理工具库                                              |
+| `commons-tesseract`  | 基于 Tesseract 的图像OCR工具库                                            |
+| `commons-pdf`        | 基于 Apache PDFBox 的 PDF 处理工具库                                      |
+| `commons-poi`        | 基于 Apache POI 和 poi-tl 的 Office 文档处理工具库                        |
+| `commons-geo`        | 地理坐标转换与空间计算工具库                                              |
 | `commons-bom`        | 公共工具类库依赖清单（BOM），用于统一版本管理                             |
 | `commons-all`        | 公共工具类库全量集成模块，一键引入所有功能                                |
 
