@@ -24,6 +24,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
 import org.apache.commons.lang3.Strings;
@@ -36,7 +37,7 @@ import java.io.InputStream;
  * 压缩文件资源类
  * <p>
  * 该类继承自 {@link IOResource}，专门用于处理各种格式的压缩文件资源。
- * 支持 GZIP、XZ、Zstandard、TAR、ZIP、7Z 等常见压缩格式。
+ * 支持 GZIP、XZ、ZSTD、LZ4、TAR、ZIP、7Z 压缩格式。
  * 通过 MIME 类型自动识别压缩格式，并提供相应的压缩流和归档流打开方法。
  * </p>
  * <p>
@@ -152,7 +153,8 @@ public class CompressResource extends IOResource {
 	 * <ul>
 	 *     <li>GZIP 格式：返回 {@link GzipCompressorInputStream}</li>
 	 *     <li>XZ 格式：返回 {@link XZCompressorInputStream}</li>
-	 *     <li>Zstandard 格式：返回 {@link ZstdCompressorInputStream}</li>
+	 *     <li>ZSTD 格式：返回 {@link ZstdCompressorInputStream}</li>
+	 *     <li>LZ4 格式：返回 {@link FramedLZ4CompressorInputStream}</li>
 	 * </ul>
 	 * </p>
 	 * <p>
@@ -173,6 +175,8 @@ public class CompressResource extends IOResource {
 			return new XZCompressorInputStream(newBufferedInputStream());
 		} else if (isZstd()) {
 			return new ZstdCompressorInputStream(newBufferedInputStream());
+		} else if (isLz4()) {
+			return new FramedLZ4CompressorInputStream(newBufferedInputStream());
 		} else {
 			throw new UnsupportedResourceException("不支持读取为压缩输入流");
 		}
@@ -259,7 +263,7 @@ public class CompressResource extends IOResource {
 	}
 
 	/**
-	 * 判断是否为 Zstandard 格式
+	 * 判断是否为 ZSTD 格式
 	 *
 	 * @return 当且仅当 MIME 类型为 {@code application/zstd} 时返回 {@code true}
 	 * @since 2.1.0
@@ -269,9 +273,19 @@ public class CompressResource extends IOResource {
 	}
 
 	/**
+	 * 判断是否为 Lz4 格式
+	 *
+	 * @return 当且仅当 MIME 类型为 {@code application/x-lz4} 时返回 {@code true}
+	 * @since 2.1.0
+	 */
+	public boolean isLz4() {
+		return mimeType.equals(CompressConstants.LZ4_MIME_TYPE);
+	}
+
+	/**
 	 * 验证 MIME 类型是否为支持的压缩格式
 	 * <p>
-	 * 支持的压缩格式包括：GZIP、TAR、7Z、ZIP、XZ、Zstandard。
+	 * 支持的压缩格式包括：GZIP、TAR、7Z、ZIP、XZ、ZSTD、LZ4。
 	 * 如果 MIME 类型不在支持列表中，则抛出 {@link UnsupportedResourceException}。
 	 * </p>
 	 *
@@ -282,7 +296,7 @@ public class CompressResource extends IOResource {
 	protected void validateType(String message) {
 		if (!Strings.CS.equalsAny(mimeType, CompressConstants.GZIP_TYPE,
 			CompressConstants.TAR_MIME_TYPE, CompressConstants.SEVEN_Z_MIME_TYPE, CompressConstants.ZIP_MIME_TYPE,
-			CompressConstants.XZ_MIME_TYPE, CompressConstants.ZSTD_MIME_TYPE)) {
+			CompressConstants.XZ_MIME_TYPE, CompressConstants.ZSTD_MIME_TYPE, CompressConstants.LZ4_MIME_TYPE)) {
 			throw new UnsupportedResourceException(message);
 		}
 	}

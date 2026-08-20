@@ -33,15 +33,15 @@ import java.util.UUID;
  * 综合压缩/解压分发工具。
  * <p>
  * 根据输出或输入文件扩展名，将调用分发到具体实现：
- * {@link GzipUtils}、{@link XZUtils}、{@link SevenZUtils}、{@link ZipUtils}、{@link TarUtils}、{@link ZstdUtils}，
- * 并支持组合格式 <code>tgz</code>/<code>tar.gz</code>、<code>txz</code>/<code>tar.xz</code>、<code>tzst</code>/<code>tar.zst</code>
+ * {@link GzipUtils}、{@link XZUtils}、{@link SevenZUtils}、{@link ZipUtils}、{@link TarUtils}、{@link ZstdUtils}、{@link LZ4Utils}，
+ * 并支持组合格式 <code>tgz</code>/<code>tar.gz</code>、<code>txz</code>/<code>tar.xz</code>、<code>tzst</code>/<code>tar.zst</code>、<code>tlz4</code>/<code>tar.lz4</code>
  * （通过 TAR 打包再压缩的串联方式实现）。
  * </p>
  *
  * <h3>功能特性</h3>
  * <ul>
  *   <li>格式分发：基于文件扩展名进行分发，不进行内容嗅探；如需严格的格式校验请使用各具体工具的 <code>is*</code> 方法。</li>
- *   <li>组合格式支持：<code>tgz</code>/<code>tar.gz</code>、<code>txz</code>/<code>tar.xz</code>、<code>tzst</code>/<code>tar.zst</code> 通过中间 TAR 文件再压缩实现，临时 TAR 文件会在完成后删除。</li>
+ *   <li>组合格式支持：<code>tgz</code>/<code>tar.gz</code>、<code>txz</code>/<code>tar.xz</code>、<code>tzst</code>/<code>tar.zst</code>、<code>tlz4</code>/<code>tar.lz4</code> 通过中间 TAR 文件再压缩实现，临时 TAR 文件会在完成后删除。</li>
  *   <li>多输入源：支持单文件、目录（递归）、以及文件集合（集合仅支持归档格式）。</li>
  *   <li>资源管理：方法内部创建的流会在方法内正确关闭；调用方传入的 <code>OutputStream</code> 不会被自动关闭。</li>
  *   <li>异常一致性：不支持的格式抛出 {@link UnsupportedOperationException}；底层 IO 失败抛出 {@link IOException}。</li>
@@ -51,9 +51,9 @@ import java.util.UUID;
  * <h3>格式选择建议</h3>
  * <ul>
  *   <li><strong>压缩率优先</strong>：选择 <code>xz</code> 或 <code>7z</code>，提供最高的压缩比。</li>
- *   <li><strong>速度优先</strong>：选择 <code>zip</code> 或 <code>zstd</code>，提供更快的压缩和解压速度。</li>
+ *   <li><strong>速度优先</strong>：选择 <code>zstd</code> 或 <code>zip</code>，提供极快的压缩和解压速度。</li>
  *   <li><strong>兼容性优先</strong>：选择 <code>gzip</code> 或 <code>zip</code>，在大多数系统上都有广泛支持。</li>
- *   <li><strong>zstd vs gzip</strong>：在不考虑兼容性的情况下，<code>zstd</code> 无论在压缩率还是速度上都优于 <code>gzip</code>。</li>
+ *   <li><strong>lz4 特性</strong>：<code>lz4</code> 提供极快的压缩和解压速度，特别适合需要实时压缩的场景（如日志实时压缩、数据流传输），但压缩率相对较低。</li>
  * </ul>
  *
  * <h3>使用示例</h3>
@@ -71,21 +71,35 @@ import java.util.UUID;
  * // 4) 使用密码压缩为 7Z
  * CompressUtils.compress(new File("inputDir"), new File("archive.7z"), "password");
  *
- * // 5) 使用 CompressResource 解压 ZIP 到目录
+ * // 5) 压缩目录为 LZ4（快速压缩）
+ * CompressUtils.compress(new File("inputDir"), new File("archive.lz4"));
+ *
+ * // 6) 压缩目录为 TLZ4（先 TAR，再 LZ4）
+ * CompressUtils.compress(new File("inputDir"), new File("archive.tlz4"));
+ *
+ * // 7) 使用 CompressResource 解压 ZIP 到目录
  * CompressUtils.uncompress(new ZipResource(new File("archive.zip")), new File("outputDir"));
  *
- * // 6) 使用 CompressResource 解压 TAR.GZ 到目录
+ * // 8) 使用 CompressResource 解压 TAR.GZ 到目录
  * CompressUtils.uncompress(new GzipResource(new File("archive.tar.gz")), new File("outputDir"));
  *
- * // 7) 使用 CompressResource 解压 GZ 到文件
+ * // 9) 使用 CompressResource 解压 GZ 到文件
  * CompressUtils.uncompress(new GzipResource(new File("file.txt.gz")), new File("file.txt"));
  *
- * // 8) 使用密码解压 ZIP
+ * // 10) 使用 CompressResource 解压 LZ4 到文件
+ * CompressUtils.uncompress(new LZ4Resource(new File("file.txt.lz4")), new File("file.txt"));
+ *
+ * // 11) 使用密码解压 ZIP
  * CompressUtils.uncompress(new ZipResource(new File("archive.zip")), new File("outputDir"), "password");
  *
- * // 9) 将 XZ 解压到输出流（输出流由调用方关闭）
+ * // 12) 将 XZ 解压到输出流（输出流由调用方关闭）
  * try (OutputStream out = new FileOutputStream("out.bin")) {
  *     CompressUtils.uncompress(new XZResource(new File("data.xz")), out);
+ * }
+ *
+ * // 13) 将 LZ4 解压到输出流（输出流由调用方关闭）
+ * try (OutputStream out = new FileOutputStream("out.bin")) {
+ *     CompressUtils.uncompress(new LZ4Resource(new File("data.lz4")), out);
  * }
  * }</pre>
  *
@@ -96,6 +110,7 @@ import java.util.UUID;
  * @see ZipUtils
  * @see TarUtils
  * @see ZstdUtils
+ * @see LZ4Utils
  * @since 1.0.0
  */
 public class CompressUtils {
@@ -113,6 +128,7 @@ public class CompressUtils {
 	 *   <li><code>gz</code>：调用 {@link GzipUtils#compress(InputStream, File)}。</li>
 	 *   <li><code>xz</code>：调用 {@link XZUtils#compress(InputStream, File)}。</li>
 	 *   <li><code>zst</code>：调用 {@link ZstdUtils#compress(InputStream, File)}。</li>
+	 *   <li><code>lz4</code>：调用 {@link LZ4Utils#compress(InputStream, File)}。</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -131,6 +147,7 @@ public class CompressUtils {
 			case "gz" -> GzipUtils.compress(inputStream, outputFile);
 			case "xz" -> XZUtils.compress(inputStream, outputFile);
 			case "zst" -> ZstdUtils.compress(inputStream, outputFile);
+			case "lz4" -> LZ4Utils.compress(inputStream, outputFile);
 			default -> throw new UnsupportedOperationException("不支持压缩为 " + outputFormat + " 格式");
 		}
 	}
@@ -143,6 +160,7 @@ public class CompressUtils {
 	 *   <li><code>gz</code>：调用 {@link GzipUtils#compress(IOResource, File)}。</li>
 	 *   <li><code>xz</code>：调用 {@link XZUtils#compress(IOResource, File)}。</li>
 	 *   <li><code>zst</code>：调用 {@link ZstdUtils#compress(IOResource, File)}。</li>
+	 *   <li><code>lz4</code>：调用 {@link LZ4Utils#compress(IOResource, File)}。</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -161,6 +179,7 @@ public class CompressUtils {
 			case "gz" -> GzipUtils.compress(resource, outputFile);
 			case "xz" -> XZUtils.compress(resource, outputFile);
 			case "zst" -> ZstdUtils.compress(resource, outputFile);
+			case "lz4" -> LZ4Utils.compress(resource, outputFile);
 			default -> throw new UnsupportedOperationException("不支持压缩为 " + outputFormat + " 格式");
 		}
 	}
@@ -173,12 +192,14 @@ public class CompressUtils {
 	 *   <li><code>gz</code>：调用 {@link GzipUtils#compress(IOResource, File)}（单文件压缩）。</li>
 	 *   <li><code>xz</code>：调用 {@link XZUtils#compress(IOResource, File)}（单文件压缩）。</li>
 	 *   <li><code>zst</code>：调用 {@link ZstdUtils#compress(IOResource, File)}（单文件压缩）。</li>
+	 *   <li><code>lz4</code>：调用 {@link LZ4Utils#compress(IOResource, File)}（单文件压缩）。</li>
 	 *   <li><code>7z</code>：调用 {@link SevenZUtils#archive(File, File)}。</li>
 	 *   <li><code>zip</code>：调用 {@link ZipUtils#archive(File, File)}。</li>
 	 *   <li><code>tar</code>：调用 {@link TarUtils#archive(File, File)}。</li>
 	 *   <li><code>tgz</code>/<code>tar.gz</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 GZIP 压缩，最后删除临时 TAR 文件。</li>
 	 *   <li><code>txz</code>/<code>tar.xz</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 XZ 压缩，最后删除临时 TAR 文件。</li>
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 Zstandard 压缩，最后删除临时 TAR 文件。</li>
+	 *   <li><code>tlz4</code>/<code>tar.lz4</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 LZ4 压缩，最后删除临时 TAR 文件。</li>
 	 * </ul>
 	 * 该方法仅依据输出文件扩展名进行分发，不进行内容嗅探。
 	 * </p>
@@ -199,6 +220,7 @@ public class CompressUtils {
 			case "gz" -> GzipUtils.compress(new IOResource(inputFile), outputFile);
 			case "xz" -> XZUtils.compress(new IOResource(inputFile), outputFile);
 			case "zst" -> ZstdUtils.compress(new IOResource(inputFile), outputFile);
+			case "lz4" -> LZ4Utils.compress(new IOResource(inputFile), outputFile);
 			case "7z" -> SevenZUtils.archive(inputFile, outputFile);
 			case "zip" -> ZipUtils.archive(inputFile, outputFile);
 			case "tar" -> TarUtils.archive(inputFile, outputFile);
@@ -229,6 +251,15 @@ public class CompressUtils {
 					FileUtils.forceDeleteIfExist(tarFile);
 				}
 			}
+			case "tlz4", "tar.lz4" -> {
+				File tarFile = archiveTmpTarFile(inputFile, outputFile);
+
+				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
+					LZ4Utils.compress(inputStream, outputFile);
+				} finally {
+					FileUtils.forceDeleteIfExist(tarFile);
+				}
+			}
 			default -> throw new UnsupportedOperationException("不支持压缩为 " + outputFormat + " 格式");
 		}
 	}
@@ -244,6 +275,7 @@ public class CompressUtils {
 	 *   <li><code>tgz</code>/<code>tar.gz</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 GZIP 压缩到目标文件，最后删除临时 TAR。</li>
 	 *   <li><code>txz</code>/<code>tar.xz</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 XZ 压缩到目标文件，最后删除临时 TAR。</li>
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 Zstandard 压缩到目标文件，最后删除临时 TAR。</li>
+	 *   <li><code>tlz4</code>/<code>tar.lz4</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 LZ4 压缩到目标文件，最后删除临时 TAR。</li>
 	 * </ul>
 	 * 不支持单文件压缩格式 <code>gz</code>/<code>xz</code>/<code>zst</code> 的集合输入。
 	 * </p>
@@ -285,6 +317,15 @@ public class CompressUtils {
 
 				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
 					ZstdUtils.compress(inputStream, outputFile);
+				} finally {
+					FileUtils.forceDeleteIfExist(tarFile);
+				}
+			}
+			case "tlz4", "tar.lz4" -> {
+				File tarFile = archiveTmpTarFile(inputFiles, outputFile);
+
+				try (InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(tarFile)) {
+					LZ4Utils.compress(inputStream, outputFile);
 				} finally {
 					FileUtils.forceDeleteIfExist(tarFile);
 				}
@@ -361,6 +402,7 @@ public class CompressUtils {
 	 *   <li><code>gz</code>：调用 {@link GzipUtils#uncompress(GzipResource, OutputStream)}。</li>
 	 *   <li><code>xz</code>：调用 {@link XZUtils#uncompress(XZResource, OutputStream)}。</li>
 	 *   <li><code>zst</code>：调用 {@link ZstdUtils#uncompress(ZstdResource, OutputStream)}。</li>
+	 *   <li><code>lz4</code>：调用 {@link LZ4Utils#uncompress(LZ4Resource, OutputStream)}。</li>
 	 * </ul>
 	 * 不支持归档格式（如 <code>zip</code>、<code>tar</code>、<code>7z</code>）的输出到流。
 	 * </p>
@@ -381,6 +423,8 @@ public class CompressUtils {
 			XZUtils.uncompress(new XZResource(resource), outputStream);
 		} else if (resource.isZstd()) {
 			ZstdUtils.uncompress(new ZstdResource(resource), outputStream);
+		} else if (resource.isLz4()) {
+			LZ4Utils.uncompress(new LZ4Resource(resource), outputStream);
 		} else {
 			throw new UnsupportedOperationException("不支持解压 " + resource.getFormat() + " 格式");
 		}
@@ -394,7 +438,7 @@ public class CompressUtils {
 	 *   <li><code>7z</code>：调用 {@link SevenZUtils#extract(SevenZResource, File)}，目标位置为目录。</li>
 	 *   <li><code>zip</code>：调用 {@link ZipUtils#extract(ZipResource, File)}，目标位置为目录。</li>
 	 *   <li><code>tar</code>：调用 {@link TarUtils#extract(TarResource, File)}，目标位置为目录。</li>
-	 *   <li><code>gz</code>/<code>xz</code>/<code>zst</code>：先解压到临时 TAR 文件，然后：
+	 *   <li><code>gz</code>/<code>xz</code>/<code>zst</code>/<code>lz4</code>：先解压到临时 TAR 文件，然后：
 	 *     <ul>
 	 *       <li>若解压后的文件为 TAR 格式（通过 MIME 类型检测），则自动解压 TAR 内容到目标位置。</li>
 	 *       <li>若解压后的文件不是 TAR 格式，则检查目标位置是否为文件；若目标位置为目录则抛出 {@link IllegalArgumentException}，否则将临时文件移动到目标位置。</li>
@@ -404,7 +448,7 @@ public class CompressUtils {
 	 * </p>
 	 *
 	 * @param resource    压缩资源对象，必须非 null
-	 * @param destination 目标位置：归档格式（7z、zip、tar）为目录，压缩格式（gz、xz、zst）为文件
+	 * @param destination 目标位置：归档格式（7z、zip、tar）为目录，压缩格式（gz、xz、zst、lz4）为文件
 	 * @throws NullPointerException          当 {@code resource} 为 {@code null} 时
 	 * @throws IllegalArgumentException      当解压后的文件不是 TAR 格式且目标位置为目录时抛出
 	 * @throws UnsupportedOperationException 当资源格式不在支持列表中时
@@ -420,7 +464,7 @@ public class CompressUtils {
 			ZipUtils.extract(new ZipResource(resource), destination);
 		} else if (resource.isTar()) {
 			TarUtils.extract(new TarResource(resource), destination);
-		} else if (resource.isXz() || resource.isZstd() || resource.isGzip()) {
+		} else if (resource.isXz() || resource.isZstd() || resource.isGzip() || resource.isLz4()) {
 			String baseName = FilenameUtils.getBaseName(destination.getName());
 			File outputFile = new File(destination.getParent(), baseName + "-" + UUID.randomUUID() + ".tar");
 
@@ -430,6 +474,8 @@ public class CompressUtils {
 				XZUtils.uncompress(new XZResource(resource), outputFile);
 			} else if (resource.isZstd()) {
 				ZstdUtils.uncompress(new ZstdResource(resource), outputFile);
+			} else if (resource.isLz4()) {
+				LZ4Utils.uncompress(new LZ4Resource(resource), outputFile);
 			}
 
 			if (FileUtils.isMimeType(outputFile, CompressConstants.TAR_MIME_TYPE)) {
@@ -602,7 +648,7 @@ public class CompressUtils {
 				String baseName = FilenameUtils.getBaseName(filename);
 				File tarFile = new File(inputFile.getParentFile(), baseName + ".tmp.tar");
 				try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile);
-				     BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(tarFile)) {
+					 BufferedOutputStream bufferedOutputStream = FileUtils.newBufferedOutputStream(tarFile)) {
 					GzipUtils.uncompress(inputStream, bufferedOutputStream);
 				}
 				try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(tarFile)) {
@@ -618,7 +664,7 @@ public class CompressUtils {
 
 	/**
 	 * 从文件名获取输出格式。
-	 * <p>支持组合格式识别：<code>tar.gz</code>、<code>tar.xz</code>、<code>tar.zst</code>。</p>
+	 * <p>支持组合格式识别：<code>tar.gz</code>、<code>tar.xz</code>、<code>tar.zst</code>、<code>tar.lz4</code>。</p>
 	 *
 	 * @param outputFilename 输出文件名，必须非空
 	 * @return 格式字符串（如 "gz"、"tar.gz" 等）
@@ -634,6 +680,8 @@ public class CompressUtils {
 			return "tar.xz";
 		} else if (outputFilename.endsWith(".tar.zst")) {
 			return "tar.zst";
+		} else if (outputFilename.endsWith(".tar.lz4")) {
+			return "tar.lz4";
 		} else {
 			return FilenameUtils.getExtension(outputFilename).toLowerCase();
 		}

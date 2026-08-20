@@ -100,6 +100,8 @@ import java.util.function.Consumer;
 public class SevenZUtils {
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 1.0.0
 	 */
 	protected SevenZUtils() {
 	}
@@ -124,7 +126,7 @@ public class SevenZUtils {
 	 * <p>基于 Tika 的 MIME 类型检测。</p>
 	 *
 	 * @param bytes 待检测的字节数组；为 {@code null} 或空数组将返回 {@code false}
-	 * @return 当且仅当字节数组非空且检测为 {@code application/x-7z-archiveed} 时返回 {@code true}
+	 * @return 当且仅当字节数组非空且检测为 {@code application/x-7z-compressed} 时返回 {@code true}
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link SevenZResource} 代替
 	 */
@@ -139,7 +141,7 @@ public class SevenZUtils {
 	 * <p>基于 Tika 的 MIME 类型检测。</p>
 	 *
 	 * @param inputStream 待检测的输入流，非空
-	 * @return 当且仅当输入流非空且检测为 {@code application/x-7z-archiveed} 时返回 {@code true}
+	 * @return 当且仅当输入流非空且检测为 {@code application/x-7z-compressed} 时返回 {@code true}
 	 * @throws NullPointerException 当 {@code inputStream} 为 {@code null} 时抛出
 	 * @throws IOException          当流读取发生 I/O 错误时抛出
 	 * @since 1.0.0
@@ -331,12 +333,12 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 7z 格式文件。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -357,13 +359,13 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 7z 格式文件，使用指定的压缩方法。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @param method     压缩方法，必须非 null
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputFile} 或 {@code method} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -388,13 +390,13 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 7z 格式文件，通过 Consumer 自定义压缩条目配置。</p>
 	 *
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
-	 * @param outputFile           输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile           输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @param archiveEntryConsumer 压缩条目配置函数，可为 null
 	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -416,13 +418,13 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为加密的 7z 格式文件。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @param password   7z 文件密码，必须非空且非空白字符串
-	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
+	 * @throws NullPointerException     当 {@code inputFile}、{@code outputFile} 或 {@code password} 为 {@code null} 时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串或 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -444,14 +446,14 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为加密的 7z 格式文件，使用指定的压缩方法。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @param password   7z 文件密码，必须非空且非空白字符串
 	 * @param method     压缩方法，必须非 null
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputFile}、{@code password} 或 {@code method} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串或 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -477,14 +479,14 @@ public class SevenZUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为加密的 7z 格式文件，通过 Consumer 自定义压缩条目配置。</p>
 	 *
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
-	 * @param outputFile           输出 7z 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile           输出 7z 文件路径，若已存在则必须为文件（非目录），存在时将被覆盖，会自动创建父目录
 	 * @param password             7z 文件密码，必须非空且非空白字符串
 	 * @param archiveEntryConsumer 压缩条目配置函数，可为 null
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputFile} 或 {@code password} 为 {@code null} 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串或 {@code outputFile} 存在但不是文件时抛出
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
 	 *                                  <li>输出文件不可写</li>
 	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
 	 *                                  </ul>
@@ -508,9 +510,13 @@ public class SevenZUtils {
 	 *
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
 	 * @param outputChannel 可定位字节通道，必须非 null
-	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputChannel} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputChannel} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>输出通道不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SeekableByteChannel outputChannel) throws IOException {
@@ -528,9 +534,13 @@ public class SevenZUtils {
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
 	 * @param outputChannel 可定位字节通道，必须非 null
 	 * @param method        压缩方法，必须非 null
-	 * @throws NullPointerException     当 {@code inputFile}、{@code outputChannel} 或 {@code method} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws NullPointerException 当 {@code inputFile}、{@code outputChannel} 或 {@code method} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>输出通道不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                              </ul>
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
@@ -552,9 +562,13 @@ public class SevenZUtils {
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
 	 * @param outputChannel        可定位字节通道，必须非 null
 	 * @param archiveEntryConsumer 压缩条目配置函数，可为 null
-	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputChannel} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputChannel} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>输出通道不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SeekableByteChannel outputChannel,
@@ -574,8 +588,13 @@ public class SevenZUtils {
 	 * @param outputChannel 可定位字节通道，必须非 null
 	 * @param password      7z 文件密码，必须非空且非空白字符串
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputChannel} 或 {@code password} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出通道不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final String password) throws IOException {
@@ -596,8 +615,13 @@ public class SevenZUtils {
 	 * @param password      7z 文件密码，必须非空且非空白字符串
 	 * @param method        压缩方法，必须非 null
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputChannel}、{@code password} 或 {@code method} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出通道不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
@@ -623,8 +647,13 @@ public class SevenZUtils {
 	 * @param password             7z 文件密码，必须非空且非空白字符串
 	 * @param archiveEntryConsumer 压缩条目配置函数，可为 null
 	 * @throws NullPointerException     当 {@code inputFile}、{@code outputChannel} 或 {@code password} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在或 {@code password} 为空时抛出
-	 * @throws IOException              当输入文件不可读、输出通道不可写、压缩过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws IllegalArgumentException 当 {@code password} 为空白字符串时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                  <li>输出通道不可写</li>
+	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SeekableByteChannel outputChannel, final String password,
@@ -640,18 +669,22 @@ public class SevenZUtils {
 	/**
 	 * 压缩文件/目录到 SevenZOutputFile 对象。
 	 * <p>将单个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(File, SevenZOutputFile, Consumer)} 处理，写入完成后会调用
+	 * {@link SevenZOutputFile#finish()} 写入归档目录（完成 7z 结构），但<b>不会</b>关闭传入的
+	 * {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * </p>
 	 *
 	 * @param inputFile        要压缩的文件或目录，必须存在且可读
 	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
-	 * @throws NullPointerException     当 {@code inputFile} 或 {@code sevenZOutputFile} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
-	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                                  </ul>
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code sevenZOutputFile} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>sevenZOutputFile 已关闭或不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误</li>
+	 *                              <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SevenZOutputFile sevenZOutputFile) throws IOException {
@@ -664,19 +697,23 @@ public class SevenZUtils {
 	/**
 	 * 压缩文件/目录到 SevenZOutputFile 对象，指定压缩方法。
 	 * <p>将单个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中，使用指定的压缩方法。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(File, SevenZOutputFile, Consumer)} 处理，写入完成后会调用
+	 * {@link SevenZOutputFile#finish()} 写入归档目录（完成 7z 结构），但<b>不会</b>关闭传入的
+	 * {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * </p>
 	 *
 	 * @param inputFile        要压缩的文件或目录，必须存在且可读
 	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
 	 * @param method           压缩方法，必须非 null
-	 * @throws NullPointerException     当 {@code inputFile}、{@code sevenZOutputFile} 或 {@code method} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
-	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                                  </ul>
+	 * @throws NullPointerException 当 {@code inputFile}、{@code sevenZOutputFile} 或 {@code method} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>sevenZOutputFile 已关闭或不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误</li>
+	 *                              <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @apiNote 目前仅支持 {@link SevenZMethod#COPY}、{@link SevenZMethod#LZMA2}、{@link SevenZMethod#BZIP2} 和 {@link SevenZMethod#DEFLATE}。
 	 * @since 2.1.0
 	 */
@@ -693,19 +730,24 @@ public class SevenZUtils {
 	/**
 	 * 压缩文件/目录到 SevenZOutputFile 对象，自定义压缩条目配置。
 	 * <p>将单个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 * <p>
+	 * 写入完成后会显式调用 {@link SevenZOutputFile#finish()} 写入归档目录结构（完成 7z 文件尾），
+	 * 但<b>不会</b>关闭传入的 {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * 如需要在同一 {@code sevenZOutputFile} 上连续多次添加不同的内容，请考虑直接使用 {@link #addFile} / {@link #addDir}，
+	 * 在全部写入完毕后手动调用一次 finish。
+	 * </p>
 	 *
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
 	 * @param sevenZOutputFile     已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
 	 * @param archiveEntryConsumer 压缩条目配置函数，可为 null
-	 * @throws NullPointerException     当 {@code inputFile} 或 {@code sevenZOutputFile} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 不存在时抛出
-	 * @throws IOException              当发生以下情况时抛出：
-	 *                                  <ul>
-	 *                                  <li>输入文件不可读</li>
-	 *                                  <li>sevenZOutputFile 已关闭或不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                                  </ul>
+	 * @throws NullPointerException 当 {@code inputFile} 或 {@code sevenZOutputFile} 为 null 时抛出
+	 * @throws IOException          当发生以下情况时抛出：
+	 *                              <ul>
+	 *                              <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                              <li>sevenZOutputFile 已关闭或不可写</li>
+	 *                              <li>压缩过程中发生 I/O 错误</li>
+	 *                              <li>磁盘空间不足</li>
+	 *                              </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final SevenZOutputFile sevenZOutputFile,
@@ -718,6 +760,8 @@ public class SevenZUtils {
 		} else {
 			addFile(inputFile, sevenZOutputFile, null, archiveEntryConsumer);
 		}
+
+		sevenZOutputFile.finish();
 	}
 
 	/**
@@ -1066,6 +1110,11 @@ public class SevenZUtils {
 	/**
 	 * 压缩多个文件/目录到 SevenZOutputFile 对象。
 	 * <p>将多个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(Collection, SevenZOutputFile, Consumer)} 处理，写入完成后会调用
+	 * {@link SevenZOutputFile#finish()} 写入归档目录（完成 7z 结构），但<b>不会</b>关闭传入的
+	 * {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * </p>
 	 *
 	 * @param inputFiles       要压缩的文件/目录集合，必须非空且所有元素必须存在
 	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
@@ -1086,6 +1135,11 @@ public class SevenZUtils {
 	/**
 	 * 压缩多个文件/目录到 SevenZOutputFile 对象，指定压缩方法。
 	 * <p>将多个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中，使用指定的压缩方法。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(Collection, SevenZOutputFile, Consumer)} 处理，写入完成后会调用
+	 * {@link SevenZOutputFile#finish()} 写入归档目录（完成 7z 结构），但<b>不会</b>关闭传入的
+	 * {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * </p>
 	 *
 	 * @param inputFiles       要压缩的文件/目录集合，必须非空且所有元素必须存在
 	 * @param sevenZOutputFile 已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
@@ -1113,6 +1167,12 @@ public class SevenZUtils {
 	/**
 	 * 压缩多个文件/目录到 SevenZOutputFile 对象，自定义压缩条目配置。
 	 * <p>将多个文件或目录（递归包含子目录）压缩到已初始化的 SevenZOutputFile 对象中。</p>
+	 * <p>
+	 * 写入完成后会显式调用 {@link SevenZOutputFile#finish()} 写入归档目录结构（完成 7z 文件尾），
+	 * 但<b>不会</b>关闭传入的 {@code sevenZOutputFile}，调用方需自行在最终不再写入时关闭（建议使用 try-with-resources）。
+	 * 如需要在同一 {@code sevenZOutputFile} 上连续多次添加不同的内容，请考虑直接使用 {@link #addFile} / {@link #addDir}，
+	 * 在全部写入完毕后手动调用一次 finish。
+	 * </p>
 	 *
 	 * @param inputFiles           要压缩的文件/目录集合，必须非空且所有元素必须存在
 	 * @param sevenZOutputFile     已初始化的 SevenZOutputFile 对象，必须处于可写入状态且不为 null
@@ -1141,6 +1201,8 @@ public class SevenZUtils {
 				addFile(file, sevenZOutputFile, null, archiveEntryConsumer);
 			}
 		}
+
+		sevenZOutputFile.finish();
 	}
 
 	/**

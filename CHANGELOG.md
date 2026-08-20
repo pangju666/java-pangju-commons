@@ -22,6 +22,7 @@
 - feat (compress): 新增各压缩格式的IOResource子类
 - feat (compress): CompressConstants新增zstd mimetype 常量
 - feat (compress): 新增Zstd压缩格式的依赖和工具类
+- feat (compress): 新增Lz4压缩格式工具类
 - refactor (compress): 重命名GZipUtils为GzipUtils
 - feat (compress): 新增ArchiveUtils归档格式通用工具类
 - feat (compress): ZipUtils新增分片压缩/解压和使用密码压缩/解压

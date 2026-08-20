@@ -16,6 +16,7 @@
 
 package io.github.pangju666.commons.compress.utils;
 
+import io.github.pangju666.commons.compress.function.ArchiveEntryExtractor;
 import io.github.pangju666.commons.compress.lang.CompressConstants;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -90,6 +91,8 @@ import java.util.function.Consumer;
 public class ArchiveUtils {
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 2.1.0
 	 */
 	protected ArchiveUtils() {
 	}
@@ -100,10 +103,11 @@ public class ArchiveUtils {
 	 *
 	 * @param <T>            压缩条目类型，必须继承自 {@link ArchiveEntry}
 	 * @param archiveEntries 压缩条目迭代器，必须非 null
-	 * @param outputDir      解压目标目录，会自动创建不存在的目录结构
+	 * @param outputDir      解压目标目录，会自动创建不存在的目录结构；若已存在则必须为目录
 	 * @param extractor      压缩条目提取器，用于从条目获取输入流，必须非 null
-	 * @throws NullPointerException 当 {@code archiveEntries}、{@code outputDir} 或 {@code extractor} 为 null 时抛出
-	 * @throws IOException          当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @throws NullPointerException     当 {@code archiveEntries}、{@code outputDir} 或 {@code extractor} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputDir} 已存在但不是一个目录时抛出
+	 * @throws IOException              当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
 	static <T extends ArchiveEntry> void extract(final Iterator<T> archiveEntries, final File outputDir,
@@ -139,9 +143,10 @@ public class ArchiveUtils {
 	 *
 	 * @param <T>                压缩条目类型，必须继承自 {@link ArchiveEntry}
 	 * @param archiveInputStream 压缩输入流，必须非 null
-	 * @param outputDir          解压目标目录，会自动创建不存在的目录结构
-	 * @throws NullPointerException 当 {@code archiveInputStream} 或 {@code outputDir} 为 null 时抛出
-	 * @throws IOException          当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
+	 * @param outputDir          解压目标目录，会自动创建不存在的目录结构；若已存在则必须为目录
+	 * @throws NullPointerException     当 {@code archiveInputStream} 或 {@code outputDir} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputDir} 已存在但不是一个目录时抛出
+	 * @throws IOException              当输出目录不可写、解压过程中发生 I/O 错误或磁盘空间不足时抛出
 	 * @since 2.1.0
 	 */
 	public static <T extends ArchiveEntry> void extract(final ArchiveInputStream<T> archiveInputStream,
@@ -173,15 +178,17 @@ public class ArchiveUtils {
 
 	/**
 	 * 压缩单个文件或目录到归档输出流。
-	 * <p>将文件或目录（递归包含子目录）压缩到指定的归档输出流中，通过 Consumer 对每个归档条目进行自定义处理。</p>
+	 * <p>将文件或目录（递归包含子目录）压缩到指定的归档输出流中，通过 Consumer 对每个归档条目进行自定义处理。
+	 * 压缩完成后会自动调用 {@link ArchiveOutputStream#finish()} 结束归档写入（写入尾记录），
+	 * 但<b>不会</b>关闭输出流，调用者需负责关闭归档输出流（通常使用 try-with-resources）。</p>
 	 *
 	 * @param <T>                  归档条目类型，必须继承自 {@link ArchiveEntry}
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
 	 * @param archiveOutputStream  归档输出流，必须非 null
 	 * @param archiveEntryConsumer 归档条目处理器，可为 null
-	 * @throws NullPointerException     当 {@code archiveOutputStream} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFile} 为 null 或不存在时抛出
-	 * @throws IOException              当文件读取失败或写入输出流失败时抛出
+	 * @throws NullPointerException   当 {@code archiveOutputStream} 或 {@code inputFile} 为 null 时抛出
+	 * @throws FileNotFoundException  当 {@code inputFile} 不存在时抛出
+	 * @throws IOException            当读取输入文件、写入输出流或执行 {@link ArchiveOutputStream#finish()} 时发生 I/O 错误
 	 * @since 2.1.0
 	 */
 	public static <T extends ArchiveEntry> void archive(final File inputFile,
@@ -195,11 +202,15 @@ public class ArchiveUtils {
 		} else {
 			addFile(inputFile, archiveOutputStream, null, archiveEntryConsumer);
 		}
+
+		archiveOutputStream.finish();
 	}
 
 	/**
 	 * 批量压缩文件或目录到归档输出流。
-	 * <p>将多个文件或目录（递归包含子目录）压缩到指定的归档输出流中，通过 Consumer 对每个归档条目进行自定义处理。</p>
+	 * <p>将多个文件或目录（递归包含子目录）压缩到指定的归档输出流中，通过 Consumer 对每个归档条目进行自定义处理。
+	 * 压缩完成后会自动调用 {@link ArchiveOutputStream#finish()} 结束归档写入（写入尾记录），
+	 * 但<b>不会</b>关闭输出流，调用者需负责关闭归档输出流（通常使用 try-with-resources）。</p>
 	 *
 	 * @param <T>                  归档条目类型，必须继承自 {@link ArchiveEntry}
 	 * @param inputFiles           要压缩的文件/目录集合，必须非空且所有文件必须存在
@@ -207,7 +218,7 @@ public class ArchiveUtils {
 	 * @param archiveEntryConsumer 归档条目处理器，可为 null
 	 * @throws NullPointerException     当 {@code archiveOutputStream} 为 null 时抛出
 	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件/目录时抛出
-	 * @throws IOException              当文件读取失败或写入输出流失败时抛出
+	 * @throws IOException              当读取输入文件、写入输出流或执行 {@link ArchiveOutputStream#finish()} 时发生 I/O 错误
 	 * @since 2.1.0
 	 */
 	public static <T extends ArchiveEntry> void archive(final Collection<File> inputFiles,
@@ -225,6 +236,8 @@ public class ArchiveUtils {
 				addFile(file, archiveOutputStream, null, archiveEntryConsumer);
 			}
 		}
+
+		archiveOutputStream.finish();
 	}
 
 	/**
@@ -303,33 +316,5 @@ public class ArchiveUtils {
 			inputStream.transferTo(archiveOutputStream);
 			archiveOutputStream.closeArchiveEntry();
 		}
-	}
-
-	/**
-	 * 压缩条目提取器函数式接口。
-	 * <p>用于从压缩条目中提取输入流，以便进行解压操作。</p>
-	 *
-	 * <h3>使用示例</h3>
-	 * <pre>{@code
-	 * // 使用 SevenZFile 作为提取器
-	 * try (SevenZFile zf = SevenZFile.builder().setFile(file).get()) {
-	 *     ArchiveUtils.uncompress(zf.getEntries().iterator(), outputDir, zf::getInputStream);
-	 * }
-	 * }</pre>
-	 *
-	 * @param <T> 压缩条目类型，必须继承自 {@link ArchiveEntry}
-	 * @since 2.1.0
-	 */
-	@FunctionalInterface
-	interface ArchiveEntryExtractor<T extends ArchiveEntry> {
-		/**
-		 * 从压缩条目提取输入流。
-		 *
-		 * @param entry 压缩条目对象
-		 * @return 条目内容的输入流
-		 * @throws IOException 当提取输入流失败时抛出
-		 * @since 2.1.0
-		 */
-		InputStream extractor(T entry) throws IOException;
 	}
 }

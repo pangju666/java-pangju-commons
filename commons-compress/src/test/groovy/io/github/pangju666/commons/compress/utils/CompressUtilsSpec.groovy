@@ -56,6 +56,21 @@ class CompressUtilsSpec extends Specification {
 		outputFile.length() > 0
 	}
 
+	def "解压LZ4资源文件到输出流成功"() {
+		setup:
+		File lz4File = new File("src/test/resources/test.lz4")
+		File outputFile = tempDir.resolve("output.txt").toFile()
+
+		when:
+		try (OutputStream out = new FileOutputStream(outputFile)) {
+			CompressUtils.uncompress(new CompressResource(lz4File), out)
+		}
+
+		then:
+		outputFile.exists()
+		outputFile.length() > 0
+	}
+
 	def "解压ZipResource到目录成功"() {
 		setup:
 		File zipFile = new File("src/test/resources/test.zip")
@@ -214,6 +229,47 @@ class CompressUtilsSpec extends Specification {
 
 		when:
 		CompressUtils.uncompress(new CompressResource(tzstFile), outputDir)
+
+		then:
+		outputDir.exists()
+		outputDir.isDirectory()
+		outputDir.listFiles().length > 0
+	}
+
+	def "解压LZ4Resource到文件成功"() {
+		setup:
+		File lz4File = new File("src/test/resources/test.lz4")
+		File outputFile = tempDir.resolve("output.txt").toFile()
+
+		when:
+		CompressUtils.uncompress(new CompressResource(lz4File), outputFile)
+
+		then:
+		outputFile.exists()
+		outputFile.length() > 0
+	}
+
+	def "解压LZ4Resource(TAR格式)到目录成功"() {
+		setup:
+		File tarLz4File = new File("src/test/resources/test.tar.lz4")
+		File outputDir = tempDir.resolve("output").toFile()
+
+		when:
+		CompressUtils.uncompress(new CompressResource(tarLz4File), outputDir)
+
+		then:
+		outputDir.exists()
+		outputDir.isDirectory()
+		outputDir.listFiles().length > 0
+	}
+
+	def "解压LZ4Resource(TLZ4格式)到目录成功"() {
+		setup:
+		File tlz4File = new File("src/test/resources/test.tlz4")
+		File outputDir = tempDir.resolve("output").toFile()
+
+		when:
+		CompressUtils.uncompress(new CompressResource(tlz4File), outputDir)
 
 		then:
 		outputDir.exists()

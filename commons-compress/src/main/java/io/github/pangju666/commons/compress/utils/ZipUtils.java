@@ -139,6 +139,8 @@ public class ZipUtils {
 
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 1.0.0
 	 */
 	protected ZipUtils() {
 	}
@@ -393,7 +395,7 @@ public class ZipUtils {
 
 	/**
 	 * 批量压缩文件/目录到输出流。
-	 * <p>将多个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 * <p>将多个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流。</p>
 	 *
 	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
@@ -516,15 +518,16 @@ public class ZipUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式文件。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 ZIP 文件路径，会自动创建父目录并覆盖已存在文件
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                              </ul>
+	 * @param outputFile 输出 ZIP 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final File outputFile) throws IOException {
@@ -536,16 +539,17 @@ public class ZipUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式文件，使用指定的压缩级别。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 ZIP 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 ZIP 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @param level      压缩级别（0-9），0 表示无压缩，9 表示最高压缩
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                              </ul>
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @see Deflater#DEFAULT_COMPRESSION
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
@@ -561,16 +565,17 @@ public class ZipUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式文件，并通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
 	 *
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
-	 * @param outputFile    输出 ZIP 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile    输出 ZIP 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @param entryConsumer ZIP 条目处理器，可为 null
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                              </ul>
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 2.1.0
 	 */
 	public static void archive(final File inputFile, final File outputFile,
@@ -583,17 +588,18 @@ public class ZipUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式文件，使用指定的压缩级别，并通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
 	 *
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
-	 * @param outputFile    输出 ZIP 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile    输出 ZIP 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @param level         压缩级别（0-9），0 表示无压缩，9 表示最高压缩
 	 * @param entryConsumer ZIP 条目处理器，可为 null
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                              </ul>
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @see Deflater#DEFAULT_COMPRESSION
 	 * @see Deflater#BEST_COMPRESSION
 	 * @see Deflater#BEST_SPEED
@@ -616,6 +622,12 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到输出流。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
+	 * 处理（其内部会调用 {@link ZipArchiveOutputStream#finish()} 结束归档写入，但<b>不会</b>关闭传入流）；
+	 * 否则会使用 {@link BufferedOutputStream} 包装原始流后创建临时 {@link ZipArchiveOutputStream}
+	 * 进行压缩，临时包装流在方法返回时会被关闭。
+	 * </p>
 	 *
 	 * @param inputFile    要压缩的文件或目录，必须存在且可读
 	 * @param outputStream 输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -644,6 +656,10 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到输出流，指定压缩级别。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，使用指定的压缩级别。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(File, OutputStream, int, Consumer)} 处理；无论传入的是否为
+	 * {@link ZipArchiveOutputStream}，此方法<b>不会</b>关闭调用方传入的 {@code outputStream}。
+	 * </p>
 	 *
 	 * @param inputFile    要压缩的文件或目录，必须存在且可读
 	 * @param outputStream 输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -668,6 +684,10 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到输出流，支持自定义 ZIP 条目处理器。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
+	 * 处理；否则使用 {@link BufferedOutputStream} 包装原始流。
+	 * </p>
 	 *
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
 	 * @param outputStream  输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -698,6 +718,11 @@ public class ZipUtils {
 	/**
 	 * 压缩文件/目录到输出流，指定压缩级别和自定义 ZIP 条目处理器。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，使用指定的压缩级别，并通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
+	 * 处理（其内部会调用 {@link ZipArchiveOutputStream#finish()} 结束归档写入，但<b>不会</b>关闭传入流）；
+	 * 否则会使用 {@link BufferedOutputStream} 包装原始流。
+	 * </p>
 	 *
 	 * @param inputFile     要压缩的文件或目录，必须存在且可读
 	 * @param outputStream  输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -935,6 +960,10 @@ public class ZipUtils {
 	/**
 	 * 批量压缩文件到输出流。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(Collection, ArchiveOutputStream, Consumer)}
+	 * 处理；否则使用 {@link BufferedOutputStream} 包装原始流。
+	 * </p>
 	 *
 	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream 输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -963,6 +992,10 @@ public class ZipUtils {
 	/**
 	 * 批量压缩文件到输出流，指定压缩级别。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，使用指定的压缩级别。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(Collection, OutputStream, int, Consumer)} 处理；
+	 * 无论传入的是否为 {@link ZipArchiveOutputStream}，此方法<b>不会</b>关闭调用方传入的 {@code outputStream}。
+	 * </p>
 	 *
 	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream 输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -987,6 +1020,10 @@ public class ZipUtils {
 	/**
 	 * 批量压缩文件到输出流，支持自定义 ZIP 条目处理器。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(Collection, ArchiveOutputStream, Consumer)}
+	 * 处理；否则使用 {@link BufferedOutputStream} 包装原始流。
+	 * </p>
 	 *
 	 * @param inputFiles    要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream  输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -1017,6 +1054,10 @@ public class ZipUtils {
 	/**
 	 * 批量压缩文件到输出流，指定压缩级别和自定义 ZIP 条目处理器。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 ZIP 格式并写入输出流，使用指定的压缩级别，并通过 Consumer 对每个 ZIP 条目进行自定义处理。</p>
+	 * <p>
+	 * 若传入的是 {@link ZipArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(Collection, ArchiveOutputStream, Consumer)}
+	 * 处理；否则使用 {@link BufferedOutputStream} 包装原始流。
+	 * </p>
 	 *
 	 * @param inputFiles    要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream  输出流对象，必须可写且不为 null（方法不会自动关闭此流）

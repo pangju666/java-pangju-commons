@@ -38,11 +38,11 @@ import java.util.Objects;
  *
  * <h3>核心特性</h3>
  * <ul>
- *   <li>单文件/流式压缩：适用于对单个文件或输入流进行压缩，输出为 {@code .gz}。</li>
- *   <li>多输入与输出：支持 {@link java.io.File} 与 {@link java.io.InputStream} 输入，输出到 {@link java.io.OutputStream} 或 {@link java.io.File}。</li>
- *   <li>格式校验：通过 Tika 进行 MIME 类型检测；文件/字节数组版本在调用前校验，输入流版本不预校验。</li>
- *   <li>性能优化：广泛使用缓冲与 {@link java.io.InputStream#transferTo(java.io.OutputStream)}。</li>
- *   <li>资源管理：采用 try-with-resources 自动释放内部创建的包装流。</li>
+ *   <li><strong>单文件/流式压缩</strong>：适用于对单个文件或输入流进行压缩，输出为 {@code .gz}。</li>
+ *   <li><strong>多输入与输出</strong>：支持 {@link java.io.File} 与 {@link java.io.InputStream} 输入，输出到 {@link java.io.OutputStream} 或 {@link java.io.File}。</li>
+ *   <li><strong>自定义参数</strong>：支持通过 {@link GzipParameters} 配置压缩参数。</li>
+ *   <li><strong>性能优化</strong>：广泛使用缓冲与 {@link java.io.InputStream#transferTo(java.io.OutputStream)}。</li>
+ *   <li><strong>资源管理</strong>：采用 try-with-resources 自动释放内部创建的包装流。</li>
  * </ul>
  *
  * <h3>线程安全</h3>
@@ -51,24 +51,24 @@ import java.util.Objects;
  * <h3>使用示例</h3>
  * <pre>{@code
  * // 压缩文件到 .gz
- * GZipUtils.compress(new File("input.txt"), new File("input.txt.gz"));
+ * GzipUtils.compress(new File("input.txt"), new File("input.txt.gz"));
  *
  * // 压缩输入流到输出流（当传入已构造的 GzipCompressorOutputStream 时不关闭该对象）
  * try (InputStream in = new FileInputStream("input.txt");
  *      OutputStream out = new FileOutputStream("output.gz")) {
- *     GZipUtils.compress(in, out);
+ *     GzipUtils.compress(in, out);
  * }
  *
  * // 解压 .gz 文件到普通文件
- * GZipUtils.uncompress(new File("input.txt.gz"), new File("output.txt"));
+ * GzipUtils.uncompress(new File("input.txt.gz"), new File("output.txt"));
  *
  * // 解压 .gz 文件到输出流
  * try (OutputStream out = new FileOutputStream("output.txt")) {
- *     GZipUtils.uncompress(new File("input.txt.gz"), out);
+ *     GzipUtils.uncompress(new File("input.txt.gz"), out);
  * }
  *
  * // 格式检测
- * boolean ok = GZipUtils.isGZip(new File("input.txt.gz"));
+ * boolean ok = GzipUtils.isGZip(new File("input.txt.gz"));
  * }</pre>
  *
  * @author pangju666
@@ -81,6 +81,8 @@ import java.util.Objects;
 public class GzipUtils {
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 1.0.0
 	 */
 	protected GzipUtils() {
 	}
@@ -135,14 +137,14 @@ public class GzipUtils {
 	/**
 	 * 将输入流压缩为 GZIP 并写入到输出流。
 	 * <p>
-	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()}。<br>
-	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭。
+	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭；内部的压缩流同样会先调用 {@code finish()}。
 	 * </p>
 	 *
 	 * @param inputStream  待压缩的输入流，非空
 	 * @param outputStream 目标输出流，非空
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 {@code null} 时抛出
-	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
+	 * @throws IOException          当读取/写入发生 I/O 错误或归档完成时抛出
 	 * @since 1.0.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream) throws IOException {
@@ -152,15 +154,15 @@ public class GzipUtils {
 	/**
 	 * 将输入流压缩为 GZIP 并写入到输出流（指定压缩参数）。
 	 * <p>
-	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()}。<br>
-	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭。
+	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭；内部的压缩流同样会先调用 {@code finish()}。
 	 * </p>
 	 *
 	 * @param inputStream  待压缩的输入流，非空
 	 * @param outputStream 目标输出流，非空
 	 * @param parameters   GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code inputStream}、{@code outputStream} 或 {@code parameters} 为 {@code null} 时抛出
-	 * @throws IOException          当读取/写入发生 I/O 错误时抛出
+	 * @throws IOException          当读取/写入发生 I/O 错误或归档完成时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream,
@@ -177,6 +179,7 @@ public class GzipUtils {
 					bufferedInputStream.transferTo(compressorOutputStream);
 				}
 			}
+			compressorOutputStream.finish();
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(bufferedOutputStream, parameters)) {
@@ -187,19 +190,22 @@ public class GzipUtils {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
+				compressorOutputStream.finish();
 			}
 		}
 	}
 
 	/**
 	 * 压缩 IOResource 到输出流。
-	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。压缩完成后会自动调用
+	 * {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，但不会关闭传入的 outputStream
+	 *（由调用者负责）。方法会自动关闭资源打开的输入流和内部创建的缓冲流。</p>
 	 * <p>使用默认 GZIP 压缩参数。</p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
-	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream) throws IOException {
@@ -208,13 +214,15 @@ public class GzipUtils {
 
 	/**
 	 * 压缩 IOResource 到输出流（指定压缩参数）。
-	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入输出流。压缩完成后会自动调用
+	 * {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，但不会关闭传入的 outputStream
+	 *（由调用者负责）。方法会自动关闭资源打开的输入流和内部创建的缓冲流。</p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
 	 * @param outputStream 输出流，必须非 null
 	 * @param parameters   GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code resource}、{@code outputStream} 或 {@code parameters} 为 null 时抛出
-	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream, final GzipParameters parameters) throws IOException {
@@ -222,17 +230,17 @@ public class GzipUtils {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.notNull(parameters, "parameters 不可为 null");
 
-		try (InputStream inputStream = resource.newBufferedInputStream();
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
-			compress(inputStream, bufferedOutputStream, parameters);
+		try (InputStream inputStream = resource.newBufferedInputStream()) {
+			compress(inputStream, outputStream, parameters);
 		}
 	}
 
 	/**
 	 * 将文件内容压缩为 GZIP 并写入到输出流。
 	 * <p>
-	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link GzipCompressorOutputStream#finish()}。<br>
-	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭。
+	 * - 当 {@code outputStream} 已是 {@link GzipCompressorOutputStream} 时，方法不会关闭该对象，也<b>不会</b>调用 {@link GzipCompressorOutputStream#finish()}，
+	 *   由调用方自行决定后续操作（如需在同一流继续写入可手动调用 finish，或最终直接 close 自动完成尾写入）。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link GzipCompressorOutputStream}）时，这些包装流会在方法结束时关闭（close 自动触发 finish 写入 GZIP 尾），可能导致底层输出流被级联关闭。
 	 * </p>
 	 *
 	 * @param inputFile    待压缩的文件，必须存在且可读
@@ -293,13 +301,15 @@ public class GzipUtils {
 
 	/**
 	 * 压缩输入流到文件。
-	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，
+	 * 并关闭内部创建的文件输出流。</p>
 	 * <p>使用默认 GZIP 压缩参数。</p>
 	 *
 	 * @param inputStream 输入流，必须非 null
 	 * @param outputFile  输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当文件写入、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile) throws IOException {
@@ -308,13 +318,15 @@ public class GzipUtils {
 
 	/**
 	 * 压缩输入流到文件（指定压缩参数）。
-	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>将输入流的数据压缩为 GZIP 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，
+	 * 并关闭内部创建的文件输出流。</p>
 	 *
 	 * @param inputStream 输入流，必须非 null
 	 * @param outputFile  输出文件，必须非 null
 	 * @param parameters  GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code inputStream}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
-	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当文件写入、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile, final GzipParameters parameters) throws IOException {
@@ -330,13 +342,15 @@ public class GzipUtils {
 
 	/**
 	 * 压缩 IOResource 到文件。
-	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，
+	 * 并关闭内部创建的文件输出流和资源输入流。</p>
 	 * <p>使用默认 GZIP 压缩参数。</p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、文件写入或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile) throws IOException {
@@ -345,13 +359,15 @@ public class GzipUtils {
 
 	/**
 	 * 压缩 IOResource 到文件（指定压缩参数）。
-	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>从 IOResource 读取数据并压缩为 GZIP 格式写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link GzipCompressorOutputStream#finish()} 结束 GZIP 写入，
+	 * 并关闭内部创建的文件输出流和资源输入流。</p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
 	 * @param outputFile 输出文件，必须非 null
 	 * @param parameters GZIP 压缩参数，非空
 	 * @throws NullPointerException 当 {@code resource}、{@code outputFile} 或 {@code parameters} 为 null 时抛出
-	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、文件写入或归档完成时发生 I/O 错误时抛出
 	 * @since 2.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile, final GzipParameters parameters) throws IOException {
