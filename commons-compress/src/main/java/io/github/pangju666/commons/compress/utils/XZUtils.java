@@ -38,11 +38,11 @@ import java.util.Objects;
  *
  * <h3>核心特性</h3>
  * <ul>
- *   <li>单文件/流式压缩：适用于对单个文件或输入流进行压缩，输出为 {@code .xz}。</li>
- *   <li>多输入与输出：支持 {@link File} 与 {@link InputStream} 输入，输出到 {@link OutputStream} 或 {@link File}。</li>
- *   <li>格式校验：通过 Tika 进行 MIME 类型检测；文件/字节数组版本在调用前校验，输入流版本不预校验。</li>
- *   <li>性能优化：广泛使用缓冲与 {@link InputStream#transferTo(OutputStream)}。</li>
- *   <li>资源管理：采用 try-with-resources 自动释放内部创建的包装流。</li>
+ *   <li><strong>单文件/流式压缩</strong>：适用于对单个文件或输入流进行压缩，输出为 {@code .xz}。</li>
+ *   <li><strong>多输入与输出</strong>：支持 {@link java.io.File} 与 {@link java.io.InputStream} 输入，输出到 {@link java.io.OutputStream} 或 {@link java.io.File}。</li>
+ *   <li><strong>自定义参数</strong>：支持通过 {@link LZMA2Options} 配置压缩参数。</li>
+ *   <li><strong>性能优化</strong>：广泛使用缓冲与 {@link java.io.InputStream#transferTo(java.io.OutputStream)}。</li>
+ *   <li><strong>资源管理</strong>：采用 try-with-resources 自动释放内部创建的包装流。</li>
  * </ul>
  *
  * <h3>线程安全</h3>
@@ -97,7 +97,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link XZResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXZ(final File file) throws IOException {
 		return FileUtils.isMimeType(file, CompressConstants.XZ_MIME_TYPE);
 	}
@@ -111,7 +111,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link XZResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXZ(final byte[] bytes) {
 		return ArrayUtils.isNotEmpty(bytes) &&
 			IOConstants.getDefaultTika().detect(bytes).equals(CompressConstants.XZ_MIME_TYPE);
@@ -127,7 +127,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link XZResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isXZ(final InputStream inputStream) throws IOException {
 		return Objects.nonNull(inputStream) &&
 			IOConstants.getDefaultTika().detect(inputStream).equals(CompressConstants.XZ_MIME_TYPE);
@@ -177,6 +177,7 @@ public class XZUtils {
 					bufferedInputStream.transferTo(outputStream);
 				}
 			}
+			((XZCompressorOutputStream) outputStream).finish();
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     XZCompressorOutputStream compressorOutputStream = XZCompressorOutputStream.builder()
@@ -190,13 +191,20 @@ public class XZUtils {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
+
+				compressorOutputStream.finish();
 			}
 		}
 	}
 
 	/**
 	 * 压缩 IOResource 到输出流。
-	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入输出流。方法会自动关闭资源打开的输入流。</p>
+	 * <p>
+	 * 方法直接委托给 {@link #compress(IOResource, OutputStream, LZMA2Options)} 处理，继承其资源管理语义：<br>
+	 * - 当 {@code outputStream} 已是 {@link XZCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。<br>
+	 * - 当底层方法需要新建包装流（如 {@link BufferedOutputStream}、{@link XZCompressorOutputStream}）时，这些包装流会在写入完成后被关闭，可能导致底层 {@code outputStream} 被级联关闭。
+	 * </p>
 	 * <p>使用默认 LZMA2 压缩选项。</p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
@@ -209,10 +217,14 @@ public class XZUtils {
 		compress(resource, outputStream, new LZMA2Options());
 	}
 
-
 	/**
 	 * 压缩 IOResource 到输出流（指定压缩选项）。
-	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入输出流。方法会自动关闭资源打开的输入流。</p>
+	 * <p>
+	 * 方法直接将 {@code outputStream} 委托给底层 {@link #compress(InputStream, OutputStream, LZMA2Options)} 处理，继承其资源管理语义：<br>
+	 * - 当 {@code outputStream} 已是 {@link XZCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。<br>
+	 * - 当底层方法需要新建包装流（如 {@link BufferedOutputStream}、{@link XZCompressorOutputStream}）时，这些包装流会在写入完成后被关闭，可能导致底层 {@code outputStream} 被级联关闭。
+	 * </p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
 	 * @param outputStream 输出流，必须非 null
@@ -226,16 +238,15 @@ public class XZUtils {
 		Validate.notNull(options, "options 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 
-		try (InputStream inputStream = resource.newBufferedInputStream();
-		     BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream)) {
-			compress(inputStream, bufferedOutputStream, options);
+		try (InputStream inputStream = resource.newBufferedInputStream()) {
+			compress(inputStream, outputStream, options);
 		}
 	}
 
 	/**
 	 * 将文件内容压缩为 XZ 并写入到输出流。
 	 * <p>
-	 * - 当 {@code outputStream} 已是 {@link XZCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link XZCompressorOutputStream#finish()}。<br>
+	 * - 当 {@code outputStream} 已是 {@link XZCompressorOutputStream} 时，方法不会关闭该对象。<br>
 	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link XZCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭。
 	 * </p>
 	 *
@@ -247,7 +258,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #compress(IOResource, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(File inputFile, OutputStream outputStream) throws IOException {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -282,7 +293,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #compress(IOResource, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFile(inputFile, "inputFile 不可为 null");
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
@@ -299,6 +310,10 @@ public class XZUtils {
 	/**
 	 * 压缩输入流到文件。
 	 * <p>将输入流的数据压缩为 XZ 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>
+	 * 方法内部会通过包装输出流调用底层压缩方法，最终对 {@link XZCompressorOutputStream} 调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。
+	 * 内部创建的文件输出流及包装流会在方法结束时通过 try-with-resources 自动关闭。
+	 * </p>
 	 * <p>使用默认 LZMA2 压缩选项。</p>
 	 *
 	 * @param inputStream 输入流，必须非 null
@@ -314,6 +329,10 @@ public class XZUtils {
 	/**
 	 * 压缩输入流到文件（指定压缩选项）。
 	 * <p>将输入流的数据压缩为 XZ 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>
+	 * 方法内部会通过包装输出流调用底层压缩方法，最终对 {@link XZCompressorOutputStream} 调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。
+	 * 内部创建的文件输出流及包装流会在方法结束时通过 try-with-resources 自动关闭。
+	 * </p>
 	 *
 	 * @param inputStream 输入流，必须非 null
 	 * @param outputFile  输出文件，必须非 null
@@ -337,6 +356,10 @@ public class XZUtils {
 	/**
 	 * 压缩 IOResource 到文件。
 	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>
+	 * 方法内部会通过包装输出流调用底层压缩方法，最终对 {@link XZCompressorOutputStream} 调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。
+	 * 内部创建的文件输出流及包装流会在方法结束时通过 try-with-resources 自动关闭。
+	 * </p>
 	 * <p>使用默认 LZMA2 压缩选项。</p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
@@ -352,6 +375,10 @@ public class XZUtils {
 	/**
 	 * 压缩 IOResource 到文件（指定压缩选项）。
 	 * <p>从 IOResource 读取数据并压缩为 XZ 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>
+	 * 方法内部会通过包装输出流调用底层压缩方法，最终对 {@link XZCompressorOutputStream} 调用 {@link XZCompressorOutputStream#finish()} 完成压缩写入。
+	 * 内部创建的文件输出流及包装流会在方法结束时通过 try-with-resources 自动关闭。
+	 * </p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
 	 * @param outputFile 输出文件，必须非 null
@@ -429,7 +456,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #uncompress(XZResource, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(InputStream inputStream, OutputStream outputStream) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 		Validate.notNull(outputStream, "outputStream 不可为 null");
@@ -478,7 +505,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #uncompress(XZResource, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(File inputFile, OutputStream outputStream) throws IOException {
 		Validate.notNull(outputStream, "outputStream 不可为 null");
 		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");
@@ -507,7 +534,7 @@ public class XZUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #uncompress(XZResource, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(File inputFile, File outputFile) throws IOException {
 		FileUtils.checkFileIfExist(outputFile, "outputFile 不可为 null");
 		Validate.isTrue(isXZ(inputFile), "inputFile 不是xz压缩文件");

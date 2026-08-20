@@ -26,13 +26,16 @@
 *.tar   binary
 *.gz    binary
 *.xz    binary
+*.lz4   binary
 *.zst   binary
 *.tgz   binary
 *.txz   binary
 *.tzst  binary
+*.tlz4  binary
 *.tar.gz  binary
 *.tar.xz  binary
 *.tar.zst binary
+*.tar.lz4 binary
 *.pdf   binary
 *.doc   binary
 *.docx  binary

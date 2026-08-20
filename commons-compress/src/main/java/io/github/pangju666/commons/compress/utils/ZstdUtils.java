@@ -34,11 +34,10 @@ import java.io.*;
  *
  * <h3>核心特性</h3>
  * <ul>
- *   <li>单文件/流式压缩：适用于对单个文件或输入流进行压缩，输出为 {@code .zst}。</li>
- *   <li>多输入与输出：支持 {@link File} 与 {@link InputStream} 输入，输出到 {@link OutputStream} 或 {@link File}。</li>
- *   <li>格式校验：通过 Tika 进行 MIME 类型检测；文件/字节数组版本在调用前校验，输入流版本不预校验。</li>
- *   <li>性能优化：广泛使用缓冲与 {@link InputStream#transferTo(OutputStream)}。</li>
- *   <li>资源管理：采用 try-with-resources 自动释放内部创建的包装流。</li>
+ *   <li><strong>单文件/流式压缩</strong>：适用于对单个文件或输入流进行压缩，输出为 {@code .zst}。</li>
+ *   <li><strong>多输入与输出</strong>：支持 {@link java.io.File} 与 {@link java.io.InputStream} 输入，输出到 {@link java.io.OutputStream} 或 {@link java.io.File}。</li>
+ *   <li><strong>性能优化</strong>：广泛使用缓冲与 {@link java.io.InputStream#transferTo(java.io.OutputStream)}。</li>
+ *   <li><strong>资源管理</strong>：采用 try-with-resources 自动释放内部创建的包装流。</li>
  * </ul>
  *
  * <h3>线程安全</h3>
@@ -78,6 +77,8 @@ import java.io.*;
 public class ZstdUtils {
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 1.1.0
 	 */
 	protected ZstdUtils() {
 	}
@@ -87,11 +88,15 @@ public class ZstdUtils {
 	 * <p>将输入流的数据压缩为 Zstd 格式并写入输出流。如果传入的输出流是 {@code ZstdCompressorOutputStream}，将直接使用它；否则会创建新的 {@code ZstdCompressorOutputStream}。</p>
 	 * <p>方法会自动处理输入流的缓冲，如果输入流已经是缓冲流则直接使用，否则会创建缓冲流。</p>
 	 * <p>使用默认压缩级别 {@link ZstdConstants#ZSTD_CLEVEL_DEFAULT}。</p>
+	 * <p>
+	 * - 当 {@code outputStream} 已是 {@link ZstdCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link ZstdCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭；内部的压缩流同样会先调用 {@code finish()}。
+	 * </p>
 	 *
 	 * @param inputStream  输入流，必须非 null
 	 * @param outputStream 输出流，必须非 null（如果传入 {@code ZstdCompressorOutputStream} 则不会关闭它）
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 null 时抛出
-	 * @throws IOException          当压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当压缩过程中发生 I/O 错误或归档完成时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream) throws IOException {
@@ -102,12 +107,16 @@ public class ZstdUtils {
 	 * 压缩输入流到输出流（指定压缩级别）。
 	 * <p>将输入流的数据压缩为 Zstd 格式并写入输出流。如果传入的输出流是 {@code ZstdCompressorOutputStream}，将直接使用它；否则会创建新的 {@code ZstdCompressorOutputStream}。</p>
 	 * <p>方法会自动处理输入流的缓冲，如果输入流已经是缓冲流则直接使用，否则会创建缓冲流。</p>
+	 * <p>
+	 * - 当 {@code outputStream} 已是 {@link ZstdCompressorOutputStream} 时，方法不会关闭该对象，仅调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入。<br>
+	 * - 当方法内部创建包装流（如 {@link BufferedOutputStream}、{@link ZstdCompressorOutputStream}）时，这些包装流会在方法结束时关闭，可能导致底层输出流被关闭；内部的压缩流同样会先调用 {@code finish()}。
+	 * </p>
 	 *
 	 * @param inputStream  输入流，必须非 null
 	 * @param outputStream 输出流，必须非 null（如果传入 {@code ZstdCompressorOutputStream} 则不会关闭它）
 	 * @param level        压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputStream} 为 null 时抛出
-	 * @throws IOException          当压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当压缩过程中发生 I/O 错误或归档完成时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final OutputStream outputStream, final int level) throws IOException {
@@ -122,6 +131,8 @@ public class ZstdUtils {
 					bufferedInputStream.transferTo(outputStream);
 				}
 			}
+
+			((ZstdCompressorOutputStream) outputStream).finish();
 		} else {
 			try (BufferedOutputStream bufferedOutputStream = IOUtils.buffer(outputStream);
 			     ZstdCompressorOutputStream compressorOutputStream = ZstdCompressorOutputStream.builder()
@@ -135,19 +146,23 @@ public class ZstdUtils {
 						bufferedInputStream.transferTo(compressorOutputStream);
 					}
 				}
+
+				compressorOutputStream.finish();
 			}
 		}
 	}
 
 	/**
 	 * 压缩 IOResource 到输出流。
-	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入输出流。压缩完成后会自动调用
+	 * {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，但不会关闭传入的 outputStream
+	 *（由调用者负责）。方法会自动关闭资源打开的输入流和内部创建的缓冲流。</p>
 	 * <p>使用默认压缩级别 {@link ZstdConstants#ZSTD_CLEVEL_DEFAULT}。</p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
 	 * @param outputStream 输出流，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
-	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream) throws IOException {
@@ -156,13 +171,15 @@ public class ZstdUtils {
 
 	/**
 	 * 压缩 IOResource 到输出流（指定压缩级别）。
-	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入输出流。方法会自动关闭资源打开的输入流和创建的输出流。</p>
+	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入输出流。压缩完成后会自动调用
+	 * {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，但不会关闭传入的 outputStream
+	 *（由调用者负责）。方法会自动关闭资源打开的输入流和内部创建的缓冲流。</p>
 	 *
 	 * @param resource     IOResource 对象，必须非 null
 	 * @param outputStream 输出流，必须非 null
 	 * @param level        压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputStream} 为 null 时抛出
-	 * @throws IOException          当读取资源或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final OutputStream outputStream, final int level) throws IOException {
@@ -176,13 +193,15 @@ public class ZstdUtils {
 
 	/**
 	 * 压缩输入流到文件。
-	 * <p>将输入流的数据压缩为 Zstd 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>将输入流的数据压缩为 Zstd 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，
+	 * 并关闭内部创建的文件输出流。</p>
 	 * <p>使用默认压缩级别 {@link ZstdConstants#ZSTD_CLEVEL_DEFAULT}。</p>
 	 *
 	 * @param inputStream 输入流，必须非 null
 	 * @param outputFile  输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当文件写入、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile) throws IOException {
@@ -191,13 +210,15 @@ public class ZstdUtils {
 
 	/**
 	 * 压缩输入流到文件（指定压缩级别）。
-	 * <p>将输入流的数据压缩为 Zstd 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>将输入流的数据压缩为 Zstd 格式并写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，
+	 * 并关闭内部创建的文件输出流。</p>
 	 *
 	 * @param inputStream 输入流，必须非 null
 	 * @param outputFile  输出文件，必须非 null
 	 * @param level       压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code inputStream} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当文件写入或压缩过程中发生 I/O 错误时抛出
+	 * @throws IOException          当文件写入、压缩过程或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final InputStream inputStream, final File outputFile, final int level) throws IOException {
@@ -213,13 +234,15 @@ public class ZstdUtils {
 
 	/**
 	 * 压缩 IOResource 到文件。
-	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，
+	 * 并关闭内部创建的文件输出流和资源输入流。</p>
 	 * <p>使用默认压缩级别 {@link ZstdConstants#ZSTD_CLEVEL_DEFAULT}。</p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
 	 * @param outputFile 输出文件，必须非 null
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、文件写入或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile) throws IOException {
@@ -228,13 +251,15 @@ public class ZstdUtils {
 
 	/**
 	 * 压缩 IOResource 到文件（指定压缩级别）。
-	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入指定文件。会自动创建父目录并覆盖已存在文件。</p>
+	 * <p>从 IOResource 读取数据并压缩为 Zstd 格式写入指定文件。会自动创建父目录并覆盖已存在文件。
+	 * 压缩完成后会自动调用 {@link ZstdCompressorOutputStream#finish()} 结束 Zstd 写入，
+	 * 并关闭内部创建的文件输出流和资源输入流。</p>
 	 *
 	 * @param resource   IOResource 对象，必须非 null
 	 * @param outputFile 输出文件，必须非 null
 	 * @param level      压缩级别，范围为 {@link ZstdConstants#ZSTD_CLEVEL_MIN} 到 {@link ZstdConstants#ZSTD_CLEVEL_MAX}
 	 * @throws NullPointerException 当 {@code resource} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当读取资源或文件写入过程中发生 I/O 错误时抛出
+	 * @throws IOException          当读取资源、文件写入或归档完成时发生 I/O 错误时抛出
 	 * @since 1.1.0
 	 */
 	public static void compress(final IOResource resource, final File outputFile, final int level) throws IOException {

@@ -87,6 +87,8 @@ import java.util.function.Consumer;
 public class TarUtils {
 	/**
 	 * 受保护的构造函数，防止实例化。
+	 *
+	 * @since 1.0.0
 	 */
 	protected TarUtils() {
 	}
@@ -103,7 +105,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link TarResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isTar(final File file) throws IOException {
 		return FileUtils.isMimeType(file, CompressConstants.TAR_MIME_TYPE);
 	}
@@ -117,7 +119,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link TarResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isTar(final byte[] bytes) {
 		return ArrayUtils.isNotEmpty(bytes) &&
 			IOConstants.getDefaultTika().detect(bytes).equals(CompressConstants.TAR_MIME_TYPE);
@@ -133,7 +135,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link TarResource} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static boolean isTar(final InputStream inputStream) throws IOException {
 		return Objects.nonNull(inputStream) &&
 			IOConstants.getDefaultTika().detect(inputStream).equals(CompressConstants.TAR_MIME_TYPE);
@@ -151,7 +153,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #extract(TarResource, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(final File inputFile, final File outputDir) throws IOException {
 		Validate.notNull(inputFile, "inputFile 不可为 null");
 		Validate.isTrue(isTar(inputFile), "inputFile 不是tar压缩文件");
@@ -173,7 +175,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #extract(TarResource, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(final byte[] bytes, final File outputDir) throws IOException {
 		Validate.isTrue(ArrayUtils.isNotEmpty(bytes), "bytes 不可为空");
 		Validate.isTrue(isTar(bytes), "bytes 不是tar压缩文件数据");
@@ -195,7 +197,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #extract(TarArchiveInputStream, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(final InputStream inputStream, final File outputDir) throws IOException {
 		Validate.notNull(inputStream, "inputStream 不可为 null");
 
@@ -227,7 +229,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #extract(TarArchiveInputStream, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(final TarArchiveInputStream tarArchiveInputStream, final File outputDir) throws IOException {
 		extract(tarArchiveInputStream, outputDir);
 	}
@@ -242,7 +244,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #extract(TarFile, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void uncompress(final TarFile tarFile, final File outputDir) throws IOException {
 		extract(tarFile, outputDir);
 	}
@@ -263,7 +265,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #archive(File, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(final File inputFile, final File outputFile) throws IOException {
 		archive(inputFile, outputFile);
 	}
@@ -284,7 +286,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #archive(File, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(final File inputFile, final OutputStream outputStream) throws IOException {
 		archive(inputFile, outputStream);
 	}
@@ -306,7 +308,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #archive(Collection, File)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(final Collection<File> inputFiles, final File outputFile) throws IOException {
 		archive(inputFiles, outputFile);
 	}
@@ -327,7 +329,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用{@link #archive(Collection, OutputStream)} 代替
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	public static void compress(final Collection<File> inputFiles, final OutputStream outputStream) throws IOException {
 		archive(inputFiles, outputStream);
 	}
@@ -385,14 +387,15 @@ public class TarUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式文件。</p>
 	 *
 	 * @param inputFile  要压缩的文件或目录，必须存在且可读
-	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
-	 *                              </ul>
+	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 {@code null} 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读（例如抛出 {@code FileNotFoundException}）</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误或磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 1.1.0
 	 */
 	public static void archive(final File inputFile, final File outputFile) throws IOException {
@@ -404,16 +407,17 @@ public class TarUtils {
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式文件，并通过 Consumer 对每个 TAR 条目进行自定义处理。</p>
 	 *
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
-	 * @param outputFile           输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile           输出 TAR 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @param archiveEntryConsumer TAR 条目处理器，可为 null
-	 * @throws NullPointerException 当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
-	 * @throws IOException          当发生以下情况时抛出：
-	 *                              <ul>
-	 *                                  <li>输入文件不存在或不可读</li>
-	 *                                  <li>输出文件不可写</li>
-	 *                                  <li>压缩过程中发生 I/O 错误</li>
-	 *                                  <li>磁盘空间不足</li>
-	 *                              </ul>
+	 * @throws NullPointerException     当 {@code inputFile} 或 {@code outputFile} 为 null 时抛出
+	 * @throws IllegalArgumentException 当 {@code outputFile} 存在但不是文件时抛出
+	 * @throws IOException              当发生以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>输入文件不存在或不可读</li>
+	 *                                      <li>输出文件不可写</li>
+	 *                                      <li>压缩过程中发生 I/O 错误</li>
+	 *                                      <li>磁盘空间不足</li>
+	 *                                  </ul>
 	 * @since 1.1.0
 	 */
 	public static void archive(final File inputFile, final File outputFile,
@@ -431,6 +435,10 @@ public class TarUtils {
 	/**
 	 * 压缩文件/目录到输出流。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(File, OutputStream, Consumer)} 处理；
+	 * 无论传入的是否为 {@link TarArchiveOutputStream}，此方法<b>不会</b>关闭调用方传入的 {@code outputStream}。
+	 * </p>
 	 *
 	 * @param inputFile    要压缩的文件或目录，必须存在且可读
 	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
@@ -450,7 +458,11 @@ public class TarUtils {
 	/**
 	 * 压缩文件/目录到输出流，支持自定义 TAR 条目处理器。
 	 * <p>将单个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流，通过 Consumer 对每个 TAR 条目进行自定义处理。</p>
-	 * <p>如果传入的输出流是 {@code TarArchiveOutputStream}，将直接使用它；否则会创建新的 {@code TarArchiveOutputStream}。</p>
+	 * <p>
+	 * 若传入的是 {@link TarArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
+	 * 处理（其内部会调用 {@link TarArchiveOutputStream#finish()} 结束归档写入，但<b>不会</b>关闭传入流）；
+	 * 否则会使用 {@link BufferedOutputStream} 包装原始流后创建临时 {@link TarArchiveOutputStream}进行压缩。
+	 * </p>
 	 *
 	 * @param inputFile            要压缩的文件或目录，必须存在且可读
 	 * @param outputStream         输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -483,9 +495,13 @@ public class TarUtils {
 	 * <p>将多个文件或目录（递归包含子目录）压缩为单个 TAR 格式文件。</p>
 	 *
 	 * @param inputFiles 要压缩的文件/目录集合，必须非空且所有文件必须存在
-	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile 输出 TAR 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @throws NullPointerException     当 {@code outputFile} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件时抛出
+	 * @throws IllegalArgumentException 当出现以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>{@code inputFiles} 为空或包含 null 或不存在的文件/目录</li>
+	 *                                      <li>{@code outputFile} 存在但不是文件</li>
+	 *                                  </ul>
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
 	 *                                      <li>输出文件不可写</li>
@@ -503,10 +519,14 @@ public class TarUtils {
 	 * <p>将多个文件或目录（递归包含子目录）压缩为单个 TAR 格式文件，通过 Consumer 对每个 TAR 条目进行自定义处理。</p>
 	 *
 	 * @param inputFiles           要压缩的文件/目录集合，必须非空且所有文件必须存在
-	 * @param outputFile           输出 TAR 文件路径，会自动创建父目录并覆盖已存在文件
+	 * @param outputFile           输出 TAR 文件路径，会自动创建父目录；若已存在则必须为文件（非目录），存在时将被覆盖
 	 * @param archiveEntryConsumer TAR 条目处理器，可为 null
 	 * @throws NullPointerException     当 {@code outputFile} 为 null 时抛出
-	 * @throws IllegalArgumentException 当 {@code inputFiles} 为空或包含 null 或不存在的文件时抛出
+	 * @throws IllegalArgumentException 当出现以下情况时抛出：
+	 *                                  <ul>
+	 *                                      <li>{@code inputFiles} 为空或包含 null 或不存在的文件/目录</li>
+	 *                                      <li>{@code outputFile} 存在但不是文件</li>
+	 *                                  </ul>
 	 * @throws IOException              当发生以下情况时抛出：
 	 *                                  <ul>
 	 *                                      <li>输出文件不可写</li>
@@ -530,6 +550,10 @@ public class TarUtils {
 	/**
 	 * 批量压缩文件/目录到输出流。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流。</p>
+	 * <p>
+	 * 方法委托给 {@link #archive(Collection, OutputStream, Consumer)} 处理；
+	 * 无论传入的是否为 {@link TarArchiveOutputStream}，此方法<b>不会</b>关闭调用方传入的 {@code outputStream}。
+	 * </p>
 	 *
 	 * @param inputFiles   要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream 输出流对象，必须可写且非空（方法不会自动关闭此流）
@@ -549,7 +573,11 @@ public class TarUtils {
 	/**
 	 * 批量压缩文件到输出流，支持自定义 TAR 条目处理器。
 	 * <p>将多个文件或目录（递归包含子目录）压缩为 TAR 格式并写入输出流，通过 Consumer 对每个 TAR 条目进行自定义处理。</p>
-	 * <p>如果传入的输出流是 {@code TarArchiveOutputStream}，将直接使用它；否则会创建新的 {@code TarArchiveOutputStream}。</p>
+	 * <p>
+	 * 若传入的是 {@link TarArchiveOutputStream}，直接委托给 {@link ArchiveUtils#archive(Collection, ArchiveOutputStream, Consumer)}
+	 * 处理（其内部会调用 {@link TarArchiveOutputStream#finish()} 结束归档写入，但<b>不会</b>关闭传入流）；
+	 * 否则会使用 {@link BufferedOutputStream} 包装原始流后创建临时 {@link TarArchiveOutputStream}进行压缩。
+	 * </p>
 	 *
 	 * @param inputFiles           要压缩的文件集合，必须非空且所有文件必须存在
 	 * @param outputStream         输出流对象，必须可写且不为 null（方法不会自动关闭此流）
@@ -595,7 +623,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static void addDir(File inputDir, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {
 		String entryName = inputDir.getName();
 		if (StringUtils.isNotBlank(parent)) {
@@ -636,7 +664,7 @@ public class TarUtils {
 	 * @since 1.0.0
 	 * @deprecated 请使用 {@link ArchiveUtils#archive(File, ArchiveOutputStream, Consumer)}
 	 */
-	@Deprecated(forRemoval = true, since = "2.1.0")
+	@Deprecated(forRemoval = true, since = "1.1.0")
 	protected static void addFile(File inputFile, TarArchiveOutputStream tarArchiveOutputStream, String parent) throws IOException {
 		try (InputStream inputStream = FileUtils.openBufferedFileChannelInputStream(inputFile)) {
 			String entryName = inputFile.getName();
