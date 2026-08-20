@@ -40,7 +40,6 @@ import java.util.UUID;
  *
  * <h3>功能特性</h3>
  * <ul>
- *   <li>格式分发：基于文件扩展名进行分发，不进行内容嗅探；如需严格的格式校验请使用各具体工具的 <code>is*</code> 方法。</li>
  *   <li>组合格式支持：<code>tgz</code>/<code>tar.gz</code>、<code>txz</code>/<code>tar.xz</code>、<code>tzst</code>/<code>tar.zst</code>、<code>tlz4</code>/<code>tar.lz4</code> 通过中间 TAR 文件再压缩实现，临时 TAR 文件会在完成后删除。</li>
  *   <li>多输入源：支持单文件、目录（递归）、以及文件集合（集合仅支持归档格式）。</li>
  *   <li>资源管理：方法内部创建的流会在方法内正确关闭；调用方传入的 <code>OutputStream</code> 不会被自动关闭。</li>
@@ -201,7 +200,6 @@ public class CompressUtils {
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 Zstandard 压缩，最后删除临时 TAR 文件。</li>
 	 *   <li><code>tlz4</code>/<code>tar.lz4</code>：先 TAR 打包到系统临时目录的临时文件，再对该 TAR 进行 LZ4 压缩，最后删除临时 TAR 文件。</li>
 	 * </ul>
-	 * 该方法仅依据输出文件扩展名进行分发，不进行内容嗅探。
 	 * </p>
 	 *
 	 * @param inputFile  输入源，可为单个文件或目录（目录将递归打包，具体行为由目标工具类决定）
@@ -277,7 +275,7 @@ public class CompressUtils {
 	 *   <li><code>tzst</code>/<code>tar.zst</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 Zstandard 压缩到目标文件，最后删除临时 TAR。</li>
 	 *   <li><code>tlz4</code>/<code>tar.lz4</code>：先将集合打包为 TAR（写入系统临时目录的临时文件），再 LZ4 压缩到目标文件，最后删除临时 TAR。</li>
 	 * </ul>
-	 * 不支持单文件压缩格式 <code>gz</code>/<code>xz</code>/<code>zst</code> 的集合输入。
+	 * 不支持单文件压缩格式 <code>gz</code>/<code>xz</code>/<code>zst</code>/<code>lz4</code> 的集合输入。
 	 * </p>
 	 *
 	 * @param inputFiles 输入文件集合，集合内元素应为文件或目录
