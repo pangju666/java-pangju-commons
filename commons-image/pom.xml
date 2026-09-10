@@ -39,7 +39,6 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-image-module</artifactId>
-			<version>${tika.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.pangju666.commons</groupId>
