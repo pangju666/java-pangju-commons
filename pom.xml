@@ -13,7 +13,9 @@
 	<version>1.1.0</version>
 	<packaging>pom</packaging>
 	<name>commons-parent</name>
-	<description>公共工具类库父项目</description>
+	<description>基于 Apache Commons 等主流工具库构建的 Java
+		通用工具类库，涵盖基础工具、文件压缩、加解密、地理信息、图像处理、IO操作、PDF/Office文档处理、OCR识别、视频处理和参数校验等常用场景。
+	</description>
 	<url>https://github.com/pangju666/java-pangju-commons</url>
 
 	<modules>
